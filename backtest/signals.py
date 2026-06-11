@@ -39,7 +39,8 @@ def range_breakout(data, range_h: int = 48, volume_confirm_mult: float = 2.0) ->
     return pd.Series(out, index=c.index)
 
 
-def taker_flow(data, lookback_h: int = 24, threshold: float = 0.06) -> pd.Series:
+def taker_flow(data, lookback_h: int = 24, threshold: float = 0.02) -> pd.Series:
+    # threshold calibrata su BTC 12 mesi: |ratio-0.5| p90 ≈ 0.02 (24h) / 0.027 (12h)
     """+1 = aggressori in acquisto (taker buy ratio > 0.5+thr), -1 = in vendita."""
     candles = data["candles"]
     flow = data.get("flow")

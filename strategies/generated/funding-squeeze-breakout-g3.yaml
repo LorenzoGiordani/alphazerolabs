@@ -1,0 +1,75 @@
+id: funding-squeeze-breakout-g3
+thesis: 'La tesi del parent è giusta ma l''esecuzione muore di stop: 15/32 trade stoppati
+  con stop 2.5% su rumore 1h di BTC. Range più lungo (72h) = breakout più rari ma
+  più significativi; stop più largo (3.5%) sopravvive al rumore; target più ambizioso
+  sfrutta i trend che il parent già prende. Falsificata se: il churn da stop non cala
+  o il maxDD peggiora oltre il 15%.
+
+  '
+universe:
+  selection: top_liquidity
+  max_assets: 10
+  kinds:
+  - perp
+timeframe: 1h
+decision_every_h: 4
+signals:
+- name: funding_percentile
+  params:
+    lookback_h: 168
+    extreme_pct: 90
+- name: range_breakout
+  params:
+    range_h: 72
+    volume_confirm_mult: 2.5
+entry:
+  rule: funding_percentile AND range_breakout
+  direction: with_breakout
+exit:
+  stop_pct: 3.5
+  target_r: 2.5
+  time_stop_h: 96
+evolution:
+  mutable:
+  - signals
+  - entry
+  - exit
+  - universe.max_assets
+  - decision_every_h
+  notes: Stessa tesi del parent, esecuzione ricalibrata sul breakdown delle uscite
+    (15 stop / 5 target). Selettività su (range più lungo, volume più alto), tolleranza
+    al rumore su (stop più largo).
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 3
+parent: funding-squeeze-breakout-v1
+status: candidate
+created: '2026-06-11'
+backtest:
+  BTC_6m:
+    metrics:
+      total_return: -0.041874976362461847
+      sharpe: -1.3266948311241702
+      max_drawdown: -0.07375523206634571
+      n_trades: 18
+      win_rate: 0.3333333333333333
+      profit_factor: 0.5597760470591141
+    regimes:
+      bear:
+        ret: -0.0021183377486982957
+        sharpe: -0.2529128268284226
+        hours: 468
+      bull:
+        ret: 0.010773383333108733
+        sharpe: 14.080392876521037
+        hours: 85
+      chop:
+        ret: -0.05007494216870534
+        sharpe: -2.329908460330637
+        hours: 3765
+    consistency: 1/6 fold positivi
+    exits:
+      closed: 10
+      stopped: 7
+      target: 1

@@ -1,0 +1,73 @@
+id: funding-squeeze-breakout-g1
+thesis: 'Il parent perde nel chop perché tratta ogni rottura di range come breakout.
+  Una rottura che parte da volatilità compressa ha follow-through; una in volatilità
+  normale è rumore. Falsificata se: breakout filtrato per compressione non batte il
+  breakout semplice su 6 mesi walk-forward.
+
+  '
+universe:
+  selection: top_liquidity
+  max_assets: 10
+  kinds:
+  - perp
+timeframe: 1h
+decision_every_h: 4
+signals:
+- name: vol_compression
+  params:
+    lookback_h: 48
+    pct: 20
+- name: range_breakout
+  params:
+    range_h: 48
+    volume_confirm_mult: 2.0
+entry:
+  rule: vol_compression AND range_breakout
+  direction: with_breakout
+exit:
+  stop_pct: 2.5
+  target_r: 2.5
+  time_stop_h: 72
+evolution:
+  mutable:
+  - signals
+  - entry
+  - exit
+  - universe.max_assets
+  - decision_every_h
+  notes: 'Sostituito filtro funding con vol_compression: attacca direttamente la perdita
+    nel chop. Funding filtrava il crowding ma non la qualità del breakout.'
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 3
+parent: funding-squeeze-breakout-v1
+status: candidate
+created: '2026-06-11'
+backtest:
+  BTC_6m:
+    metrics:
+      total_return: -0.03267301369881648
+      sharpe: -0.6218783079178812
+      max_drawdown: -0.12053359558188324
+      n_trades: 41
+      win_rate: 0.2926829268292683
+      profit_factor: 0.9078024096687594
+    regimes:
+      bear:
+        ret: 0.04941782583612109
+        sharpe: 8.724210284039696
+        hours: 468
+      bull:
+        ret: 0.013410800929267941
+        sharpe: 15.237003243067258
+        hours: 85
+      chop:
+        ret: -0.09042327635271363
+        sharpe: -2.156725970802186
+        hours: 3765
+    consistency: 2/6 fold positivi
+    exits:
+      closed: 18
+      stopped: 17
+      target: 6

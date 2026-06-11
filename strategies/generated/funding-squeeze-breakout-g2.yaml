@@ -1,0 +1,73 @@
+id: funding-squeeze-breakout-g2
+thesis: 'Funding a estremo + taker flow che spinge nello stesso verso del crowding
+  = esaurimento: chi doveva comprare ha comprato. Il fade dell''affollamento paga
+  nel chop (dove il parent perde) perché i prezzi tornano in range. Falsificata se:
+  il fade perde anche nel regime chop o subisce squeeze ripetuti nei trend.
+
+  '
+universe:
+  selection: top_liquidity
+  max_assets: 10
+  kinds:
+  - perp
+timeframe: 1h
+decision_every_h: 4
+signals:
+- name: funding_percentile
+  params:
+    lookback_h: 168
+    extreme_pct: 92
+- name: taker_flow
+  params:
+    lookback_h: 24
+    threshold: 0.02
+entry:
+  rule: funding_percentile AND taker_flow
+  direction: contrarian_funding
+exit:
+  stop_pct: 2.0
+  target_r: 1.5
+  time_stop_h: 24
+evolution:
+  mutable:
+  - signals
+  - entry
+  - exit
+  - universe.max_assets
+  - decision_every_h
+  notes: 'Inversione completa: da trend-following a mean-reversion sul crowding. Stop
+    stretto e time_stop corto: la tesi di esaurimento o si realizza subito o è sbagliata.'
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 3
+parent: funding-squeeze-breakout-v1
+status: candidate
+created: '2026-06-11'
+backtest:
+  BTC_6m:
+    metrics:
+      total_return: 0.011639007378571042
+      sharpe: 0.6931442570140622
+      max_drawdown: -0.016722676332402365
+      n_trades: 11
+      win_rate: 0.6363636363636364
+      profit_factor: 1.6523501151970543
+    regimes:
+      bear:
+        ret: 0.0
+        sharpe: 0.0
+        hours: 468
+      bull:
+        ret: 0.0
+        sharpe: 0.0
+        hours: 85
+      chop:
+        ret: 0.011639007378570376
+        sharpe: 0.7422954858632586
+        hours: 3765
+    consistency: 4/6 fold positivi
+    exits:
+      closed: 7
+      stopped: 2
+      target: 2

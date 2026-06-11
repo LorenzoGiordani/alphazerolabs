@@ -1,0 +1,75 @@
+id: funding-squeeze-breakout-g4
+thesis: 'Il filtro funding del parent è troppo restrittivo (19 barre di entry in 6
+  mesi) e ortogonale alla qualità del breakout. La conferma diretta è il taker flow:
+  rottura di range CON aggressori nella direzione della rottura = vera partecipazione.
+  Falsificata se: aggiungere taker_flow non migliora win rate o profit factor rispetto
+  al breakout semplice.
+
+  '
+universe:
+  selection: top_liquidity
+  max_assets: 10
+  kinds:
+  - perp
+timeframe: 1h
+decision_every_h: 4
+signals:
+- name: range_breakout
+  params:
+    range_h: 48
+    volume_confirm_mult: 1.5
+- name: taker_flow
+  params:
+    lookback_h: 12
+    threshold: 0.025
+entry:
+  rule: range_breakout AND taker_flow
+  direction: with_breakout
+exit:
+  stop_pct: 2.5
+  target_r: 3.0
+  time_stop_h: 72
+evolution:
+  mutable:
+  - signals
+  - entry
+  - exit
+  - universe.max_assets
+  - decision_every_h
+  notes: 'Funding sostituito da conferma di flusso (più entry, conferma più pertinente).
+    Volume mult abbassato a 1.5 perché taker_flow già filtra la partecipazione. Target
+    3R: i breakout confermati dal flusso meritano più corda.'
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 3
+parent: funding-squeeze-breakout-v1
+status: candidate
+created: '2026-06-11'
+backtest:
+  BTC_6m:
+    metrics:
+      total_return: -0.09024172430260913
+      sharpe: -1.592663677280311
+      max_drawdown: -0.1740204796857051
+      n_trades: 57
+      win_rate: 0.3684210526315789
+      profit_factor: 0.7625564239514993
+    regimes:
+      bear:
+        ret: 0.05338686746859178
+        sharpe: 4.555121096218219
+        hours: 468
+      bull:
+        ret: 0.014487681305532574
+        sharpe: 9.73248344711133
+        hours: 85
+      chop:
+        ret: -0.14868293853078396
+        sharpe: -3.9031455583722257
+        hours: 3765
+    consistency: 2/6 fold positivi
+    exits:
+      stopped: 29
+      closed: 25
+      target: 3

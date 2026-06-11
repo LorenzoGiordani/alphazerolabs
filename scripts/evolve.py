@@ -1,20 +1,27 @@
 """Outer loop evolutivo — generazione 1: LLM propone mutazioni, harness valuta.
 
-Uso: uv run scripts/evolve.py strategies/<parent>.yaml BTC [n_candidati]
+Uso: uv run scripts/evolve.py strategies/<parent>.yaml BTC [n_candidati | candidati.yaml]
+
+Terzo argomento file .yaml (multi-documento, separatore ---) → salta la chiamata
+LLM e valuta quei candidati. Serve quando il generatore è una sessione Claude
+Code interattiva (piano Pro) invece di `claude -p`.
 
 Flusso: valuta parent → 1 chiamata Claude (N mutazioni in YAML) → validazione
 hard (registry, blocco risk forzato uguale al parent) → backtest di ogni
 candidato → leaderboard → salvataggio in strategies/generated/.
 
-Costo: 1 chiamata API per generazione. Usage stampato a fine run.
+LLM via `claude -p` (headless Claude Code → coperto dal piano Pro, niente API
+key). Env ANTHROPIC_* rimosso dal subprocess: ~/.zshrc punta a un proxy
+DashScope scaduto che dirotterebbe la chiamata.
 """
 
 import json
+import os
+import subprocess
 import sys
 from datetime import date
 from pathlib import Path
 
-import anthropic
 import pandas as pd
 import yaml
 
@@ -25,8 +32,18 @@ from backtest.signals import SIGNALS
 from backtest.strategy import compile_strategy, load
 from backtest.walkforward import evaluate
 
-MODEL = "claude-opus-4-8"
 OUT_DIR = Path("strategies/generated")
+
+SYSTEM = (
+    "Sei un ricercatore quantitativo. Proponi mutazioni di una strategia di trading "
+    "su perps Hyperliquid (candele 1h). Lavori SOLO con i segnali del registry. "
+    "Ogni mutazione: tesi falsificabile aggiornata, motivazione in evolution.notes, "
+    "diversità tra i candidati (non solo tweak di parametri — anche rule, direction, exit). "
+    "Vietato toccare il blocco risk. Obiettivo: consistenza tra fold e regimi, non massimizzare "
+    "il ritorno totale (overfitting = morte). Penalizza la complessità: meno segnali se possibile. "
+    'Rispondi SOLO con JSON valido: {"candidates": [{"yaml": "<strategia YAML completa>"}, ...]} '
+    "— nessun testo fuori dal JSON, niente markdown fence."
+)
 
 REGISTRY_DOC = """Segnali disponibili (REGISTRY CHIUSO — solo questi, solo questi params):
 - funding_percentile(lookback_h=168, extreme_pct=90): +1 funding a estremo positivo (crowding long), -1 estremo negativo
@@ -37,24 +54,19 @@ REGISTRY_DOC = """Segnali disponibili (REGISTRY CHIUSO — solo questi, solo que
 entry.rule: nomi segnale composti con AND/OR (es. "vol_compression AND taker_flow").
 entry.direction: signal_vote | follow:<segnale> | contrarian:<segnale> | with_breakout | contrarian_funding"""
 
-SCHEMA = {
-    "type": "object",
-    "properties": {
-        "candidates": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "yaml": {"type": "string", "description": "Strategia completa in YAML, stesso schema del parent"},
-                },
-                "required": ["yaml"],
-                "additionalProperties": False,
-            },
-        }
-    },
-    "required": ["candidates"],
-    "additionalProperties": False,
-}
+def ask_claude(prompt: str) -> dict:
+    """Headless Claude Code (`claude -p`) — usa il piano Pro, non l'API a consumo."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("ANTHROPIC_")}
+    r = subprocess.run(
+        ["claude", "-p", "--output-format", "json", "--append-system-prompt", SYSTEM],
+        input=prompt, capture_output=True, text=True, timeout=600, env=env,
+    )
+    if r.returncode != 0:
+        raise RuntimeError(f"claude -p fallito: {r.stderr[:500]}")
+    result = json.loads(r.stdout)["result"].strip()
+    if result.startswith("```"):
+        result = result.split("\n", 1)[1].rsplit("```", 1)[0]
+    return json.loads(result)
 
 
 def eval_spec(spec: dict, data: dict) -> dict:
@@ -64,7 +76,8 @@ def eval_spec(spec: dict, data: dict) -> dict:
     m = compute(equity, bt.trades)
     ev = evaluate(equity, data["candles"])
     exits = pd.Series([t["reason"] for t in bt.trades]).value_counts().to_dict() if bt.trades else {}
-    return {"metrics": m, "regimes": ev["regimes"], "consistency": ev["consistency"], "exits": exits}
+    res = {"metrics": m, "regimes": ev["regimes"], "consistency": ev["consistency"], "exits": exits}
+    return json.loads(json.dumps(res, default=float))  # via i tipi numpy (rompono yaml.safe_dump)
 
 
 def validate(spec: dict, parent: dict, idx: int) -> dict:
@@ -87,7 +100,9 @@ def validate(spec: dict, parent: dict, idx: int) -> dict:
 
 def main() -> None:
     parent_path, symbol = sys.argv[1], sys.argv[2]
-    n = int(sys.argv[3]) if len(sys.argv) > 3 else 4
+    arg3 = sys.argv[3] if len(sys.argv) > 3 else "4"
+    candidates_file = arg3 if arg3.endswith((".yaml", ".yml")) else None
+    n = 4 if candidates_file else int(arg3)
     months = 6
 
     candles = pd.read_parquet(f"data/candles/{symbol}.parquet").tail(months * 30 * 24).reset_index(drop=True)
@@ -102,22 +117,10 @@ def main() -> None:
     print(f"parent {parent['id']}: ret {parent_eval['metrics']['total_return']:+.2%}, "
           f"sharpe {parent_eval['metrics']['sharpe']:.2f}, {parent_eval['consistency']}")
 
-    client = anthropic.Anthropic()
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=8000,
-        thinking={"type": "adaptive"},
-        system=(
-            "Sei un ricercatore quantitativo. Proponi mutazioni di una strategia di trading "
-            "su perps Hyperliquid (candele 1h). Lavori SOLO con i segnali del registry. "
-            "Ogni mutazione: tesi falsificabile aggiornata, motivazione in evolution.notes, "
-            "diversità tra i candidati (non solo tweak di parametri — anche rule, direction, exit). "
-            "Vietato toccare il blocco risk. Obiettivo: consistenza tra fold e regimi, non massimizzare "
-            "il ritorno totale (overfitting = morte). Penalizza la complessità: meno segnali se possibile."
-        ),
-        messages=[{
-            "role": "user",
-            "content": f"""{REGISTRY_DOC}
+    if candidates_file:
+        specs = [d for d in yaml.safe_load_all(Path(candidates_file).read_text()) if d]
+    else:
+        prompt = f"""{REGISTRY_DOC}
 
 PARENT (YAML):
 {Path(parent_path).read_text()}
@@ -127,19 +130,14 @@ RISULTATI PARENT su {symbol}, {months} mesi (fee/slippage/funding inclusi):
 
 Baseline buy-and-hold: ret {bh['total_return']:+.2%}, sharpe {bh['sharpe']:.2f}, maxDD {bh['max_drawdown']:.2%}
 
-Proponi {n} mutazioni in YAML (schema identico al parent).""",
-        }],
-        output_config={"format": {"type": "json_schema", "schema": SCHEMA}},
-    )
-
-    text = next(b.text for b in response.content if b.type == "text")
-    raw = json.loads(text)["candidates"]
+Proponi {n} mutazioni in YAML (schema identico al parent)."""
+        specs = [yaml.safe_load(c["yaml"]) for c in ask_claude(prompt)["candidates"]]
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     rows = []
-    for i, c in enumerate(raw, 1):
+    for i, cand in enumerate(specs, 1):
         try:
-            spec = validate(yaml.safe_load(c["yaml"]), parent, i)
+            spec = validate(cand, parent, i)
             res = eval_spec(spec, data)
             spec["backtest"] = {f"{symbol}_{months}m": res}
             out = OUT_DIR / f"{spec['id']}.yaml"
@@ -155,9 +153,6 @@ Proponi {n} mutazioni in YAML (schema identico al parent).""",
         print(f"  {sid:<40} ret {m['total_return']:+7.2%} | sharpe {m['sharpe']:6.2f} | "
               f"maxDD {m['max_drawdown']:7.2%} | trades {m['n_trades']:>3} | {res['consistency']}")
 
-    u = response.usage
-    print(f"\ncosto LLM: in {u.input_tokens} + out {u.output_tokens} token "
-          f"(~${u.input_tokens * 5 / 1e6 + u.output_tokens * 25 / 1e6:.3f})")
 
 
 if __name__ == "__main__":

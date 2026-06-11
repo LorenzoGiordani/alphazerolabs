@@ -1,0 +1,83 @@
+# Generazione 1 — candidati proposti da Claude (sessione 12/06, piano Pro)
+# Parent: funding-squeeze-breakout-v1 (ret -4.74%, sharpe -1.04, 1/6 fold, chop -8.65%)
+id: tmp-g1
+thesis: >
+  Il parent perde nel chop perché tratta ogni rottura di range come breakout.
+  Una rottura che parte da volatilità compressa ha follow-through; una in
+  volatilità normale è rumore. Falsificata se: breakout filtrato per
+  compressione non batte il breakout semplice su 6 mesi walk-forward.
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: vol_compression
+    params: {lookback_h: 48, pct: 20}
+  - name: range_breakout
+    params: {range_h: 48, volume_confirm_mult: 2.0}
+entry: {rule: vol_compression AND range_breakout, direction: with_breakout}
+exit: {stop_pct: 2.5, target_r: 2.5, time_stop_h: 72}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "Sostituito filtro funding con vol_compression: attacca direttamente la perdita nel chop. Funding filtrava il crowding ma non la qualità del breakout."
+---
+id: tmp-g2
+thesis: >
+  Funding a estremo + taker flow che spinge nello stesso verso del crowding =
+  esaurimento: chi doveva comprare ha comprato. Il fade dell'affollamento paga
+  nel chop (dove il parent perde) perché i prezzi tornano in range. Falsificata
+  se: il fade perde anche nel regime chop o subisce squeeze ripetuti nei trend.
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: funding_percentile
+    params: {lookback_h: 168, extreme_pct: 92}
+  - name: taker_flow
+    params: {lookback_h: 24, threshold: 0.02}
+entry: {rule: funding_percentile AND taker_flow, direction: contrarian_funding}
+exit: {stop_pct: 2.0, target_r: 1.5, time_stop_h: 24}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "Inversione completa: da trend-following a mean-reversion sul crowding. Stop stretto e time_stop corto: la tesi di esaurimento o si realizza subito o è sbagliata."
+---
+id: tmp-g3
+thesis: >
+  La tesi del parent è giusta ma l'esecuzione muore di stop: 15/32 trade
+  stoppati con stop 2.5% su rumore 1h di BTC. Range più lungo (72h) = breakout
+  più rari ma più significativi; stop più largo (3.5%) sopravvive al rumore;
+  target più ambizioso sfrutta i trend che il parent già prende. Falsificata
+  se: il churn da stop non cala o il maxDD peggiora oltre il 15%.
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: funding_percentile
+    params: {lookback_h: 168, extreme_pct: 90}
+  - name: range_breakout
+    params: {range_h: 72, volume_confirm_mult: 2.5}
+entry: {rule: funding_percentile AND range_breakout, direction: with_breakout}
+exit: {stop_pct: 3.5, target_r: 2.5, time_stop_h: 96}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "Stessa tesi del parent, esecuzione ricalibrata sul breakdown delle uscite (15 stop / 5 target). Selettività su (range più lungo, volume più alto), tolleranza al rumore su (stop più largo)."
+---
+id: tmp-g4
+thesis: >
+  Il filtro funding del parent è troppo restrittivo (19 barre di entry in 6
+  mesi) e ortogonale alla qualità del breakout. La conferma diretta è il taker
+  flow: rottura di range CON aggressori nella direzione della rottura = vera
+  partecipazione. Falsificata se: aggiungere taker_flow non migliora win rate
+  o profit factor rispetto al breakout semplice.
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: range_breakout
+    params: {range_h: 48, volume_confirm_mult: 1.5}
+  - name: taker_flow
+    params: {lookback_h: 12, threshold: 0.025}
+entry: {rule: range_breakout AND taker_flow, direction: with_breakout}
+exit: {stop_pct: 2.5, target_r: 3.0, time_stop_h: 72}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "Funding sostituito da conferma di flusso (più entry, conferma più pertinente). Volume mult abbassato a 1.5 perché taker_flow già filtra la partecipazione. Target 3R: i breakout confermati dal flusso meritano più corda."
