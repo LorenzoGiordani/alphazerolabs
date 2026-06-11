@@ -1,0 +1,64 @@
+# Generazione 3 — parent: g2-g1 (fade con gate vol_compression, il migliore di gen 2)
+# Direzione confermata: il gate taglia le perdite da trend. Ora: profondità estremo × permissività gate.
+id: tmp-g1
+thesis: >
+  Gate confermato + estremo più profondo (95): fade solo i crowding veri nei
+  mercati compressi. Falsificata se: i trade scendono sotto ~30 sul basket
+  (segnale troppo raro per essere una strategia) o Sharpe medio resta <0.
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: funding_percentile
+    params: {lookback_h: 336, extreme_pct: 95}
+  - name: taker_flow
+    params: {lookback_h: 24, threshold: 0.02}
+  - name: vol_compression
+    params: {lookback_h: 48, pct: 30}
+entry: {rule: funding_percentile AND taker_flow AND vol_compression, direction: contrarian_funding}
+exit: {stop_pct: 2.0, target_r: 1.5, time_stop_h: 24}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "g2-g1 con estremo 95/336h invece di 92/168h."
+---
+id: tmp-g2
+thesis: >
+  Il gate a pct 30 è troppo severo per un segnale già raro: pct 45 tiene fuori
+  solo i trend conclamati. Più trade, stesso scudo. Falsificata se: allargare
+  il gate fa rientrare le perdite da trend (worstDD > 10%).
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: funding_percentile
+    params: {lookback_h: 168, extreme_pct: 92}
+  - name: taker_flow
+    params: {lookback_h: 24, threshold: 0.02}
+  - name: vol_compression
+    params: {lookback_h: 48, pct: 45}
+entry: {rule: funding_percentile AND taker_flow AND vol_compression, direction: contrarian_funding}
+exit: {stop_pct: 2.0, target_r: 1.5, time_stop_h: 24}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "g2-g1 con gate più permissivo (pct 45)."
+---
+id: tmp-g3
+thesis: >
+  Con il gate che filtra i trend, si può dare più corda al rimbalzo: target 2R
+  e time stop 48h. Falsificata se: il tempo extra in posizione riporta le
+  perdite da deriva (Sharpe < g2-g1).
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: funding_percentile
+    params: {lookback_h: 168, extreme_pct: 92}
+  - name: taker_flow
+    params: {lookback_h: 24, threshold: 0.02}
+  - name: vol_compression
+    params: {lookback_h: 48, pct: 30}
+entry: {rule: funding_percentile AND taker_flow AND vol_compression, direction: contrarian_funding}
+exit: {stop_pct: 2.0, target_r: 2.0, time_stop_h: 48}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "g2-g1 con exit più pazienti (2R / 48h)."

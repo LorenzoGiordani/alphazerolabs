@@ -1,0 +1,291 @@
+id: funding-squeeze-breakout-g2-g1-g1
+thesis: 'Gate confermato + estremo più profondo (95): fade solo i crowding veri nei
+  mercati compressi. Falsificata se: i trade scendono sotto ~30 sul basket (segnale
+  troppo raro per essere una strategia) o Sharpe medio resta <0.
+
+  '
+universe:
+  selection: top_liquidity
+  max_assets: 10
+  kinds:
+  - perp
+timeframe: 1h
+decision_every_h: 4
+signals:
+- name: funding_percentile
+  params:
+    lookback_h: 336
+    extreme_pct: 95
+- name: taker_flow
+  params:
+    lookback_h: 24
+    threshold: 0.02
+- name: vol_compression
+  params:
+    lookback_h: 48
+    pct: 30
+entry:
+  rule: funding_percentile AND taker_flow AND vol_compression
+  direction: contrarian_funding
+exit:
+  stop_pct: 2.0
+  target_r: 1.5
+  time_stop_h: 24
+evolution:
+  mutable:
+  - signals
+  - entry
+  - exit
+  - universe.max_assets
+  - decision_every_h
+  notes: g2-g1 con estremo 95/336h invece di 92/168h.
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 3
+parent: funding-squeeze-breakout-g2-g1
+status: candidate
+created: '2026-06-11'
+backtest:
+  basket_6m:
+    aggregate:
+      mean_sharpe: -0.4062211843865733
+      mean_return: -0.0072198968174386575
+      worst_drawdown: -0.05799735574150586
+      total_trades: 70
+      folds: 8/54
+      positive_symbols: 4/9
+    per_symbol:
+      BTC:
+        metrics:
+          total_return: -0.007257006332357707
+          sharpe: -1.0899036634140353
+          max_drawdown: -0.010985891721094048
+          n_trades: 2
+          win_rate: 0.5
+          profit_factor: 0.35615563274786566
+        regimes:
+          bear:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 468
+          bull:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 85
+          chop:
+            ret: -0.00725700633235804
+            sharpe: -1.1671962374584617
+            hours: 3765
+        consistency: 0/6 fold positivi
+        exits:
+          stopped: 1
+          closed: 1
+      ETH:
+        metrics:
+          total_return: 0.0029534081861635197
+          sharpe: 0.22393760275186314
+          max_drawdown: -0.02346812621227327
+          n_trades: 5
+          win_rate: 0.6
+          profit_factor: 1.2560327545746863
+        regimes:
+          bear:
+            ret: 0.015167511172823778
+            sharpe: 3.679225491820146
+            hours: 692
+          bull:
+            ret: -0.012031613356646154
+            sharpe: -5.45295253702572
+            hours: 228
+          chop:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 3398
+        consistency: 1/6 fold positivi
+        exits:
+          closed: 2
+          stopped: 2
+          target: 1
+      SOL:
+        metrics:
+          total_return: -0.02420516552928198
+          sharpe: -1.3924985546301505
+          max_drawdown: -0.03390328355250756
+          n_trades: 8
+          win_rate: 0.25
+          profit_factor: 0.4773701744429166
+        regimes:
+          bear:
+            ret: -0.016091361398664628
+            sharpe: -3.3940764543147863
+            hours: 856
+          bull:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 351
+          chop:
+            ret: -0.008246501567616638
+            sharpe: -0.6944131552453704
+            hours: 3111
+        consistency: 0/6 fold positivi
+        exits:
+          closed: 4
+          stopped: 3
+          target: 1
+      XRP:
+        metrics:
+          total_return: 0.012381865830146666
+          sharpe: 0.6162431336247175
+          max_drawdown: -0.04599115268050845
+          n_trades: 12
+          win_rate: 0.4166666666666667
+          profit_factor: 1.4036083950574394
+        regimes:
+          bear:
+            ret: -0.020858319320720797
+            sharpe: -7.221873695849196
+            hours: 617
+          bull:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 271
+          chop:
+            ret: 0.03394828941181016
+            sharpe: 1.9753691957262935
+            hours: 3430
+        consistency: 2/6 fold positivi
+        exits:
+          target: 4
+          closed: 4
+          stopped: 4
+      SUI:
+        metrics:
+          total_return: -0.00818432598383334
+          sharpe: -0.3069059578349682
+          max_drawdown: -0.051036372432530154
+          n_trades: 15
+          win_rate: 0.4666666666666667
+          profit_factor: 0.9787969509918881
+        regimes:
+          bear:
+            ret: -0.02976886698061787
+            sharpe: -5.368727261213795
+            hours: 1195
+          bull:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 576
+          chop:
+            ret: 0.022246803119594816
+            sharpe: 1.3122436644666156
+            hours: 2547
+        consistency: 1/6 fold positivi
+        exits:
+          stopped: 7
+          closed: 4
+          target: 4
+      NEAR:
+        metrics:
+          total_return: -0.03914042840078713
+          sharpe: -1.5860343056203523
+          max_drawdown: -0.05799735574150586
+          n_trades: 9
+          win_rate: 0.3333333333333333
+          profit_factor: 0.3573669153234191
+        regimes:
+          bear:
+            ret: -0.03982170994221845
+            sharpe: -5.418830655221601
+            hours: 924
+          bull:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 1059
+          chop:
+            ret: 0.0007095364980507224
+            sharpe: 0.07732396411420271
+            hours: 2335
+        consistency: 1/6 fold positivi
+        exits:
+          stopped: 5
+          closed: 3
+          target: 1
+      WLD:
+        metrics:
+          total_return: -0.011076427229144259
+          sharpe: -0.6045624258583664
+          max_drawdown: -0.0214386406792564
+          n_trades: 8
+          win_rate: 0.5
+          profit_factor: 0.82473300271248
+        regimes:
+          bear:
+            ret: -0.01219860581049459
+            sharpe: -1.4618240294966574
+            hours: 1315
+          bull:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 924
+          chop:
+            ret: 0.0011360366445629655
+            sharpe: 0.1805413923119348
+            hours: 2079
+        consistency: 1/6 fold positivi
+        exits:
+          stopped: 4
+          closed: 2
+          target: 2
+      ZEC:
+        metrics:
+          total_return: 0.0002731594066003318
+          sharpe: 0.03565974853603284
+          max_drawdown: -0.015112123800914565
+          n_trades: 3
+          win_rate: 0.3333333333333333
+          profit_factor: 1.1347644331421003
+        regimes:
+          bear:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 1461
+          bull:
+            ret: 0.002740282010947004
+            sharpe: 0.5025826993082785
+            hours: 1390
+          chop:
+            ret: -0.002460380468010781
+            sharpe: -0.7849085855274912
+            hours: 1467
+        consistency: 1/6 fold positivi
+        exits:
+          target: 1
+          stopped: 1
+          closed: 1
+      CRV:
+        metrics:
+          total_return: 0.009275848695545985
+          sharpe: 0.4480737629661
+          max_drawdown: -0.02621723459903258
+          n_trades: 8
+          win_rate: 0.625
+          profit_factor: 1.4343024333627037
+        regimes:
+          bear:
+            ret: -0.01009878039986234
+            sharpe: -1.0810865053201943
+            hours: 1040
+          bull:
+            ret: 0.0
+            sharpe: 0.0
+            hours: 454
+          chop:
+            ret: 0.019572285306643344
+            sharpe: 2.1302300095714424
+            hours: 2824
+        consistency: 1/6 fold positivi
+        exits:
+          closed: 3
+          stopped: 3
+          target: 2

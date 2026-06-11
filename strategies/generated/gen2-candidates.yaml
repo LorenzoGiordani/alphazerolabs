@@ -1,0 +1,84 @@
+# Generazione 2 — parent: funding-squeeze-breakout-g2 (fade del crowding)
+# Lezione multi-asset: il fade guadagna nel chop (SUI/ZEC/BTC/ETH) ma viene
+# travolto dai trend forti (SOL -15%). Tutte le mutazioni attaccano questo.
+id: tmp-g1
+thesis: >
+  Il fade del crowding funziona solo dove il mercato è in range: gate di
+  vol_compression. In trend la "folla" ha ragione e il fade viene travolto
+  (SOL). Falsificata se: il gate non elimina le perdite su SOL/WLD o uccide
+  i guadagni su SUI/ZEC.
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: funding_percentile
+    params: {lookback_h: 168, extreme_pct: 92}
+  - name: taker_flow
+    params: {lookback_h: 24, threshold: 0.02}
+  - name: vol_compression
+    params: {lookback_h: 48, pct: 30}
+entry: {rule: funding_percentile AND taker_flow AND vol_compression, direction: contrarian_funding}
+exit: {stop_pct: 2.0, target_r: 1.5, time_stop_h: 24}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "Gate vol_compression (pct 30, più permissivo del default per non strozzare le entry già rare). Resto identico al parent g2."
+---
+id: tmp-g2
+thesis: >
+  Gli estremi di funding poco profondi sono rumore: solo il percentile 97
+  segnala vero squeeze imminente. Meno trade, più selettivi — su tutto il
+  basket. Falsificata se: la selettività riduce i trade senza migliorare
+  Sharpe medio o win rate.
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: funding_percentile
+    params: {lookback_h: 336, extreme_pct: 97}
+  - name: taker_flow
+    params: {lookback_h: 24, threshold: 0.02}
+entry: {rule: funding_percentile AND taker_flow, direction: contrarian_funding}
+exit: {stop_pct: 2.0, target_r: 1.5, time_stop_h: 24}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "Estremo più profondo (97 su finestra 2 settimane). Ipotesi: la coda della distribuzione del funding è dove vive l'edge del fade."
+---
+id: tmp-g3
+thesis: >
+  L'esaurimento del crowding si risolve in poche ore o non si risolve: uscita
+  scalp (target 1R, time stop 12h) cattura il rimbalzo immediato ed evita di
+  restare esposti quando il fade è sbagliato (trend). Falsificata se: il
+  win rate non sale sopra il 55% o il profit factor scende sotto 1.2.
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: funding_percentile
+    params: {lookback_h: 168, extreme_pct: 92}
+  - name: taker_flow
+    params: {lookback_h: 24, threshold: 0.02}
+entry: {rule: funding_percentile AND taker_flow, direction: contrarian_funding}
+exit: {stop_pct: 1.5, target_r: 1.0, time_stop_h: 12}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "Solo exit mutate: scalp asimmetrico. Stop 1.5 / target 1.5% / 12h. Riduce l'esposizione al rischio trend che ha ucciso SOL."
+---
+id: tmp-g4
+thesis: >
+  Il funding è un proxy lento del crowding; il taker flow è il crowding in
+  tempo reale. Fade del flow estremo in mercati compressi, senza funding:
+  più segnali, stessa logica di esaurimento. Falsificata se: il flow da solo
+  (senza conferma funding) non ha edge — win rate ≤50% sul basket.
+universe: {selection: top_liquidity, max_assets: 10, kinds: [perp]}
+timeframe: 1h
+decision_every_h: 4
+signals:
+  - name: taker_flow
+    params: {lookback_h: 24, threshold: 0.025}
+  - name: vol_compression
+    params: {lookback_h: 48, pct: 30}
+entry: {rule: taker_flow AND vol_compression, direction: contrarian:taker_flow}
+exit: {stop_pct: 2.0, target_r: 1.5, time_stop_h: 24}
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "Tolto funding, fade diretto del flow in compressione. Test di ablazione: se rende come g2, il funding non serviva."
