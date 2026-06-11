@@ -26,6 +26,7 @@ class Position:
     entry_px: float = 0.0
     size_usd: float = 0.0   # nozionale assoluto al momento dell'apertura
     stop_px: float | None = None
+    target_px: float | None = None
 
 
 @dataclass
@@ -57,16 +58,24 @@ class Backtest:
                 hit_liq = (row.low <= liq_px) if pos.exposure > 0 else (row.high >= liq_px)
                 hit_stop = pos.stop_px is not None and (
                     (row.low <= pos.stop_px) if pos.exposure > 0 else (row.high >= pos.stop_px))
+                hit_target = pos.target_px is not None and (
+                    (row.high >= pos.target_px) if pos.exposure > 0 else (row.low <= pos.target_px))
 
                 if hit_liq:
                     equity -= pos.size_usd / lev  # margine della posizione perso
                     self._log_trade(pos, liq_px, row.ts, "liquidated")
                     pos = Position()
-                elif hit_stop:
+                elif hit_stop:  # conservativo: se stop e target nella stessa candela, vince lo stop
                     px = pos.stop_px * (1 - self.slippage if pos.exposure > 0 else 1 + self.slippage)
                     equity += pos.size_usd * (px / pos.entry_px - 1) * np.sign(pos.exposure)
                     equity -= pos.size_usd * self.fee
                     self._log_trade(pos, px, row.ts, "stopped")
+                    pos = Position()
+                elif hit_target:
+                    px = pos.target_px * (1 - self.slippage if pos.exposure > 0 else 1 + self.slippage)
+                    equity += pos.size_usd * (px / pos.entry_px - 1) * np.sign(pos.exposure)
+                    equity -= pos.size_usd * self.fee
+                    self._log_trade(pos, px, row.ts, "target")
                     pos = Position()
                 else:
                     # funding sulle ore di posizione aperta (long paga se rate>0)
@@ -86,7 +95,12 @@ class Backtest:
             # 3. decisione della strategia su dati ≤ t, fill all'open di t+1
             if i + 1 >= len(df):
                 break
-            target = float(np.clip(strategy(df.iloc[: i + 1]), -self.max_leverage, self.max_leverage))
+            out = strategy(df.iloc[: i + 1])
+            stop_pct = target_r = None
+            if isinstance(out, dict):
+                stop_pct, target_r = out.get("stop_pct"), out.get("target_r")
+                out = out["exposure"]
+            target = float(np.clip(out, -self.max_leverage, self.max_leverage))
             if target != pos.exposure:
                 next_open = df.iloc[i + 1].open
                 # chiudi posizione esistente
@@ -101,7 +115,11 @@ class Backtest:
                     px = next_open * (1 + self.slippage if target > 0 else 1 - self.slippage)
                     size = abs(target) * equity
                     equity -= size * self.fee
-                    pos = Position(exposure=target, entry_px=px, size_usd=size)
+                    sign = np.sign(target)
+                    stop_px = px * (1 - sign * stop_pct / 100) if stop_pct else None
+                    target_px = px * (1 + sign * stop_pct / 100 * target_r) if stop_pct and target_r else None
+                    pos = Position(exposure=target, entry_px=px, size_usd=size,
+                                   stop_px=stop_px, target_px=target_px)
 
         return pd.DataFrame(self.equity_curve, columns=["ts", "equity"])
 

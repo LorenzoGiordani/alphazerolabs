@@ -1,0 +1,43 @@
+id: funding-squeeze-breakout-v1
+parent: null
+status: candidate
+created: 2026-06-11
+thesis: >
+  Quando il funding è a un estremo (crowding) e il prezzo rompe un range
+  multi-day con volume, lo squeeze del lato affollato alimenta il breakout.
+  Falsificata se: il breakout con filtro funding non outperforma il breakout
+  semplice su 6+ mesi walk-forward.
+
+universe:
+  selection: top_liquidity
+  max_assets: 10
+  kinds: [perp]
+
+timeframe: 1h
+decision_every_h: 4
+
+signals:
+  - name: funding_percentile
+    params: {lookback_h: 168, extreme_pct: 90}
+  - name: range_breakout
+    params: {range_h: 48, volume_confirm_mult: 2.0}
+
+entry:
+  rule: funding_percentile AND range_breakout
+  direction: with_breakout
+
+exit:
+  stop_pct: 2.5
+  target_r: 2.0
+  time_stop_h: 72
+
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 3
+
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "v1 manuale — baseline per il loop evolutivo"
+
+backtest: {}
