@@ -129,7 +129,7 @@ def main() -> None:
     if n != 1:
         sys.exit("ERRORE: blocco #data non trovato nel template")
     OUT.write_text(out)
-    print(f"dashboard VETRO → {OUT}")
+    print(f"dashboard LUX AI → {OUT}")
 
 
 if __name__ == "__main__":
