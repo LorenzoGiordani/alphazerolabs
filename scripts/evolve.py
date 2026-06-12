@@ -53,6 +53,10 @@ REGISTRY_DOC = """Segnali disponibili (REGISTRY CHIUSO — solo questi, solo que
 - range_breakout(range_h=48, volume_confirm_mult=2.0): +1 rottura max range con volume, -1 rottura min
 - taker_flow(lookback_h=24, threshold=0.06): +1 aggressori in acquisto, -1 in vendita
 - vol_compression(lookback_h=48, pct=20): +1 volatilità compressa (setup pre-espansione), mai -1
+- tsmom(short_h=168, long_h=720): time-series momentum, +1/-1 se ritorni concordi su entrambi gli orizzonti (universale, solo close)
+- vwap_zscore(lookback_h=168, z=2.0): +1/-1 prezzo esteso oltre z sigma dal VWAP rolling (follow o fade a scelta della strategia)
+- volume_surge(lookback_h=168, pct=90): +1 volume nel percentile alto (conferma partecipazione), mai -1
+NB: funding_percentile e taker_flow esistono SOLO per crypto; su oro/petrolio/stock usare i segnali OHLCV-universali.
 
 entry.rule: nomi segnale composti con AND/OR (es. "vol_compression AND taker_flow").
 entry.direction: signal_vote | follow:<segnale> | contrarian:<segnale> | with_breakout | contrarian_funding"""

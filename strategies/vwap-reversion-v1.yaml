@@ -1,0 +1,42 @@
+id: vwap-reversion-v1
+parent: null
+status: candidate
+created: 2026-06-12
+thesis: >
+  Estensioni oltre 2 sigma dal VWAP settimanale senza partecipazione anomala
+  tendono a rientrare verso il VWAP (mean reversion da esaurimento). Il filtro
+  volume_surge ASSENTE distingue l'estensione vuota dal breakout reale — qui
+  si fade solo l'estensione, contro la direzione. Falsificata se: win rate
+  ≤50% o il fade viene travolto nei trend (worstDD > 12%).
+
+universe:
+  selection: top_liquidity
+  max_assets: 12
+  kinds: [perp]
+
+timeframe: 1h
+decision_every_h: 4
+
+signals:
+  - name: vwap_zscore
+    params: {lookback_h: 168, z: 2.0}
+
+entry:
+  rule: vwap_zscore
+  direction: contrarian:vwap_zscore
+
+exit:
+  stop_pct: 2.5
+  target_r: 1.5
+  time_stop_h: 48
+
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 3
+
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: "v1: fade puro dell'estensione VWAP. Variante futura: AND NOT volume_surge quando il registry supporterà la negazione."
+
+backtest: {}

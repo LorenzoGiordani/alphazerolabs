@@ -8,6 +8,7 @@ UV="/opt/homebrew/bin/uv"
 cd "$ROOT" || exit 1
 
 "$UV" run scripts/paper_trade.py strategies/generated/funding-squeeze-breakout-g2-g1-g2.yaml BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+"$UV" run scripts/paper_trade.py strategies/tsmom-v1.yaml BTC,ETH,xyz_GOLD,xyz_CL,xyz_BRENTOIL,xyz_SILVER,xyz_SP500,xyz_MU
 "$UV" run scripts/agents_paper.py
 
 if command -v claude >/dev/null 2>&1; then

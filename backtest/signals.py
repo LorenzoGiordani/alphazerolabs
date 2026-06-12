@@ -62,9 +62,44 @@ def vol_compression(data, lookback_h: int = 48, pct: float = 20) -> pd.Series:
     return pd.Series(np.where(rank <= pct, 1, 0), index=c.index)
 
 
+def tsmom(data, short_h: int = 168, long_h: int = 720) -> pd.Series:
+    """Time-series momentum (Moskowitz-Ooi-Pedersen adattato a 1h): +1 se il
+    ritorno su ENTRAMBI gli orizzonti è positivo, -1 se entrambi negativi.
+    Universale: solo close. L'edge istituzionale più documentato (58 futures, decenni)."""
+    c = data["candles"].close
+    r_short, r_long = c.pct_change(short_h), c.pct_change(long_h)
+    out = np.where((r_short > 0) & (r_long > 0), 1, np.where((r_short < 0) & (r_long < 0), -1, 0))
+    return pd.Series(out, index=data["candles"].index)
+
+
+def vwap_zscore(data, lookback_h: int = 168, z: float = 2.0) -> pd.Series:
+    """Deviazione dal VWAP rolling in z-score: +1 = prezzo esteso SOPRA il vwap
+    (oltre z sigma), -1 = esteso sotto. Lettura di estensione: la strategia
+    decide se seguirla (trend) o farne il fade (mean reversion)."""
+    c = data["candles"]
+    pv = (c.close * c.volume).rolling(lookback_h, min_periods=lookback_h // 2).sum()
+    v = c.volume.rolling(lookback_h, min_periods=lookback_h // 2).sum().replace(0, np.nan)
+    vwap = pv / v
+    dev = c.close - vwap
+    zs = dev / dev.rolling(lookback_h, min_periods=lookback_h // 2).std().replace(0, np.nan)
+    out = np.where(zs > z, 1, np.where(zs < -z, -1, 0))
+    return pd.Series(out, index=c.index)
+
+
+def volume_surge(data, lookback_h: int = 168, pct: float = 90) -> pd.Series:
+    """+1 = volume corrente nel percentile alto della storia recente
+    (partecipazione anomala — conferma la mossa in atto). Mai -1."""
+    c = data["candles"]
+    rank = c.volume.rolling(lookback_h, min_periods=lookback_h // 2).rank(pct=True) * 100
+    return pd.Series(np.where(rank >= pct, 1, 0), index=c.index)
+
+
 SIGNALS = {
     "funding_percentile": funding_percentile,
     "range_breakout": range_breakout,
     "taker_flow": taker_flow,
     "vol_compression": vol_compression,
+    "tsmom": tsmom,
+    "vwap_zscore": vwap_zscore,
+    "volume_surge": volume_surge,
 }

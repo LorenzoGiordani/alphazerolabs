@@ -9,13 +9,22 @@ import requests
 
 FAPI = "https://fapi.binance.com"
 RSS_FEEDS = {
+    # crypto
     "coindesk": "https://www.coindesk.com/arc/outboundfeeds/rss/",
     "decrypt": "https://decrypt.co/feed",
+    # macro / commodities / equity
+    "forexlive": "https://www.forexlive.com/feed/news",
+    "oilprice": "https://oilprice.com/rss/main",
+    "cnbc_markets": "https://www.cnbc.com/id/20910258/device/rss/rss.html",
+    "marketwatch": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
 }
 
 
 def fetch_live(symbol: str, lookback_h: int = 1000) -> dict:
-    """Candele 1h chiuse + taker flow + funding — stesso formato del backtest."""
+    """Candele 1h chiuse + taker flow + funding — stesso formato del backtest.
+    Simboli xyz_* (commodities/stock/index) → yfinance, niente flow/funding."""
+    if symbol.startswith("xyz_"):
+        return _fetch_yf(symbol)
     pair = f"{symbol}USDT"
     kl = requests.get(f"{FAPI}/fapi/v1/klines", params={
         "symbol": pair, "interval": "1h", "limit": min(lookback_h, 1000)}, timeout=30).json()
@@ -34,6 +43,20 @@ def fetch_live(symbol: str, lookback_h: int = 1000) -> dict:
     time.sleep(0.1)
     # ultima candela è in corso → si decide sull'ultima CHIUSA
     return {"candles": candles.iloc[:-1].reset_index(drop=True), "flow": flow, "funding": funding}
+
+
+def _fetch_yf(symbol: str) -> dict:
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from scripts.fetch_candles import from_yfinance
+    # 320 giorni: gli asset a orario di mercato (stock ~7 barre/g) devono coprire
+    # il lookback massimo dei segnali (tsmom long_h=720 barre)
+    start = datetime.now(timezone.utc) - timedelta(days=320)
+    df = from_yfinance(symbol.removeprefix("xyz_"), start)
+    if df is None or df.empty:
+        raise RuntimeError(f"yfinance vuoto per {symbol}")
+    return {"candles": df.iloc[:-1].reset_index(drop=True), "flow": None, "funding": None}
 
 
 def open_interest_24h(symbol: str) -> dict | None:
