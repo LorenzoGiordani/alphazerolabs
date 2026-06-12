@@ -392,6 +392,28 @@ footer .foot-mark b{ color:var(--amber); }
     <div class="tree" id="tree"></div>
   </section>
 
+  <!-- EVENTI NEWS -->
+  <section id="eventi">
+    <div class="sec-head">
+      <span class="kicker">06 · Eventi news</span>
+      <h2>Catalizzatori dal flusso globale</h2>
+      <p class="note">Burst anomali di copertura mediatica per tema (GDELT, timestamp point-in-time). Sono l'input del segnale event-driven: il tono indica la direzione attesa.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="pos-tbl">
+        <thead>
+          <tr>
+            <th>Quando (UTC)</th>
+            <th>Tema</th>
+            <th>Intensità (z)</th>
+            <th>Tono</th>
+          </tr>
+        </thead>
+        <tbody id="events-body"></tbody>
+      </table>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -414,7 +436,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-12 10:20",
+ "updated_utc": "2026-06-12 23:29",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -444,6 +466,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-12 07:52",
      10000.0
+    ],
+    [
+     "2026-06-12 23:29",
+     10000.0
     ]
    ],
    "positions": []
@@ -464,6 +490,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-12 07:52",
      9948.44
+    ],
+    [
+     "2026-06-12 23:29",
+     9948.44
     ]
    ],
    "positions": []
@@ -479,6 +509,10 @@ footer .foot-mark b{ color:var(--amber); }
    "equity_curve": [
     [
      "2026-06-12 07:59",
+     9996.63
+    ],
+    [
+     "2026-06-12 23:29",
      9996.63
     ]
    ],
@@ -677,6 +711,20 @@ footer .foot-mark b{ color:var(--amber); }
    "status": "retired",
    "sharpe": -1.59,
    "note": "Funding sostituito da conferma di flusso (più entry, conferma più pertinente). Volume mult abbassato a 1.5 perché taker_flow già filtra la partecipazione. Targe"
+  }
+ ],
+ "news_events": [
+  {
+   "ts": "2026-03-02 12:45",
+   "topic": "commodities",
+   "z": 3.06,
+   "tone": -3.98
+  },
+  {
+   "ts": "2026-02-06 16:00",
+   "topic": "crypto",
+   "z": 3.12,
+   "tone": -2.92
   }
  ]
 }
@@ -984,6 +1032,22 @@ footer .foot-mark b{ color:var(--amber); }
     });
   }
 
+  /* ---------- render: news events ---------- */
+  const TOPIC_IT={crypto:'Crypto', fed_macro:'Fed / Macro', commodities:'Commodities', equities:'Azionario', geopolitics:'Geopolitica'};
+  function renderEvents(){
+    const body=$('#events-body'); if(!body) return; body.innerHTML='';
+    (DATA.news_events||[]).forEach(e=>{
+      const tone=e.tone==null?null:e.tone;
+      const tr=el('tr');
+      tr.innerHTML =
+        '<td class="muted-cell num">'+fmtTs(e.ts)+'</td>'+
+        '<td style="text-align:left"><span class="acct-pill">'+(TOPIC_IT[e.topic]||e.topic)+'</span></td>'+
+        '<td>'+NF2.format(e.z)+'σ</td>'+
+        '<td class="'+(tone>0?'pos':tone<0?'neg':'')+'">'+(tone==null?'—':(tone>0?'+':'')+NF2.format(tone))+'</td>';
+      body.appendChild(tr);
+    });
+  }
+
   /* ---------- render: lineage tree ---------- */
   function renderTree(){
     const host=$('#tree'); host.innerHTML='';
@@ -1020,6 +1084,7 @@ footer .foot-mark b{ color:var(--amber); }
     renderFeed();
     renderLessons();
     renderTree();
+    renderEvents();
   }
   boot();
 
