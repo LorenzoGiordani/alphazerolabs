@@ -96,7 +96,8 @@ def build_context(symbols: list[str]) -> dict:
         c = d["candles"]
         oi = open_interest_24h(s) or {}
         fr = d["funding"].rate.iloc[-1] if d["funding"] is not None and len(d["funding"]) else 0.0
-        ratio = (d["flow"].taker_buy / d["flow"].volume.replace(0, np.nan)).tail(24).mean()
+        ratio = ((d["flow"].taker_buy / d["flow"].volume.replace(0, np.nan)).tail(24).mean()
+                 if d["flow"] is not None else 0.5)  # fallback HL: niente flow → neutro
         assets[s] = {
             "price": float(c.close.iloc[-1]),
             "chg_24h": float(c.close.iloc[-1] / c.close.iloc[-25] - 1),
