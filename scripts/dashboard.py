@@ -196,6 +196,7 @@ def build_data() -> dict:
             "symbol": clean_symbol(e["symbol"]), "direction": e["direction"],
             "account": sid, "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
             "risk_verdict": "sistema", "thesis": why,
+            "entry_px": round(e["entry_px"], 6), "size_usd": round(e["size_usd"], 2),
             "invalidation": (f"esce da sola se il prezzo va contro del {stop_d:.1f}% (stop), "
                              f"se raggiunge l'obiettivo (target) o se passa troppo tempo"),
             "outcome": outcome,
@@ -231,6 +232,17 @@ def build_data() -> dict:
                   for r in ev.itertuples()][::-1]
 
     # trading book: open↔close accoppiati dal journal, in ordine cronologico
+    def risk_usd(o):  # capitale a rischio all'apertura: distanza stop × size
+        return abs(o["stop_px"] / o["entry_px"] - 1) * o["size_usd"]
+
+    def hours_between(a, b):
+        import pandas as pd
+        try:
+            return round(float((pd.Timestamp(ts_short(b)) - pd.Timestamp(ts_short(a)))
+                               .total_seconds() / 3600), 1)
+        except Exception:
+            return None
+
     book, pending = [], {}
     for e in journal:
         if e.get("type") == "open":
@@ -240,6 +252,8 @@ def build_data() -> dict:
             if o is None:
                 continue
             sign = 1 if o["direction"] == "long" else -1
+            closed_at = e.get("ts", e["logged_at"])
+            risk = risk_usd(o)
             book.append({
                 "strategy": e["strategy"],
                 "account_label": ACCOUNT_META.get(e["strategy"], {}).get("label", e["strategy"]),
@@ -247,7 +261,10 @@ def build_data() -> dict:
                 "entry_px": round(o["entry_px"], 6), "exit_px": round(e["exit_px"], 6),
                 "size_usd": round(o["size_usd"], 2), "pnl_usd": round(e.get("pnl_usd", 0), 2),
                 "pnl_pct": round(sign * (e["exit_px"] / o["entry_px"] - 1) * 100, 2),
-                "opened_at": ts_short(o["opened_at"]), "closed_at": ts_short(e.get("ts", e["logged_at"])),
+                "risk_usd": round(risk, 2),
+                "r_mult": round(e.get("pnl_usd", 0) / risk, 2) if risk > 0 else None,
+                "opened_at": ts_short(o["opened_at"]), "closed_at": ts_short(closed_at),
+                "duration_h": hours_between(o["opened_at"], closed_at),
                 "reason": e.get("reason", ""), "status": "closed",
             })
     for (sid, sym), o in pending.items():  # ancora aperte
@@ -256,7 +273,8 @@ def build_data() -> dict:
             "symbol": clean_symbol(sym), "direction": o["direction"],
             "entry_px": round(o["entry_px"], 6), "exit_px": None,
             "size_usd": round(o["size_usd"], 2), "pnl_usd": None, "pnl_pct": None,
-            "opened_at": ts_short(o["opened_at"]), "closed_at": None,
+            "risk_usd": round(risk_usd(o), 2), "r_mult": None,
+            "opened_at": ts_short(o["opened_at"]), "closed_at": None, "duration_h": None,
             "reason": "", "status": "open",
         })
     book.sort(key=lambda t: t["opened_at"], reverse=True)

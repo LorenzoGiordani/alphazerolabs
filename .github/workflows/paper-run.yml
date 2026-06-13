@@ -62,6 +62,8 @@ jobs:
           git add paper/ dashboard/index.html data/news/
           if ! git diff --cached --quiet; then
             git commit -m "chore: paper run $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
-            git pull --rebase origin main || true
-            git push origin main
+            for i in 1 2 3; do
+              git pull --rebase -X theirs origin main && git push origin main && break
+              sleep 5
+            done
           fi

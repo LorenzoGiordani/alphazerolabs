@@ -302,6 +302,13 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .sharpe .sl{ color:var(--text-4); font-size:9px; letter-spacing:.1em; text-transform:uppercase; margin-right:4px; }
 .node-note{ font-family:var(--sans); font-size:12px; color:var(--text-3); margin-left:auto; font-style:italic; }
 
+/* ---------- nav sezioni ---------- */
+.secnav{ position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+.secnav-inner{ display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
+.secnav a{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); text-decoration:none; padding:10px 12px; white-space:nowrap; border-bottom:2px solid transparent; }
+.secnav a:hover{ color:var(--text-1); }
+.secnav a.active{ color:var(--amber); border-bottom-color:var(--amber); }
+
 /* ---------- footer ---------- */
 footer{ border-top:1px solid var(--line); padding:30px 0 48px; }
 footer .disc{ font-family:var(--sans); font-size:12px; line-height:1.6; color:var(--text-4); max-width:80ch; }
@@ -340,9 +347,15 @@ footer .foot-mark b{ color:var(--amber); }
       <span class="sub">desk di ricerca autonomo</span>
     </div>
     <span class="badge-paper"><span class="dot"></span>Paper trading — nessun fondo reale</span>
-    <span class="updated">Aggiornato <b id="updated-ts">—</b> UTC</span>
+    <span class="updated">Aggiornato <b id="updated-ts">—</b> UTC · prossimo run <b id="next-run">—</b></span>
   </div>
 </header>
+
+<nav class="secnav" id="secnav">
+  <div class="wrap secnav-inner">
+    <a href="#stato">Stato</a><a href="#strategie">Strategie</a><a href="#posizioni">Posizioni</a><a href="#decisioni">Decisioni</a><a href="#book">Trading book</a><a href="#lezioni">Lezioni</a><a href="#evoluzione">Evoluzione</a><a href="#eventi">Eventi</a>
+  </div>
+</nav>
 
 <main class="wrap">
 
@@ -425,8 +438,11 @@ footer .foot-mark b{ color:var(--amber); }
             <th>Entry</th>
             <th>Exit</th>
             <th>Size</th>
+            <th>Rischio</th>
             <th>P&amp;L</th>
             <th>P&amp;L %</th>
+            <th>R</th>
+            <th>Durata</th>
             <th>Uscita</th>
           </tr>
         </thead>
@@ -934,6 +950,7 @@ footer .foot-mark b{ color:var(--amber); }
           '<span class="dcard-asset"><span class="tk">'+d.symbol+'</span>'+
             '<span class="dir '+d.direction+'">'+(d.direction==='long'?'▲ long':'▼ short')+'</span></span>'+
           '<span class="acct-pill">'+acct+'</span>'+
+          (d.entry_px!=null?'<span class="dcard-ts num">@ '+px(d.entry_px)+' · '+NF0.format(d.size_usd)+' $</span>':'')+
           '<span class="verdict '+d.risk_verdict+'">'+(VERDICT_IT[d.risk_verdict]||d.risk_verdict)+' '+mult+'</span>'+
         '</div>'+
         '<p class="thesis">'+d.thesis+'</p>'+
@@ -1010,24 +1027,35 @@ footer .foot-mark b{ color:var(--amber); }
     (DATA.accounts||[]).forEach(a=>{
       (a.positions||[]).forEach(p=>{
         const svg=posChartSVG(p); if(!svg) return;
-        const pnlPct=(p.direction==='long'?1:-1)*((p.chart[p.chart.length-1][1]/p.entry_px)-1)*100;
+        const last=p.chart[p.chart.length-1][1];
+        const dir=p.direction==='long'?1:-1;
+        const pnlPct=dir*((last/p.entry_px)-1)*100;
+        const pnlUsd=pnlPct/100*p.size_usd;
+        const riskUsd=Math.abs(p.stop_px/p.entry_px-1)*p.size_usd;
+        const dStop=Math.abs(last/p.stop_px-1)*100, dTgt=Math.abs(last/p.target_px-1)*100;
         const card=el('div','pchart');
         card.innerHTML =
           '<div class="pc-head"><span class="pc-sym">'+p.symbol+'</span>'+
             '<span class="side '+p.direction+'">'+(p.direction==='long'?'▲ long':'▼ short')+'</span>'+
             '<span class="acct-pill">'+a.label+'</span>'+
-            '<span class="pc-meta '+(pnlPct>=0?'pos':'neg')+'">'+(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'%</span></div>'+
+            '<span class="pc-meta '+(pnlPct>=0?'pos':'neg')+'">'+(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'% · '+signedUsd(pnlUsd)+'</span></div>'+
           svg+
           '<div class="pc-legend">'+
-            '<span><span class="sw" style="background:var(--amber)"></span>ingresso</span>'+
-            '<span><span class="sw" style="background:var(--green)"></span>target (TP)</span>'+
-            '<span><span class="sw" style="background:var(--red)"></span>stop (SL)</span></div>';
+            '<span><span class="sw" style="background:var(--amber)"></span>ingresso '+fmtTs(p.opened_at)+'</span>'+
+            '<span><span class="sw" style="background:var(--green)"></span>TP a '+dTgt.toFixed(1)+'%</span>'+
+            '<span><span class="sw" style="background:var(--red)"></span>SL a '+dStop.toFixed(1)+'%</span>'+
+            '<span>rischio '+NF0.format(riskUsd)+' $</span></div>';
         host.appendChild(card);
       });
     });
   }
 
   /* ---------- render: trading book ---------- */
+  function fmtDur(h){
+    if(h==null) return '—';
+    if(h<24) return NF0.format(h)+'h';
+    return NF0.format(Math.floor(h/24))+'g '+NF0.format(Math.round(h%24))+'h';
+  }
   let bookFilter='*';
   function renderBookTable(){
     const body=$('#book-body'); if(!body) return; body.innerHTML='';
@@ -1043,19 +1071,31 @@ footer .foot-mark b{ color:var(--amber); }
         '<td>'+px(t.entry_px)+'</td>'+
         '<td>'+(t.exit_px!=null?px(t.exit_px):'—')+'</td>'+
         '<td>'+NF0.format(t.size_usd)+' $</td>'+
+        '<td class="muted-cell">'+(t.risk_usd!=null?NF0.format(t.risk_usd)+' $':'—')+'</td>'+
         '<td class="'+(t.pnl_usd>0?'pos':t.pnl_usd<0?'neg':'')+'">'+(t.pnl_usd!=null?signedUsd(t.pnl_usd):'—')+'</td>'+
         '<td class="'+(t.pnl_pct>0?'pos':t.pnl_pct<0?'neg':'')+'">'+(t.pnl_pct!=null?(t.pnl_pct>0?'+':'')+NF2.format(t.pnl_pct)+'%':'—')+'</td>'+
+        '<td class="'+(t.r_mult>0?'pos':t.r_mult<0?'neg':'')+'">'+(t.r_mult!=null?(t.r_mult>0?'+':'')+NF2.format(t.r_mult)+'R':'—')+'</td>'+
+        '<td class="muted-cell">'+fmtDur(t.duration_h)+'</td>'+
         '<td class="muted-cell">'+(REASON_IT[t.reason]||t.reason||'—')+'</td>';
       body.appendChild(tr);
     });
     const closed=rows.filter(t=>t.status==='closed');
     const pnl=closed.reduce((s,t)=>s+t.pnl_usd,0);
-    const wins=closed.filter(t=>t.pnl_usd>0).length;
+    const wins=closed.filter(t=>t.pnl_usd>0), losses=closed.filter(t=>t.pnl_usd<0);
+    const gw=wins.reduce((s,t)=>s+t.pnl_usd,0), gl=Math.abs(losses.reduce((s,t)=>s+t.pnl_usd,0));
+    const pf=gl>0?(gw/gl):(gw>0?Infinity:0);
+    const best=closed.length?Math.max(...closed.map(t=>t.pnl_usd)):null;
+    const worst=closed.length?Math.min(...closed.map(t=>t.pnl_usd)):null;
     $('#book-stats').innerHTML =
       '<span>Operazioni <b>'+rows.length+'</b></span>'+
       '<span>Chiuse <b>'+closed.length+'</b></span>'+
-      '<span>Vinte <b>'+wins+(closed.length?' ('+Math.round(wins/closed.length*100)+'%)':'')+'</b></span>'+
-      '<span>P&L realizzato <b class="'+chipOf(pnl)+'">'+signedUsd(pnl)+'</b></span>';
+      '<span>Vinte <b>'+wins.length+(closed.length?' ('+Math.round(wins.length/closed.length*100)+'%)':'')+'</b></span>'+
+      '<span>P&L realizzato <b class="'+chipOf(pnl)+'">'+signedUsd(pnl)+'</b></span>'+
+      (closed.length?'<span>Profit factor <b>'+(pf===Infinity?'∞':NF2.format(pf))+'</b></span>'+
+      '<span>Media vincita <b class="pos">'+(wins.length?signedUsd(gw/wins.length):'—')+'</b></span>'+
+      '<span>Media perdita <b class="neg">'+(losses.length?signedUsd(-gl/losses.length):'—')+'</b></span>'+
+      '<span>Migliore <b class="pos">'+signedUsd(best)+'</b></span>'+
+      '<span>Peggiore <b class="neg">'+signedUsd(worst)+'</b></span>':'');
   }
   function renderBook(){
     const host=$('#book-filters'); if(!host) return; host.innerHTML='';
@@ -1121,6 +1161,21 @@ footer .foot-mark b{ color:var(--amber); }
   /* ---------- boot ---------- */
   function boot(){
     $('#updated-ts').textContent = (DATA.updated_utc||'—');
+    // prossimo run: cron cloud ogni 4h al minuto :10 UTC
+    if(DATA.updated_utc){
+      const now=new Date();
+      const next=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),
+        Math.floor(now.getUTCHours()/4)*4+4, 10));
+      $('#next-run').textContent='~'+String(next.getUTCHours()).padStart(2,'0')+':10 UTC';
+    }
+    // nav: evidenzia la sezione visibile
+    const links=[...document.querySelectorAll('.secnav a')];
+    const obs=new IntersectionObserver(es=>{
+      es.forEach(e=>{ if(e.isIntersecting){
+        links.forEach(l=>l.classList.toggle('active', l.getAttribute('href')==='#'+e.target.id));
+      }});
+    },{rootMargin:'-20% 0px -70% 0px'});
+    document.querySelectorAll('main section[id]').forEach(s=>obs.observe(s));
     renderAccounts();
     renderPositions();
     renderFeed();

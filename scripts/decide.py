@@ -83,6 +83,11 @@ def _ask(prompt: str, as_json: bool = False):
     text = json.loads(r.stdout)["result"].strip()
     if text.startswith("```"):
         text = text.split("\n", 1)[1].rsplit("```", 1)[0]
+    if as_json:
+        import re
+        m = re.search(r"\{.*\}", text, re.DOTALL)  # il modello a volte aggiunge prosa attorno
+        if m:
+            text = m.group(0)
     return json.loads(text) if as_json else text
 
 
