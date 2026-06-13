@@ -1,0 +1,45 @@
+name: paper-run
+
+# Run 24/7 in cloud: ogni 4h anche a Mac spento. Paper trading, nessun segreto.
+on:
+  schedule:
+    - cron: "10 */4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: paper-run
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: challenger funding-squeeze
+        run: uv run scripts/paper_trade.py strategies/generated/funding-squeeze-breakout-g2-g1-g2.yaml BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+
+      - name: challenger tsmom
+        run: uv run scripts/paper_trade.py strategies/tsmom-v1.yaml BTC,ETH,xyz_GOLD,xyz_CL,xyz_BRENTOIL,xyz_SILVER,xyz_SP500,xyz_MU
+
+      - name: executor agenti
+        run: uv run scripts/agents_paper.py
+
+      - name: dashboard
+        run: uv run scripts/dashboard.py
+
+      - name: publish
+        run: |
+          git config user.name "lux-ai-cron"
+          git config user.email "actions@users.noreply.github.com"
+          git add paper/ dashboard/index.html data/news/
+          if ! git diff --cached --quiet; then
+            git pull --rebase origin main || true
+            git commit -m "chore: paper run $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+            git push origin main
+          fi
