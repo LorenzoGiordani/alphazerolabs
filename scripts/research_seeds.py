@@ -89,6 +89,22 @@ SEEDS = [
         "exit": {"stop_pct": 6.0, "target_r": 4.0, "time_stop_h": 360},
         "risk": {"max_leverage": 2, "risk_per_trade_pct": 1.5, "max_concurrent_positions": 4},
     },
+    {
+        "id": "tsmom-volgate-v1", "family": "tsmom-volgate",
+        "symbols": "BTC,ETH,xyz_GOLD,xyz_CL,xyz_BRENTOIL,xyz_SILVER,xyz_SP500,xyz_MU",
+        "thesis": "Il backtest mostra che il regime chop distrugge il TSMOM (Sharpe negativo) e "
+                  "che il vincolo binding è il DSR (overfitting), non il rendimento grezzo. Tesi: "
+                  "entrare sul trend SOLO quando emerge da una compressione di volatilità (molla "
+                  "carica) filtra i whipsaw di chop e dovrebbe alzare il DSR rispetto a tsmom-v1, "
+                  "a costo di meno trade. rule tsmom AND vol_compression, direzione dal trend. "
+                  "Falsificata se il DSR non supera tsmom-v1 (0.36) o se i trade crollano sotto "
+                  "soglia di significatività.",
+        "signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}},
+                    {"name": "vol_compression", "params": {"lookback_h": 48, "pct": 20}}],
+        "entry": {"rule": "tsmom AND vol_compression", "direction": "follow:tsmom"},
+        "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
+        "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 3},
+    },
 ]
 
 
