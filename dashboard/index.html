@@ -216,6 +216,14 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .strat-card .s-row{ display:flex; gap:10px; font-size:12.5px; line-height:1.45; color:var(--text-2); margin-top:7px; }
 .strat-card .s-k{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); min-width:62px; padding-top:2px; }
 
+/* ---------- trading book ---------- */
+.book-filters{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.bchip{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:6px 14px; border-radius:100px; border:1px solid var(--line-2); color:var(--text-3); background:transparent; cursor:pointer; }
+.bchip:hover{ color:var(--text-2); border-color:var(--text-4); }
+.bchip.active{ color:var(--amber); border-color:var(--amber); }
+.book-stats{ display:flex; flex-wrap:wrap; gap:22px; margin-bottom:14px; font-family:var(--mono); font-size:11px; color:var(--text-3); }
+.book-stats b{ color:var(--text-1); font-weight:600; }
+
 /* ---------- mini-chart posizioni ---------- */
 .charts-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; margin-top:18px; }
 .pchart{ border:1px solid var(--line); border-radius:var(--r); padding:14px 16px 10px; }
@@ -396,10 +404,41 @@ footer .foot-mark b{ color:var(--amber); }
     <div class="feed" id="feed"></div>
   </section>
 
+  <!-- TRADING BOOK -->
+  <section id="book">
+    <div class="sec-head">
+      <span class="kicker">05 · Trading book</span>
+      <h2>Lo storico completo delle operazioni</h2>
+      <p class="note">Ogni operazione mai aperta, su tutti i conti: prezzi di entrata e uscita, risultato e motivo della chiusura. Filtra per strategia o guarda tutto insieme.</p>
+    </div>
+    <div class="book-filters" id="book-filters"></div>
+    <div class="book-stats" id="book-stats"></div>
+    <div class="table-scroll">
+      <table class="pos-tbl">
+        <thead>
+          <tr>
+            <th>Aperta</th>
+            <th>Chiusa</th>
+            <th class="acct-col">Conto</th>
+            <th>Asset</th>
+            <th>Lato</th>
+            <th>Entry</th>
+            <th>Exit</th>
+            <th>Size</th>
+            <th>P&amp;L</th>
+            <th>P&amp;L %</th>
+            <th>Uscita</th>
+          </tr>
+        </thead>
+        <tbody id="book-body"></tbody>
+      </table>
+    </div>
+  </section>
+
   <!-- LEZIONI -->
   <section id="lezioni">
     <div class="sec-head">
-      <span class="kicker">05 · Lezioni apprese</span>
+      <span class="kicker">06 · Lezioni apprese</span>
       <h2>Imparare in pubblico</h2>
       <p class="note">Gli errori ammessi valgono più dei colpi riusciti. Verdetto onesto su ogni trade chiuso.</p>
     </div>
@@ -409,7 +448,7 @@ footer .foot-mark b{ color:var(--amber); }
   <!-- LINEAGE -->
   <section id="evoluzione">
     <div class="sec-head">
-      <span class="kicker">06 · Albero evolutivo</span>
+      <span class="kicker">07 · Albero evolutivo</span>
       <h2>Generazioni di strategie</h2>
       <p class="note">Ogni nodo è una mutazione di un genitore. Le ritirate restano visibili: è la storia, non solo lo stato.</p>
     </div>
@@ -425,7 +464,7 @@ footer .foot-mark b{ color:var(--amber); }
   <!-- EVENTI NEWS -->
   <section id="eventi">
     <div class="sec-head">
-      <span class="kicker">07 · Eventi news</span>
+      <span class="kicker">08 · Eventi news</span>
       <h2>Catalizzatori dal flusso globale</h2>
       <p class="note">Burst anomali di copertura mediatica per tema (GDELT, timestamp point-in-time). Sono l'input del segnale event-driven: il tono indica la direzione attesa.</p>
     </div>
@@ -466,7 +505,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-12 23:40",
+ "updated_utc": "2026-06-13 00:05",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -919,6 +958,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-12 22:00",
        63482.8
+      ],
+      [
+       "2026-06-12 23:00",
+       63547.0
       ]
      ]
     },
@@ -1282,6 +1325,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-12 22:00",
        1661.73
+      ],
+      [
+       "2026-06-12 23:00",
+       1665.48
       ]
      ]
     },
@@ -1848,6 +1895,18 @@ footer .foot-mark b{ color:var(--amber); }
    "topic": "crypto",
    "z": 3.12,
    "tone": -2.92
+  },
+  {
+   "ts": "2025-07-15 14:45",
+   "topic": "geopolitics",
+   "z": 2.57,
+   "tone": -1.71
+  },
+  {
+   "ts": "2025-07-11 13:15",
+   "topic": "crypto",
+   "z": 2.07,
+   "tone": -0.47
   }
  ],
  "strategies": [
@@ -1874,6 +1933,68 @@ footer .foot-mark b{ color:var(--amber); }
    "entra": "solo se la proposta sopravvive al dibattito e al vaglio del gestore del rischio",
    "esce": "stop obbligatorio su ogni posizione, target o tesi smentita dai fatti",
    "rischio": "limiti fissati nel codice, non negoziabili dall'AI: leva max 2x, max 1% a rischio per operazione"
+  }
+ ],
+ "tradebook": [
+  {
+   "strategy": "tsmom-v1",
+   "account_label": "TSMOM challenger",
+   "symbol": "BTC",
+   "direction": "short",
+   "entry_px": 63053.8867,
+   "exit_px": null,
+   "size_usd": 2500.0,
+   "pnl_usd": null,
+   "pnl_pct": null,
+   "opened_at": "2026-06-12 07:00",
+   "closed_at": null,
+   "reason": "",
+   "status": "open"
+  },
+  {
+   "strategy": "tsmom-v1",
+   "account_label": "TSMOM challenger",
+   "symbol": "ETH",
+   "direction": "short",
+   "entry_px": 1660.877758,
+   "exit_px": null,
+   "size_usd": 2499.72,
+   "pnl_usd": null,
+   "pnl_pct": null,
+   "opened_at": "2026-06-12 07:00",
+   "closed_at": null,
+   "reason": "",
+   "status": "open"
+  },
+  {
+   "strategy": "tsmom-v1",
+   "account_label": "TSMOM challenger",
+   "symbol": "GOLD",
+   "direction": "short",
+   "entry_px": 4204.558822,
+   "exit_px": null,
+   "size_usd": 2499.44,
+   "pnl_usd": null,
+   "pnl_pct": null,
+   "opened_at": "2026-06-12 06:00",
+   "closed_at": null,
+   "reason": "",
+   "status": "open"
+  },
+  {
+   "strategy": "agents-v1",
+   "account_label": "Agenti LLM",
+   "symbol": "ZEC",
+   "direction": "long",
+   "entry_px": 433.18662,
+   "exit_px": 417.941483,
+   "size_usd": 1428.57,
+   "pnl_usd": -50.92,
+   "pnl_pct": -3.52,
+   "opened_at": "2026-06-11 20:00",
+   "closed_at": "2026-06-12 06:00",
+   "reason": "stopped",
+   "status": "closed"
   }
  ]
 }
@@ -2248,6 +2369,53 @@ footer .foot-mark b{ color:var(--amber); }
     });
   }
 
+  /* ---------- render: trading book ---------- */
+  let bookFilter='*';
+  function renderBookTable(){
+    const body=$('#book-body'); if(!body) return; body.innerHTML='';
+    const rows=(DATA.tradebook||[]).filter(t=>bookFilter==='*'||t.strategy===bookFilter);
+    rows.forEach(t=>{
+      const tr=el('tr');
+      tr.innerHTML =
+        '<td class="muted-cell num">'+fmtTs(t.opened_at)+'</td>'+
+        '<td class="muted-cell num">'+(t.closed_at?fmtTs(t.closed_at):'<span class="open-flag"><span class="d"></span>aperta</span>')+'</td>'+
+        '<td class="acct-col" style="text-align:left"><span class="acct-pill">'+t.account_label+'</span></td>'+
+        '<td><div class="sym"><span class="s-tick">'+t.symbol+'</span></div></td>'+
+        '<td style="text-align:left"><span class="side '+t.direction+'">'+(t.direction==='long'?'▲ long':'▼ short')+'</span></td>'+
+        '<td>'+px(t.entry_px)+'</td>'+
+        '<td>'+(t.exit_px!=null?px(t.exit_px):'—')+'</td>'+
+        '<td>'+NF0.format(t.size_usd)+' $</td>'+
+        '<td class="'+(t.pnl_usd>0?'pos':t.pnl_usd<0?'neg':'')+'">'+(t.pnl_usd!=null?signedUsd(t.pnl_usd):'—')+'</td>'+
+        '<td class="'+(t.pnl_pct>0?'pos':t.pnl_pct<0?'neg':'')+'">'+(t.pnl_pct!=null?(t.pnl_pct>0?'+':'')+NF2.format(t.pnl_pct)+'%':'—')+'</td>'+
+        '<td class="muted-cell">'+(REASON_IT[t.reason]||t.reason||'—')+'</td>';
+      body.appendChild(tr);
+    });
+    const closed=rows.filter(t=>t.status==='closed');
+    const pnl=closed.reduce((s,t)=>s+t.pnl_usd,0);
+    const wins=closed.filter(t=>t.pnl_usd>0).length;
+    $('#book-stats').innerHTML =
+      '<span>Operazioni <b>'+rows.length+'</b></span>'+
+      '<span>Chiuse <b>'+closed.length+'</b></span>'+
+      '<span>Vinte <b>'+wins+(closed.length?' ('+Math.round(wins/closed.length*100)+'%)':'')+'</b></span>'+
+      '<span>P&L realizzato <b class="'+chipOf(pnl)+'">'+signedUsd(pnl)+'</b></span>';
+  }
+  function renderBook(){
+    const host=$('#book-filters'); if(!host) return; host.innerHTML='';
+    const sids=[...new Set((DATA.tradebook||[]).map(t=>t.strategy))];
+    const mk=(id,label)=>{
+      const b=el('button','bchip'+(bookFilter===id?' active':''));
+      b.textContent=label;
+      b.onclick=()=>{ bookFilter=id; renderBook(); };
+      host.appendChild(b);
+    };
+    mk('*','Tutte');
+    sids.forEach(sid=>{
+      const t=(DATA.tradebook||[]).find(x=>x.strategy===sid);
+      mk(sid,t.account_label);
+    });
+    renderBookTable();
+  }
+
   /* ---------- render: news events ---------- */
   const TOPIC_IT={crypto:'Crypto', fed_macro:'Fed / Macro', commodities:'Commodities', equities:'Azionario', geopolitics:'Geopolitica'};
   function renderEvents(){
@@ -2303,6 +2471,7 @@ footer .foot-mark b{ color:var(--amber); }
     renderEvents();
     renderStrats();
     renderPosCharts();
+    renderBook();
   }
   boot();
 

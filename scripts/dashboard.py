@@ -229,13 +229,44 @@ def build_data() -> dict:
                    "tone": None if pd.isna(r.tone) else round(float(r.tone), 2)}
                   for r in ev.itertuples()][::-1]
 
+    # trading book: open↔close accoppiati dal journal, in ordine cronologico
+    book, pending = [], {}
+    for e in journal:
+        if e.get("type") == "open":
+            pending[(e["strategy"], e["symbol"])] = e
+        elif e.get("type") == "close":
+            o = pending.pop((e["strategy"], e["symbol"]), None)
+            if o is None:
+                continue
+            sign = 1 if o["direction"] == "long" else -1
+            book.append({
+                "strategy": e["strategy"],
+                "account_label": ACCOUNT_META.get(e["strategy"], {}).get("label", e["strategy"]),
+                "symbol": clean_symbol(e["symbol"]), "direction": o["direction"],
+                "entry_px": round(o["entry_px"], 6), "exit_px": round(e["exit_px"], 6),
+                "size_usd": round(o["size_usd"], 2), "pnl_usd": round(e.get("pnl_usd", 0), 2),
+                "pnl_pct": round(sign * (e["exit_px"] / o["entry_px"] - 1) * 100, 2),
+                "opened_at": ts_short(o["opened_at"]), "closed_at": ts_short(e.get("ts", e["logged_at"])),
+                "reason": e.get("reason", ""), "status": "closed",
+            })
+    for (sid, sym), o in pending.items():  # ancora aperte
+        book.append({
+            "strategy": sid, "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
+            "symbol": clean_symbol(sym), "direction": o["direction"],
+            "entry_px": round(o["entry_px"], 6), "exit_px": None,
+            "size_usd": round(o["size_usd"], 2), "pnl_usd": None, "pnl_pct": None,
+            "opened_at": ts_short(o["opened_at"]), "closed_at": None,
+            "reason": "", "status": "open",
+        })
+    book.sort(key=lambda t: t["opened_at"], reverse=True)
+
     strategies = [{"id": sid, **info} for sid, info in STRATEGY_INFO.items()
                   if sid in state]
 
     return {
         "updated_utc": f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M}",
         "accounts": accounts, "decisions": dec_out, "lessons": les_out, "lineage": lineage,
-        "news_events": events, "strategies": strategies,
+        "news_events": events, "strategies": strategies, "tradebook": book,
     }
 
 
