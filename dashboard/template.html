@@ -211,7 +211,14 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 /* ---------- strategie spiegate ---------- */
 .strat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:16px; }
 .strat-card{ border:1px solid var(--line); border-radius:var(--r); padding:20px 22px; }
-.strat-card h3{ font-size:17px; margin:0 0 8px; }
+.strat-card .s-head{ display:flex; align-items:center; gap:10px; margin:0 0 6px; }
+.strat-card h3{ font-size:17px; margin:0; }
+.strat-card .s-stat{ margin-left:auto; font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase; padding:3px 9px; border-radius:100px; border:1px solid var(--line-2); color:var(--text-3); }
+.strat-card .s-stat.champion{ color:var(--amber); border-color:var(--amber); }
+.strat-card .s-stat.challenger{ color:var(--blue); border-color:var(--blue); }
+.strat-card .s-stat.live{ color:var(--green); border-color:var(--green-dim); }
+.strat-card .s-tags{ display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
+.strat-card .s-tag{ font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; padding:3px 9px; border-radius:6px; background:var(--line); color:var(--text-3); }
 .strat-card .s-cosa{ font-size:13.5px; line-height:1.55; color:var(--text-2); margin:0 0 14px; }
 .strat-card .s-row{ display:flex; gap:10px; font-size:12.5px; line-height:1.45; color:var(--text-2); margin-top:7px; }
 .strat-card .s-k{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); min-width:62px; padding-top:2px; }
@@ -982,10 +989,15 @@ footer .foot-mark b{ color:var(--amber); }
   /* ---------- render: strategie spiegate ---------- */
   function renderStrats(){
     const host=$('#strats'); if(!host) return; host.innerHTML='';
+    const ST_IT={champion:'campione',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata'};
     (DATA.strategies||[]).forEach(s=>{
       const card=el('div','strat-card');
+      const tags=[s.asset_class,s.risk_profile].filter(Boolean)
+        .map(t=>'<span class="s-tag">'+t+'</span>').join('');
+      const stat=s.status?'<span class="s-stat '+s.status+'">'+(ST_IT[s.status]||s.status)+'</span>':'';
       card.innerHTML =
-        '<h3>'+s.nome+'</h3>'+
+        '<div class="s-head"><h3>'+s.nome+'</h3>'+stat+'</div>'+
+        (tags?'<div class="s-tags">'+tags+'</div>':'')+
         '<p class="s-cosa">'+s.cosa+'</p>'+
         '<div class="s-row"><span class="s-k">Entra</span><span>'+s.entra+'</span></div>'+
         '<div class="s-row"><span class="s-k">Esce</span><span>'+s.esce+'</span></div>'+
