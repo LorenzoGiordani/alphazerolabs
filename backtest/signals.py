@@ -6,7 +6,8 @@ data["candles"] (indice 0..n-1). Il segno è la *lettura* del segnale
 (es. +1 = crowding long), la direzione del trade la decide la strategia.
 
 data: {"candles": df, "funding": df|None (ts, rate 8h), "flow": df|None (ts, volume, taker_buy),
-       "news_events": df|None (ts, topic, z, tone — burst GDELT, vedi backtest/events.py)}
+       "news_events": df|None (ts, topic, z, tone — burst GDELT, vedi backtest/events.py),
+       "cot": df|None (ts report COT settimanale, net_mm, oi, net_pct_oi)}
 """
 
 import numpy as np
@@ -115,6 +116,27 @@ def news_event(data, topics: str = "crypto", max_age_h: int = 24, min_z: float =
     return pd.Series(out, index=c.index)
 
 
+def cot_percentile(data, lookback_w: int = 26, extreme_pct: float = 85) -> pd.Series:
+    """+1 = managed money net long a estremo storico (crowding long), -1 = estremo
+    short. È il funding delle commodities: posizionamento speculativo dal report
+    COT CFTC. Anti-lookahead: il report fotografa il martedì ma esce il venerdì
+    → disponibile solo da ts+3 giorni."""
+    c = data["candles"]
+    cot = data.get("cot")
+    if cot is None or len(cot) < lookback_w // 2:
+        return pd.Series(0, index=c.index)
+    cot = cot.sort_values("ts").copy()
+    cot["pct"] = cot["net_pct_oi"].rolling(lookback_w, min_periods=lookback_w // 2) \
+        .rank(pct=True) * 100
+    # normalizza tz e risoluzione (parquet diversi: ms/us, naive/UTC)
+    norm = lambda s: pd.to_datetime(s, utc=True).astype("datetime64[ns, UTC]")
+    left = pd.DataFrame({"ts": norm(c["ts"])})
+    right = pd.DataFrame({"ts": norm(cot["ts"] + pd.Timedelta(days=3)), "pct": cot["pct"]})
+    aligned = pd.merge_asof(left, right, on="ts", direction="backward")["pct"]
+    out = np.where(aligned >= extreme_pct, 1, np.where(aligned <= 100 - extreme_pct, -1, 0))
+    return pd.Series(out, index=c.index)
+
+
 SIGNALS = {
     "funding_percentile": funding_percentile,
     "range_breakout": range_breakout,
@@ -124,4 +146,5 @@ SIGNALS = {
     "vwap_zscore": vwap_zscore,
     "volume_surge": volume_surge,
     "news_event": news_event,
+    "cot_percentile": cot_percentile,
 }

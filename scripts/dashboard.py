@@ -69,6 +69,7 @@ SIGNAL_IT = {
     "vwap_zscore": "prezzo molto esteso rispetto alla media pesata",
     "volume_surge": "volumi anomali",
     "news_event": "evento di notizie anomalo in corso",
+    "cot_percentile": "posizionamento estremo dei fondi (report COT)",
 }
 
 

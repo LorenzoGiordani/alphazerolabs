@@ -27,7 +27,8 @@ def main() -> None:
     data = {"candles": candles,
             "funding": read(f"data/funding/{symbol}.parquet"),
             "flow": read(f"data/flow/{symbol}.parquet"),
-            "news_events": read("data/news/gdelt_events.parquet")}
+            "news_events": read("data/news/gdelt_events.parquet"),
+            "cot": read(f"data/cot/{symbol}.parquet")}
 
     spec = load(spec_path)
     strat, sigs = compile_strategy(spec, data)

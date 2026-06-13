@@ -118,6 +118,8 @@ def main() -> None:
         try:
             data = fetch_live(symbol)
             data["news_events"] = news_events
+            cot = ROOT / f"data/cot/{symbol}.parquet"
+            data["cot"] = pd.read_parquet(cot) if cot.exists() else None
         except Exception as e:
             print(f"  {symbol}: fetch fallito ({e})", file=sys.stderr)
             continue
