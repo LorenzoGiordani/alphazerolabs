@@ -78,7 +78,8 @@ def _ask(prompt: str, as_json: bool = False):
     r = subprocess.run(["claude", "-p", "--output-format", "json"],
                        input=prompt, capture_output=True, text=True, timeout=600, env=env)
     if r.returncode != 0:
-        raise RuntimeError(f"claude -p fallito: {r.stderr[:500]}")
+        raise RuntimeError(f"claude -p fallito (exit {r.returncode}): "
+                           f"stderr={r.stderr[:300]} stdout={r.stdout[:300]}")
     text = json.loads(r.stdout)["result"].strip()
     if text.startswith("```"):
         text = text.split("\n", 1)[1].rsplit("```", 1)[0]
