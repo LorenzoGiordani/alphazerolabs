@@ -89,6 +89,66 @@ def clean_symbol(s: str) -> str:
     return str(s).removeprefix("xyz_")
 
 
+def asset_class(symbols: str) -> str:
+    syms = [s.strip() for s in symbols.split(",") if s.strip()]
+    if not syms:
+        return "multi-asset"
+    xyz = sum(1 for s in syms if s.startswith("xyz_"))
+    if xyz == 0:
+        return "crypto"
+    if xyz == len(syms):
+        return "commodities/indici"
+    return "multi-asset"
+
+
+def risk_profile(risk: dict) -> str:
+    lev = risk.get("max_leverage", 1)
+    rpt = risk.get("risk_per_trade_pct", 1.0)
+    if lev <= 1 and rpt <= 0.8:
+        return "conservativo"
+    if lev >= 2 and rpt >= 1.4:
+        return "aggressivo"
+    return "bilanciato"
+
+
+def build_strategies(state: dict) -> list[dict]:
+    """Sezione 'Le strategie': tutte le attive (champion+challenger), spiegazione
+    curata se disponibile (STRATEGY_INFO) altrimenti derivata dalla tesi nello YAML.
+    Auto-include i nuovi ceppi e quelli che il loop evolutivo promuoverà."""
+    sys.path.insert(0, str(ROOT))
+    from backtest.lifecycle import active_specs, paper_symbols
+    out = []
+    seen = set()
+    for path, spec in active_specs():
+        sid = spec["id"]
+        seen.add(sid)
+        syms = paper_symbols(spec)
+        info = STRATEGY_INFO.get(sid)
+        if info:
+            entry = {"id": sid, **info}
+        else:  # derivata: tesi accorciata + entra/esce/rischio dallo YAML
+            thesis = " ".join((spec.get("thesis") or "").split())
+            entry = {
+                "id": sid,
+                "nome": ACCOUNT_META.get(sid, {}).get("label", sid),
+                "cosa": thesis[:280] + ("…" if len(thesis) > 280 else ""),
+                "entra": "segnali: " + ", ".join(s["name"] for s in spec.get("signals", [])),
+                "esce": f"stop {spec['exit'].get('stop_pct')}%, target {spec['exit'].get('target_r')}R, "
+                        f"tempo max {spec['exit'].get('time_stop_h')}h",
+                "rischio": f"leva max {spec['risk'].get('max_leverage')}x, "
+                           f"{spec['risk'].get('risk_per_trade_pct')}% a rischio per operazione",
+            }
+        entry["status"] = spec.get("status", "challenger")
+        entry["asset_class"] = asset_class(syms)
+        entry["risk_profile"] = risk_profile(spec.get("risk", {}))
+        out.append(entry)
+    # agents-v1 non è un file YAML: aggiungilo se attivo in paper
+    if "agents-v1" in state and "agents-v1" not in seen:
+        out.append({"id": "agents-v1", **STRATEGY_INFO["agents-v1"],
+                    "status": "live", "asset_class": "crypto", "risk_profile": "bilanciato"})
+    return out
+
+
 def chart_series(symbol: str, opened_at: str, pre_h: int = 72) -> list | None:
     """Chiusure orarie da poco prima dell'apertura a ora — per il mini-chart.
     Prova il feed live; fallback sul parquet storico. None se entrambi falliscono."""
@@ -279,8 +339,7 @@ def build_data() -> dict:
         })
     book.sort(key=lambda t: t["opened_at"], reverse=True)
 
-    strategies = [{"id": sid, **info} for sid, info in STRATEGY_INFO.items()
-                  if sid in state]
+    strategies = build_strategies(state)
 
     return {
         "updated_utc": f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M}",

@@ -61,5 +61,32 @@
     "checked_until": "2026-06-12 19:00:00+00:00"
    }
   }
+ },
+ "tsmom-conservative-v1": {
+  "equity": 9997.840117,
+  "positions": {
+   "xyz_GOLD": {
+    "strategy": "tsmom-conservative-v1",
+    "symbol": "xyz_GOLD",
+    "direction": "short",
+    "entry_px": 4231.053522363281,
+    "size_usd": 2400.0,
+    "stop_px": 4336.829860422363,
+    "target_px": 3913.7245081860356,
+    "opened_at": "2026-06-12 19:00:00+00:00",
+    "checked_until": "2026-06-12 19:00:00+00:00"
+   },
+   "xyz_CL": {
+    "strategy": "tsmom-conservative-v1",
+    "symbol": "xyz_CL",
+    "direction": "short",
+    "entry_px": 84.28314305114746,
+    "size_usd": 2399.74,
+    "stop_px": 86.39022162742614,
+    "target_px": 77.9619073223114,
+    "opened_at": "2026-06-12 19:00:00+00:00",
+    "checked_until": "2026-06-12 19:00:00+00:00"
+   }
+  }
  }
 }

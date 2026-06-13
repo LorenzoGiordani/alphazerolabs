@@ -1,0 +1,251 @@
+id: tsmom-aggressive-v1
+parent: null
+status: candidate
+created: '2026-06-13'
+thesis: 'Profilo aggressivo sullo stesso edge TSMOM: leva 2x, stop largo, target esteso,
+  più posizioni. Tesi: lasciar correre i trend con stop larghi cattura le code dei
+  movimenti. Falsificata se il drawdown extra non è compensato dal rendimento (Sharpe
+  non superiore a tsmom-v1).'
+universe:
+  selection: explicit
+  max_assets: 8
+  kinds:
+  - mixed
+timeframe: 1h
+decision_every_h: 4
+signals:
+- name: tsmom
+  params:
+    short_h: 168
+    long_h: 720
+entry:
+  rule: tsmom
+  direction: follow:tsmom
+exit:
+  stop_pct: 6.0
+  target_r: 4.0
+  time_stop_h: 360
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.5
+  max_concurrent_positions: 4
+evolution:
+  mutable:
+  - signals
+  - entry
+  - exit
+  notes: seed di ricerca
+backtest:
+  basket_6m:
+    aggregate:
+      mean_sharpe: 1.5606069850324733
+      mean_return: 0.11024504893750303
+      worst_drawdown: -0.15168397102431616
+      total_trades: 150
+      folds: 24/48
+      positive_symbols: 7/8
+      dsr: 0.448
+      dsr_sr0_ann: 2.86
+      vs_buy_hold_sharpe: -0.02
+    per_symbol:
+      BTC:
+        metrics:
+          total_return: -0.09761867292843385
+          sharpe: -1.9500132681981945
+          max_drawdown: -0.15168397102431616
+          n_trades: 17
+          win_rate: 0.23529411764705882
+          profit_factor: 0.14817917504334663
+        regimes:
+          bear:
+            ret: -0.03171732948909045
+            sharpe: -3.230360904486227
+            hours: 468
+          bull:
+            ret: -0.015526920878923156
+            sharpe: -11.303252825393988
+            hours: 85
+          chop:
+            ret: -0.05336164688979428
+            sharpe: -1.3934547789593987
+            hours: 3765
+        consistency: 1/6 fold positivi
+        exits:
+          stopped: 11
+          closed: 6
+      ETH:
+        metrics:
+          total_return: 0.1446540312580855
+          sharpe: 2.0793628745784245
+          max_drawdown: -0.05987522422394207
+          n_trades: 13
+          win_rate: 0.5384615384615384
+          profit_factor: 2.6074504336521125
+        regimes:
+          bear:
+            ret: 0.11217630533592682
+            sharpe: 6.6675714540385
+            hours: 692
+          bull:
+            ret: 0.02407453072539334
+            sharpe: 5.1631951344106195
+            hours: 228
+          chop:
+            ret: 0.005006888921900821
+            sharpe: 0.17025909445887535
+            hours: 3398
+        consistency: 4/6 fold positivi
+        exits:
+          stopped: 5
+          closed: 5
+          target: 3
+      xyz_GOLD:
+        metrics:
+          total_return: 0.09441094894064084
+          sharpe: 2.122736650664355
+          max_drawdown: -0.054229257912966504
+          n_trades: 6
+          win_rate: 0.5
+          profit_factor: 3.072333186082011
+        regimes:
+          bear:
+            ret: 0.017981559434672834
+            sharpe: 5.043365609282989
+            hours: 232
+          bull:
+            ret: 0.021084803481577152
+            sharpe: 6.110089910587913
+            hours: 201
+          chop:
+            ret: 0.05287958661385139
+            sharpe: 1.497439361563603
+            hours: 3885
+        consistency: 4/6 fold positivi
+        exits:
+          closed: 3
+          stopped: 2
+          target: 1
+      xyz_CL:
+        metrics:
+          total_return: 0.12415713224727187
+          sharpe: 1.4047166977683403
+          max_drawdown: -0.09415941166505915
+          n_trades: 25
+          win_rate: 0.36
+          profit_factor: 1.4317704870463375
+        regimes:
+          bear:
+            ret: 0.00020783790421075032
+            sharpe: 0.13095221708734767
+            hours: 302
+          bull:
+            ret: 0.19610122527113716
+            sharpe: 8.51964430837926
+            hours: 578
+          chop:
+            ret: -0.06034412925227328
+            sharpe: -1.0654213680680482
+            hours: 3438
+        consistency: 3/6 fold positivi
+        exits:
+          stopped: 16
+          target: 5
+          closed: 4
+      xyz_BRENTOIL:
+        metrics:
+          total_return: 0.05822981767663271
+          sharpe: 0.6794127322296725
+          max_drawdown: -0.09292033796150095
+          n_trades: 22
+          win_rate: 0.3181818181818182
+          profit_factor: 1.1501601690591305
+        regimes:
+          bear:
+            ret: -0.0016924038223123938
+            sharpe: -0.1793299865238801
+            hours: 268
+          bull:
+            ret: 0.11725380249619932
+            sharpe: 5.194761194485501
+            hours: 554
+          chop:
+            ret: -0.05122380998001974
+            sharpe: -0.7366350090479267
+            hours: 3496
+        consistency: 3/6 fold positivi
+        exits:
+          stopped: 14
+          closed: 4
+          target: 4
+      xyz_SILVER:
+        metrics:
+          total_return: 0.08849576808242765
+          sharpe: 0.952725073139158
+          max_drawdown: -0.14425128231793322
+          n_trades: 38
+          win_rate: 0.3157894736842105
+          profit_factor: 1.1959190806810167
+        regimes:
+          bear:
+            ret: -0.014825576328268752
+            sharpe: -0.5111183671124148
+            hours: 636
+          bull:
+            ret: 0.17062465954756134
+            sharpe: 4.734393993710249
+            hours: 1345
+          chop:
+            ret: -0.05616528284705624
+            sharpe: -1.420960095163863
+            hours: 2337
+        consistency: 3/6 fold positivi
+        exits:
+          stopped: 25
+          target: 7
+          closed: 6
+      xyz_SP500:
+        metrics:
+          total_return: 0.014083371119004262
+          sharpe: 1.1877678289994946
+          max_drawdown: -0.02489800597235151
+          n_trades: 1
+          win_rate: 0.0
+          profit_factor: 0.0
+        regimes:
+          bull:
+            ret: 0.013337052150419026
+            sharpe: 16.78415833317612
+            hours: 110
+          chop:
+            ret: 0.0018043056348766573
+            sharpe: 0.19052226378217882
+            hours: 1611
+        consistency: 3/6 fold positivi
+        exits:
+          stopped: 1
+      xyz_MU:
+        metrics:
+          total_return: 0.45554799510439525
+          sharpe: 6.008147291078536
+          max_drawdown: -0.09167759347065395
+          n_trades: 28
+          win_rate: 0.39285714285714285
+          profit_factor: 2.4954096411575217
+        regimes:
+          bear:
+            ret: -0.026541217479651436
+            sharpe: -5.347191337475528
+            hours: 155
+          bull:
+            ret: 0.501529949594387
+            sharpe: 9.817713972182371
+            hours: 1055
+          chop:
+            ret: -0.004193484182232865
+            sharpe: -0.10775826954264917
+            hours: 512
+        consistency: 3/6 fold positivi
+        exits:
+          stopped: 17
+          target: 11
+paper_symbols: BTC,ETH,xyz_GOLD,xyz_CL,xyz_BRENTOIL,xyz_SILVER,xyz_SP500,xyz_MU

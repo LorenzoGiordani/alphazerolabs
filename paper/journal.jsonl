@@ -58,6 +58,7 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 9947.84, "open_positions": 1, "logged_at": "2026-06-13T09:20:06.733310+00:00"}
 {"type": "heartbeat", "strategy": "tsmom-v1", "equity": 9996.63, "open_positions": 3, "logged_at": "2026-06-13T09:30:46.971169+00:00"}
 {"type": "heartbeat", "strategy": "funding-squeeze-breakout-g2-g1-g2", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-13T09:30:56.429614+00:00"}
+<<<<<<< Updated upstream
 {"type": "heartbeat", "strategy": "tsmom-v1", "equity": 9996.63, "open_positions": 3, "logged_at": "2026-06-13T09:36:16.545891+00:00"}
 {"type": "heartbeat", "strategy": "funding-squeeze-breakout-g2-g1-g2", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-13T09:36:28.202040+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 9947.84, "open_positions": 1, "logged_at": "2026-06-13T09:36:30.430555+00:00"}
@@ -66,3 +67,10 @@
 {"type": "heartbeat", "strategy": "funding-squeeze-breakout-g2-g1-g2", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-13T10:37:02.349275+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 9947.84, "open_positions": 1, "logged_at": "2026-06-13T10:37:03.847987+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 9947.84, "open_positions": 1, "logged_at": "2026-06-13T10:37:18.862968+00:00"}
+=======
+{"type": "heartbeat", "strategy": "tsmom-v1", "equity": 9996.63, "open_positions": 3, "logged_at": "2026-06-13T09:43:10.203692+00:00"}
+{"type": "heartbeat", "strategy": "funding-squeeze-breakout-g2-g1-g2", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-13T09:43:18.810849+00:00"}
+{"type": "open", "strategy": "tsmom-conservative-v1", "symbol": "xyz_GOLD", "direction": "short", "entry_px": 4231.053522363281, "size_usd": 2400.0, "stop_px": 4336.829860422363, "target_px": 3913.7245081860356, "opened_at": "2026-06-12 19:00:00+00:00", "checked_until": "2026-06-12 19:00:00+00:00", "thesis": "tsmom \u2192 follow:tsmom", "signals_last": {"tsmom": -1}, "logged_at": "2026-06-13T09:43:21.840407+00:00"}
+{"type": "open", "strategy": "tsmom-conservative-v1", "symbol": "xyz_CL", "direction": "short", "entry_px": 84.28314305114746, "size_usd": 2399.74, "stop_px": 86.39022162742614, "target_px": 77.9619073223114, "opened_at": "2026-06-12 19:00:00+00:00", "checked_until": "2026-06-12 19:00:00+00:00", "thesis": "tsmom \u2192 follow:tsmom", "signals_last": {"tsmom": -1}, "logged_at": "2026-06-13T09:43:22.113487+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-conservative-v1", "equity": 9997.84, "open_positions": 2, "logged_at": "2026-06-13T09:43:23.315515+00:00"}
+>>>>>>> Stashed changes

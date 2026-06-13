@@ -1,0 +1,176 @@
+"""Ricerca strategie SEED guidata da ipotesi (non mutazioni: nuovi ceppi).
+
+Ogni seed ha una tesi falsificabile e un universo mirato per asset-class o
+profilo di rischio. Backtest sul basket + gate DSR + confronto vs buy-and-hold.
+I seed che battono buy-and-hold risk-adjusted E passano il DSR → status challenger
+(entrano in paper). Gli altri → candidate (archiviati nell'albero).
+
+Rispetta le lezioni accumulate: trend funziona, mean-reversion no, news non
+direzionale. Niente indicatori lagging. Solo segnali del registry.
+
+Uso: .venv/bin/python scripts/research_seeds.py [--dsr 0.85] [--write]
+"""
+
+import argparse
+import sys
+from datetime import date
+from pathlib import Path
+
+import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from backtest.metrics import buy_and_hold, compute
+from backtest.signals import SIGNALS
+from backtest.stats import deflated_sharpe, sharpe_moments
+from scripts.evolve import OUT_DIR, eval_basket, load_data
+
+CRYPTO = "BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV"
+COMMOD = "xyz_GOLD,xyz_SILVER,xyz_CL,xyz_BRENTOIL,xyz_NATGAS"
+EQUITY = "xyz_SP500,xyz_MU,xyz_SNDK,xyz_XYZ100"
+
+# ---- SEED: ognuno una tesi falsificabile, universo e profilo di rischio mirati ----
+SEEDS = [
+    {
+        "id": "commodities-trend-v1", "family": "commodities-trend", "symbols": COMMOD,
+        "thesis": "I trend sulle commodities sono persistenti (driver macro/COT, cicli "
+                  "lunghi). Un book dedicato alle sole commodities con TSMOM dovrebbe essere "
+                  "più pulito del basket misto. Falsificata se non batte buy-and-hold "
+                  "risk-adjusted sulle commodities a 6 mesi.",
+        "signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}}],
+        "entry": {"rule": "tsmom", "direction": "follow:tsmom"},
+        "exit": {"stop_pct": 4.0, "target_r": 3.0, "time_stop_h": 360},
+        "risk": {"max_leverage": 2, "risk_per_trade_pct": 1.0, "max_concurrent_positions": 3},
+    },
+    {
+        "id": "commodities-cot-trend-v1", "family": "commodities-cot-trend", "symbols": COMMOD,
+        "thesis": "TSMOM sulle commodities CONFERMATO dal posizionamento estremo dei fondi "
+                  "(COT): trend + crowd allineati = spinta più forte. rule tsmom AND "
+                  "cot_percentile, direzione dal trend. Falsificata se il filtro COT non "
+                  "migliora lo Sharpe rispetto al solo TSMOM commodities.",
+        "signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}},
+                    {"name": "cot_percentile", "params": {"lookback_w": 26, "extreme_pct": 80}}],
+        "entry": {"rule": "tsmom AND cot_percentile", "direction": "follow:tsmom"},
+        "exit": {"stop_pct": 4.0, "target_r": 3.0, "time_stop_h": 360},
+        "risk": {"max_leverage": 2, "risk_per_trade_pct": 1.0, "max_concurrent_positions": 3},
+    },
+    {
+        "id": "crypto-trend-flow-v1", "family": "crypto-trend-flow", "symbols": CRYPTO,
+        "thesis": "Momentum crypto CONFERMATO dal flusso aggressivo (taker buy/sell): il "
+                  "trend supportato da ordini a mercato è più robusto dei breakout in "
+                  "sottigliezza. rule tsmom AND taker_flow, direzione dal trend. Falsificata "
+                  "se non batte il TSMOM semplice su crypto.",
+        "signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}},
+                    {"name": "taker_flow", "params": {"lookback_h": 24, "threshold": 0.02}}],
+        "entry": {"rule": "tsmom AND taker_flow", "direction": "follow:tsmom"},
+        "exit": {"stop_pct": 4.5, "target_r": 3.0, "time_stop_h": 240},
+        "risk": {"max_leverage": 2, "risk_per_trade_pct": 1.0, "max_concurrent_positions": 3},
+    },
+    {
+        "id": "tsmom-conservative-v1", "family": "tsmom-conservative",
+        "symbols": "BTC,ETH,xyz_GOLD,xyz_CL,xyz_BRENTOIL,xyz_SILVER,xyz_SP500,xyz_MU",
+        "thesis": "Profilo di rischio difensivo sullo stesso edge TSMOM (vincente): leva 1x, "
+                  "stop stretto, meno posizioni concorrenti. Tesi: rinunciare a parte del "
+                  "rendimento per un drawdown nettamente minore migliora lo Sharpe. "
+                  "Falsificata se lo Sharpe non sale rispetto a tsmom-v1.",
+        "signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}}],
+        "entry": {"rule": "tsmom", "direction": "follow:tsmom"},
+        "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
+        "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 2},
+    },
+    {
+        "id": "tsmom-aggressive-v1", "family": "tsmom-aggressive",
+        "symbols": "BTC,ETH,xyz_GOLD,xyz_CL,xyz_BRENTOIL,xyz_SILVER,xyz_SP500,xyz_MU",
+        "thesis": "Profilo aggressivo sullo stesso edge TSMOM: leva 2x, stop largo, target "
+                  "esteso, più posizioni. Tesi: lasciar correre i trend con stop larghi cattura "
+                  "le code dei movimenti. Falsificata se il drawdown extra non è compensato dal "
+                  "rendimento (Sharpe non superiore a tsmom-v1).",
+        "signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}}],
+        "entry": {"rule": "tsmom", "direction": "follow:tsmom"},
+        "exit": {"stop_pct": 6.0, "target_r": 4.0, "time_stop_h": 360},
+        "risk": {"max_leverage": 2, "risk_per_trade_pct": 1.5, "max_concurrent_positions": 4},
+    },
+]
+
+
+def make_spec(seed: dict) -> dict:
+    for s in seed["signals"]:
+        if s["name"] not in SIGNALS:
+            raise ValueError(f"segnale fuori registry: {s['name']}")
+    return {
+        "id": seed["id"], "parent": None, "status": "candidate", "created": str(date.today()),
+        "thesis": seed["thesis"],
+        "universe": {"selection": "explicit", "max_assets": len(seed["symbols"].split(",")),
+                     "kinds": ["mixed"]},
+        "timeframe": "1h", "decision_every_h": 4,
+        "signals": seed["signals"], "entry": seed["entry"], "exit": seed["exit"],
+        "risk": seed["risk"],
+        "evolution": {"mutable": ["signals", "entry", "exit"], "notes": "seed di ricerca"},
+        "backtest": {}, "paper_symbols": seed["symbols"],
+    }
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dsr", type=float, default=0.85, help="DSR riportato (gate champion, non challenger)")
+    ap.add_argument("--min-sharpe", type=float, default=1.0, help="Sharpe minimo per il test live (challenger)")
+    ap.add_argument("--months", type=int, default=6)
+    ap.add_argument("--write", action="store_true", help="scrive gli YAML (challenger se passano)")
+    args = ap.parse_args()
+
+    # cache dati per simbolo (riuso tra seed con universi sovrapposti)
+    cache: dict = {}
+
+    def data_for(symbols: str) -> dict:
+        out = {}
+        for s in symbols.split(","):
+            if s not in cache:
+                cache[s] = load_data(s, args.months)
+            out[s] = cache[s]
+        return out
+
+    results = []
+    for seed in SEEDS:
+        spec = make_spec(seed)
+        datasets = data_for(seed["symbols"])
+        res = eval_basket(spec, datasets)
+        rets = res["basket_rets"]
+        # buy-and-hold medio del basket come baseline obbligatoria
+        bh = [buy_and_hold(d["candles"])["sharpe"] for d in datasets.values()]
+        bh_sharpe = sum(bh) / len(bh)
+        results.append((seed, spec, res, rets, bh_sharpe))
+
+    trial_srs = [sharpe_moments(r)["sr"] for *_, r, _ in results]
+    k = len([f for f in OUT_DIR.glob("*.yaml") if "candidates" not in f.name]) + len(results) + 1
+
+    print(f"\n{'seed':<28} {'Sharpe':>7} {'vs B&H':>7} {'DSR':>6} {'MDD':>7} {'trades':>6}  esito")
+    print("-" * 78)
+    promoted = 0
+    for seed, spec, res, rets, bh_sharpe in results:
+        a = res["aggregate"]
+        d = deflated_sharpe(rets, k, trial_srs)
+        a["dsr"] = round(d["dsr"], 3)
+        a["dsr_sr0_ann"] = d["sr0_ann"]
+        a["vs_buy_hold_sharpe"] = round(a["mean_sharpe"] - bh_sharpe, 2)
+        beats_bh = a["mean_sharpe"] > bh_sharpe
+        # challenger = degno di TEST LIVE: batte buy-and-hold + Sharpe solido.
+        # Il DSR resta il gate per la promozione a CHAMPION (promote.py), non qui:
+        # il paper trading è il vero giudice di un challenger.
+        passes = beats_bh and a["mean_sharpe"] >= args.min_sharpe
+        spec["status"] = "challenger" if passes else "candidate"
+        spec["backtest"] = {f"basket_{args.months}m": res if "basket_rets" not in res
+                            else {kk: vv for kk, vv in res.items() if kk != "basket_rets"}}
+        esito = "✓ CHALLENGER" if passes else ("· candidate" if beats_bh else "✗ sotto B&H")
+        print(f"{seed['id']:<28} {a['mean_sharpe']:>7.2f} {a['vs_buy_hold_sharpe']:>+7.2f} "
+              f"{a['dsr']:>6.2f} {a['worst_drawdown']:>7.1%} {a['total_trades']:>6}  {esito}")
+        if args.write:
+            OUT_DIR.mkdir(parents=True, exist_ok=True)
+            (OUT_DIR / f"{seed['id']}.yaml").write_text(
+                yaml.safe_dump(spec, sort_keys=False, allow_unicode=True))
+        promoted += int(passes)
+
+    print(f"\n{promoted} seed promossi a challenger" +
+          ("" if args.write else " (anteprima — usa --write per salvare)"))
+
+
+if __name__ == "__main__":
+    main()
