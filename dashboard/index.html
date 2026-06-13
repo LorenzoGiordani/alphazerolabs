@@ -505,7 +505,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-13 00:31",
+ "updated_utc": "2026-06-13 00:49",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -562,6 +562,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-13 00:31",
+     10000.0
+    ],
+    [
+     "2026-06-13 00:49",
      10000.0
     ]
    ],
@@ -623,6 +627,14 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-13 00:31",
      9948.44
+    ],
+    [
+     "2026-06-13 00:49",
+     9948.44
+    ],
+    [
+     "2026-06-13 00:49",
+     9948.44
     ]
    ],
    "positions": []
@@ -666,6 +678,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-13 00:31",
+     9996.63
+    ],
+    [
+     "2026-06-13 00:49",
      9996.63
     ]
    ],
@@ -1880,8 +1896,8 @@ footer .foot-mark b{ color:var(--amber); }
   {
    "id": "funding-squeeze-breakout-g1",
    "parent": "funding-squeeze-breakout-v1",
-   "status": "retired",
-   "sharpe": -0.62,
+   "status": "candidate",
+   "sharpe": -2.22,
    "note": "Sostituito filtro funding con vol_compression: attacca direttamente la perdita nel chop. Funding filtrava il crowding ma non la qualità del breakout."
   },
   {
@@ -1936,22 +1952,22 @@ footer .foot-mark b{ color:var(--amber); }
   {
    "id": "funding-squeeze-breakout-g2",
    "parent": "funding-squeeze-breakout-v1",
-   "status": "retired",
-   "sharpe": 0.69,
+   "status": "candidate",
+   "sharpe": -0.81,
    "note": "Inversione completa: da trend-following a mean-reversion sul crowding. Stop stretto e time_stop corto: la tesi di esaurimento o si realizza subito o è sbagliata"
   },
   {
    "id": "funding-squeeze-breakout-g3",
    "parent": "funding-squeeze-breakout-v1",
-   "status": "retired",
-   "sharpe": -1.33,
+   "status": "candidate",
+   "sharpe": 0.14,
    "note": "Stessa tesi del parent, esecuzione ricalibrata sul breakdown delle uscite (15 stop / 5 target). Selettività su (range più lungo, volume più alto), tolleranza al"
   },
   {
    "id": "funding-squeeze-breakout-g4",
    "parent": "funding-squeeze-breakout-v1",
-   "status": "retired",
-   "sharpe": -1.59,
+   "status": "candidate",
+   "sharpe": -0.19,
    "note": "Funding sostituito da conferma di flusso (più entry, conferma più pertinente). Volume mult abbassato a 1.5 perché taker_flow già filtra la partecipazione. Targe"
   }
  ],
