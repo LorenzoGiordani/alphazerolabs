@@ -97,9 +97,11 @@ def volume_surge(data, lookback_h: int = 168, pct: float = 90) -> pd.Series:
 
 
 def news_event(data, topics: str = "crypto", max_age_h: int = 24, min_z: float = 3.0) -> pd.Series:
-    """+1 = evento news (burst GDELT) a tono positivo nelle ultime max_age_h,
-    -1 = tono negativo. Leading per costruzione: il burst È il catalizzatore.
-    Seguire la reazione o farne il fade lo decide la strategia (direction)."""
+    """+1 = burst di news rilevante (GDELT) attivo nelle ultime max_age_h, 0 altrimenti.
+    GATE DI RISCHIO, non direzionale: l'event study su 48 eventi (2026-06-13) ha
+    falsificato l'uso direzionale del tono (tone_hit 0.38 < 0.50). Ciò che è reale è
+    la VOLATILITÀ attorno all'evento: usalo come `entry.veto` per sospendere nuove
+    entrate durante i burst, non per scegliere il lato. Mai -1. Vedi paper/lessons.jsonl."""
     c = data["candles"]
     ev = data.get("news_events")
     if ev is None or ev.empty:
@@ -108,12 +110,13 @@ def news_event(data, topics: str = "crypto", max_age_h: int = 24, min_z: float =
     ev = ev[ev["topic"].isin(wanted) & (ev["z"] >= min_z)].sort_values("ts")
     if ev.empty:
         return pd.Series(0, index=c.index)
-    ev = ev.assign(ev_ts=ev["ts"], ev_tone=ev["tone"])
-    merged = pd.merge_asof(c[["ts"]], ev[["ts", "ev_ts", "ev_tone"]], on="ts", direction="backward")
-    age_ok = (merged["ts"] - merged["ev_ts"]) <= pd.Timedelta(hours=max_age_h)
-    out = np.where(age_ok & (merged["ev_tone"] > 0), 1,
-                   np.where(age_ok & (merged["ev_tone"] < 0), -1, 0))
-    return pd.Series(out, index=c.index)
+    # normalizza tz/risoluzione (parquet diversi: ms/us, naive/UTC)
+    norm = lambda s: pd.to_datetime(s, utc=True).astype("datetime64[ns, UTC]")
+    left = pd.DataFrame({"ts": norm(c["ts"])})
+    right = pd.DataFrame({"ts": norm(ev["ts"])}).assign(ev_ts=lambda d: d["ts"])
+    merged = pd.merge_asof(left, right, on="ts", direction="backward")
+    active = (merged["ts"] - merged["ev_ts"]) <= pd.Timedelta(hours=max_age_h)
+    return pd.Series(np.where(active.to_numpy(), 1, 0), index=c.index)
 
 
 def cot_percentile(data, lookback_w: int = 26, extreme_pct: float = 85) -> pd.Series:

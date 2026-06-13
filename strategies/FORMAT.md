@@ -42,6 +42,9 @@ signals:                          # nome → registry, params espliciti
 entry:
   rule: funding_percentile AND range_breakout   # composizione booleana dei segnali
   direction: with_breakout        # with_breakout | contrarian_funding | signal_vote
+  veto: news_event                # opz. — segnali-gate che SOSPENDONO nuove entrate
+                                  #   quando attivi (filtro di rischio, non direzione).
+                                  #   Devono essere dichiarati in `signals`. Lista o CSV.
 
 exit:
   stop_pct: 2.5                   # dall'entry, obbligatorio

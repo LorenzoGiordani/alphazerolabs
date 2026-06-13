@@ -37,6 +37,13 @@ def compile_strategy(spec: dict, data: dict):
 
     active = _eval_rule(spec["entry"]["rule"], sigs)
     direction = _direction(spec["entry"]["direction"], sigs)
+    # veto: segnali-gate che bloccano NUOVE entrate quando attivi (!=0).
+    # Es. news_event come filtro di volatilità — non sposta la direzione, sospende.
+    veto = spec["entry"].get("veto")
+    if veto:
+        names = [v.strip() for v in (veto if isinstance(veto, list) else veto.split(","))]
+        blocked = np.logical_or.reduce([(sigs[n] != 0).to_numpy() for n in names])
+        active = active & ~pd.Series(blocked, index=sigs.index)
     fire = (active & (direction != 0)).to_numpy()
     dir_arr = direction.to_numpy()
 

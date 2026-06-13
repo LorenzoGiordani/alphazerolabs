@@ -113,9 +113,14 @@ def validate(spec: dict, parent: dict, idx: int) -> dict:
     for s in spec["signals"]:
         if s["name"] not in SIGNALS:
             raise ValueError(f"segnale fuori registry: {s['name']}")
+    declared = {s["name"] for s in spec["signals"]}
     for token in spec["entry"]["rule"].replace(" OR ", " AND ").split(" AND "):
-        if token.strip() not in {s["name"] for s in spec["signals"]}:
+        if token.strip() not in declared:
             raise ValueError(f"rule usa segnale non dichiarato: {token}")
+    veto = spec["entry"].get("veto") or []
+    for v in (veto if isinstance(veto, list) else veto.split(",")):
+        if v.strip() and v.strip() not in declared:
+            raise ValueError(f"veto usa segnale non dichiarato: {v}")
     if not (0.3 <= float(spec["exit"]["stop_pct"]) <= 15):
         raise ValueError(f"stop_pct fuori range: {spec['exit']['stop_pct']}")
     # blocco risk: non negoziabile, si forza quello del parent qualunque cosa dica l'LLM
