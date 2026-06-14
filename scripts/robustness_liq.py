@@ -41,6 +41,41 @@ def base_spec() -> dict:
     })
 
 
+def cross_asset_frozen(datasets: dict) -> None:
+    """Test anti-overfit più duro (stile Moon Dev): tara la griglia SOLO su BTC,
+    congela i parametri vincenti, valuta su ETH/SOL/... mai usati nel tuning.
+    Se i param BTC battono ancora il baseline sui coin holdout → struttura di
+    mercato reale, non curve-fit su un universo scelto a posteriori."""
+    btc = {"BTC": datasets["BTC"]}
+    holdout = {s: d for s, d in datasets.items() if s != "BTC"}
+
+    print("=== Cross-asset a parametri congelati (tune su BTC → holdout non-BTC) ===")
+    best, best_sh = None, -1e9
+    for lb in (10, 14, 21, 30, 45):
+        for ext in (70, 75, 80, 85):
+            sh = eval_basket(spec_for(lb, ext), btc)["aggregate"]["mean_sharpe"]
+            if sh > best_sh:
+                best_sh, best = sh, (lb, ext)
+    lb, ext = best
+    print(f"miglior config su BTC solo: lookback_d={lb}, ext={ext}  (Sharpe BTC {best_sh:.2f})")
+
+    frozen = eval_basket(spec_for(lb, ext), holdout)
+    base_oos = eval_basket(base_spec(), holdout)["aggregate"]["mean_sharpe"]
+    liq_oos = frozen["aggregate"]["mean_sharpe"]
+    per = frozen.get("per_symbol", {})
+    print(f"\nholdout non-BTC ({len(per)} coin) con param congelati da BTC:")
+    for sym, r in sorted(per.items(), key=lambda kv: kv[1]["metrics"]["sharpe"], reverse=True):
+        m = r["metrics"]
+        print(f"  {sym:<6} Sharpe {m['sharpe']:>6.2f}  ret {m['total_return']:>+7.1%}  "
+              f"trades {m['n_trades']:>4}")
+    pos = sum(1 for r in per.values() if r["metrics"]["sharpe"] > 0)
+    print(f"\nbaseline tsmom (holdout): Sharpe {base_oos:.2f}  |  "
+          f"tsmom-liq param-BTC-congelati (holdout): Sharpe {liq_oos:.2f}")
+    verdict = "GENERALIZZA (struttura di mercato)" if liq_oos > base_oos and pos > len(per) / 2 \
+        else "OVERFIT su BTC (non trasferisce)"
+    print(f"coin holdout positivi: {pos}/{len(per)}  →  {verdict}\n")
+
+
 def main() -> None:
     datasets = {s: load_data(s, MONTHS) for s in CRYPTO.split(",")}
     base = eval_basket(base_spec(), datasets)["aggregate"]["mean_sharpe"]
@@ -71,7 +106,9 @@ def main() -> None:
               f"trades {m['n_trades']:>4}")
     pos = sum(1 for r in per.values() if r["metrics"]["sharpe"] > 0)
     print(f"\nsimboli con Sharpe positivo: {pos}/{len(per)} "
-          f"→ edge diffuso se la maggioranza è positiva, non guidato da 1-2.")
+          f"→ edge diffuso se la maggioranza è positiva, non guidato da 1-2.\n")
+
+    cross_asset_frozen(datasets)
 
 
 if __name__ == "__main__":
