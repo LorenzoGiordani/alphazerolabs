@@ -565,7 +565,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-14 14:24",
+ "updated_utc": "2026-06-14 16:07",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -698,6 +698,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-14 14:23",
+     10000.0
+    ],
+    [
+     "2026-06-14 16:04",
      10000.0
     ]
    ],
@@ -894,6 +898,14 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-14 14:24",
+     9946.69
+    ],
+    [
+     "2026-06-14 16:05",
+     9946.69
+    ],
+    [
+     "2026-06-14 16:07",
      9946.69
     ]
    ],
@@ -1314,6 +1326,14 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-14 13:00",
        0.7549
+      ],
+      [
+       "2026-06-14 14:00",
+       0.74779
+      ],
+      [
+       "2026-06-14 15:00",
+       0.74859
       ]
      ]
     },
@@ -1713,6 +1733,14 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-14 13:00",
        67.724
+      ],
+      [
+       "2026-06-14 14:00",
+       67.226
+      ],
+      [
+       "2026-06-14 15:00",
+       67.413
       ]
      ]
     },
@@ -2052,6 +2080,14 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-14 13:00",
        426.22
+      ],
+      [
+       "2026-06-14 14:00",
+       424.57
+      ],
+      [
+       "2026-06-14 15:00",
+       422.37
       ]
      ]
     }
@@ -2172,6 +2208,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-14 14:23",
+     9996.63
+    ],
+    [
+     "2026-06-14 16:04",
      9996.63
     ]
    ],
@@ -2692,6 +2732,14 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-14 13:00",
        64281.0
+      ],
+      [
+       "2026-06-14 14:00",
+       63966.0
+      ],
+      [
+       "2026-06-14 15:00",
+       63996.0
       ]
      ]
     },
@@ -3211,6 +3259,14 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-14 13:00",
        1665.7
+      ],
+      [
+       "2026-06-14 14:00",
+       1659.3
+      ],
+      [
+       "2026-06-14 15:00",
+       1662.3
       ]
      ]
     },
@@ -3610,6 +3666,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-14 14:23",
+     9997.84
+    ],
+    [
+     "2026-06-14 16:04",
      9997.84
     ]
    ],
@@ -4201,9 +4261,37 @@ footer .foot-mark b{ color:var(--amber); }
      ]
     }
    ]
+  },
+  {
+   "id": "tsmom-liq-v1",
+   "label": "tsmom-liq-v1",
+   "tag": "",
+   "equity": 10000.0,
+   "pnl_realized": 0,
+   "trades_closed": 0,
+   "wins": 0,
+   "equity_curve": [
+    [
+     "2026-06-14 16:05",
+     10000.0
+    ]
+   ],
+   "positions": []
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-14 16:07",
+   "symbol": "SOL",
+   "direction": "long",
+   "account": "agents-v1",
+   "risk_verdict": "approve",
+   "thesis": "SOL presenta l'unica divergenza strutturale verificabile del basket: funding a -1.36% APR significa che i corti pagano carry positivo ai long ogni ora, mentre il prezzo ha già dimostrato domanda relativa superiore (+3.83% settimanale vs basket +2-3%). La vol_compression universale è uno stato pre-esplosivo che storicamente risolve con un movimento direzionale secco; il posizionamento short su SOL (corti che pagano) funge da carburante aggiuntivo per uno squeeze se il trigger è rialzista. L'edge non è prevedere la direzione macro ma stare dal lato in cui carry e struttura di prezzo convergono con stop definito sotto supporto settimanale.",
+   "invalidation": "BTC chiude sotto $62k (risk-off sistemico invalida tesi crypto); SOL viola $63.5 in chiusura 4h; vol_compression non risolve entro 48h (time stop automatico, la tesi richiede accelerazione imminente non lateralità prolungata); funding SOL torna positivo (scomparsa del divergenza strutturale).",
+   "outcome": {
+    "closed": false
+   }
+  },
   {
    "ts": "2026-06-14 10:58",
    "symbol": "ZEC",
@@ -4631,6 +4719,13 @@ footer .foot-mark b{ color:var(--amber); }
    "status": "challenger",
    "sharpe": 1.7,
    "note": "seed di ricerca"
+  },
+  {
+   "id": "tsmom-liq-v1",
+   "parent": null,
+   "status": "challenger",
+   "sharpe": 0.0,
+   "note": "seed di ricerca"
   }
  ],
  "news_events": [
@@ -4757,6 +4852,17 @@ footer .foot-mark b{ color:var(--amber); }
    "rischio": "nessuna leva (1x), massimo 0,6% del capitale a rischio per operazione, al più 2 posizioni insieme",
    "status": "challenger",
    "asset_class": "multi-asset",
+   "risk_profile": "conservativo"
+  },
+  {
+   "id": "tsmom-liq-v1",
+   "nome": "tsmom-liq-v1",
+   "cosa": "Trend confermato dalle liquidazioni reali (Coinalyze): entra solo quando TSMOM e lo sbilancio liquidazioni concordano sulla direzione (segui lo squeeze). Primo edge ortogonale robusto: 100% celle griglia battono il baseline, 7/9 coin positivi. In paper per validazione forward.",
+   "entra": "segnali: tsmom, liq_imbalance",
+   "esce": "stop 2.5%, target 3.0R, tempo max 240h",
+   "rischio": "leva max 1x, 0.6% a rischio per operazione",
+   "status": "challenger",
+   "asset_class": "crypto",
    "risk_profile": "conservativo"
   },
   {
