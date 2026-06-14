@@ -1,0 +1,42 @@
+name: coinalyze-1h
+
+# Forward-collection liquidazioni/OI a 1h da Coinalyze (oltre la retention di ~2.5 mesi).
+# Ogni 6h: ampio overlap con la finestra di retention → nessun buco. Dati versionati.
+on:
+  schedule:
+    - cron: "20 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: coinalyze-1h
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: accumula liquidazioni 1h
+        if: env.COINALYZE_API_KEY != ''
+        run: uv run scripts/collect_coinalyze_1h.py --symbols BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+
+      - name: commit
+        run: |
+          git config user.name "coinalyze-1h-cron"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/coinalyze_1h/
+          if ! git diff --cached --quiet; then
+            git commit -m "data: coinalyze 1h liq $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+            for i in 1 2 3; do
+              git pull --rebase -X theirs origin main && git push origin main && break
+              sleep 5
+            done
+          fi
