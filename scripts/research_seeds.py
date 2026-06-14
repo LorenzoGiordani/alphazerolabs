@@ -125,6 +125,20 @@ SEEDS = [
         "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
         "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 2},
     },
+    {
+        # Kronos STANDALONE: il forecast a 24h ha un edge direzionale di per sé?
+        # Direzione = segno del forecast. Riusa la stessa cache (costo zero).
+        # Se nemmeno da solo batte B&H, il forecast a 24h non ha alpha direzionale a questa soglia.
+        "id": "kronos-only-v1", "family": "kronos-only",
+        "symbols": "BTC,ETH,xyz_GOLD,xyz_CL,xyz_BRENTOIL,xyz_SILVER,xyz_SP500,xyz_MU",
+        "thesis": "Il forecast Kronos a 24h, usato come unico segnale direzionale, ha un edge? "
+                  "Falsificata se non batte buy-and-hold risk-adjusted: in tal caso il modello "
+                  "non aggiunge alpha direzionale sfruibile a questa soglia/orizzonte.",
+        "signals": [{"name": "kronos_forecast", "params": {"horizon_h": 24, "min_move_pct": 0.5}}],
+        "entry": {"rule": "kronos_forecast", "direction": "follow:kronos_forecast"},
+        "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
+        "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 2},
+    },
 ]
 
 

@@ -9,3 +9,6 @@ logs/
 
 # Kronos repo vendored (modello, non versionare)
 .kronos/
+
+# cache forecast Kronos (regenerabile via precompute_kronos.py)
+data/kronos/
