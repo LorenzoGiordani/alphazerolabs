@@ -19,3 +19,4 @@ data/kronos/
 
 # cache regime HMM (regenerabile via precompute_hmm.py)
 data/hmm/
+paper/executor.jsonl
