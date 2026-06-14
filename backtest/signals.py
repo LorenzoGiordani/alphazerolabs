@@ -227,6 +227,58 @@ def hmm_regime(data) -> pd.Series:
     return pd.Series(np.where(reg >= 0.5, 1, 0), index=c.index)
 
 
+_METRICS_CACHE: dict = {}
+
+
+def _metrics_load(symbol: str):
+    """Metrics futures Binance (OI + posizionamento), data/metrics/<SYM>.parquet.
+    Lazy + memoizzato. None se assente (es. asset non-crypto) → segnale neutro."""
+    if symbol in _METRICS_CACHE:
+        return _METRICS_CACHE[symbol]
+    from pathlib import Path
+    p = Path(f"data/metrics/{symbol}.parquet")
+    df = _METRICS_CACHE[symbol] = (pd.read_parquet(p) if p.exists() else None)
+    return df
+
+
+def _metrics_col(data, col: str) -> pd.Series | None:
+    """Allinea una colonna metrics alle candele (merge_asof backward = anti-lookahead)."""
+    c = data["candles"]
+    cache = _metrics_load(data.get("symbol")) if data.get("symbol") else None
+    if cache is None or cache.empty or col not in cache.columns:
+        return None
+    norm = lambda s: pd.to_datetime(s, utc=True).astype("datetime64[ns, UTC]")
+    left = pd.DataFrame({"ts": norm(c["ts"])})
+    right = pd.DataFrame({"ts": norm(cache["ts"]), col: cache[col].astype(float)}).sort_values("ts")
+    return pd.merge_asof(left, right, on="ts", direction="backward")[col]
+
+
+def smart_money_ratio(data, lookback_h: int = 720, extreme_pct: float = 80) -> pd.Series:
+    """+1 = i TOP TRADER (conti più grossi su Binance) sono nettamente long vs la loro
+    storia recente (segui lo smart money), -1 = nettamente short. Posizionamento, non
+    prezzo → leading e ortogonale al trend. Percentile rolling = adattivo per asset e
+    anti-lookahead. Neutro se mancano i metrics (asset non-crypto)."""
+    c = data["candles"]
+    r = _metrics_col(data, "toptrader_pos_ratio")
+    if r is None:
+        return pd.Series(0, index=c.index)
+    pct = r.rolling(lookback_h, min_periods=lookback_h // 4).rank(pct=True) * 100
+    out = np.where(pct >= extreme_pct, 1, np.where(pct <= 100 - extreme_pct, -1, 0))
+    return pd.Series(out, index=c.index)
+
+
+def oi_buildup(data, lookback_h: int = 168, pct: float = 80) -> pd.Series:
+    """+1 = open interest in forte crescita vs la storia recente: leva che si accumula,
+    carburante per uno squeeze. Non direzionale (filtro/gate). Da metrics Binance."""
+    c = data["candles"]
+    oi = _metrics_col(data, "oi_value")
+    if oi is None:
+        return pd.Series(0, index=c.index)
+    chg = oi.pct_change(lookback_h)
+    rank = chg.rolling(lookback_h * 6, min_periods=lookback_h).rank(pct=True) * 100
+    return pd.Series(np.where(rank >= pct, 1, 0), index=c.index)
+
+
 SIGNALS = {
     "funding_percentile": funding_percentile,
     "range_breakout": range_breakout,
@@ -240,4 +292,6 @@ SIGNALS = {
     "kronos_forecast": kronos_forecast,
     "kronos_vol": kronos_vol,
     "hmm_regime": hmm_regime,
+    "smart_money_ratio": smart_money_ratio,
+    "oi_buildup": oi_buildup,
 }

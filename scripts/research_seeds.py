@@ -174,6 +174,55 @@ SEEDS = [
         "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
         "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 2},
     },
+    # --- A/B posizionamento smart-money (metrics Binance gratis, basket SOLO crypto) ---
+    # Edge ORTOGONALE al trend (posizionamento dei top trader, non prezzo). Baseline crypto
+    # dedicata per confronto pulito (i seed sopra sono basket misti con commodity).
+    {
+        "id": "tsmom-crypto-base-v1", "family": "tsmom-crypto",
+        "symbols": CRYPTO,
+        "thesis": "Baseline: TSMOM conservativo sul solo basket crypto, metro di paragone per i "
+                  "segnali di posizionamento smart-money (che esistono solo per le crypto).",
+        "signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}}],
+        "entry": {"rule": "tsmom", "direction": "follow:tsmom"},
+        "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
+        "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 3},
+    },
+    {
+        "id": "smart-money-only-v1", "family": "smart-money",
+        "symbols": CRYPTO,
+        "thesis": "Il posizionamento dei TOP TRADER (Binance) ha un edge direzionale di per sé? "
+                  "Segui lo smart money: long quando i top trader sono nettamente long vs la loro "
+                  "storia, short quando nettamente short. Falsificata se non batte buy-and-hold.",
+        "signals": [{"name": "smart_money_ratio", "params": {"lookback_h": 720, "extreme_pct": 80}}],
+        "entry": {"rule": "smart_money_ratio", "direction": "follow:smart_money_ratio"},
+        "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
+        "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 3},
+    },
+    {
+        "id": "tsmom-smartmoney-v1", "family": "tsmom-smartmoney",
+        "symbols": CRYPTO,
+        "thesis": "Trend confermato dallo smart money: entra solo quando TSMOM e posizionamento dei "
+                  "top trader CONCORDANO sulla direzione (signal_vote → somma=0 se discordano). Tesi: "
+                  "un secondo segnale leading ortogonale (posizionamento, non prezzo) alza il DSR. "
+                  "Falsificata se non migliora vs tsmom-crypto-base-v1.",
+        "signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}},
+                    {"name": "smart_money_ratio", "params": {"lookback_h": 720, "extreme_pct": 75}}],
+        "entry": {"rule": "tsmom AND smart_money_ratio", "direction": "signal_vote"},
+        "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
+        "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 2},
+    },
+    {
+        # Controprova: seguire i top trader perde → l'edge è CONTRARIAN? (fade del posizionamento)
+        "id": "smart-money-fade-v1", "family": "smart-money-fade",
+        "symbols": CRYPTO,
+        "thesis": "Se seguire i top trader perde, forse il loro posizionamento estremo è contrarian "
+                  "(affollamento da fadare). Short quando sono estremi long, long quando estremi short. "
+                  "Falsificata se non batte buy-and-hold.",
+        "signals": [{"name": "smart_money_ratio", "params": {"lookback_h": 720, "extreme_pct": 80}}],
+        "entry": {"rule": "smart_money_ratio", "direction": "contrarian:smart_money_ratio"},
+        "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
+        "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 3},
+    },
 ]
 
 
