@@ -778,7 +778,8 @@ footer .foot-mark b{ color:var(--amber); }
   const CHARTS = [];
   function registerChart(wrap, curve){ CHARTS.push({wrap, curve}); drawChart(wrap, curve); }
 
-  function drawChart(wrap, curve){
+  function drawChart(wrap, curve, animate){
+    if(animate===undefined) animate=true;
     const tip = wrap.querySelector('.chart-tip');
     wrap.querySelectorAll('svg').forEach(s=>s.remove());
 
@@ -902,7 +903,7 @@ footer .foot-mark b{ color:var(--amber); }
     wrap.insertBefore(svg, tip);
 
     // load animation
-    if(!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    if(animate && (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
       const len=line.getTotalLength();
       line.style.strokeDasharray=len; line.style.strokeDashoffset=len;
       dot.style.opacity='0'; area.style.opacity='0';
@@ -942,13 +943,15 @@ footer .foot-mark b{ color:var(--amber); }
       host.appendChild(card);
       const wrap=card.querySelector('.chart-wrap');
       if(a.equity_curve && a.equity_curve.length>1) registerChart(wrap, a.equity_curve);
-      ACCTS.push({a, equityEl:card.querySelector('[data-eq]'), deltaEl:card.querySelector('[data-delta]')});
+      ACCTS.push({a, equityEl:card.querySelector('[data-eq]'), deltaEl:card.querySelector('[data-delta]'),
+        wrap, hasCurve:!!(a.equity_curve&&a.equity_curve.length>1)});
     });
   }
   // equity live = snapshot + variazione mark-to-market delle posizioni con prezzo live
   function snapPx(p){ return (p.chart&&p.chart.length)?p.chart[p.chart.length-1][1]:p.entry_px; }
+  function nowStamp(){ return new Date().toISOString().slice(0,19).replace('T',' '); }
   function updateAccountsLive(){
-    ACCTS.forEach(({a,equityEl,deltaEl})=>{
+    ACCTS.forEach(({a,equityEl,deltaEl,wrap,hasCurve})=>{
       let delta=0, any=false;
       (a.positions||[]).forEach(p=>{
         const lv=LIVE[p.symbol]; if(!lv||!lv.ok) return;
@@ -960,6 +963,9 @@ footer .foot-mark b{ color:var(--amber); }
       equityEl.innerHTML=NF2.format(eq)+' <span class="cur">$</span>';
       deltaEl.className='delta-chip '+chipOf(wr);
       deltaEl.textContent=signedUsd(wr)+' · '+pctSigned(wr/10000*100);
+      if(hasCurve){  // estende la curva equity fino a 'ora' col valore live (no ri-animazione)
+        drawChart(wrap, a.equity_curve.concat([[nowStamp(), eq]]), false);
+      }
     });
   }
 
@@ -1151,30 +1157,59 @@ footer .foot-mark b{ color:var(--amber); }
   const BINANCE={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',XRP:'XRPUSDT',SUI:'SUIUSDT',
     NEAR:'NEARUSDT',WLD:'WLDUSDT',ZEC:'ZECUSDT',CRV:'CRVUSDT',BNB:'BNBUSDT',
     DOGE:'DOGEUSDT',AVAX:'AVAXUSDT',LINK:'LINKUSDT',ADA:'ADAUSDT',ARB:'ARBUSDT',OP:'OPUSDT'};
-  function hms(){ const d=new Date(); return d.toTimeString().slice(0,8); }
-  async function pollLive(){
-    const syms=[...new Set(POS.map(r=>r.p.symbol))].filter(s=>BINANCE[s]);
-    if(!syms.length) return;
+  function hms(){ return new Date().toTimeString().slice(0,8); }
+  function heldSymbols(){ return [...new Set(POS.map(r=>r.p.symbol))]; }
+  let wsAlive=false, dirty=false, lastSrc='';
+
+  // aggiorna i prezzi live da una mappa simbolo->prezzo (HL ws o binance)
+  function applyPrices(map, src){
+    let touched=false;
+    heldSymbols().forEach(s=>{
+      const v=parseFloat(map[s]);
+      if(isFinite(v)&&v>0){ LIVE[s]={px:v, ok:true}; touched=true; }
+    });
+    if(touched){ dirty=true; lastSrc=src; }
+  }
+  // ridisegno campionato (ogni 2s): accumula tail + ridipinge posizioni e conti
+  function repaintLive(){
+    if(!dirty) return; dirty=false;
     const t=hms();
-    await Promise.all(syms.map(async s=>{
-      try{
-        const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol='+BINANCE[s],{cache:'no-store'});
-        if(!r.ok) throw 0;
-        const j=await r.json(); const v=parseFloat(j.price);
-        if(isFinite(v)&&v>0){
-          LIVE[s]={px:v, ok:true};
-          (LIVEHIST[s]=LIVEHIST[s]||[]).push([t, v]);
-          if(LIVEHIST[s].length>180) LIVEHIST[s].shift();  // tetto memoria
-        }
-      }catch(e){ /* lascia statico */ }
-    }));
+    heldSymbols().forEach(s=>{ const lv=LIVE[s]; if(!lv||!lv.ok) return;
+      const h=(LIVEHIST[s]=LIVEHIST[s]||[]); h.push([t, lv.px]); if(h.length>180) h.shift(); });
     POS.forEach(rec=>{ if(LIVE[rec.p.symbol]) paintPos(rec); });
     updateAccountsLive();
     const live=Object.values(LIVE).filter(v=>v.ok).length;
     const stamp=$('#pos-live');
-    if(stamp) stamp.innerHTML=live?'<span class="live-dot"></span>live · '+live+' asset · '+t:'';
+    if(stamp) stamp.innerHTML=live?'<span class="live-dot"></span>live · '+live+' asset · '+t+' · '+(lastSrc||'—'):'';
   }
-  function startLive(){ pollLive(); setInterval(pollLive, 10000); }
+  // ---- feed primario: websocket Hyperliquid (allMids, tick reali) ----
+  let WS=null;
+  function connectHL(){
+    try{
+      WS=new WebSocket('wss://api.hyperliquid.xyz/ws');
+      WS.onopen=()=>{ wsAlive=true; WS.send(JSON.stringify({method:'subscribe',subscription:{type:'allMids'}})); };
+      WS.onmessage=(ev)=>{ try{ const m=JSON.parse(ev.data);
+        if(m.channel==='allMids'&&m.data&&m.data.mids) applyPrices(m.data.mids,'HL ws'); }catch(e){} };
+      WS.onclose=()=>{ wsAlive=false; setTimeout(connectHL, 5000); };  // riconnessione
+      WS.onerror=()=>{ try{WS.close();}catch(e){} };
+    }catch(e){ wsAlive=false; }
+  }
+  // ---- fallback: polling Binance (solo se il ws non è vivo) ----
+  async function pollBinance(){
+    const syms=heldSymbols().filter(s=>BINANCE[s]); if(!syms.length) return;
+    const out={};
+    await Promise.all(syms.map(async s=>{
+      try{ const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol='+BINANCE[s],{cache:'no-store'});
+        if(r.ok){ const j=await r.json(); out[s]=j.price; } }catch(e){}
+    }));
+    applyPrices(out,'binance');
+  }
+  function startLive(){
+    connectHL();
+    setInterval(repaintLive, 2000);
+    setInterval(()=>{ if(!wsAlive) pollBinance(); }, 12000);
+    setTimeout(()=>{ if(!wsAlive) pollBinance(); }, 4000);  // primo colpo se il ws tarda
+  }
 
   /* ---------- render: trading book ---------- */
   function fmtDur(h){
@@ -1284,16 +1319,36 @@ footer .foot-mark b{ color:var(--amber); }
     host.innerHTML=build('__root');
   }
 
-  /* ---------- boot ---------- */
-  function boot(){
+  function setHeaderTs(){
     $('#updated-ts').textContent = (DATA.updated_utc||'—');
-    // prossimo run: cron cloud ogni 4h al minuto :10 UTC
-    if(DATA.updated_utc){
+    if(DATA.updated_utc){  // prossimo run: cron cloud ogni 4h al minuto :10 UTC
       const now=new Date();
       const next=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),
         Math.floor(now.getUTCHours()/4)*4+4, 10));
       $('#next-run').textContent='~'+String(next.getUTCHours()).padStart(2,'0')+':10 UTC';
     }
+  }
+  function renderAll(){
+    renderAccounts(); renderPositions(); renderFeed(); renderLessons();
+    renderTree(); renderEvents(); renderStrats(); renderBook();
+  }
+  // ricarica i dati pipeline (eventi/decisioni/trade chiusi) senza reload pagina
+  async function refreshData(){
+    try{
+      const r=await fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'});
+      if(!r.ok) return;
+      const txt=await r.text();
+      const m=txt.match(/<script id="data" type="application\/json">([\s\S]*?)<\/script>/);
+      if(!m) return;
+      const fresh=JSON.parse(m[1]);
+      if(!fresh.updated_utc || fresh.updated_utc===DATA.updated_utc) return;  // niente di nuovo
+      DATA=fresh; setHeaderTs(); renderAll(); updateAccountsLive();
+    }catch(e){ /* riprova al giro dopo */ }
+  }
+
+  /* ---------- boot ---------- */
+  function boot(){
+    setHeaderTs();
     // nav: evidenzia la sezione visibile
     const links=[...document.querySelectorAll('.secnav a')];
     const obs=new IntersectionObserver(es=>{
@@ -1302,15 +1357,9 @@ footer .foot-mark b{ color:var(--amber); }
       }});
     },{rootMargin:'-20% 0px -70% 0px'});
     document.querySelectorAll('main section[id]').forEach(s=>obs.observe(s));
-    renderAccounts();
-    renderPositions();
-    renderFeed();
-    renderLessons();
-    renderTree();
-    renderEvents();
-    renderStrats();
-    renderBook();
+    renderAll();
     startLive();
+    setInterval(refreshData, 240000);  // dati pipeline ogni 4 min (no-op se nulla è cambiato)
   }
   boot();
 
