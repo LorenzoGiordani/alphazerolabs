@@ -139,6 +139,23 @@ SEEDS = [
         "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
         "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 2},
     },
+    {
+        # Kronos uso NON direzionale: il forecast direzionale è senza alpha, ma la
+        # volatilità PREVISTA potrebbe aiutare come gate di rischio. Trend conservativo
+        # che NON apre quando Kronos prevede alta volatilità (regime mosso/chop).
+        # Falsificata se DSR/Sharpe non superano tsmom-conservative-v1.
+        "id": "tsmom-kvolveto-v1", "family": "tsmom-kvolveto",
+        "symbols": "BTC,ETH,xyz_GOLD,xyz_CL,xyz_BRENTOIL,xyz_SILVER,xyz_SP500,xyz_MU",
+        "thesis": "Kronos come gate di rischio (non direzionale): TSMOM conservativo che sospende "
+                  "le nuove entrate quando il forecast Kronos prevede alta volatilità (top 30%), "
+                  "ipotizzando che siano regimi mossi/chop dove il trend whipsaggia. Falsificata se "
+                  "non migliora DSR/Sharpe vs tsmom-conservative-v1 (0.54 / 1.70).",
+        "signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}},
+                    {"name": "kronos_vol", "params": {"horizon_h": 24, "hi_pct": 70}}],
+        "entry": {"rule": "tsmom", "direction": "follow:tsmom", "veto": "kronos_vol"},
+        "exit": {"stop_pct": 2.5, "target_r": 3.0, "time_stop_h": 240},
+        "risk": {"max_leverage": 1, "risk_per_trade_pct": 0.6, "max_concurrent_positions": 2},
+    },
 ]
 
 

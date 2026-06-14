@@ -62,7 +62,9 @@ def forecast_symbol(predictor, candles: pd.DataFrame, *, context: int, horizon: 
             last_close = float(x_df["close"].iloc[-1])
             pred_close = float(pred["close"].iloc[-1])           # close previsto a t+horizon
             ret = pred_close / last_close - 1.0 if last_close else 0.0
-            rows.append({"ts": ts.iloc[i - 1], "ret_pred": ret})
+            # volatilità prevista: range medio (high-low)/close sull'orizzonte (uso non-direzionale)
+            rng = ((pred["high"] - pred["low"]) / pred["close"].replace(0, float("nan"))).mean()
+            rows.append({"ts": ts.iloc[i - 1], "ret_pred": ret, "pred_vol": float(rng)})
         except Exception as e:  # un punto fallito non ferma la serie
             print(f"    ! skip i={i}: {type(e).__name__}: {e}")
         i += step

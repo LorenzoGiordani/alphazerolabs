@@ -176,6 +176,24 @@ def kronos_forecast(data, horizon_h: int = 24, min_move_pct: float = 1.0) -> pd.
     return pd.Series(out, index=c.index)
 
 
+def kronos_vol(data, horizon_h: int = 24, hi_pct: float = 70, window_h: int = 720) -> pd.Series:
+    """+1 = volatilità PREVISTA da Kronos elevata vs storia recente (regime mosso/
+    imprevedibile). Uso NON direzionale: tipicamente come veto sulle nuove entrate
+    (il forecast direzionale è risultato senza alpha; l'incertezza forse no). Legge
+    pred_vol dalla cache; neutro se assente. Percentile rolling = anti-lookahead."""
+    c = data["candles"]
+    sym = data.get("symbol")
+    cache = _kronos_load(sym) if sym else None
+    if cache is None or cache.empty or "pred_vol" not in cache.columns:
+        return pd.Series(0, index=c.index)
+    norm = lambda s: pd.to_datetime(s, utc=True).astype("datetime64[ns, UTC]")
+    left = pd.DataFrame({"ts": norm(c["ts"])})
+    right = pd.DataFrame({"ts": norm(cache["ts"]), "pv": cache["pred_vol"].astype(float)}).sort_values("ts")
+    pv = pd.merge_asof(left, right, on="ts", direction="backward")["pv"]
+    rank = pv.rolling(window_h, min_periods=window_h // 4).rank(pct=True) * 100
+    return pd.Series(np.where(rank >= hi_pct, 1, 0), index=c.index)
+
+
 SIGNALS = {
     "funding_percentile": funding_percentile,
     "range_breakout": range_breakout,
@@ -187,4 +205,5 @@ SIGNALS = {
     "news_event": news_event,
     "cot_percentile": cot_percentile,
     "kronos_forecast": kronos_forecast,
+    "kronos_vol": kronos_vol,
 }
