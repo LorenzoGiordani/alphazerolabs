@@ -131,3 +131,10 @@
 {"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-14T16:05:10.288537+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 9946.69, "open_positions": 3, "logged_at": "2026-06-14T16:05:13.586780+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 9946.69, "open_positions": 3, "logged_at": "2026-06-14T16:07:25.589237+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-v1", "equity": 9996.63, "open_positions": 3, "logged_at": "2026-06-14T17:45:22.014468+00:00"}
+{"type": "heartbeat", "strategy": "funding-squeeze-breakout-g2-g1-g2", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-14T17:45:29.704318+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-conservative-v1", "equity": 9997.84, "open_positions": 2, "logged_at": "2026-06-14T17:45:33.193207+00:00"}
+{"type": "open", "strategy": "tsmom-liq-v1", "symbol": "XRP", "direction": "short", "entry_px": 1.1358727800000001, "size_usd": 2400.0, "stop_px": 1.1642695995, "target_px": 1.0506823215, "opened_at": "2026-06-14 16:00:00+00:00", "checked_until": "2026-06-14 16:00:00+00:00", "thesis": "tsmom AND liq_imbalance \u2192 signal_vote", "signals_last": {"tsmom": -1, "liq_imbalance": -1}, "logged_at": "2026-06-14T17:45:37.694754+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 9998.92, "open_positions": 1, "logged_at": "2026-06-14T17:45:42.091702+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 9946.69, "open_positions": 3, "logged_at": "2026-06-14T17:45:44.157607+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 9946.69, "open_positions": 3, "logged_at": "2026-06-14T17:48:30.930139+00:00"}
