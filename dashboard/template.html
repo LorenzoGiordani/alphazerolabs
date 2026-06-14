@@ -262,6 +262,58 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .open-flag{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--amber); }
 .open-flag .d{ width:6px; height:6px; border-radius:50%; background:var(--amber); }
 
+/* ---------- posizioni unificate (sintetica + espansa) ---------- */
+.pos-list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(420px,1fr)); gap:16px; }
+@media(max-width:560px){ .pos-list{ grid-template-columns:1fr; } }
+.pcard{ border:1px solid var(--line); border-radius:var(--r); background:var(--bg-2); overflow:hidden;
+  transition:border-color .15s ease; }
+.pcard:hover{ border-color:var(--text-4); }
+.pcard.long{ border-left:2px solid var(--green-dim); }
+.pcard.short{ border-left:2px solid var(--red-dim); }
+.pcard-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:14px 16px 10px; }
+.pcard-head .sym{ flex-direction:row; align-items:baseline; gap:7px; }
+.pcard-head .sym .s-tick{ font-size:15px; }
+.pcard-pnl{ margin-left:auto; display:flex; align-items:center; gap:7px; font-family:var(--mono);
+  font-size:13px; font-variant-numeric:tabular-nums; font-weight:600; padding:3px 9px; border-radius:4px; }
+.pcard-pnl.pos{ color:var(--green); background:var(--green-wash); }
+.pcard-pnl.neg{ color:var(--red); background:var(--red-wash); }
+.pcard-pnl.flat{ color:var(--text-3); background:var(--line); }
+.live-dot{ width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 0 0 var(--green);
+  animation:livePulse 1.8s infinite; }
+.pcard.short .live-dot{ background:var(--red); }
+@keyframes livePulse{ 0%{ box-shadow:0 0 0 0 color-mix(in srgb,var(--green) 55%,transparent); }
+  70%{ box-shadow:0 0 0 5px transparent; } 100%{ box-shadow:0 0 0 0 transparent; } }
+.pcard-sub{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:0 16px 8px;
+  font-family:var(--mono); font-size:10.5px; color:var(--text-4); }
+.pcard-now{ color:var(--text-2); }
+.pcard-now.stale{ color:var(--text-4); }
+.pcard-chart{ padding:2px 8px 6px; }
+.pcard-chart svg{ width:100%; height:auto; display:block; }
+.pcard-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line);
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.pcard-strip .cell{ background:var(--bg-2); padding:8px 12px; }
+.pcard-strip .k{ font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-4); }
+.pcard-strip .v{ font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; margin-top:2px; }
+.pcard-strip .v.neg{ color:var(--red); } .pcard-strip .v.pos{ color:var(--green); }
+.pcard-foot{ display:flex; align-items:center; gap:12px; padding:9px 16px; }
+.pcard-since{ font-family:var(--mono); font-size:10.5px; color:var(--text-3); }
+.pcard-toggle{ margin-left:auto; display:inline-flex; align-items:center; gap:6px; background:transparent;
+  border:1px solid var(--line-2); border-radius:100px; color:var(--text-3); cursor:pointer;
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; padding:5px 12px; }
+.pcard-toggle:hover{ color:var(--text-1); border-color:var(--text-4); }
+.pcard-toggle .chev{ transition:transform .2s ease; }
+.pcard.open .pcard-toggle .chev{ transform:rotate(180deg); }
+.pcard-detail{ display:none; padding:0 16px 14px; }
+.pcard.open .pcard-detail{ display:block; }
+.pcard-legend{ display:flex; flex-wrap:wrap; gap:14px; padding:10px 0 4px; font-family:var(--mono);
+  font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-4); }
+.pcard-legend .sw{ display:inline-block; width:10px; height:2px; vertical-align:middle; margin-right:5px; }
+.pcard-detgrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:9px 18px; margin-top:8px; }
+.pcard-detgrid .row{ display:flex; justify-content:space-between; gap:10px; font-family:var(--mono);
+  font-size:12px; border-bottom:1px dashed var(--line); padding-bottom:6px; }
+.pcard-detgrid .row .dk{ color:var(--text-4); font-size:10.5px; }
+.pcard-detgrid .row .dv{ font-variant-numeric:tabular-nums; color:var(--text-1); }
+
 /* ---------- lessons ---------- */
 .lessons{ position:relative; padding-left:22px; }
 .lessons:before{ content:""; position:absolute; left:5px; top:6px; bottom:6px; width:1px; background:var(--line-2); }
@@ -391,27 +443,9 @@ footer .foot-mark b{ color:var(--amber); }
     <div class="sec-head">
       <span class="kicker">03 · Posizioni aperte</span>
       <h2>Esposizione corrente</h2>
-      <p class="note">Asset misti: cripto, metalli, energia, indici, azioni. <b>Stop</b> = uscita automatica che limita la perdita; <b>target</b> = obiettivo di profitto. Sotto la tabella, il grafico di ogni operazione: dov'è entrata e dove uscirà.</p>
+      <p class="note">Una scheda per operazione: andamento del prezzo e posizione insieme, P&amp;L aggiornato in tempo reale. <b>Stop</b> = uscita automatica che limita la perdita; <b>target</b> = obiettivo di profitto. Tocca <b>Dettaglio</b> per i numeri completi.</p>
     </div>
-    <div class="table-scroll">
-      <table class="pos-tbl">
-        <thead>
-          <tr>
-            <th>Asset</th>
-            <th class="acct-col">Conto</th>
-            <th>Lato</th>
-            <th>Entry</th>
-            <th>Size</th>
-            <th>Stop</th>
-            <th>Target</th>
-            <th>R:R</th>
-            <th>Aperta da</th>
-          </tr>
-        </thead>
-        <tbody id="positions-body"></tbody>
-      </table>
-    </div>
-    <div class="charts-grid" id="pos-charts"></div>
+    <div class="pos-list" id="positions-body"></div>
   </section>
 
   <!-- DECISIONI -->
@@ -907,30 +941,83 @@ footer .foot-mark b{ color:var(--amber); }
     });
   }
 
-  /* ---------- render: positions ---------- */
+  /* ---------- render: posizioni unificate (sintetica + espansa, live) ---------- */
+  const POS=[];                 // {p, acct, card, dir, baseLast}
+  const LIVE={};                // symbol -> {px, ts, ok}
+  function posPnl(p, last){
+    const dir=p.direction==='long'?1:-1;
+    const pct=dir*((last/p.entry_px)-1)*100;
+    return {pct, usd:pct/100*p.size_usd};
+  }
   function renderPositions(){
-    const body=$('#positions-body'); body.innerHTML='';
+    const body=$('#positions-body'); body.innerHTML=''; POS.length=0;
     const rows=[];
-    (DATA.accounts||[]).forEach(a=>{
-      (a.positions||[]).forEach(p=> rows.push({p, acct:a}));
-    });
+    (DATA.accounts||[]).forEach(a=> (a.positions||[]).forEach(p=> rows.push({p, acct:a})));
+    if(!rows.length){ body.innerHTML='<p class="note">Nessuna posizione aperta al momento.</p>'; return; }
     rows.forEach(({p,acct})=>{
-      const risk = Math.abs(p.entry_px - p.stop_px);
-      const reward = Math.abs(p.target_px - p.entry_px);
-      const rr = risk ? (reward/risk) : 0;
-      const tr=el('tr');
-      tr.innerHTML =
-        '<td><div class="sym"><span class="s-tick">'+p.symbol+'</span><span class="s-name">'+symName(p.symbol)+'</span></div></td>'+
-        '<td class="acct-col" style="text-align:left"><span class="acct-pill">'+acct.label+'</span></td>'+
-        '<td style="text-align:left"><span class="side '+p.direction+'">'+(p.direction==='long'?'▲ long':'▼ short')+'</span></td>'+
-        '<td>'+px(p.entry_px)+'</td>'+
-        '<td>'+NF0.format(p.size_usd)+' $</td>'+
-        '<td class="neg">'+px(p.stop_px)+'</td>'+
-        '<td class="pos">'+px(p.target_px)+'</td>'+
-        '<td>'+NF2.format(rr)+'<span style="color:var(--text-4)">:1</span></td>'+
-        '<td class="muted-cell">'+sinceFrom(p.opened_at)+'</td>';
-      body.appendChild(tr);
+      const risk=Math.abs(p.entry_px-p.stop_px), reward=Math.abs(p.target_px-p.entry_px);
+      const rr=risk?(reward/risk):0;
+      const riskUsd=Math.abs(p.stop_px/p.entry_px-1)*p.size_usd;
+      const dStop=Math.abs(1-p.stop_px/p.entry_px)*100, dTgt=Math.abs(p.target_px/p.entry_px-1)*100;
+      const card=el('div','pcard '+p.direction);
+      card.innerHTML =
+        '<div class="pcard-head">'+
+          '<div class="sym"><span class="s-tick">'+p.symbol+'</span><span class="s-name">'+symName(p.symbol)+'</span></div>'+
+          '<span class="side '+p.direction+'">'+(p.direction==='long'?'▲ long':'▼ short')+'</span>'+
+          '<span class="acct-pill">'+acct.label+'</span>'+
+          '<span class="pcard-pnl flat" data-pnl></span>'+
+        '</div>'+
+        '<div class="pcard-sub">'+
+          '<span class="pcard-now" data-now></span>'+
+          '<span class="acct-pill">R:R '+NF2.format(rr)+':1</span>'+
+        '</div>'+
+        '<div class="pcard-chart" data-chart></div>'+
+        '<div class="pcard-strip">'+
+          '<div class="cell"><div class="k">Entry</div><div class="v">'+px(p.entry_px)+'</div></div>'+
+          '<div class="cell"><div class="k">Size</div><div class="v">'+NF0.format(p.size_usd)+' $</div></div>'+
+          '<div class="cell"><div class="k">Stop</div><div class="v neg">'+px(p.stop_px)+'</div></div>'+
+          '<div class="cell"><div class="k">Target</div><div class="v pos">'+px(p.target_px)+'</div></div>'+
+        '</div>'+
+        '<div class="pcard-foot">'+
+          '<span class="pcard-since">aperta '+sinceFrom(p.opened_at)+'</span>'+
+          '<button class="pcard-toggle" data-toggle>Dettaglio <span class="chev">▾</span></button>'+
+        '</div>'+
+        '<div class="pcard-detail">'+
+          '<div class="pcard-legend">'+
+            '<span><span class="sw" style="background:var(--amber)"></span>ingresso '+fmtTs(p.opened_at)+'</span>'+
+            '<span><span class="sw" style="background:var(--green)"></span>TP a '+dTgt.toFixed(1)+'%</span>'+
+            '<span><span class="sw" style="background:var(--red)"></span>SL a '+dStop.toFixed(1)+'%</span>'+
+          '</div>'+
+          '<div class="pcard-detgrid">'+
+            '<div class="row"><span class="dk">Capitale a rischio</span><span class="dv">'+NF0.format(riskUsd)+' $</span></div>'+
+            '<div class="row"><span class="dk">Rischio/Rendimento</span><span class="dv">'+NF2.format(rr)+' : 1</span></div>'+
+            '<div class="row"><span class="dk">Distanza dallo stop</span><span class="dv">'+dStop.toFixed(2)+'%</span></div>'+
+            '<div class="row"><span class="dk">Distanza dal target</span><span class="dv">'+dTgt.toFixed(2)+'%</span></div>'+
+            '<div class="row"><span class="dk">Lato</span><span class="dv">'+(p.direction==='long'?'long ▲':'short ▼')+'</span></div>'+
+            '<div class="row"><span class="dk">Conto</span><span class="dv">'+acct.label+'</span></div>'+
+          '</div>'+
+        '</div>';
+      card.querySelector('[data-toggle]').addEventListener('click',()=>card.classList.toggle('open'));
+      body.appendChild(card);
+      const rec={p, acct, card,
+        chartHost:card.querySelector('[data-chart]'),
+        pnlEl:card.querySelector('[data-pnl]'),
+        nowEl:card.querySelector('[data-now]')};
+      POS.push(rec);
+      paintPos(rec);
     });
+  }
+  function paintPos(rec){
+    const {p}=rec;
+    const live=LIVE[p.symbol];
+    const last=(live&&live.ok)?live.px:(p.chart&&p.chart.length?p.chart[p.chart.length-1][1]:p.entry_px);
+    rec.chartHost.innerHTML = posChartSVG(p, live&&live.ok?live.px:null) || '<p class="note" style="padding:8px 6px">grafico non disponibile</p>';
+    const {pct,usd}=posPnl(p,last);
+    const cls=pct>0?'pos':pct<0?'neg':'flat';
+    rec.pnlEl.className='pcard-pnl '+cls;
+    rec.pnlEl.innerHTML=(live&&live.ok?'<span class="live-dot"></span>':'')+(pct>=0?'+':'')+pct.toFixed(2)+'% · '+signedUsd(usd);
+    rec.nowEl.className='pcard-now'+(live&&live.ok?'':' stale');
+    rec.nowEl.textContent=(live&&live.ok?'● live ':'ultimo ')+px(last);
   }
 
   /* ---------- render: decisions feed ---------- */
@@ -1007,8 +1094,9 @@ footer .foot-mark b{ color:var(--amber); }
   }
 
   /* ---------- render: mini-chart posizioni aperte ---------- */
-  function posChartSVG(p){
-    const pts=p.chart; if(!pts||pts.length<2) return null;
+  function posChartSVG(p, livePx){
+    let pts=p.chart; if(!pts||pts.length<2) return null;
+    if(livePx!=null){ pts=pts.concat([['live', livePx]]); }  // punto live in coda
     const W=520,H=180,L=10,R=64,T=14,B=26, n=pts.length;
     const prices=pts.map(q=>q[1]);
     let lo=Math.min(...prices,p.entry_px,p.stop_px,p.target_px);
@@ -1034,33 +1122,25 @@ footer .foot-mark b{ color:var(--amber); }
       '<text x="'+(W-R+6)+'" y="'+(lastY+(lastY<Y(p.entry_px)?-6:12)).toFixed(1)+'" fill="var(--blue)" font-size="9.5" font-family="var(--mono)">ora '+fmt(lastPx)+'</text>'+
       '</svg>';
   }
-  function renderPosCharts(){
-    const host=$('#pos-charts'); if(!host) return; host.innerHTML='';
-    (DATA.accounts||[]).forEach(a=>{
-      (a.positions||[]).forEach(p=>{
-        const svg=posChartSVG(p); if(!svg) return;
-        const last=p.chart[p.chart.length-1][1];
-        const dir=p.direction==='long'?1:-1;
-        const pnlPct=dir*((last/p.entry_px)-1)*100;
-        const pnlUsd=pnlPct/100*p.size_usd;
-        const riskUsd=Math.abs(p.stop_px/p.entry_px-1)*p.size_usd;
-        const dStop=Math.abs(last/p.stop_px-1)*100, dTgt=Math.abs(last/p.target_px-1)*100;
-        const card=el('div','pchart');
-        card.innerHTML =
-          '<div class="pc-head"><span class="pc-sym">'+p.symbol+'</span>'+
-            '<span class="side '+p.direction+'">'+(p.direction==='long'?'▲ long':'▼ short')+'</span>'+
-            '<span class="acct-pill">'+a.label+'</span>'+
-            '<span class="pc-meta '+(pnlPct>=0?'pos':'neg')+'">'+(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'% · '+signedUsd(pnlUsd)+'</span></div>'+
-          svg+
-          '<div class="pc-legend">'+
-            '<span><span class="sw" style="background:var(--amber)"></span>ingresso '+fmtTs(p.opened_at)+'</span>'+
-            '<span><span class="sw" style="background:var(--green)"></span>TP a '+dTgt.toFixed(1)+'%</span>'+
-            '<span><span class="sw" style="background:var(--red)"></span>SL a '+dStop.toFixed(1)+'%</span>'+
-            '<span>rischio '+NF0.format(riskUsd)+' $</span></div>';
-        host.appendChild(card);
-      });
-    });
+  /* ---------- prezzo live (best-effort Binance, fallback statico) ---------- */
+  // mappa simbolo dashboard -> coppia Binance. Solo crypto: il resto resta statico.
+  const BINANCE={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',XRP:'XRPUSDT',SUI:'SUIUSDT',
+    NEAR:'NEARUSDT',WLD:'WLDUSDT',ZEC:'ZECUSDT',CRV:'CRVUSDT',BNB:'BNBUSDT',
+    DOGE:'DOGEUSDT',AVAX:'AVAXUSDT',LINK:'LINKUSDT',ADA:'ADAUSDT',ARB:'ARBUSDT',OP:'OPUSDT'};
+  async function pollLive(){
+    const syms=[...new Set(POS.map(r=>r.p.symbol))].filter(s=>BINANCE[s]);
+    if(!syms.length) return;
+    await Promise.all(syms.map(async s=>{
+      try{
+        const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol='+BINANCE[s],{cache:'no-store'});
+        if(!r.ok) throw 0;
+        const j=await r.json(); const v=parseFloat(j.price);
+        if(isFinite(v)&&v>0) LIVE[s]={px:v, ok:true};
+      }catch(e){ /* lascia statico */ }
+    }));
+    POS.forEach(rec=>{ if(LIVE[rec.p.symbol]) paintPos(rec); });
   }
+  function startLive(){ pollLive(); setInterval(pollLive, 15000); }
 
   /* ---------- render: trading book ---------- */
   function fmtDur(h){
@@ -1195,8 +1275,8 @@ footer .foot-mark b{ color:var(--amber); }
     renderTree();
     renderEvents();
     renderStrats();
-    renderPosCharts();
     renderBook();
+    startLive();
   }
   boot();
 
