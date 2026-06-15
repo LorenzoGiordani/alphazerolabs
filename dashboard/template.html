@@ -1126,7 +1126,9 @@ footer .foot-mark b{ color:var(--amber); }
   function paintPos(rec){
     const {p}=rec;
     const live=LIVE[p.symbol];
-    const tail=LIVEHIST[p.symbol]||null;
+    // tail = SOLO il tick corrente (1 punto), non lo storico accumulato: evita il
+    // plateau piatto che schiacciava il chart. Lo storico vero sta nelle candele base.
+    const tail=(live&&live.ok)?[[hms(), live.px]]:null;
     const last=(live&&live.ok)?live.px:(p.chart&&p.chart.length?p.chart[p.chart.length-1][1]:p.entry_px);
     rec.chartHost.innerHTML = posChartSVG(p, tail) || '<p class="note" style="padding:8px 6px">grafico non disponibile</p>';
     const {pct,usd}=posPnl(p,last);
@@ -1272,8 +1274,6 @@ footer .foot-mark b{ color:var(--amber); }
     setFeedStatus();
     if(!dirty) return; dirty=false;
     const t=hms();
-    heldSymbols().forEach(s=>{ const lv=LIVE[s]; if(!lv||!lv.ok) return;
-      const h=(LIVEHIST[s]=LIVEHIST[s]||[]); h.push([t, lv.px]); if(h.length>180) h.shift(); });
     POS.forEach(rec=>{ if(LIVE[rec.p.symbol]) paintPos(rec); });
     updateAccountsLive();
     const live=Object.values(LIVE).filter(v=>v.ok).length;
@@ -1334,6 +1334,7 @@ footer .foot-mark b{ color:var(--amber); }
   function startLive(){
     loadChartBases();
     connectHL();
+    setInterval(loadChartBases, 90000);   // rinfresca le candele base: storico sempre attuale, niente stale
     setInterval(repaintLive, 2000);
     setInterval(()=>{ if(!wsAlive) pollBinance(); }, 12000);
     setTimeout(()=>{ if(!wsAlive) pollBinance(); }, 4000);  // primo colpo se il ws tarda
