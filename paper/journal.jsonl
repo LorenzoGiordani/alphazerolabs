@@ -160,3 +160,12 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 9946.69, "open_positions": 3, "logged_at": "2026-06-15T05:01:57.482903+00:00"}
 {"type": "skip", "strategy": "agents-v1", "symbol": "SOL/USDT", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-15T05:06:40.754604+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 9946.69, "open_positions": 3, "logged_at": "2026-06-15T05:06:40.755027+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-v1", "equity": 9791.14, "open_positions": 3, "logged_at": "2026-06-15T05:28:19.159810+00:00"}
+{"type": "heartbeat", "strategy": "funding-squeeze-breakout-g2-g1-g2", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-15T05:28:30.427704+00:00"}
+{"type": "close", "strategy": "tsmom-conservative-v1", "symbol": "xyz_GOLD", "reason": "stopped", "exit_px": 4337.697226394447, "pnl_usd": -61.57, "equity": 9936.27, "ts": "2026-06-15 04:00:00+00:00", "logged_at": "2026-06-15T05:28:33.483792+00:00"}
+{"type": "open", "strategy": "tsmom-conservative-v1", "symbol": "xyz_GOLD", "direction": "short", "entry_px": 4348.6301, "size_usd": 2384.7, "stop_px": 4457.3458525, "target_px": 4022.4828425000005, "opened_at": "2026-06-15 04:00:00+00:00", "checked_until": "2026-06-15 04:00:00+00:00", "thesis": "tsmom \u2192 follow:tsmom", "signals_last": {"tsmom": -1}, "logged_at": "2026-06-15T05:28:33.485580+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-conservative-v1", "equity": 9935.2, "open_positions": 2, "logged_at": "2026-06-15T05:28:34.293587+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 10112.47, "open_positions": 2, "logged_at": "2026-06-15T05:28:44.928667+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 9946.69, "open_positions": 3, "logged_at": "2026-06-15T05:28:47.731668+00:00"}
+{"type": "skip", "strategy": "agents-v1", "symbol": "SOL/USD", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-15T05:33:48.194866+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 9946.69, "open_positions": 3, "logged_at": "2026-06-15T05:33:48.195275+00:00"}
