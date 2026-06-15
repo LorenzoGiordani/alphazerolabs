@@ -1,0 +1,8 @@
+{
+  "name": "lux-paper-cron",
+  "main": "src/index.js",
+  "compatibility_date": "2025-06-01",
+  "observability": { "enabled": true },
+  // ogni ora al minuto :10, allineato al paper-run (candela oraria chiusa)
+  "triggers": { "crons": ["10 * * * *"] }
+}
