@@ -125,13 +125,15 @@ def main() -> None:
             print(f"  {symbol}: fetch fallito ({e})", file=sys.stderr)
             continue
         pos = st["positions"].get(symbol)
+        closed_this_run = False
         if pos:
             pos, st["equity"] = update_position(pos, data["candles"], spec["exit"]["time_stop_h"], st["equity"])
             if pos:
                 st["positions"][symbol] = pos
             else:
                 del st["positions"][symbol]
-        if symbol not in st["positions"] and len(st["positions"]) < max_conc:
+                closed_this_run = True  # come il backtest: re-entry al più presto sulla barra dopo, mai stessa barra
+        if not closed_this_run and symbol not in st["positions"] and len(st["positions"]) < max_conc:
             new_pos = maybe_open(spec, symbol, data, st["equity"], sid)
             if new_pos:
                 st["equity"] -= new_pos["size_usd"] * HL_TAKER_FEE
