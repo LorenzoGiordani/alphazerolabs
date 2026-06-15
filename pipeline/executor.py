@@ -86,8 +86,10 @@ class Executor:
         return out
 
     def open_position(self, coin: str, is_buy: bool, size_usd: float, entry_px: float,
-                      stop_px: float, leverage: int) -> dict:
-        """Apre a mercato + piazza SUBITO lo stop-loss trigger reduce-only. Guardrail hard."""
+                      stop_px: float, leverage: int, take_px: float | None = None) -> dict:
+        """Apre a mercato + piazza SUBITO il bracket trigger reduce-only (SL obbligatorio,
+        TP se take_px). I due trigger sono OCO via grouping positionTpsl: l'uno che scatta
+        cancella l'altro lato exchange, in tempo reale. Guardrail hard."""
         a = self._meta.get(coin)
         if a is None:
             return self._reject(coin, f"asset {coin} fuori universo HL")
@@ -96,25 +98,31 @@ class Executor:
         szd = int(a["szDecimals"])
         sz = _round_sz(size_usd / entry_px, szd)
         stop_px = _round_px(stop_px, szd)
+        take_px = _round_px(take_px, szd) if take_px else None
         if sz <= 0:
             return self._reject(coin, f"size nulla (size_usd={size_usd})")
 
         intent = {"type": "open", "coin": coin, "side": "buy" if is_buy else "sell",
                   "sz": sz, "size_usd": round(size_usd, 2), "entry_px": entry_px,
-                  "stop_px": stop_px, "leverage": lev}
+                  "stop_px": stop_px, "take_px": take_px, "leverage": lev}
         if self.dry_run:
             self.log({**intent, "status": "dry_run"})
             return intent
 
         self.exchange.update_leverage(lev, coin, is_cross=False)    # isolated, leva capata
         o = self.exchange.market_open(coin, is_buy, sz)
-        # stop-loss OBBLIGATORIO: trigger market, reduce_only, lato opposto
-        sl_type = {"trigger": {"triggerPx": stop_px, "isMarket": True, "tpsl": "sl"}}
-        sl = self.exchange.order(coin, not is_buy, sz, stop_px, sl_type, reduce_only=True)
-        if not self._ok(sl):                                        # SL fallito → mai posizione nuda
+        # bracket reduce-only lato opposto; SL obbligatorio, TP opzionale, OCO via positionTpsl
+        def trig(px, kind):
+            return {"coin": coin, "is_buy": not is_buy, "sz": sz, "limit_px": px,
+                    "order_type": {"trigger": {"triggerPx": px, "isMarket": True, "tpsl": kind}},
+                    "reduce_only": True}
+        legs = [trig(stop_px, "sl")] + ([trig(take_px, "tp")] if take_px else [])
+        br = self.exchange.bulk_orders(legs, grouping="positionTpsl")
+        if not (self._ok(br) and self._all_resting(br)):           # bracket fallito → mai posizione nuda
             self.exchange.market_close(coin)
-            return self._reject(coin, f"stop-loss non piazzato ({sl}) → chiusura immediata")
-        self.log({**intent, "status": "filled", "order": o, "sl_order": sl})
+            self.cancel_open_orders(coin)                          # cancella eventuale gamba piazzata
+            return self._reject(coin, f"bracket SL/TP non piazzato ({br}) → chiusura immediata")
+        self.log({**intent, "status": "filled", "order": o, "bracket": br})
         return intent
 
     def cancel_open_orders(self, coin: str) -> list:
@@ -148,4 +156,13 @@ class Executor:
         try:
             return resp.get("status") == "ok"
         except AttributeError:
+            return False
+
+    @staticmethod
+    def _all_resting(resp) -> bool:
+        """Ogni gamba del bracket deve essere appesa (nessun 'error' negli statuses)."""
+        try:
+            sts = resp["response"]["data"]["statuses"]
+            return bool(sts) and all("error" not in s for s in sts)
+        except (KeyError, TypeError):
             return False

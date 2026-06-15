@@ -36,8 +36,10 @@ def target_for(spec: dict, symbol: str) -> dict | None:
     sign = 1 if direction > 0 else -1
     entry_px = float(data["candles"]["close"].iloc[-1])
     stop_pct = float(spec["exit"]["stop_pct"]) / 100
+    target_r = float(spec["exit"]["target_r"])
     return {"symbol": symbol, "is_buy": sign > 0, "sign": sign, "entry_px": entry_px,
-            "stop_px": entry_px * (1 - sign * stop_pct)}
+            "stop_px": entry_px * (1 - sign * stop_pct),
+            "take_px": entry_px * (1 + sign * stop_pct * target_r)}
 
 
 def main() -> None:
@@ -98,8 +100,9 @@ def main() -> None:
             print(f"  SKIP {coin} (max {max_conc} posizioni raggiunto)")
             continue
         side = "LONG" if t["is_buy"] else "SHORT"
-        print(f"  OPEN {coin} {side} @ {t['entry_px']:.5g}, stop {t['stop_px']:.5g}, size {size_usd:.0f}$")
-        ex.open_position(coin, t["is_buy"], size_usd, t["entry_px"], t["stop_px"], leverage)
+        print(f"  OPEN {coin} {side} @ {t['entry_px']:.5g}, stop {t['stop_px']:.5g}, "
+              f"tp {t['take_px']:.5g}, size {size_usd:.0f}$")
+        ex.open_position(coin, t["is_buy"], size_usd, t["entry_px"], t["stop_px"], leverage, t["take_px"])
         open_count += 1
 
     if not targets:
