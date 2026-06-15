@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LUX AI — desk di ricerca autonomo, in pubblico</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2048%2048'%3E%3Crect%20width='48'%20height='48'%20rx='10'%20fill='%2315120e'/%3E%3Cg%20fill='none'%20stroke='%23e0a23e'%20stroke-width='2.4'%20stroke-linejoin='round'%20stroke-linecap='round'%3E%3Cpolygon%20points='24,8%2037.5,16%2037.5,32%2024,40%2010.5,32%2010.5,16'/%3E%3Cpath%20d='M24,8%20L24,18'/%3E%3Cpath%20d='M37.5,16%20L29,21'/%3E%3Cpath%20d='M37.5,32%20L29,27'/%3E%3Cpath%20d='M24,40%20L24,30'/%3E%3Cpath%20d='M10.5,32%20L19,27'/%3E%3Cpath%20d='M10.5,16%20L19,21'/%3E%3C/g%3E%3C/svg%3E">
 <style>
 /* ============================================================
    LUX AI — desk di ricerca autonomo · ricerca in pubblico
@@ -20,6 +21,7 @@
   --line:      #342c22;
   --line-2:    #463a2c;
 
+  --text-1:    #f8f2e6;   /* brightest — emphasis */
   --text:      #ede4d4;
   --text-2:    #b7ab95;
   --text-3:    #8a7d68;
@@ -82,6 +84,8 @@ header.top{
   flex-wrap:wrap;
 }
 .brand{ display:flex; align-items:baseline; gap:10px; margin-right:auto; }
+.brand-mark{ width:31px; height:31px; flex:none; display:block; align-self:center; }
+.brand-mark .blade{ opacity:.9; }
 .brand .mark{
   font-family:var(--serif); font-weight:700; font-size:23px; letter-spacing:.01em;
   color:var(--text);
@@ -100,6 +104,14 @@ header.top{
 }
 .badge-paper .dot{ width:6px; height:6px; border-radius:50%; background:var(--amber); box-shadow:0 0 0 0 var(--amber); animation:pulse 2.6s ease-out infinite; }
 @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(224,162,62,.5);} 70%{ box-shadow:0 0 0 7px rgba(224,162,62,0);} 100%{ box-shadow:0 0 0 0 rgba(224,162,62,0);} }
+.feed-status{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--text-3); border:1px solid var(--line-2);
+  border-radius:100px; padding:4px 10px; white-space:nowrap; transition:color .2s, border-color .2s; }
+.feed-status .fs-dot{ width:6px; height:6px; border-radius:50%; background:var(--text-4); }
+.feed-status.live{ color:var(--green); border-color:var(--green-dim); }
+.feed-status.live .fs-dot{ background:var(--green); animation:livePulse 1.8s infinite; }
+.feed-status.warn{ color:var(--amber); border-color:var(--amber-dim); }
+.feed-status.warn .fs-dot{ background:var(--amber); }
 .updated{ font-family:var(--mono); font-size:11px; color:var(--text-3); white-space:nowrap; letter-spacing:.02em; }
 .updated b{ color:var(--text-2); font-weight:400; }
 
@@ -117,13 +129,29 @@ section:first-of-type{ border-top:0; }
 }
 .sec-head .note{ font-family:var(--sans); font-size:12.5px; color:var(--text-3); margin-left:auto; max-width:46ch; text-align:right; line-height:1.4; }
 
+/* ---------- portfolio summary strip ---------- */
+.portfolio{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-bottom:18px;
+  background:var(--line); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; }
+.pf{ background:linear-gradient(180deg,var(--bg-2),#1a160f); padding:15px 18px; }
+.pf .l{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); }
+.pf .v{ font-family:var(--mono); font-size:23px; font-weight:600; margin-top:5px; letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums; color:var(--text-1); line-height:1; }
+.pf .v .cur,.pf .v .u{ font-size:13px; color:var(--text-3); font-weight:400; }
+.pf .s{ font-family:var(--mono); font-size:11px; margin-top:6px; font-variant-numeric:tabular-nums; }
+@media(max-width:680px){ .portfolio{ grid-template-columns:repeat(2,1fr); } }
+
 /* ---------- hero accounts ---------- */
 .accounts{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .acct{
   background:linear-gradient(180deg,var(--bg-2),var(--bg-2) 60%, #1a160f);
   border:1px solid var(--line); border-radius:var(--r);
   padding:18px 20px 14px; position:relative; overflow:hidden;
+  transition:border-color .16s ease;
 }
+.acct::before{ content:""; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,var(--amber),transparent 72%); opacity:0; transition:opacity .2s ease; }
+.acct:hover{ border-color:var(--line-2); }
+.acct:hover::before{ opacity:.55; }
 .acct .acct-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .acct .acct-name{ font-family:var(--serif); font-weight:700; font-size:18px; }
 .acct .acct-id{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); margin-top:3px; }
@@ -404,10 +432,16 @@ footer .foot-mark b{ color:var(--amber); }
 <header class="top">
   <div class="top-inner">
     <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 48 48" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+        <polygon points="24,7 38.7,15.5 38.7,32.5 24,41 9.3,32.5 9.3,15.5"/>
+        <path class="blade" d="M24,7 L24,18"/><path class="blade" d="M38.7,15.5 L29,21"/><path class="blade" d="M38.7,32.5 L29,27"/>
+        <path class="blade" d="M24,41 L24,30"/><path class="blade" d="M9.3,32.5 L19,27"/><path class="blade" d="M9.3,15.5 L19,21"/>
+      </svg>
       <span class="mark">LUX <b>AI</b></span>
       <span class="sub">desk di ricerca autonomo</span>
     </div>
     <span class="badge-paper"><span class="dot"></span>Paper trading — nessun fondo reale</span>
+    <span class="feed-status off" id="feed-status"><span class="fs-dot"></span><span class="fs-txt">feed in attesa</span></span>
     <span class="updated">Aggiornato <b id="updated-ts">—</b> UTC · prossimo run <b id="next-run">—</b></span>
   </div>
 </header>
@@ -427,6 +461,7 @@ footer .foot-mark b{ color:var(--amber); }
       <h2>Due conti, una sola regola: tutto in chiaro</h2>
       <p class="note">Balance fittizio, prezzi reali di mercato. La pipeline di agenti decide; il TSMOM sistematico fa da challenger.</p>
     </div>
+    <div class="portfolio" id="portfolio"></div>
     <div class="accounts" id="accounts"></div>
   </section>
 
@@ -547,7 +582,7 @@ footer .foot-mark b{ color:var(--amber); }
 
 <footer>
   <div class="wrap">
-    <div class="foot-mark">LUX <b>AI</b> — ricerca, non consulenza.</div>
+    <div class="foot-mark"><svg viewBox="0 0 48 48" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="var(--amber)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><polygon points="24,7 38.7,15.5 38.7,32.5 24,41 9.3,32.5 9.3,15.5"/><path d="M24,7 L24,18"/><path d="M38.7,15.5 L29,21"/><path d="M38.7,32.5 L29,27"/><path d="M24,41 L24,30"/><path d="M9.3,32.5 L19,27"/><path d="M9.3,15.5 L19,21"/></svg>LUX <b>AI</b> — ricerca, non consulenza.</div>
     <p class="disc">
       <b>Disclaimer.</b> LUX AI è un progetto di ricerca sperimentale. Le informazioni qui pubblicate
       hanno finalità esclusivamente illustrative e didattiche e <b>non costituiscono consulenza finanziaria,
@@ -784,8 +819,8 @@ footer .foot-mark b{ color:var(--amber); }
     wrap.querySelectorAll('svg').forEach(s=>s.remove());
 
     const W = Math.max(280, wrap.clientWidth || 480);
-    const H = 158;
-    const padL=10, padR=10, padT=16, padB=22;
+    const H = 168;
+    const padL=10, padR=52, padT=16, padB=22;
     const iw = W-padL-padR, ih = H-padT-padB;
 
     const vals = curve.map(p=>p[1]);
@@ -816,15 +851,30 @@ footer .foot-mark b{ color:var(--amber); }
       '<stop offset="1" stop-color="'+(up?'#6cc086':'#df6a52')+'" stop-opacity="0"/></linearGradient>';
     svg.appendChild(defs);
 
+    // horizontal gridlines + right-side value axis
+    const fmtAxis = v => (Math.abs(v)>=1000 ? NF0.format(v) : NF2.format(v));
+    const GT=3;
+    for(let i=0;i<=GT;i++){
+      const v=minV+(maxV-minV)*i/GT, gy=Y(v);
+      const g=document.createElementNS(svgNS,'line');
+      g.setAttribute('x1',padL); g.setAttribute('x2',W-padR); g.setAttribute('y1',gy); g.setAttribute('y2',gy);
+      g.setAttribute('stroke','var(--line)'); g.setAttribute('stroke-width','1');
+      g.setAttribute('opacity', (i===0||i===GT) ? '0.55' : '0.3');
+      svg.appendChild(g);
+      const gl=document.createElementNS(svgNS,'text');
+      gl.setAttribute('x',W-padR+7); gl.setAttribute('y',gy+3); gl.setAttribute('text-anchor','start');
+      gl.setAttribute('fill','var(--text-4)'); gl.setAttribute('font-size','9'); gl.setAttribute('font-family','var(--mono)');
+      gl.textContent=fmtAxis(v); svg.appendChild(gl);
+    }
     // baseline (starting equity)
     const by=Y(base);
     const bl=document.createElementNS(svgNS,'line');
     bl.setAttribute('x1',padL); bl.setAttribute('x2',W-padR); bl.setAttribute('y1',by); bl.setAttribute('y2',by);
-    bl.setAttribute('stroke','var(--line-2)'); bl.setAttribute('stroke-width','1'); bl.setAttribute('stroke-dasharray','2 4');
+    bl.setAttribute('stroke','var(--amber-dim)'); bl.setAttribute('stroke-width','1'); bl.setAttribute('stroke-dasharray','2 4'); bl.setAttribute('opacity','0.75');
     svg.appendChild(bl);
     const blab=document.createElementNS(svgNS,'text');
-    blab.setAttribute('x',W-padR); blab.setAttribute('y',by-5); blab.setAttribute('text-anchor','end');
-    blab.setAttribute('fill','var(--text-4)'); blab.setAttribute('font-size','9'); blab.setAttribute('font-family','var(--mono)');
+    blab.setAttribute('x',padL); blab.setAttribute('y',by-5); blab.setAttribute('text-anchor','start');
+    blab.setAttribute('fill','var(--amber-dim)'); blab.setAttribute('font-size','9'); blab.setAttribute('font-family','var(--mono)');
     blab.textContent='base '+NF0.format(base);
     svg.appendChild(blab);
 
@@ -916,6 +966,34 @@ footer .foot-mark b{ color:var(--amber); }
     }
   }
 
+  /* ---------- render: portfolio summary ---------- */
+  function renderSummary(){
+    const host=$('#portfolio'); if(!host) return;
+    const accs=DATA.accounts||[];
+    if(!accs.length){ host.innerHTML=''; return; }
+    const base=accs.length*10000;
+    const eq=accs.reduce((s,a)=>s+(a.equity||0),0);
+    const wr=eq-base;
+    const pnl=accs.reduce((s,a)=>s+(a.pnl_realized||0),0);
+    const open=accs.reduce((s,a)=>s+((a.positions||[]).length),0);
+    const closed=accs.reduce((s,a)=>s+(a.trades_closed||0),0);
+    const wins=accs.reduce((s,a)=>s+(a.wins||0),0);
+    const wrate=closed?Math.round(wins/closed*100):null;
+    host.innerHTML=
+      '<div class="pf"><div class="l">Equity totale · '+accs.length+' conti</div>'+
+        '<div class="v" data-pf-eq>'+NF2.format(eq)+' <span class="cur">$</span></div>'+
+        '<div class="s '+clsOf(wr)+'" data-pf-wr>'+signedUsd(wr)+' · '+pctSigned(wr/base*100)+'</div></div>'+
+      '<div class="pf"><div class="l">P&amp;L realizzato</div>'+
+        '<div class="v '+clsOf(pnl)+'">'+signedUsd(pnl)+'</div>'+
+        '<div class="s" style="color:var(--text-4)">su capitale '+NF0.format(base)+' $</div></div>'+
+      '<div class="pf"><div class="l">Posizioni aperte</div>'+
+        '<div class="v">'+open+'</div>'+
+        '<div class="s" style="color:var(--text-4)">esposizione attiva</div></div>'+
+      '<div class="pf"><div class="l">Operazioni chiuse</div>'+
+        '<div class="v">'+closed+(wrate!=null?' <span class="u">· '+wrate+'% win</span>':'')+'</div>'+
+        '<div class="s" style="color:var(--text-4)">'+wins+' vinte</div></div>';
+  }
+
   /* ---------- render: accounts ---------- */
   const ACCTS=[];   // {a, equityEl, deltaEl} per update live
   function renderAccounts(){
@@ -951,6 +1029,7 @@ footer .foot-mark b{ color:var(--amber); }
   function snapPx(p){ return (p.chart&&p.chart.length)?p.chart[p.chart.length-1][1]:p.entry_px; }
   function nowStamp(){ return new Date().toISOString().slice(0,19).replace('T',' '); }
   function updateAccountsLive(){
+    let totalEq=0, totalAny=false;
     ACCTS.forEach(({a,equityEl,deltaEl,wrap,hasCurve})=>{
       let delta=0, any=false;
       (a.positions||[]).forEach(p=>{
@@ -958,6 +1037,8 @@ footer .foot-mark b{ color:var(--amber); }
         const dir=p.direction==='long'?1:-1;
         delta += dir*(lv.px-snapPx(p))/p.entry_px*p.size_usd; any=true;
       });
+      totalEq += a.equity + delta;       // live se any, snapshot altrimenti
+      if(any) totalAny=true;
       if(!any) return;
       const eq=a.equity+delta, wr=eq-10000;
       equityEl.innerHTML=NF2.format(eq)+' <span class="cur">$</span>';
@@ -967,6 +1048,12 @@ footer .foot-mark b{ color:var(--amber); }
         drawChart(wrap, a.equity_curve.concat([[nowStamp(), eq]]), false);
       }
     });
+    if(totalAny){  // equity totale live nello strip portfolio
+      const base=ACCTS.length*10000, wr=totalEq-base;
+      const eqEl=$('[data-pf-eq]'), wrEl=$('[data-pf-wr]');
+      if(eqEl) eqEl.innerHTML=NF2.format(totalEq)+' <span class="cur">$</span>';
+      if(wrEl){ wrEl.className='s '+clsOf(wr); wrEl.textContent=signedUsd(wr)+' · '+pctSigned(wr/base*100); }
+    }
   }
 
   /* ---------- render: posizioni unificate (sintetica + espansa, live) ---------- */
@@ -1170,8 +1257,19 @@ footer .foot-mark b{ color:var(--amber); }
     });
     if(touched){ dirty=true; lastSrc=src; }
   }
+  // stato feed nell'header (live / in attesa / riconnessione)
+  function setFeedStatus(){
+    const fs=$('#feed-status'); if(!fs) return;
+    const txt=fs.querySelector('.fs-txt');
+    const held=heldSymbols().length;
+    const live=Object.values(LIVE).filter(v=>v.ok).length;
+    if(!held){ fs.className='feed-status off'; txt.textContent='nessuna posizione'; return; }
+    if(live){ fs.className='feed-status live'; txt.textContent='live · '+live+'/'+held+' asset · '+(lastSrc||''); return; }
+    fs.className='feed-status warn'; txt.textContent=wsAlive?'in attesa prezzi…':'riconnessione…';
+  }
   // ridisegno campionato (ogni 2s): accumula tail + ridipinge posizioni e conti
   function repaintLive(){
+    setFeedStatus();
     if(!dirty) return; dirty=false;
     const t=hms();
     heldSymbols().forEach(s=>{ const lv=LIVE[s]; if(!lv||!lv.ok) return;
@@ -1359,7 +1457,7 @@ footer .foot-mark b{ color:var(--amber); }
     }
   }
   function renderAll(){
-    renderAccounts(); renderPositions(); renderFeed(); renderLessons();
+    renderSummary(); renderAccounts(); renderPositions(); renderFeed(); renderLessons();
     renderTree(); renderEvents(); renderStrats(); renderBook();
   }
   // ricarica i dati pipeline (eventi/decisioni/trade chiusi) senza reload pagina
