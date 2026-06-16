@@ -600,7 +600,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-16 00:18",
+ "updated_utc": "2026-06-16 01:18",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -809,6 +809,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-16 00:15",
+     10000.0
+    ],
+    [
+     "2026-06-16 01:15",
      10000.0
     ]
    ],
@@ -1158,6 +1162,14 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-16 00:18",
      10335.85
+    ],
+    [
+     "2026-06-16 01:16",
+     10335.85
+    ],
+    [
+     "2026-06-16 01:18",
+     10335.85
     ]
    ],
    "positions": [
@@ -1485,6 +1497,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-15 23:00",
        73.951
+      ],
+      [
+       "2026-06-16 00:00",
+       74.012
       ]
      ]
     }
@@ -1682,6 +1698,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-16 00:15",
      9688.43
+    ],
+    [
+     "2026-06-16 01:15",
+     9688.43
     ]
    ],
    "positions": [
@@ -1877,6 +1897,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-15 23:00",
        81.529999
+      ],
+      [
+       "2026-06-16 00:00",
+       81.309998
       ]
      ]
     },
@@ -2072,6 +2096,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-15 23:00",
        83.760002
+      ],
+      [
+       "2026-06-16 00:00",
+       83.669998
       ]
      ]
     },
@@ -2215,6 +2243,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-15 23:00",
        69.989998
+      ],
+      [
+       "2026-06-16 00:00",
+       69.945
       ]
      ]
     }
@@ -2347,6 +2379,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-16 00:15",
+     9935.2
+    ],
+    [
+     "2026-06-16 01:15",
      9935.2
     ]
    ],
@@ -2747,6 +2783,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-15 23:00",
        81.529999
+      ],
+      [
+       "2026-06-16 00:00",
+       81.309998
       ]
      ]
     },
@@ -2926,6 +2966,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-15 23:00",
        4337.299805
+      ],
+      [
+       "2026-06-16 00:00",
+       4340.299805
       ]
      ]
     }
@@ -3014,6 +3058,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-16 00:15",
+     10099.95
+    ],
+    [
+     "2026-06-16 01:16",
      10099.95
     ]
    ],
@@ -3330,6 +3378,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-15 23:00",
        0.5875
+      ],
+      [
+       "2026-06-16 00:00",
+       0.59707
       ]
      ]
     },
@@ -3637,6 +3689,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-15 23:00",
        518.92
+      ],
+      [
+       "2026-06-16 00:00",
+       513.12
       ]
      ]
     }
@@ -3644,6 +3700,19 @@ footer .foot-mark b{ color:var(--amber); }
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-16 01:18",
+   "symbol": "ZEC/USDT",
+   "direction": "long",
+   "account": "agents-v1",
+   "risk_verdict": "reduce",
+   "thesis": "ZEC è l'unico asset del basket con doppia confluenza segnali registrati (tsmom=1 + vwap_zscore=1) su regime bull confermato: configurazione distinta dal pattern bruciante tsmom+liq_imbalance citato nelle lessons. Il funding a +1.4% APR indica che i derivati non hanno ancora 'caricato' il movimento spot (+14.4% 7d), escludendo la condizione di crowded entry che precede i reversal violenti. Il macro risk-on (riapertura Hormuz, deal Iran) comprime il tail risk ribassista su asset ad alta beta nel breve. La tesi è falsificabile: se il vwap_zscore rientra a zero nelle prossime 12h senza nuovo massimo, il segnale è esaurito e il trade è sbagliato.",
+   "invalidation": "Close 4h sotto $495 (perdita VWAP e invalidazione bull regime); oppure funding che supera +3% APR senza nuovo high di prezzo (crowding senza momentum = distribuzione); oppure vwap_zscore che rientra a 0 entro 12h dall'ingresso.",
+   "outcome": {
+    "closed": false
+   },
+   "size_multiplier": 0.6
+  },
   {
    "ts": "2026-06-16 00:18",
    "symbol": "SOL",
