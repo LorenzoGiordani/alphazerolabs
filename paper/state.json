@@ -4,23 +4,8 @@
   "positions": {}
  },
  "agents-v1": {
-  "equity": 10308.030901474793,
+  "equity": 10281.823382864794,
   "positions": {
-   "ZEC": {
-    "strategy": "agents-v1",
-    "symbol": "ZEC",
-    "direction": "long",
-    "entry_px": 519.90396,
-    "size_usd": 574.21,
-    "stop_px": 496.50828179999996,
-    "target_px": 578.3931555,
-    "opened_at": "2026-06-16 02:00:00+00:00",
-    "checked_until": "2026-06-16 13:00:00+00:00",
-    "time_stop_h": 24,
-    "thesis": "ZEC \u00e8 l'unico asset nel basket con doppia confluenza quantitativa attiva (tsmom=1 + vwap_zscore=1) in regime bull primario \u2014 nessun altro asset soddisfa questi criteri simultaneamente. Funding neutro-positivo esclude la top da squeeze retail: i derivati non sono sovraccarichi di leva lunga, il movimento \u00e8 guidato dallo spot. Size ridotta al 50% rispetta esplicitamente la lesson archivio su ingressi affollati post-candele estese: il rischio di crowding \u00e8 reale ma gestito dalla posizione conservativa, non ignorato. Invalidazione misurabile entro 24h limita il drawdown temporale nel contesto macro ambivalente.",
-    "invalidation": "Azzeramento di tsmom o vwap_zscore entro il time_stop, oppure funding che scende sotto -0.03% APR (smart money che vende in forza), oppure rottura del VWAP giornaliero sotto $497-500 confermata a chiusura di candela 4h.",
-    "decision_ts": "2026-06-16T03:19:10.547341+00:00"
-   },
    "SOL": {
     "strategy": "agents-v1",
     "symbol": "SOL",
@@ -30,14 +15,14 @@
     "stop_px": 70.710459264,
     "target_px": 81.02240124,
     "opened_at": "2026-06-16 05:00:00+00:00",
-    "checked_until": "2026-06-16 13:00:00+00:00",
+    "checked_until": "2026-06-16 14:00:00+00:00",
     "time_stop_h": 24,
     "thesis": "SOL \u00e8 l'unico large-cap con bull regime confermato, vwap_zscore=1 attivo e funding negativo (\u20130.76% APR): i short stanno pagando i long, non c'\u00e8 squeeze invertito in vista. L'outperformance strutturale a 7 giorni (+9.6% vs ETH +4.4%) non \u00e8 rumore: \u00e8 rotazione di capitale verso la L1 con momentum pi\u00f9 pulito del basket. In contesto di compression pre-catalyst, un asset gi\u00e0 in espansione con liquidit\u00e0 large-cap offre il miglior profilo asimmetrico senza violare la lezione crowded-entry (ZEC, non SOL, ha il +15.6% a rischio mean-reversion). Il catalizzatore Iran/BOJ, se positivo, amplifica beta su SOL pi\u00f9 che su BTC per via del posizionamento istituzionale pi\u00f9 leggero.",
     "invalidation": "Stop close sotto il VWAP daily (\u20134% da entry) o funding che torna positivo sopra +0.5% APR nelle prossime 6h \u2014 segnalerebbe liquidazione del momentum long e inversione del vantaggio strutturale.",
     "decision_ts": "2026-06-16T06:18:29.511789+00:00"
    }
   },
-  "last_decision_ts": "2026-06-16T14:19:20.025442+00:00"
+  "last_decision_ts": "2026-06-16T15:21:08.986935+00:00"
  },
  "tsmom-v1": {
   "equity": 9688.431079720001,
@@ -51,7 +36,7 @@
     "stop_px": 84.02558898144531,
     "target_px": 71.09857529199219,
     "opened_at": "2026-06-15 00:00:00+00:00",
-    "checked_until": "2026-06-16 13:00:00+00:00"
+    "checked_until": "2026-06-16 14:00:00+00:00"
    },
    "xyz_BRENTOIL": {
     "strategy": "tsmom-v1",
@@ -62,7 +47,7 @@
     "stop_px": 87.1033723494873,
     "target_px": 73.70285352648926,
     "opened_at": "2026-06-15 00:00:00+00:00",
-    "checked_until": "2026-06-16 13:00:00+00:00"
+    "checked_until": "2026-06-16 14:00:00+00:00"
    },
    "xyz_SILVER": {
     "strategy": "tsmom-v1",
@@ -73,7 +58,7 @@
     "stop_px": 73.9344136505127,
     "target_px": 62.559888473510746,
     "opened_at": "2026-06-15 13:00:00+00:00",
-    "checked_until": "2026-06-16 13:00:00+00:00"
+    "checked_until": "2026-06-16 14:00:00+00:00"
    }
   }
  },
@@ -89,7 +74,7 @@
     "stop_px": 4457.3458525,
     "target_px": 4022.4828425000005,
     "opened_at": "2026-06-15 04:00:00+00:00",
-    "checked_until": "2026-06-16 13:00:00+00:00"
+    "checked_until": "2026-06-16 14:00:00+00:00"
    },
    "xyz_BRENTOIL": {
     "strategy": "tsmom-conservative-v1",
@@ -100,35 +85,12 @@
     "stop_px": 83.89996946468352,
     "target_px": 75.71460659008027,
     "opened_at": "2026-06-16 07:00:00+00:00",
-    "checked_until": "2026-06-16 13:00:00+00:00"
+    "checked_until": "2026-06-16 14:00:00+00:00"
    }
   }
  },
  "tsmom-liq-v1": {
-  "equity": 9910.2172485,
-  "positions": {
-   "WLD": {
-    "strategy": "tsmom-liq-v1",
-    "symbol": "WLD",
-    "direction": "long",
-    "entry_px": 0.6420483840000001,
-    "size_usd": 2378.97,
-    "stop_px": 0.6259971744,
-    "target_px": 0.6902020128,
-    "opened_at": "2026-06-16 13:00:00+00:00",
-    "checked_until": "2026-06-16 13:00:00+00:00"
-   },
-   "CRV": {
-    "strategy": "tsmom-liq-v1",
-    "symbol": "CRV",
-    "direction": "long",
-    "entry_px": 0.24134825999999998,
-    "size_usd": 2378.71,
-    "stop_px": 0.23531455349999997,
-    "target_px": 0.25944937949999997,
-    "opened_at": "2026-06-16 13:00:00+00:00",
-    "checked_until": "2026-06-16 13:00:00+00:00"
-   }
-  }
+  "equity": 9788.206544899998,
+  "positions": {}
  }
 }
