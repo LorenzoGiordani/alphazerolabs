@@ -600,7 +600,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-17 12:19",
+ "updated_utc": "2026-06-17 13:19",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -953,6 +953,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-17 12:16",
+     10000.0
+    ],
+    [
+     "2026-06-17 13:15",
      10000.0
     ]
    ],
@@ -1590,6 +1594,14 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-17 12:19",
      10278.86
+    ],
+    [
+     "2026-06-17 13:16",
+     10278.86
+    ],
+    [
+     "2026-06-17 13:19",
+     10278.86
     ]
    ],
    "positions": [
@@ -1933,6 +1945,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-17 11:00",
        0.78633
+      ],
+      [
+       "2026-06-17 12:00",
+       0.79213
       ]
      ]
     },
@@ -2268,6 +2284,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-17 11:00",
        488.89
+      ],
+      [
+       "2026-06-17 12:00",
+       485.23
       ]
      ]
     },
@@ -2583,6 +2603,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-17 11:00",
        71.987
+      ],
+      [
+       "2026-06-17 12:00",
+       72.296
       ]
      ]
     }
@@ -2924,6 +2948,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-17 12:16",
      9688.43
+    ],
+    [
+     "2026-06-17 13:15",
+     9688.43
     ]
    ],
    "positions": [
@@ -3259,6 +3287,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-17 11:00",
        76.019997
+      ],
+      [
+       "2026-06-17 12:00",
+       75.839996
       ]
      ]
     },
@@ -3594,6 +3626,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-17 11:00",
        79.68
+      ],
+      [
+       "2026-06-17 12:00",
+       79.550003
       ]
      ]
     },
@@ -3877,6 +3913,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-17 11:00",
        69.824997
+      ],
+      [
+       "2026-06-17 12:00",
+       70.035004
       ]
      ]
     }
@@ -4153,6 +4193,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-17 12:16",
+     10112.56
+    ],
+    [
+     "2026-06-17 13:15",
      10112.56
     ]
    ],
@@ -4473,6 +4517,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-17 11:00",
        4342.600098
+      ],
+      [
+       "2026-06-17 12:00",
+       4353.299805
       ]
      ]
     },
@@ -4724,6 +4772,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-17 11:00",
        79.68
+      ],
+      [
+       "2026-06-17 12:00",
+       79.550003
       ]
      ]
     }
@@ -4956,6 +5008,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-17 12:16",
+     9898.34
+    ],
+    [
+     "2026-06-17 13:16",
      9898.34
     ]
    ],
@@ -5336,6 +5392,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-17 11:00",
        0.24922
+      ],
+      [
+       "2026-06-17 12:00",
+       0.24478
       ]
      ]
     }
@@ -5343,6 +5403,19 @@ footer .foot-mark b{ color:var(--amber); }
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-17 13:19",
+   "symbol": "ZEC/USD",
+   "direction": "long",
+   "account": "agents-v1",
+   "risk_verdict": "reduce",
+   "thesis": "ZEC è l'unico asset con convergenza di tre segnali indipendenti su regime bull confermato: vol_compression + volume_surge + funding –2.97% APR. Il funding negativo crea asimmetria strutturale attiva ora — i short finanziano la posizione long ogni ora, riducendo il costo di attesa del trigger. La lesson interna thesis_right valida esplicitamente vol_compression in bull regime come pattern con edge storico. Il pullback –5.4% 24h migliora il prezzo di entry senza alterare il regime settimanale, aumentando l'asimmetria risk/reward. La tesi è falsificabile: ZEC deve rompere $510 entro 48h per confermare l'espansione attesa dalla compressione; assenza di breakout = mancanza di edge e time-stop chiude.",
+   "invalidation": "Chiusura meccanica sotto $450 (stop –7%); time-stop a 48h senza breakout $510; guidance Warsh hawkish con drawdown BTC >5% nelle 6h successive alla dichiarazione e taker ratio <0.45 su ZEC; segnale vol_compression che si resetta senza espansione direzionale (falso positivo strutturale).",
+   "outcome": {
+    "closed": false
+   },
+   "size_multiplier": 0.5
+  },
   {
    "ts": "2026-06-17 12:19",
    "symbol": "ZEC",
