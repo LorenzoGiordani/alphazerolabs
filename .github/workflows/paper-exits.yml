@@ -1,0 +1,50 @@
+name: paper-exits
+
+# Exit-check real-time TP/SL. Lanciato via workflow_dispatch dal Worker CF
+# (lux-paper-cron) SOLO quando un livello stop/target è sfiorato → minuti ~zero.
+# Stesso concurrency group dell'hourly: niente sovrapposizioni / race sullo stato.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: paper-run
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: exit-check TP/SL
+        run: uv run scripts/paper_exits.py
+
+      - name: dashboard
+        run: uv run scripts/dashboard.py
+
+      - name: deploy dashboard pubblica (lux-ai.pages.dev)
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: |
+          mkdir -p /tmp/lux-deploy && cp dashboard/index.html /tmp/lux-deploy/
+          npx -y wrangler@4 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
+
+      - name: publish
+        run: |
+          git config user.name "lux-ai-cron"
+          git config user.email "actions@users.noreply.github.com"
+          git add paper/ dashboard/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: exit-check $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+            for i in 1 2 3; do
+              git pull --rebase -X theirs origin main && git push origin main && break
+              sleep 5
+            done
+          fi
