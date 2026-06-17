@@ -13,32 +13,32 @@
    ============================================================ */
 
 :root{
-  /* ivory · warm light — luminoso, elegante */
-  --bg:        #faf6ec;   /* avorio pagina */
-  --bg-2:      #f4eddd;   /* pannelli */
-  --bg-3:      #efe6d2;   /* pannelli rialzati / wash */
-  --bg-raise:  #ffffff;   /* card */
-  --line:      #e7dcc4;
-  --line-2:    #d7c8a8;
+  /* warm near-black terminal */
+  --bg:        #15120e;
+  --bg-2:      #1c1813;
+  --bg-3:      #241f18;
+  --bg-raise:  #2b251d;
+  --line:      #342c22;
+  --line-2:    #463a2c;
 
-  --text-1:    #20190d;   /* più scuro — enfasi */
-  --text:      #3a3020;
-  --text-2:    #6c5f46;
-  --text-3:    #978769;
-  --text-4:    #bcae8e;
+  --text-1:    #f8f2e6;   /* brightest — emphasis */
+  --text:      #ede4d4;
+  --text-2:    #b7ab95;
+  --text-3:    #8a7d68;
+  --text-4:    #685d4c;
 
-  /* accents — oro come firma */
-  --amber:     #ad7f13;   /* oro — segnale / campione */
-  --amber-dim: #c9a64e;
-  --green:     #2f9e63;   /* long / positivo / approva */
-  --green-dim: #5fae82;
-  --red:       #cb4a32;   /* short / negativo / veto */
-  --red-dim:   #d8745f;
-  --blue:      #4a7fa0;   /* accent dato neutro */
+  /* accents — shared chroma family, raffinati */
+  --amber:     #e0a23e;   /* warm signal / reduce / champion */
+  --amber-dim: #8a6a2c;
+  --green:     #6cc086;   /* long / positive / approve */
+  --green-dim: #3c6b50;
+  --red:       #df6a52;   /* short / negative / veto */
+  --red-dim:   #7d4035;
+  --blue:      #7aa6c2;   /* neutral data accent */
 
-  --green-wash: rgba(47,158,99,.10);
-  --red-wash:   rgba(203,74,50,.10);
-  --amber-wash: rgba(173,127,19,.12);
+  --green-wash: rgba(108,192,134,.10);
+  --red-wash:   rgba(223,106,82,.10);
+  --amber-wash: rgba(224,162,62,.10);
 
   --serif: 'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,'Times New Roman',serif;
   --mono: ui-monospace,'SF Mono',SFMono-Regular,'Menlo','Cascadia Code','Roboto Mono','Liberation Mono',monospace;
@@ -73,7 +73,7 @@ body{
 /* ---------- header ---------- */
 header.top{
   position:sticky; top:0; z-index:50;
-  background:rgba(250,246,236,.85);
+  background:rgba(21,18,14,.82);
   backdrop-filter:saturate(140%) blur(12px);
   -webkit-backdrop-filter:saturate(140%) blur(12px);
   border-bottom:1px solid var(--line);
@@ -132,7 +132,7 @@ section:first-of-type{ border-top:0; }
 /* ---------- portfolio summary strip ---------- */
 .portfolio{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-bottom:18px;
   background:var(--line); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; }
-.pf{ background:linear-gradient(180deg,var(--bg-raise),var(--bg-2)); padding:15px 18px; }
+.pf{ background:linear-gradient(180deg,var(--bg-2),#1a160f); padding:15px 18px; }
 .pf .l{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); }
 .pf .v{ font-family:var(--mono); font-size:23px; font-weight:600; margin-top:5px; letter-spacing:-.01em;
   font-variant-numeric:tabular-nums; color:var(--text-1); line-height:1; }
@@ -143,7 +143,7 @@ section:first-of-type{ border-top:0; }
 /* ---------- hero accounts ---------- */
 .accounts{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .acct{
-  background:linear-gradient(180deg,var(--bg-raise),var(--bg-raise) 60%, var(--bg-2));
+  background:linear-gradient(180deg,var(--bg-2),var(--bg-2) 60%, #1a160f);
   border:1px solid var(--line); border-radius:var(--r);
   padding:18px 20px 14px; position:relative; overflow:hidden;
   transition:border-color .16s ease;
@@ -175,7 +175,7 @@ section:first-of-type{ border-top:0; }
   position:absolute; pointer-events:none; opacity:0; transform:translate(-50%,-118%);
   background:var(--bg-raise); border:1px solid var(--line-2); border-radius:3px;
   padding:5px 8px; font-family:var(--mono); font-size:11px; white-space:nowrap; z-index:5;
-  transition:opacity .08s linear; box-shadow:0 6px 18px rgba(60,45,15,.16);
+  transition:opacity .08s linear; box-shadow:0 6px 18px rgba(0,0,0,.4);
 }
 .chart-tip .t-time{ color:var(--text-3); font-size:9.5px; display:block; letter-spacing:.04em; }
 .chart-tip .t-val{ font-variant-numeric:tabular-nums; }
@@ -493,6 +493,7 @@ footer .foot-mark b{ color:var(--amber); }
       <p class="note">Una scheda per operazione: andamento del prezzo e posizione insieme, P&amp;L aggiornato in tempo reale. <b>Stop</b> = uscita automatica che limita la perdita; <b>target</b> = obiettivo di profitto. Tocca <b>Dettaglio</b> per i numeri completi.</p>
       <div class="live-stamp" id="pos-live"></div>
     </div>
+    <div class="pos-summary" id="pos-summary"></div>
     <div class="pos-list" id="positions-body"></div>
   </section>
 
@@ -8403,6 +8404,23 @@ footer .foot-mark b{ color:var(--amber); }
     const pct=dir*((last/p.entry_px)-1)*100;
     return {pct, usd:pct/100*p.size_usd};
   }
+  // totale P&L non realizzato (live) in cima alla pagina Posizioni
+  function updatePosSummary(){
+    const host=$('#pos-summary'); if(!host) return;
+    if(!POS.length){ host.innerHTML=''; return; }
+    let usd=0, size=0, anyLive=false;
+    POS.forEach(({p})=>{
+      const lv=LIVE[p.symbol]; const last=(lv&&lv.ok)?lv.px:snapPx(p);
+      usd += posPnl(p,last).usd; size += p.size_usd; if(lv&&lv.ok) anyLive=true;
+    });
+    const pct=size?usd/size*100:0, cls=usd>0?'pos':usd<0?'neg':'';
+    host.innerHTML=
+      '<div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;border:1px solid var(--line);border-radius:var(--r);background:var(--bg-2);padding:13px 17px;margin-bottom:16px">'+
+        '<span style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)">P&amp;L non realizzato'+(anyLive?' <span class="live-dot"></span>live':'')+'</span>'+
+        '<span class="'+cls+'" style="font-family:var(--mono);font-size:23px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em">'+signedUsd(usd)+' · '+pctSigned(pct)+'</span>'+
+        '<span style="font-family:var(--mono);font-size:11px;color:var(--text-3)">'+POS.length+' posizioni · esposizione '+NF0.format(size)+' $</span>'+
+      '</div>';
+  }
   function renderPositions(){
     const body=$('#positions-body'); body.innerHTML=''; POS.length=0;
     const rows=[];
@@ -8460,6 +8478,7 @@ footer .foot-mark b{ color:var(--amber); }
       POS.push(rec);
       paintPos(rec);
     });
+    updatePosSummary();
   }
   function paintPos(rec){
     const {p}=rec;
@@ -8681,6 +8700,7 @@ footer .foot-mark b{ color:var(--amber); }
     const t=hms();
     POS.forEach(rec=>{ if(LIVE[rec.p.symbol]) paintPos(rec); });
     updateAccountsLive();
+    updatePosSummary();
     const live=Object.values(LIVE).filter(v=>v.ok).length;
     const stamp=$('#pos-live');
     if(stamp) stamp.innerHTML=live?'<span class="live-dot"></span>live · '+live+' asset · '+t+' · '+(lastSrc||'—'):'';
