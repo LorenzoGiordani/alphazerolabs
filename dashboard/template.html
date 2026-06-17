@@ -493,6 +493,7 @@ footer .foot-mark b{ color:var(--amber); }
       <p class="note">Una scheda per operazione: andamento del prezzo e posizione insieme, P&amp;L aggiornato in tempo reale. <b>Stop</b> = uscita automatica che limita la perdita; <b>target</b> = obiettivo di profitto. Tocca <b>Dettaglio</b> per i numeri completi.</p>
       <div class="live-stamp" id="pos-live"></div>
     </div>
+    <div class="pos-summary" id="pos-summary"></div>
     <div class="pos-list" id="positions-body"></div>
   </section>
 
@@ -1075,6 +1076,23 @@ footer .foot-mark b{ color:var(--amber); }
     const pct=dir*((last/p.entry_px)-1)*100;
     return {pct, usd:pct/100*p.size_usd};
   }
+  // totale P&L non realizzato (live) in cima alla pagina Posizioni
+  function updatePosSummary(){
+    const host=$('#pos-summary'); if(!host) return;
+    if(!POS.length){ host.innerHTML=''; return; }
+    let usd=0, size=0, anyLive=false;
+    POS.forEach(({p})=>{
+      const lv=LIVE[p.symbol]; const last=(lv&&lv.ok)?lv.px:snapPx(p);
+      usd += posPnl(p,last).usd; size += p.size_usd; if(lv&&lv.ok) anyLive=true;
+    });
+    const pct=size?usd/size*100:0, cls=usd>0?'pos':usd<0?'neg':'';
+    host.innerHTML=
+      '<div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;border:1px solid var(--line);border-radius:var(--r);background:var(--bg-2);padding:13px 17px;margin-bottom:16px">'+
+        '<span style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)">P&amp;L non realizzato'+(anyLive?' <span class="live-dot"></span>live':'')+'</span>'+
+        '<span class="'+cls+'" style="font-family:var(--mono);font-size:23px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em">'+signedUsd(usd)+' · '+pctSigned(pct)+'</span>'+
+        '<span style="font-family:var(--mono);font-size:11px;color:var(--text-3)">'+POS.length+' posizioni · esposizione '+NF0.format(size)+' $</span>'+
+      '</div>';
+  }
   function renderPositions(){
     const body=$('#positions-body'); body.innerHTML=''; POS.length=0;
     const rows=[];
@@ -1132,6 +1150,7 @@ footer .foot-mark b{ color:var(--amber); }
       POS.push(rec);
       paintPos(rec);
     });
+    updatePosSummary();
   }
   function paintPos(rec){
     const {p}=rec;
@@ -1353,6 +1372,7 @@ footer .foot-mark b{ color:var(--amber); }
     const t=hms();
     POS.forEach(rec=>{ if(LIVE[rec.p.symbol]) paintPos(rec); });
     updateAccountsLive();
+    updatePosSummary();
     const live=Object.values(LIVE).filter(v=>v.ok).length;
     const stamp=$('#pos-live');
     if(stamp) stamp.innerHTML=live?'<span class="live-dot"></span>live · '+live+' asset · '+t+' · '+(lastSrc||'—'):'';
