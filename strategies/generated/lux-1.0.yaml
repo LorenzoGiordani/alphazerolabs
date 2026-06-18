@@ -60,8 +60,8 @@ exit:
   target_r: 3.0
   time_stop_h: 240
 risk:
-  max_leverage: 2
-  risk_per_trade_pct: 1.5
+  max_leverage: 3
+  risk_per_trade_pct: 2.0
   max_concurrent_positions: 3
 evolution:
   mutable:

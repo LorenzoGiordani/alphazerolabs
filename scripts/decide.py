@@ -41,7 +41,11 @@ ROLES = {
         "Sei il Market Analyst di un desk crypto. Dal contesto (prezzi, funding, OI, "
         "taker flow, segnali, news) produci un brief: 1) regime di mercato complessivo, "
         "2) per ogni asset: lettura quantitativa in 1-2 righe (posizionamento, flussi, struttura), "
-        "3) i 2-3 asset con il setup più interessante e perché. Niente raccomandazioni di trade. Max 350 parole."
+        "3) i 2-3 asset con il setup più interessante e perché. "
+        "PRIORITÀ: il campo `lux_confluence` è l'edge sistematico più robusto e validato del desk "
+        "(trend+liquidazioni reali+forecast Kronos concordi). Quando `aligned`=true segnala il setup a "
+        "più alta convinzione su quell'asset, nella sua `direction`; trattalo come primario. "
+        "Niente raccomandazioni di trade. Max 350 parole."
     ),
     "bull": (
         "Sei il ricercatore BULL. Dal brief dell'Analyst, argomenta la migliore tesi LONG "
@@ -52,8 +56,10 @@ ROLES = {
         "possibile (asset specifico, catalizzatori, posizionamento). Sii aggressivo ma onesto sui rischi. Max 150 parole."
     ),
     "strategist": (
-        "Sei lo Strategist. Hai il brief, il dibattito bull/bear e le LEZIONI dal journal "
-        "(post-mortem di trade passati): rispettale o motiva esplicitamente perché non si applicano. "
+        "Sei lo Strategist. Hai il brief, il dibattito bull/bear, la confluenza LUX e le LEZIONI dal "
+        "journal (post-mortem di trade passati): rispettale o motiva esplicitamente perché non si applicano. "
+        "Favorisci i setup con `lux_confluence.aligned`=true (edge validato, top-conviction) e allinea la "
+        "direction alla sua; se vai contro la confluenza LUX, motivalo esplicitamente nella tesi. "
         "Decidi: UN trade o nessuno (nessun trade è una decisione rispettabile). Rispondi SOLO con JSON: "
         '{"action": "trade"|"no_trade", "symbol": str, "direction": "long"|"short", '
         '"leverage": float, "risk_pct": float, "stop_pct": float, "target_r": float, '
@@ -95,6 +101,23 @@ def signal_states(data: dict) -> dict:
     return {name: int(fn(data).iloc[-1]) for name, fn in SIGNALS.items()}
 
 
+# Confluenza LUX 1.0: l'edge sistematico più robusto del desk, distillato per l'LLM.
+LUX_CORE = ["tsmom", "liq_imbalance", "kronos_forecast"]   # devono concordare (top-conviction)
+LUX_VOTE = LUX_CORE + ["smart_money_ratio", "oi_trend"]     # voto direzionale a 5
+
+
+def lux_confluence(sig: dict) -> dict:
+    """Stato confluenza LUX dai segnali correnti. aligned=True quando i 3 core
+    (trend+liquidazioni+Kronos) sono tutti attivi E concordi → setup top-conviction."""
+    core = [sig.get(n, 0) for n in LUX_CORE]
+    aligned = all(v != 0 for v in core) and len({v > 0 for v in core}) == 1
+    score = sum(sig.get(n, 0) for n in LUX_VOTE)
+    return {"aligned": aligned,
+            "direction": ("long" if core[0] > 0 else "short") if aligned else "—",
+            "vote_score": score, "vote_n": len(LUX_VOTE),
+            "components": {n: sig.get(n, 0) for n in LUX_VOTE}}
+
+
 def build_context(symbols: list[str]) -> dict:
     assets = {}
     for s in symbols:
@@ -112,7 +135,8 @@ def build_context(symbols: list[str]) -> dict:
             "funding_apr": float(fr * 3 * 365),
             "taker_buy_ratio_24h": round(float(ratio), 4),
             "regime_7d": str(regimes(c).iloc[-1]),
-            "signals": signal_states(d),
+            "signals": (_sig := signal_states(d)),
+            "lux_confluence": lux_confluence(_sig),
             **{k: round(v, 4) if isinstance(v, float) else v for k, v in oi.items()},
         }
     return {
