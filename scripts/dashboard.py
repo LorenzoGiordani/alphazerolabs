@@ -267,6 +267,7 @@ def build_data() -> dict:
             "ts": ts_short(d.get("logged_at", "")), "symbol": sym,
             "direction": p.get("direction"), "account": "agents-v1",
             "risk_verdict": risk.get("verdict", "approve"),
+            "risk_notes": (risk.get("notes", "") or "")[:400],
             "thesis": p.get("thesis", ""), "invalidation": p.get("invalidation", ""),
             "outcome": outcome,
         }
@@ -418,7 +419,8 @@ def main() -> None:
     data = build_data()
     html = TEMPLATE.read_text()
     block = f'<script id="data" type="application/json">\n{json.dumps(data, ensure_ascii=False, indent=1)}\n</script>'
-    out, n = re.subn(r'<script id="data" type="application/json">.*?</script>', block, html, flags=re.DOTALL)
+    # replacement come FUNZIONE: verbatim, niente interpretazione di \n, \1 ecc. nel blocco
+    out, n = re.subn(r'<script id="data" type="application/json">.*?</script>', lambda _: block, html, flags=re.DOTALL)
     if n != 1:
         sys.exit("ERRORE: blocco #data non trovato nel template")
     OUT.write_text(out)

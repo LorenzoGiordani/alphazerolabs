@@ -421,6 +421,15 @@ footer .foot-mark b{ color:var(--amber); }
   .updated{ font-size:10px; }
 }
 
+/* pannelli analytics: collassa le griglie larghe su mobile */
+@media(max-width:680px){
+  #portfolio-kpi .metrics, #risk-panel .metrics{ grid-template-columns:repeat(2,1fr)!important; }
+}
+#change-banner{ display:none; }
+#change-banner.show{ display:flex; gap:14px; align-items:center; flex-wrap:wrap;
+  border:1px solid var(--amber-dim); background:var(--amber-wash); border-radius:var(--r);
+  padding:10px 14px; margin:16px 0 0; font-family:var(--mono); font-size:12px; }
+#change-banner .cb-x{ margin-left:auto; cursor:pointer; color:var(--text-3); }
 @media (prefers-reduced-motion: reduce){
   *{ animation:none !important; transition:none !important; }
   .eq-line{ stroke-dashoffset:0 !important; }
@@ -453,6 +462,9 @@ footer .foot-mark b{ color:var(--amber); }
 </nav>
 
 <main class="wrap">
+
+  <div id="change-banner"></div>
+
 
   <!-- HERO / STATO -->
   <section id="stato">
@@ -1177,7 +1189,7 @@ footer .foot-mark b{ color:var(--amber); }
     rec.pnlEl.className='pcard-pnl '+cls;
     rec.pnlEl.innerHTML=(live&&live.ok?'<span class="live-dot"></span>':'')+(pct>=0?'+':'')+pct.toFixed(2)+'% · '+signedUsd(usd);
     rec.nowEl.className='pcard-now'+(live&&live.ok?'':' stale');
-    rec.nowEl.textContent=(live&&live.ok?'● live ':'ultimo ')+px(last);
+    rec.nowEl.textContent=(live&&live.ok?'● live ':(p.symbol.startsWith('xyz_')?'statico ':'ultimo '))+px(last);
   }
 
   /* ---------- render: decisions feed ---------- */
@@ -1209,6 +1221,7 @@ footer .foot-mark b{ color:var(--amber); }
         '</div>'+
         '<p class="thesis">'+d.thesis+'</p>'+
         '<div class="invalidation"><b>'+(d.risk_verdict==='sistema'?'Quando si chiude':'Cosa la smentisce')+'</b>'+d.invalidation+'</div>'+
+        (d.risk_notes?'<div class="invalidation" style="border-left-color:var(--blue)"><b>Risk Manager</b>'+d.risk_notes+'</div>':'')+
         out;
       host.appendChild(card);
     });
@@ -1700,10 +1713,29 @@ footer .foot-mark b{ color:var(--amber); }
     host.innerHTML='<h3 style="font-family:var(--serif);margin:18px 0 4px">Distribuzione esiti (R) &amp; motivo uscita</h3>'+hist+reasons;
   }
 
+  // banner "cosa è cambiato dall'ultimo accesso" (localStorage)
+  function renderChangeBanner(){
+    const host=$('#change-banner'); if(!host) return;
+    const cur={closed:closedTrades().length, lc:(DATA.lifecycle||[]).length};
+    let prev=null; try{ prev=JSON.parse(localStorage.getItem('lux_seen')||'null'); }catch(e){}
+    if(prev){
+      const dC=cur.closed-prev.closed, dL=cur.lc-prev.lc, parts=[];
+      if(dC>0) parts.push(dC+' trade chiusi');
+      if(dL>0) parts.push(dL+' mosse evolutive');
+      if(parts.length){
+        host.innerHTML='<span>● Dal tuo ultimo accesso: <b>'+parts.join(' · ')+'</b></span><span class="cb-x">✕</span>';
+        host.classList.add('show');
+        host.querySelector('.cb-x').onclick=()=>host.classList.remove('show');
+      }
+    }
+    try{ localStorage.setItem('lux_seen', JSON.stringify(cur)); }catch(e){}
+  }
+
   function renderAll(){
     renderSummary(); renderAccounts(); renderPositions(); renderFeed(); renderLessons();
     renderTree(); renderLifecycle(); renderEvents(); renderStrats(); renderBook();
     renderPortfolioKpi(); renderPortfolioCurve(); renderRiskPanel(); renderSignalsMatrix(); renderBookAnalytics();
+    renderChangeBanner();
   }
   // ricarica i dati pipeline (eventi/decisioni/trade chiusi) senza reload pagina
   async function refreshData(){
