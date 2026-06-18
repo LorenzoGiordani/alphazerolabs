@@ -26,10 +26,16 @@ TOPICS = {
 }
 
 
-def get(params: dict, max_retries: int = 8) -> dict | None:
-    """GET con pacing e backoff su 429/errori."""
+_DEADLINE = None  # time.monotonic() oltre cui il fetch news si arrende (non deve mai bloccare il trading)
+
+
+def get(params: dict, max_retries: int = 3) -> dict | None:
+    """GET con pacing e backoff su 429/errori. Fail-fast: poche prove, backoff capato,
+    rispetta la deadline globale → il segnale news degrada a neutro, mai blocco."""
     for attempt in range(max_retries):
-        time.sleep(PACE_S if attempt == 0 else min(PACE_S * 2**attempt, 300))
+        if _DEADLINE is not None and time.monotonic() > _DEADLINE:
+            return None
+        time.sleep(PACE_S if attempt == 0 else min(PACE_S * 2**attempt, 24))
         try:
             r = requests.get(API, params=params, headers=HEADERS, timeout=60)
         except requests.RequestException as e:
@@ -69,10 +75,15 @@ def timeline_df(query: str, start: datetime, end: datetime) -> pd.DataFrame | No
 def news_events_live(days: int = 14, min_z: float = 3.0) -> pd.DataFrame | None:
     """Burst di news negli ultimi `days` giorni — (ts, topic, z, tone).
     Baseline = media/std della finestra stessa (conservativo: i burst la alzano)."""
+    global _DEADLINE
+    _DEADLINE = time.monotonic() + 80  # budget totale: oltre, news degrada a neutro
     end = datetime.now(timezone.utc)
     start = end - timedelta(days=days)
     out = []
     for topic, query in TOPICS.items():
+        if time.monotonic() > _DEADLINE:
+            print("  news: deadline raggiunta, degrado a neutro", flush=True)
+            break
         df = timeline_df(query, start, end)
         if df is None or df.empty:
             continue
