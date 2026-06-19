@@ -635,7 +635,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-19 10:19",
+ "updated_utc": "2026-06-19 11:20",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -1853,6 +1853,14 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-19 10:19",
      10322.7
+    ],
+    [
+     "2026-06-19 11:17",
+     10322.7
+    ],
+    [
+     "2026-06-19 11:20",
+     10322.7
     ]
    ],
    "positions": [
@@ -2352,6 +2360,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-19 09:00",
        68.285
+      ],
+      [
+       "2026-06-19 10:00",
+       68.273
       ]
      ]
     }
@@ -2784,6 +2796,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-19 10:15",
+     9688.43
+    ],
+    [
+     "2026-06-19 11:15",
      9688.43
     ]
    ],
@@ -4551,6 +4567,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-19 10:17",
      10112.56
+    ],
+    [
+     "2026-06-19 11:17",
+     10112.56
     ]
    ],
    "positions": [
@@ -5742,6 +5762,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-19 10:17",
      9835.97
+    ],
+    [
+     "2026-06-19 11:17",
+     9835.97
     ]
    ],
    "positions": [
@@ -6113,6 +6137,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-19 09:00",
        0.71077
+      ],
+      [
+       "2026-06-19 10:00",
+       0.71109
       ]
      ]
     },
@@ -6464,6 +6492,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-19 09:00",
        62360.0
+      ],
+      [
+       "2026-06-19 10:00",
+       62506.0
       ]
      ]
     }
@@ -6533,12 +6565,30 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-19 10:17",
      10000.0
+    ],
+    [
+     "2026-06-19 11:17",
+     10000.0
     ]
    ],
    "positions": []
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-19 11:20",
+   "symbol": "ZECUSDT",
+   "direction": "short",
+   "account": "agents-v1",
+   "risk_verdict": "reduce",
+   "risk_notes": "Tre obiezioni strutturali. (1) SEGNALE FUNDING DEBOLE: +1.37% APR è quasi neutro — la lezione desk che citi richiede longs strutturalmente over-leveraged, non un funding appena positivo. A questo livello i longs non stanno 'pagando per restare' in modo significativo; lo schema distribuzione è suggestivo, non confermato. Il trader sta sovrapponendo la narrativa sulla qualità effettiva del segnale. ",
+   "thesis": "ZEC è il setup di distribuzione più fedele alla lezione desk validata: funding positivo (+1.37% APR) coesiste con -4.6% intraday, segnalando longs intrappolati che continuano a pagare funding mentre il prezzo scende — esatto schema del pattern confermato. Il rally 7d (+3.1%) non ha base fondamentale e funziona esclusivamente come liquidità per i venditori su un book illiquido; ogni sell order amplifica il leg successivo. Il macro hawkish e il tsmom=-1 su BTC rimuovono qualsiasi bid naturale sugli altcoin minori, rendendo lo short strutturalmente allineato al regime. Nessun lux_confluence aligned — motivazione esplicita: l'assenza di confluenza LUX riduce la size a 0.5% e il leverage a 2x, ma non invalida un pattern con fedeltà alta e segnali doppiamente confermati in regime bear/chop.",
+   "invalidation": "Chiusura daily ZEC sopra $42 (recupero sopra lo stop 6%), oppure BTC rompe il put wall $52k con volumi da bottom, oppure funding ZEC scende sotto 0% APR nelle prossime 24h segnalando che i long stanno già uscendo senza pressione aggiuntiva.",
+   "outcome": {
+    "closed": false
+   },
+   "size_multiplier": 0.6
+  },
   {
    "ts": "2026-06-19 06:19",
    "symbol": "ZEC/USDT",
@@ -8620,7 +8670,7 @@ footer .foot-mark b{ color:var(--amber); }
   {
    "symbol": "NEAR",
    "signals": {
-    "tsmom": 0,
+    "tsmom": 1,
     "liq_imbalance": 0,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
@@ -8633,7 +8683,7 @@ footer .foot-mark b{ color:var(--amber); }
    "symbol": "WLD",
    "signals": {
     "tsmom": 1,
-    "liq_imbalance": 0,
+    "liq_imbalance": -1,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
     "oi_trend": 0
