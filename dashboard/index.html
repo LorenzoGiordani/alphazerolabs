@@ -635,7 +635,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-19 17:19",
+ "updated_utc": "2026-06-19 18:21",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -1909,6 +1909,14 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-19 17:19",
      10322.3
+    ],
+    [
+     "2026-06-19 18:15",
+     10322.3
+    ],
+    [
+     "2026-06-19 18:21",
+     10322.3
     ]
    ],
    "positions": [
@@ -2436,6 +2444,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-19 16:00",
        68.682
+      ],
+      [
+       "2026-06-19 17:00",
+       69.302
       ]
      ]
     },
@@ -2743,6 +2755,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-19 16:00",
        446.86
+      ],
+      [
+       "2026-06-19 17:00",
+       457.33
       ]
      ]
     }
@@ -3203,6 +3219,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-19 17:15",
+     9688.43
+    ],
+    [
+     "2026-06-19 18:15",
      9688.43
     ]
    ],
@@ -4998,6 +5018,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-19 17:17",
      10112.56
+    ],
+    [
+     "2026-06-19 18:15",
+     10112.56
     ]
    ],
    "positions": [
@@ -6217,6 +6241,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-19 17:17",
      9835.97
+    ],
+    [
+     "2026-06-19 18:15",
+     9835.97
     ]
    ],
    "positions": [
@@ -6616,6 +6644,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-19 16:00",
        0.70891
+      ],
+      [
+       "2026-06-19 17:00",
+       0.71353
       ]
      ]
     },
@@ -6995,6 +7027,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-19 16:00",
        62943.0
+      ],
+      [
+       "2026-06-19 17:00",
+       63180.0
       ]
      ]
     }
@@ -7092,12 +7128,54 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-19 17:17",
      10000.0
+    ],
+    [
+     "2026-06-19 18:15",
+     10000.0
+    ]
+   ],
+   "positions": []
+  },
+  {
+   "id": "geopolitics-v1",
+   "label": "geopolitics-v1",
+   "tag": "",
+   "equity": 10000.0,
+   "pnl_realized": 0,
+   "trades_closed": 0,
+   "wins": 0,
+   "equity_curve": [
+    [
+     "2026-06-19 17:17",
+     10000.0
+    ],
+    [
+     "2026-06-19 17:22",
+     10000.0
+    ],
+    [
+     "2026-06-19 17:22",
+     10000.0
     ]
    ],
    "positions": []
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-19 18:21",
+   "symbol": "ZEC",
+   "direction": "long",
+   "account": "agents-v1",
+   "risk_verdict": "reduce",
+   "risk_notes": "Tre difetti materiali che non invalidano la struttura ma penalizzano il timing e la dimensione. (1) PATTERN REPLAY SU N=1: la thesis cita agents-v1|ZEC|2026-06-15 come unico precedente documentato — un'istanza non è un edge statistico, è aneddoto con p-value indefinito. 'La lesson esplicita' descrive cosa è successo una volta, non la distribuzione degli outcome. Questo abbassa la convinzione fonda",
+   "thesis": "Il setup è la replica documentata di agents-v1|ZEC|2026-06-15 (thesis_right, +$148.62): 1 asset su 5 in bull regime con vol_compression attiva — la lesson esplicita che questa selezione basket è il filtro che converte il pattern tecnico in edge direzionale, indipendentemente dalla conferma lux. Il funding negativo (-0.72% APR) non raggiunge la soglia meccanica di -1% APR ma è materialmente sopra il rumore neutro (-0.25% APR): riduce la resistenza strutturale a nuovi massimi senza garantire squeeze immediato. Lux è silente (vote_score=0), non contrario: il desk sistematico non ha segnale attivo ma non invalida il setup — entrata a 0.5% risk per rispettare la minore convinzione. La tesi è falsificata se BTC rompe sotto $61k (il chop macro assorbe il regime bull ZEC) o se il funding gira positivo prima del breakout (segnale di capitolazione longs, non squeeze shorts).",
+   "invalidation": "BTC scende sotto $61k; oppure funding ZEC flip a ≥+0.1% APR prima che il prezzo raggiunga il target; oppure il prezzo chiude sotto $435 (5% drawdown = vol_compression risolta al ribasso, non al rialzo).",
+   "outcome": {
+    "closed": false
+   },
+   "size_multiplier": 0.5
+  },
   {
    "ts": "2026-06-19 16:20",
    "symbol": "ZEC",
@@ -9088,6 +9166,17 @@ footer .foot-mark b{ color:var(--amber); }
    "note": "Funding sostituito da conferma di flusso (più entry, conferma più pertinente). Volume mult abbassato a 1.5 perché taker_flow già filtra la partecipazione. Targe"
   },
   {
+   "id": "geopolitics-v1",
+   "parent": null,
+   "status": "challenger",
+   "sharpe": 0.0,
+   "sharpe_r": 0.0,
+   "n_closed": 0,
+   "mean_r": 0.0,
+   "pnl_paper": 0.0,
+   "note": "v1 — gate news_event(geopolitics) + desk LLM cross-asset. Prima strategia engine:desk. Possibili mutazioni: soglia min_z del burst, finestra max_age_h, universo"
+  },
+  {
    "id": "lux-0.1-beta",
    "parent": "tsmom-liq-v1",
    "status": "challenger",
@@ -9183,7 +9272,7 @@ footer .foot-mark b{ color:var(--amber); }
   {
    "symbol": "XRP",
    "signals": {
-    "tsmom": -1,
+    "tsmom": 0,
     "liq_imbalance": 0,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
