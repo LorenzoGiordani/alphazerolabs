@@ -1,0 +1,70 @@
+# Timeline
+
+[[README|← Brain index]]
+
+_Eventi lifecycle + open/close, più recenti in alto._
+
+- `2026-06-18T22:33:44` 🔄 lifecycle **retire** [[funding-squeeze-breakout-g2-g1-g2]] — manuale: triplo-gate non spara mai (96 heartbeat, 0 trade) + Sharpe negativo della famiglia
+- `2026-06-18T17:37:07` 🟢 open [[tsmom-liq-v1]] SUI short
+- `2026-06-18T15:58:12` 🔴 close [[agents-v1]] ZEC — target $95.91
+- `2026-06-17T20:15:53` 🔴 close [[tsmom-liq-v1]] CRV — stopped $-60.24
+- `2026-06-17T19:43:14` 🔴 close [[agents-v1]] SUI — stopped $-52.07
+- `2026-06-17T09:21:32` 🟢 open [[agents-v1]] SOL long
+- `2026-06-17T09:16:01` 🔴 close [[tsmom-liq-v1]] WLD — stopped $-61.31
+- `2026-06-17T05:15:55` 🔴 close [[agents-v1]] SOL — time_stop $-1.66
+- `2026-06-17T04:19:09` 🟢 open [[agents-v1]] ZEC short
+- `2026-06-17T02:19:03` 🟢 open [[agents-v1]] SUI long
+- `2026-06-16T21:15:52` 🟢 open [[tsmom-liq-v1]] WLD long
+- `2026-06-16T20:16:09` 🔴 close [[tsmom-liq-v1]] WLD — target $174.63
+- `2026-06-16T17:16:13` 🟢 open [[tsmom-liq-v1]] CRV long
+- `2026-06-16T16:16:10` 🟢 open [[tsmom-liq-v1]] WLD long
+- `2026-06-16T15:16:13` 🔴 close [[agents-v1]] ZEC — stopped $-26.21
+- `2026-06-16T15:16:12` 🔴 close [[tsmom-liq-v1]] CRV — stopped $-61.00
+- `2026-06-16T15:16:09` 🔴 close [[tsmom-liq-v1]] WLD — stopped $-61.01
+- `2026-06-16T14:16:10` 🟢 open [[tsmom-liq-v1]] CRV long
+- `2026-06-16T14:16:08` 🟢 open [[tsmom-liq-v1]] WLD long
+- `2026-06-16T13:16:00` 🔴 close [[tsmom-liq-v1]] CRV — stopped $-61.78
+- `2026-06-16T13:15:59` 🔴 close [[tsmom-liq-v1]] ZEC — stopped $-62.17
+- `2026-06-16T08:16:03` 🟢 open [[tsmom-conservative-v1]] xyz_BRENTOIL short
+- `2026-06-16T08:16:02` 🔴 close [[tsmom-conservative-v1]] xyz_CL — target $178.46
+- `2026-06-16T06:18:31` 🟢 open [[agents-v1]] SOL long
+- `2026-06-16T05:16:01` 🔴 close [[agents-v1]] SOL — time_stop $-27.11
+- `2026-06-16T05:16:00` 🟢 open [[tsmom-liq-v1]] CRV long
+- `2026-06-16T05:15:58` 🔴 close [[tsmom-liq-v1]] WLD — stopped $-62.56
+- `2026-06-16T03:19:12` 🟢 open [[agents-v1]] ZEC long
+- `2026-06-15T23:16:00` 🟢 open [[tsmom-liq-v1]] ZEC long
+- `2026-06-15T23:15:58` 🔴 close [[tsmom-liq-v1]] NEAR — stopped $-62.96
+- `2026-06-15T21:16:01` 🟢 open [[tsmom-liq-v1]] WLD long
+- `2026-06-15T20:15:57` 🔴 close [[tsmom-liq-v1]] ZEC — stopped $-63.35
+- `2026-06-15T18:19:14` 🟢 open [[agents-v1]] SOL long
+- `2026-06-15T17:42:28` 🟢 open [[tsmom-liq-v1]] NEAR long
+- `2026-06-15T17:16:34` 🔴 close [[agents-v1]] SOL — target $185.38
+- `2026-06-15T17:16:31` 🔴 close [[tsmom-liq-v1]] WLD — stopped $-62.25
+- `2026-06-15T16:16:07` 🟢 open [[tsmom-liq-v1]] ZEC long
+- `2026-06-15T16:16:04` 🔴 close [[tsmom-liq-v1]] NEAR — target $180.45
+- `2026-06-15T14:15:41` 🟢 open [[tsmom-v1]] xyz_SILVER short
+- `2026-06-15T14:15:40` 🔴 close [[tsmom-v1]] xyz_GOLD — stopped $-101.62
+- `2026-06-15T12:41:11` 🔴 close [[agents-v1]] ZEC — target $148.62
+- `2026-06-15T12:41:09` 🔴 close [[agents-v1]] SUI — time_stop $55.66
+- `2026-06-15T05:28:33` 🟢 open [[tsmom-conservative-v1]] xyz_GOLD short
+- `2026-06-15T05:28:33` 🔴 close [[tsmom-conservative-v1]] xyz_GOLD — stopped $-61.57
+- `2026-06-15T05:01:52` 🟢 open [[tsmom-liq-v1]] WLD long
+- `2026-06-15T05:01:51` 🟢 open [[tsmom-liq-v1]] NEAR long
+- `2026-06-15T05:01:51` 🔴 close [[tsmom-liq-v1]] NEAR — target $178.38
+- `2026-06-15T05:01:50` 🔴 close [[tsmom-liq-v1]] XRP — stopped $-61.57
+- `2026-06-15T05:01:33` 🟢 open [[tsmom-v1]] xyz_BRENTOIL short
+- `2026-06-15T05:01:33` 🟢 open [[tsmom-v1]] xyz_CL short
+- `2026-06-15T05:01:31` 🔴 close [[tsmom-v1]] ETH — stopped $-101.63
+- `2026-06-15T05:01:30` 🔴 close [[tsmom-v1]] BTC — stopped $-101.64
+- `2026-06-14T21:29:52` 🟢 open [[tsmom-liq-v1]] NEAR long
+- `2026-06-14T17:45:37` 🟢 open [[tsmom-liq-v1]] XRP short
+- `2026-06-14T05:05:19` 🟢 open [[agents-v1]] ZEC long
+- `2026-06-13T14:24:23` 🟢 open [[agents-v1]] SOL long
+- `2026-06-13T09:43:22` 🟢 open [[tsmom-conservative-v1]] xyz_CL short
+- `2026-06-13T09:43:21` 🟢 open [[tsmom-conservative-v1]] xyz_GOLD short
+- `2026-06-13T09:20:06` 🟢 open [[agents-v1]] SUI long
+- `2026-06-12T07:59:20` 🟢 open [[tsmom-v1]] xyz_GOLD short
+- `2026-06-12T07:59:19` 🟢 open [[tsmom-v1]] ETH short
+- `2026-06-12T07:59:18` 🟢 open [[tsmom-v1]] BTC short
+- `2026-06-12T07:52:50` 🔴 close [[agents-v1]] ZEC — stopped $-50.92
+- `2026-06-11T21:50:47` 🟢 open [[agents-v1]] ZEC long

@@ -30,11 +30,14 @@ if command -v claude >/dev/null 2>&1; then
     "$UV" run scripts/agents_paper.py || true    # esegui subito l'eventuale decisione
 fi
 
+stage "brain"
+"$UV" run scripts/brain_gen.py || true        # rigenera wiki markdown dai dati paper/
+
 stage "dashboard"
 "$UV" run scripts/dashboard.py
 
-# auto-pubblica journal e dashboard su GitHub (repo privata)
-git add paper/ dashboard/index.html 2>/dev/null
+# auto-pubblica journal, brain e dashboard su GitHub (repo privata)
+git add paper/ brain/ dashboard/index.html 2>/dev/null
 if ! git diff --cached --quiet; then
     git commit -q -m "chore: paper run $(date -u '+%Y-%m-%d %H:%M') UTC [auto]"
     git push -q origin main || true
