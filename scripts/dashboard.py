@@ -22,6 +22,9 @@ ACCOUNT_META = {
     "tsmom-v1": {"label": "TSMOM challenger", "tag": "sistematico multi-asset"},
     "funding-squeeze-breakout-g2-g1-g2": {"label": "Funding-squeeze", "tag": "segnali crypto"},
     "tsmom-conservative-v1": {"label": "TSMOM conservativo", "tag": "difensivo multi-asset"},
+    "tsmom-liq-v1": {"label": "TSMOM + liquidazioni", "tag": "trend filtrato da liq"},
+    "lux-0.1-beta": {"label": "LUX 0.1 beta", "tag": "tripla confluenza"},
+    "geopolitics-v1": {"label": "Desk geopolitico", "tag": "news globali cross-asset"},
 }
 
 # Spiegazioni in linguaggio semplice — sezione "Le strategie" + "perché"
@@ -68,6 +71,17 @@ STRATEGY_INFO = {
         "esce": "stop obbligatorio su ogni posizione, target o tesi smentita dai fatti",
         "rischio": "limiti fissati nel codice, non negoziabili dall'AI: leva max 2x, max 1% a rischio per operazione",
     },
+    "geopolitics-v1": {
+        "nome": "Il desk geopolitico",
+        "cosa": "Un desk AI cross-asset che si attiva SOLO quando esplode una notizia "
+                "geopolitica rilevante (guerra, sanzioni, conflitti). Allora ragiona sul "
+                "canale di trasmissione — una crisi muove prima petrolio e oro, poi il "
+                "risk-off colpisce le crypto — e sceglie asset e direzione dal nesso causale, "
+                "non dal sentiment delle notizie (che si è dimostrato non predittivo).",
+        "entra": "solo durante un evento geopolitico anomalo in corso, se il desk individua un canale chiaro",
+        "esce": "stop obbligatorio, target o tesi smentita dall'evoluzione dell'evento",
+        "rischio": "limiti nel codice: leva max 2x, max 1% a rischio per operazione, al più 2 posizioni",
+    },
 }
 
 # "Perché" leggibile per le aperture sistematiche (dal nome del segnale scattato)
@@ -81,6 +95,10 @@ SIGNAL_IT = {
     "volume_surge": "volumi anomali",
     "news_event": "evento di notizie anomalo in corso",
     "cot_percentile": "posizionamento estremo dei fondi (report COT)",
+    "liq_imbalance": "liquidazioni sbilanciate (cascata possibile)",
+    "kronos_forecast": "previsione del modello Kronos concorde",
+    "smart_money_ratio": "posizionamento del denaro 'informato'",
+    "oi_trend": "open interest conferma la direzione del prezzo",
 }
 
 
@@ -127,10 +145,13 @@ def build_strategies(state: dict) -> list[dict]:
     curata se disponibile (STRATEGY_INFO) altrimenti derivata dalla tesi nello YAML.
     Auto-include i nuovi ceppi e quelli che il loop evolutivo promuoverà."""
     sys.path.insert(0, str(ROOT))
-    from backtest.lifecycle import active_specs, paper_stats, paper_symbols
+    from backtest.lifecycle import active_specs, all_specs, paper_stats, paper_symbols
     out = []
     seen = set()
-    for path, spec in active_specs():
+    # attive (meccaniche) + desk LLM (engine:desk, escluse da active_specs) attive in paper
+    specs = list(active_specs()) + [(p, s) for p, s in all_specs()
+                                    if s.get("engine") == "desk" and s["id"] in state]
+    for path, spec in specs:
         sid = spec["id"]
         seen.add(sid)
         syms = paper_symbols(spec)
@@ -223,8 +244,15 @@ def build_data() -> dict:
     decisions = jsonl(ROOT / "paper/decisions.jsonl")
     lessons = jsonl(ROOT / "paper/lessons.jsonl")
 
+    sys.path.insert(0, str(ROOT))
+    from backtest.lifecycle import all_specs
+    retired_ids = {s["id"] for _, s in all_specs() if s.get("status") == "retired"}
+
     accounts = []
     for sid, st in state.items():
+        # strategie ritirate senza posizioni aperte: non sono conti vivi, non gonfiano i KPI
+        if sid in retired_ids and not st.get("positions"):
+            continue
         meta = ACCOUNT_META.get(sid, {"label": sid, "tag": ""})
         closes = [e for e in journal if e.get("type") == "close" and e.get("strategy") == sid]
         curve = [[ts_short(e["logged_at"]), round(e["equity"], 2)] for e in journal
@@ -254,10 +282,11 @@ def build_data() -> dict:
             continue
         risk = d.get("risk", {})
         sym = clean_symbol(p.get("symbol", ""))
-        # esito: primo close di agents-v1 sullo stesso simbolo dopo la decisione
+        acct = d.get("strategy", "agents-v1")   # desk reale: agents-v1 (untagged) o geopolitics-v1 ecc.
+        # esito: primo close dello STESSO desk sullo stesso simbolo dopo la decisione
         outcome = {"closed": False}
         for e in journal:
-            if (e.get("type") == "close" and e.get("strategy") == "agents-v1"
+            if (e.get("type") == "close" and e.get("strategy") == acct
                     and clean_symbol(e.get("symbol", "")) == sym
                     and e.get("logged_at", "") > d.get("logged_at", "")):
                 outcome = {"closed": True, "reason": e.get("reason"),
@@ -265,7 +294,8 @@ def build_data() -> dict:
                 break
         rec = {
             "ts": ts_short(d.get("logged_at", "")), "symbol": sym,
-            "direction": p.get("direction"), "account": "agents-v1",
+            "direction": p.get("direction"), "account": acct,
+            "account_label": ACCOUNT_META.get(acct, {}).get("label", acct),
             "risk_verdict": risk.get("verdict", "approve"),
             "risk_notes": (risk.get("notes", "") or "")[:400],
             "thesis": p.get("thesis", ""), "invalidation": p.get("invalidation", ""),
