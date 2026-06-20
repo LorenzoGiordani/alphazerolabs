@@ -635,7 +635,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-20 06:18",
+ "updated_utc": "2026-06-20 07:18",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -2013,6 +2013,14 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 06:18",
      10322.3
+    ],
+    [
+     "2026-06-20 07:15",
+     10322.3
+    ],
+    [
+     "2026-06-20 07:18",
+     10322.3
     ]
    ],
    "positions": [
@@ -2592,6 +2600,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 05:00",
        71.779
+      ],
+      [
+       "2026-06-20 06:00",
+       72.095
       ]
      ]
     },
@@ -2951,6 +2963,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 05:00",
        470.06
+      ],
+      [
+       "2026-06-20 06:00",
+       471.04
       ]
      ]
     }
@@ -3463,6 +3479,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-20 06:15",
+     9688.43
+    ],
+    [
+     "2026-06-20 07:15",
      9688.43
     ]
    ],
@@ -5310,6 +5330,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 06:15",
      10112.56
+    ],
+    [
+     "2026-06-20 07:15",
+     10112.56
     ]
    ],
    "positions": [
@@ -6581,6 +6605,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 06:15",
      9835.97
+    ],
+    [
+     "2026-06-20 07:15",
+     9835.97
     ]
    ],
    "positions": [
@@ -7032,6 +7060,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 05:00",
        0.71908
+      ],
+      [
+       "2026-06-20 06:00",
+       0.71889
       ]
      ]
     },
@@ -7463,6 +7495,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 05:00",
        63653.0
+      ],
+      [
+       "2026-06-20 06:00",
+       63722.0
       ]
      ]
     }
@@ -7612,6 +7648,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 06:15",
      10000.0
+    ],
+    [
+     "2026-06-20 07:15",
+     10000.0
     ]
    ],
    "positions": []
@@ -7642,6 +7682,20 @@ footer .foot-mark b{ color:var(--amber); }
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-20 07:18",
+   "symbol": "ZEC",
+   "direction": "long",
+   "account": "agents-v1",
+   "risk_verdict": "reduce",
+   "risk_notes": "Edge reale ma quattro vettori di rischio residui non adeguatamente scontati: (1) COMPRESSION POST-RALLY ESTESO — +13.8% in 7 giorni trasforma la vol_compression da pattern di accumulo a candidato distribuzione; la lesson valida il pattern in regime bull ma non specifica se il rally precede o segue la compression — qui la compression arriva DOPO il movimento, non prima, ribaltando l'asimmetria atte",
+   "thesis": "ZEC è l'unico asset in regime bull confermato nel basket contro un contesto di chop generalizzato: questa divergenza strutturale di regime è edge reale, non narrativo. vol_compression=1 in regime bull è il pattern validato dalle lessons del desk — la compression non è esaurimento ma accumulo pre-break con asimmetria direzionale confermata. Funding 0.6% APR esclude crowding da leva, e il ceasefire riduce il risk-off overlay. Lux Confluence è aligned=false su tutto il basket: giustificazione esplicita per andargli contro — il regime divergente di ZEC + compression pattern sono edge sufficiente, ma la mancanza di confluenza istituzionale impone size ridotta (0.5x) e stop stretto per limitare l'esposizione all'incertezza.",
+   "invalidation": "Risoluzione della compression al ribasso con close sotto il range settimanale; funding che accelera sopra 1% APR (crowding post-candle allungata, lesson ZEC attivata); correlazione improvvisa con basket se BTC rompe il range verso il basso; nessun break della compression entro il time stop di 36h.",
+   "outcome": {
+    "closed": false
+   },
+   "size_multiplier": 0.55
+  },
   {
    "ts": "2026-06-20 05:18",
    "symbol": "ZEC",
@@ -9820,7 +9874,7 @@ footer .foot-mark b{ color:var(--amber); }
    "symbol": "SUI",
    "signals": {
     "tsmom": -1,
-    "liq_imbalance": 0,
+    "liq_imbalance": 1,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
     "oi_trend": 0
@@ -9835,7 +9889,7 @@ footer .foot-mark b{ color:var(--amber); }
     "liq_imbalance": 1,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
-    "oi_trend": -1
+    "oi_trend": 0
    },
    "aligned": false,
    "direction": "—"
