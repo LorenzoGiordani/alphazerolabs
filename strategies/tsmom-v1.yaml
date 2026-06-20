@@ -32,7 +32,7 @@ exit:
 risk:
   max_leverage: 2
   risk_per_trade_pct: 1.0
-  max_concurrent_positions: 3
+  max_concurrent_positions: 10
 evolution:
   mutable:
   - signals
