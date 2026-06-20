@@ -4,6 +4,8 @@ data/*
 !data/hl_oi/
 # forward-collection liquidazioni 1h Coinalyze: accumula oltre la retention, NON rigenerabile
 !data/coinalyze_1h/
+# cache forecast Kronos: versionata per il cloud (rigenerata dal workflow kronos-precompute)
+!data/kronos/
 .venv/
 __pycache__/
 .env
@@ -13,9 +15,6 @@ logs/
 
 # Kronos repo vendored (modello, non versionare)
 .kronos/
-
-# cache forecast Kronos (regenerabile via precompute_kronos.py)
-data/kronos/
 
 # cache regime HMM (regenerabile via precompute_hmm.py)
 data/hmm/

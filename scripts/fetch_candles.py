@@ -90,25 +90,40 @@ def from_yfinance(symbol: str, start: datetime) -> pd.DataFrame | None:
 
 
 def main() -> None:
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--symbols", help="lista crypto esplicita (es. BTC,ETH,SOL); "
+                                       "bypassa data/universe.csv — solo Binance→HL, niente xyz")
+    args = ap.parse_args()
+
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     start = datetime.now(timezone.utc) - timedelta(days=30 * MONTHS)
-    uni = pd.read_csv("data/universe.csv")
-
-    core = uni[(uni.dex == "core") & (uni.kind == "perp")].head(N_CORE)
-    xyz = uni[uni.dex == "xyz"].head(N_XYZ)
 
     report = []
-    for sym in core.symbol:
-        df = from_binance(sym, start)
-        src = "binance"
-        if df is None:
-            df, src = from_hyperliquid(sym, start), "hyperliquid"
-        report.append((sym, src, df))
+    if args.symbols:
+        # override esplicito (es. CI Kronos): fetcha solo il basket dato, via Binance→HL
+        for sym in (s.strip() for s in args.symbols.split(",") if s.strip()):
+            df = from_binance(sym, start)
+            src = "binance"
+            if df is None:
+                df, src = from_hyperliquid(sym, start), "hyperliquid"
+            report.append((sym, src, df))
+    else:
+        uni = pd.read_csv("data/universe.csv")
+        core = uni[(uni.dex == "core") & (uni.kind == "perp")].head(N_CORE)
+        xyz = uni[uni.dex == "xyz"].head(N_XYZ)
 
-    for full in xyz.symbol:
-        sym = full.split(":")[1]
-        df = from_yfinance(sym, start)
-        report.append((full, "yfinance", df))
+        for sym in core.symbol:
+            df = from_binance(sym, start)
+            src = "binance"
+            if df is None:
+                df, src = from_hyperliquid(sym, start), "hyperliquid"
+            report.append((sym, src, df))
+
+        for full in xyz.symbol:
+            sym = full.split(":")[1]
+            df = from_yfinance(sym, start)
+            report.append((full, "yfinance", df))
 
     print(f"{'symbol':<14} {'fonte':<12} {'candele':>8}  range")
     for sym, src, df in report:

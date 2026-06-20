@@ -1,0 +1,56 @@
+name: kronos-precompute
+
+# Rigenera la cache forecast Kronos (data/kronos/*.parquet) usata dal segnale
+# kronos_forecast — terza gamba della confluenza di lux-0.1-beta. Senza cache fresca
+# il segnale e neutro e l'entry `tsmom AND liq_imbalance AND kronos_forecast` non
+# scatta mai. E pesante (foundation model + torch su CPU): gira 1x/giorno, NON
+# nell'hourly paper-run. Trigger via Cloudflare Worker (lux-paper-cron, cron giornaliero).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: kronos-precompute
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  # basket Lux (lux-0.1-beta.paper_symbols) — solo crypto, fetch via Binance senza key
+  LUX_SYMBOLS: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+
+jobs:
+  precompute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      # repo del modello Kronos (gitignorato qui) — clonato per l'import del predictor
+      - name: clona Kronos
+        run: git clone --depth 1 https://github.com/shiyu-coder/Kronos .kronos
+
+      # candele 1h fresche per il contesto del forecast (data/candles/ non e versionata)
+      - name: candele basket Lux
+        run: uv run scripts/fetch_candles.py --symbols "$LUX_SYMBOLS"
+
+      # forecast: torch e le deps Kronos iniettate solo qui (non in pyproject, troppo pesanti per l'hourly)
+      - name: precompute forecast (mini, CPU)
+        run: >
+          uv run --with torch --with einops --with safetensors
+          --with huggingface_hub --with tqdm
+          scripts/precompute_kronos.py --symbols "$LUX_SYMBOLS" --model mini
+
+      - name: publish cache
+        run: |
+          git config user.name "lux-ai-cron"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/kronos/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: kronos precompute $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+            for i in 1 2 3; do
+              git pull --rebase -X theirs origin main && git push origin main && break
+              sleep 5
+            done
+          fi
