@@ -635,7 +635,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-20 01:18",
+ "updated_utc": "2026-06-20 02:17",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -1973,6 +1973,14 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 01:18",
      10322.3
+    ],
+    [
+     "2026-06-20 02:15",
+     10322.3
+    ],
+    [
+     "2026-06-20 02:17",
+     10322.3
     ]
    ],
    "positions": [
@@ -2532,6 +2540,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 00:00",
        69.615
+      ],
+      [
+       "2026-06-20 01:00",
+       69.777
       ]
      ]
     },
@@ -2871,6 +2883,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 00:00",
        472.7
+      ],
+      [
+       "2026-06-20 01:00",
+       471.21
       ]
      ]
     }
@@ -3363,6 +3379,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-20 01:15",
+     9688.43
+    ],
+    [
+     "2026-06-20 02:15",
      9688.43
     ]
    ],
@@ -5190,6 +5210,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 01:15",
      10112.56
+    ],
+    [
+     "2026-06-20 02:15",
+     10112.56
     ]
    ],
    "positions": [
@@ -6441,6 +6465,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 01:15",
      9835.97
+    ],
+    [
+     "2026-06-20 02:15",
+     9835.97
     ]
    ],
    "positions": [
@@ -6872,6 +6900,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 00:00",
        0.71234
+      ],
+      [
+       "2026-06-20 01:00",
+       0.71274
       ]
      ]
     },
@@ -7283,6 +7315,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 00:00",
        63511.0
+      ],
+      [
+       "2026-06-20 01:00",
+       63550.0
       ]
      ]
     }
@@ -7412,6 +7448,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 01:15",
      10000.0
+    ],
+    [
+     "2026-06-20 02:15",
+     10000.0
     ]
    ],
    "positions": []
@@ -7442,6 +7482,19 @@ footer .foot-mark b{ color:var(--amber); }
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-20 02:17",
+   "symbol": "SUIUSDT",
+   "direction": "short",
+   "account": "agents-v1",
+   "risk_verdict": "approve",
+   "risk_notes": "",
+   "thesis": "SUI replica il pattern della lesson ZEC-short validata: tsmom=−1 + funding positivo (1.37% APR) su downtrend strutturale (−5.81% 7d) = longs intrappolati senza catalyst di recupero, pressione di distribuzione non ancora scaricata. Il macro Fed Warsh hawkish penalizza gli altcoin a bassa liquidità, riducendo la probabilità di beta-recovery trascinata da BTC. Vado contro l'assenza di lux_confluence perché l'edge qui è la lesson esplicitamente validata sul pattern tsmom/funding/trend, non il segnale di sistema — size al 50% del minimo proprio per questo motivo. La rottura di $0.69 è il trigger atteso: se non avviene entro 48h, il trade non funziona e usciamo in time-stop.",
+   "invalidation": "Chiusura daily sopra $0.78 (stop meccanico); inversione del funding in territorio negativo che segnalerebbe short crowding e potenziale squeeze; BTC breakout sostenuto sopra $65k che innesca beta-recovery generalizzata sul basket.",
+   "outcome": {
+    "closed": false
+   }
+  },
   {
    "ts": "2026-06-19 19:18",
    "symbol": "ZEC/USDT",
@@ -9615,7 +9668,7 @@ footer .foot-mark b{ color:var(--amber); }
    "symbol": "ZEC",
    "signals": {
     "tsmom": 0,
-    "liq_imbalance": 1,
+    "liq_imbalance": 0,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
     "oi_trend": 0
