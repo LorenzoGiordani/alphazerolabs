@@ -635,7 +635,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-20 14:21",
+ "updated_utc": "2026-06-20 14:34",
  "accounts": [
   {
    "id": "agents-v1",
@@ -1687,11 +1687,11 @@ footer .foot-mark b{ color:var(--amber); }
      10322.3
     ],
     [
-     "2026-06-20 14:18",
+     "2026-06-20 14:29",
      10322.3
     ],
     [
-     "2026-06-20 14:21",
+     "2026-06-20 14:34",
      10322.3
     ]
    ],
@@ -3246,7 +3246,7 @@ footer .foot-mark b{ color:var(--amber); }
      9688.43
     ],
     [
-     "2026-06-20 14:16",
+     "2026-06-20 14:28",
      9688.43
     ]
    ],
@@ -5132,7 +5132,7 @@ footer .foot-mark b{ color:var(--amber); }
      10112.56
     ],
     [
-     "2026-06-20 14:17",
+     "2026-06-20 14:29",
      10112.56
     ]
    ],
@@ -6443,7 +6443,7 @@ footer .foot-mark b{ color:var(--amber); }
      9835.97
     ],
     [
-     "2026-06-20 14:18",
+     "2026-06-20 14:29",
      9835.97
     ]
    ],
@@ -7578,7 +7578,7 @@ footer .foot-mark b{ color:var(--amber); }
      9992.8
     ],
     [
-     "2026-06-20 14:16",
+     "2026-06-20 14:28",
      9787.64
     ]
    ],
@@ -7930,6 +7930,21 @@ footer .foot-mark b{ color:var(--amber); }
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-20 14:34",
+   "symbol": "SUI/USDT",
+   "direction": "short",
+   "account": "agents-v1",
+   "account_label": "Agenti LLM",
+   "risk_verdict": "reduce",
+   "risk_notes": "Tre difetti strutturali che la narrativa non risolve. (1) ANALOGIA DEBOLE — n=1: il 'playbook ZEC-short' è un trade singolo, non un pattern validato. ZEC short operava in regime bull+vol_compression su asset con rally già esteso; SUI è in chop. Regimi diversi rendono il trasferimento del segnale non dimostrato. Richiamare una lesson di successo come 'validazione' è confirmation bias, non analisi. ",
+   "thesis": "SUI replica il playbook validato dal trade ZEC-short del 2026-06-18 (+$95.91): funding positivo (+1.37% APR) persistente nonostante -7.6% 7d è la firma dei longs intrappolati che non capitolano, concentrando pressione sell sul prossimo leg — quella lesson ha specificato che questo setup è più affidabile del fade di momentum puro perché incorpora informazione di positioning. La tesi ZEC-long è rifiutata esplicitamente: la lesson del 2026-06-16 avverte che 'se la tesi contiene il rischio X è reale ma lo gestisco con Y, X è probabilmente la causa principale del fallimento' — il bull ZEC ammette estensione e crowding, quindi l'edge atteso è negativo. Assenza di lux_confluence.aligned è motivata dalla sovrapposizione di tre segnali indipendenti allineati (tsmom=-1, vol_compression=1, vote_score=-1) più il tailwind macro Hormuz risk-off nelle prossime 2-4h; il risk_pct è ridotto a 0.75% e lo stop calibrato a 1×ATR-daily stimato (~3.5%) per sopravvivere al noise intraday come imposto dalle lessons ripetute su stop-sizing. Lo stop a 3.5% sopra l'entry esclude rumore ordinario senza lasciare spazio a rimbalzi strutturali, mantenendo il profilo 2.5R asimmetrico compatibile con 36h di holding (timeline validata da ZEC short).",
+   "invalidation": "Funding SUI scende sotto 0% APR (capitolazione longs → pressione esaurita); rimbalzo price >3.5% dal entry con volume >1.5x media 4h (momentum genuino, non bounce); BTC rompe laterale con direzionalità rialzista sostenuta (regime shift che invalida il beta negativo di SUI).",
+   "outcome": {
+    "closed": false
+   },
+   "size_multiplier": 0.5
+  },
   {
    "ts": "2026-06-20 12:18",
    "symbol": "ZEC",
@@ -9468,16 +9483,18 @@ footer .foot-mark b{ color:var(--amber); }
  ],
  "lessons": [
   {
-   "ts": "2026-06-20 14:18",
+   "ts": "2026-06-20 14:30",
    "scope": "NEAR",
    "verdict": "execution_issue",
-   "lesson": "Quando un segnale predittivo (forecast model) è in direzione opposta ai segnali reattivi (momentum + liquidity imbalance), il forecast deve funzionare da veto hard, non da voto pesato 1/N: il sistema ha aperto long con kronos_forecast=-1, riducendo la probabilità attesa a priori. Regola generale: se il forecast model disagrees, skip entry o alzare il threshold minimo del net-vote a +2.",
+   "lesson": "In un sistema multi-segnale che mescola segnali reattivi (tsmom, liq_imbalance) e segnali predittivi (kronos_forecast), la piena confluenza deve essere unanime sui predittivi: kronos_forecast=-1 su un long indica che il modello forward-looking aveva già scontato un calo, mentre tsmom e liq_imbalance riflettono solo il passato recente. Aprire con 2/3 positivi quando il forecast è contrario degrada il setup da 'signal_vote' a 'majority vote' — categoria con edge storicamente inferiore. Regola generale: i segnali predittivi funzionano da veto, non da voto paritario; se forecast != direction, il trade non si apre indipendentemente dalla confluenza dei reattivi.",
    "tags": [
     "signal_conflict",
     "forecast_veto",
-    "entry_filter",
-    "weak_conviction",
-    "lux-0.1-beta"
+    "prediction_vs_reaction",
+    "kronos",
+    "execution",
+    "near",
+    "signal_vote_logic"
    ]
   },
   {
