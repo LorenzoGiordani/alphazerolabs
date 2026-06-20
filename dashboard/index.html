@@ -635,7 +635,7 @@ footer .foot-mark b{ color:var(--amber); }
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-20 03:16",
+ "updated_utc": "2026-06-20 04:18",
  "accounts": [
   {
    "id": "funding-squeeze-breakout-g2-g1-g2",
@@ -1989,6 +1989,14 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 03:15",
      10322.3
+    ],
+    [
+     "2026-06-20 04:15",
+     10322.3
+    ],
+    [
+     "2026-06-20 04:18",
+     10322.3
     ]
    ],
    "positions": [
@@ -2556,6 +2564,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 02:00",
        69.621
+      ],
+      [
+       "2026-06-20 03:00",
+       69.984
       ]
      ]
     },
@@ -2903,6 +2915,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 02:00",
        468.38
+      ],
+      [
+       "2026-06-20 03:00",
+       466.83
       ]
      ]
     }
@@ -3403,6 +3419,10 @@ footer .foot-mark b{ color:var(--amber); }
     ],
     [
      "2026-06-20 03:15",
+     9688.43
+    ],
+    [
+     "2026-06-20 04:15",
      9688.43
     ]
    ],
@@ -5238,6 +5258,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 03:15",
      10112.56
+    ],
+    [
+     "2026-06-20 04:15",
+     10112.56
     ]
    ],
    "positions": [
@@ -6497,6 +6521,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 03:15",
      9835.97
+    ],
+    [
+     "2026-06-20 04:15",
+     9835.97
     ]
    ],
    "positions": [
@@ -6936,6 +6964,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 02:00",
        0.70784
+      ],
+      [
+       "2026-06-20 03:00",
+       0.70997
       ]
      ]
     },
@@ -7355,6 +7387,10 @@ footer .foot-mark b{ color:var(--amber); }
       [
        "2026-06-20 02:00",
        63312.0
+      ],
+      [
+       "2026-06-20 03:00",
+       63444.0
       ]
      ]
     }
@@ -7492,6 +7528,10 @@ footer .foot-mark b{ color:var(--amber); }
     [
      "2026-06-20 03:15",
      10000.0
+    ],
+    [
+     "2026-06-20 04:15",
+     10000.0
     ]
    ],
    "positions": []
@@ -7522,6 +7562,20 @@ footer .foot-mark b{ color:var(--amber); }
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-20 04:18",
+   "symbol": "ZEC/USDT",
+   "direction": "long",
+   "account": "agents-v1",
+   "risk_verdict": "reduce",
+   "risk_notes": "Tre frizioni materiali che non compaiono nella tesi. (1) TAKER FLOW CONTRADICTS NARRATIVE: taker buy ratio a 0.50 piatto su tutti gli asset, ZEC incluso. Se vol_compression=1 fosse genuinamente pre-accumulativa su bull regime, ci si aspetterebbe un gradiente positivo nei flussi perpetuals — invece zero. Il +4.3% 24h potrebbe essere short squeeze localizzato o liquidità sottile amplificata, non bre",
+   "thesis": "ZEC è l'unico asset del basket in bull regime con vol_compression=1 attiva: combinazione che le lessons identificano esplicitamente come precursore di espansione direzionale pre-breakout, non come trailing signal post-esteso — distinzione critica rispetto ai fallimenti storici dove la compressione era già avvenuta dentro candle estese. Assenza di lux_confluence giustifica size dimezzata (0.75% risk, 1.5× leva, no certif. primaria) e time-stop corto a 48h: il setup è lesson-validated ma non top-conviction, e la leva bassa mitiga il rischio di slippage su liquidità sottile. Il funding a 1.37% APR è elevato ma ancora pre-crowding; lavora contro la posizione ma non invalida il setup finché rimane sotto 2% APR. La tesi cade se il prezzo non supera il tetto del range di compressione entro 48h oppure se il funding accelera sopra 2% APR prima del breakout.",
+   "invalidation": "Prezzo non rompe il tetto del range di compressione corrente entro 48h; funding APR supera 2% (crowding strutturale che trasforma la compressione in squeeze piuttosto che accumulo); BTC entra in leg ribassista confermato (close giornaliera <$61k) che annulla la direzionalità indipendente di ZEC.",
+   "outcome": {
+    "closed": false
+   },
+   "size_multiplier": 0.65
+  },
   {
    "ts": "2026-06-20 02:17",
    "symbol": "SUIUSDT",
@@ -9648,7 +9702,7 @@ footer .foot-mark b{ color:var(--amber); }
    "symbol": "SOL",
    "signals": {
     "tsmom": 0,
-    "liq_imbalance": 0,
+    "liq_imbalance": 1,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
     "oi_trend": 0
