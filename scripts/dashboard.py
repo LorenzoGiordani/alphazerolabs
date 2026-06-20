@@ -122,10 +122,14 @@ def asset_class(symbols: str) -> str:
     syms = [s.strip() for s in symbols.split(",") if s.strip()]
     if not syms:
         return "multi-asset"
-    xyz = sum(1 for s in syms if s.startswith("xyz_"))
+    # xyz = stock/commodity HIP-3 (vecchio "xyz_" o dex-qualificato "xyz:")
+    xyz = sum(1 for s in syms if s.startswith(("xyz_", "xyz:")))
+    n = len(syms)
+    if n > 20:  # universe wide (selection top_liquidity): conta, non elencare i symbol
+        return f"tutti i perp ({n})" + ("" if xyz == 0 else ", crypto+stock/commodity")
     if xyz == 0:
         return "crypto"
-    if xyz == len(syms):
+    if xyz == n:
         return "commodities/indici"
     return "multi-asset"
 
