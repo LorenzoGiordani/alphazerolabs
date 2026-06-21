@@ -1088,3 +1088,13 @@
 {"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 9588.63, "open_positions": 4, "logged_at": "2026-06-21T18:16:55.119325+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T18:16:56.021055+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T18:19:22.017356+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-v1", "equity": 9581.3, "open_positions": 10, "logged_at": "2026-06-21T19:16:44.689261+00:00"}
+{"type": "heartbeat", "strategy": "lux-0.1-beta", "equity": 9730.81, "open_positions": 3, "logged_at": "2026-06-21T19:16:45.710031+00:00"}
+{"type": "close", "strategy": "tsmom-atr-v1", "symbol": "xyz:BRENTOIL", "reason": "stopped", "exit_px": 83.17778238717428, "frac": 1.0, "remaining": 0.0, "pnl_usd": -103.55, "equity": 9863.06, "ts": "2026-06-21 19:00:00+00:00", "logged_at": "2026-06-21T19:16:46.198504+00:00"}
+{"type": "open", "sign": 1, "entry_px": 2.1849369, "stop_px": 2.069435232857143, "target_px": 2.4159402342857144, "remaining": 1.0, "partial_done": false, "hi_water": 2.1849369, "tp1_px": null, "tp1_frac": 0.0, "trail_dist": null, "strategy": "tsmom-atr-v1", "symbol": "NEAR", "direction": "long", "size_usd": 1865.79, "opened_at": "2026-06-21 18:00:00+00:00", "checked_until": "2026-06-21 18:00:00+00:00", "stop_pct_eff": 5.286, "atr_pct": 0.0176, "thesis": "tsmom \u2192 follow:tsmom", "signals_last": {"tsmom": 1}, "logged_at": "2026-06-21T19:16:46.206571+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-atr-v1", "equity": 9862.22, "open_positions": 10, "logged_at": "2026-06-21T19:16:49.743389+00:00"}
+{"type": "close", "strategy": "tsmom-conservative-v1", "symbol": "xyz:BRENTOIL", "reason": "stopped", "exit_px": 82.869196685232, "frac": 1.0, "remaining": -1.0, "pnl_usd": -62.23, "equity": 9966.59, "ts": "2026-06-21 18:00:00+00:00", "logged_at": "2026-06-21T19:16:50.441783+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-conservative-v1", "equity": 9966.59, "open_positions": 9, "logged_at": "2026-06-21T19:16:50.446449+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 9588.63, "open_positions": 4, "logged_at": "2026-06-21T19:16:51.508928+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T19:16:52.288474+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T19:20:01.417598+00:00"}
