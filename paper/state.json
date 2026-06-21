@@ -4,12 +4,28 @@
   "positions": {}
  },
  "agents-v1": {
-  "equity": 10355.443677348503,
-  "positions": {},
+  "equity": 10345.96541513495,
+  "positions": {
+   "SOL": {
+    "strategy": "agents-v1",
+    "symbol": "SOL",
+    "direction": "long",
+    "entry_px": 72.3214614,
+    "size_usd": 1101.36,
+    "stop_px": 67.258959102,
+    "target_px": 87.508968294,
+    "opened_at": "2026-06-17 08:00:00+00:00",
+    "checked_until": "2026-06-21 07:00:00+00:00",
+    "time_stop_h": 96,
+    "thesis": "SOL guida il basket a +13.8% 7d in regime bull confermato; il pullback 24h (-4.1%) \u00e8 consolidazione nel trend settimanale intatto, non inversione strutturale. Il funding a +1.14% APR \u00e8 neutro: nessuna euforia, posizionamento non affollato \u2014 condizione che rimuove il headwind derivativo e lascia il momentum spot come driver dominante. La rotazione altcoin gi\u00e0 in atto (Uniswap +22%) valida il beta-play su L1; post-FOMC neutro-dovish il capitale migra esattamente su asset con momentum pulito e leva bassa. ZEC short \u00e8 gi\u00e0 aperto in portafoglio (parziale hedge FOMC); time_stop 96h corregge il mismatch di lesson 31 (tesi 7d \u2192 finestra minima 72-96h), risk_pct 1% applica il gate di rischio pre-annuncio da lesson 5.",
+    "invalidation": "Break orario confermato sotto $68 (struttura 7d invalida, -5.9% dall'entry); FOMC hawkish con BTC che cede $62k innescando risk-off indiscriminato sul basket; funding SOL che sale sopra +3% APR nelle prime 48h (euforia/crowding); SOL che sotto-performa il basket su base relativa per 2+ sessioni consecutive post-entry.",
+    "decision_ts": "2026-06-17T09:21:30.089572+00:00"
+   }
+  },
   "last_decision_ts": "2026-06-21T00:06:12.295485+00:00"
  },
  "tsmom-v1": {
-  "equity": 9581.297574940003,
+  "equity": 9582.375590440002,
   "positions": {
    "xyz_CL": {
     "strategy": "tsmom-v1",
@@ -108,17 +124,6 @@
     "stop_px": 1815.6270528,
     "target_px": 2118.2315616,
     "opened_at": "2026-06-20 14:00:00+00:00",
-    "checked_until": "2026-06-21 07:00:00+00:00"
-   },
-   "WLD": {
-    "strategy": "tsmom-v1",
-    "symbol": "WLD",
-    "direction": "long",
-    "entry_px": 0.603100596,
-    "size_usd": 2395.59,
-    "stop_px": 0.57897657216,
-    "target_px": 0.67547266752,
-    "opened_at": "2026-06-21 07:00:00+00:00",
     "checked_until": "2026-06-21 07:00:00+00:00"
    }
   }
@@ -223,17 +228,6 @@
     "stop_px": 0.5873404446,
     "target_px": 0.6475804902,
     "opened_at": "2026-06-21 02:00:00+00:00",
-    "checked_until": "2026-06-21 07:00:00+00:00"
-   },
-   "HYPE": {
-    "strategy": "tsmom-conservative-v1",
-    "symbol": "HYPE",
-    "direction": "long",
-    "entry_px": 68.5026978,
-    "size_usd": 2394.8,
-    "stop_px": 66.790130355,
-    "target_px": 73.64040013500001,
-    "opened_at": "2026-06-21 07:00:00+00:00",
     "checked_until": "2026-06-21 07:00:00+00:00"
    }
   }
