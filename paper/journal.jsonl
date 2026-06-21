@@ -942,3 +942,9 @@
 {"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 9773.32, "open_positions": 3, "logged_at": "2026-06-21T00:03:37.985617+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10322.3, "open_positions": 2, "logged_at": "2026-06-21T00:03:40.380689+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10322.3, "open_positions": 2, "logged_at": "2026-06-21T00:06:15.292595+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-v1", "equity": 9680.8, "open_positions": 10, "logged_at": "2026-06-21T00:18:22.280009+00:00"}
+{"type": "heartbeat", "strategy": "lux-0.1-beta", "equity": 9583.31, "open_positions": 1, "logged_at": "2026-06-21T00:18:22.915956+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-conservative-v1", "equity": 10103.83, "open_positions": 10, "logged_at": "2026-06-21T00:18:49.369993+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 9773.32, "open_positions": 3, "logged_at": "2026-06-21T00:18:52.161426+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10322.3, "open_positions": 2, "logged_at": "2026-06-21T00:18:54.309884+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10322.3, "open_positions": 2, "logged_at": "2026-06-21T00:19:01.387296+00:00"}
