@@ -972,3 +972,4 @@
 {"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 9771.21, "open_positions": 5, "logged_at": "2026-06-21T04:17:43.312068+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10322.3, "open_positions": 2, "logged_at": "2026-06-21T04:17:44.332561+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10322.3, "open_positions": 2, "logged_at": "2026-06-21T04:17:49.441554+00:00"}
+{"type": "close", "strategy": "tsmom-liq-v1", "symbol": "BTC", "reason": "stopped", "exit_px": 64518.62241925499, "pnl_usd": -60.57, "equity": 9710.64, "ts": "2026-06-21 04:00:00+00:00", "logged_at": "2026-06-21T04:28:24.025316+00:00"}
