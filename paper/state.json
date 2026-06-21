@@ -51,7 +51,7 @@
     "stop_px": 84.02558898144531,
     "target_px": 71.09857529199219,
     "opened_at": "2026-06-15 00:00:00+00:00",
-    "checked_until": "2026-06-21 01:00:00+00:00"
+    "checked_until": "2026-06-19 02:00:00+00:00"
    },
    "xyz_BRENTOIL": {
     "strategy": "tsmom-v1",
@@ -62,7 +62,7 @@
     "stop_px": 87.1033723494873,
     "target_px": 73.70285352648926,
     "opened_at": "2026-06-15 00:00:00+00:00",
-    "checked_until": "2026-06-21 01:00:00+00:00"
+    "checked_until": "2026-06-19 02:00:00+00:00"
    },
    "xyz_SILVER": {
     "strategy": "tsmom-v1",
@@ -73,7 +73,7 @@
     "stop_px": 73.9344136505127,
     "target_px": 62.559888473510746,
     "opened_at": "2026-06-15 13:00:00+00:00",
-    "checked_until": "2026-06-21 01:00:00+00:00"
+    "checked_until": "2026-06-19 02:00:00+00:00"
    },
    "BTC": {
     "strategy": "tsmom-v1",
@@ -155,7 +155,7 @@
   }
  },
  "tsmom-conservative-v1": {
-  "equity": 10040.547208000004,
+  "equity": 10041.631703500003,
   "positions": {
    "xyz_GOLD": {
     "strategy": "tsmom-conservative-v1",
@@ -166,7 +166,7 @@
     "stop_px": 4457.3458525,
     "target_px": 4022.4828425000005,
     "opened_at": "2026-06-15 04:00:00+00:00",
-    "checked_until": "2026-06-21 01:00:00+00:00"
+    "checked_until": "2026-06-19 02:00:00+00:00"
    },
    "xyz_BRENTOIL": {
     "strategy": "tsmom-conservative-v1",
@@ -177,7 +177,7 @@
     "stop_px": 83.89996946468352,
     "target_px": 75.71460659008027,
     "opened_at": "2026-06-16 07:00:00+00:00",
-    "checked_until": "2026-06-21 01:00:00+00:00"
+    "checked_until": "2026-06-19 02:00:00+00:00"
    },
    "BTC": {
     "strategy": "tsmom-conservative-v1",
@@ -254,17 +254,6 @@
     "stop_px": 1843.9962255,
     "target_px": 2033.1240435,
     "opened_at": "2026-06-20 14:00:00+00:00",
-    "checked_until": "2026-06-21 01:00:00+00:00"
-   },
-   "NEAR": {
-    "strategy": "tsmom-conservative-v1",
-    "symbol": "NEAR",
-    "direction": "long",
-    "entry_px": 2.1931385399999996,
-    "size_usd": 2409.99,
-    "stop_px": 2.1383100764999994,
-    "target_px": 2.3576239304999995,
-    "opened_at": "2026-06-21 01:00:00+00:00",
     "checked_until": "2026-06-21 01:00:00+00:00"
    }
   }
