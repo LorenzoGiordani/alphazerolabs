@@ -1026,3 +1026,10 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T12:17:51.572814+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T12:18:00.752625+00:00"}
 {"type": "close", "strategy": "tsmom-conservative-v1", "symbol": "NEAR", "reason": "stopped", "exit_px": 2.1805874127764997, "pnl_usd": -61.02, "equity": 9851.82, "ts": "2026-06-21 12:00:00+00:00", "logged_at": "2026-06-21T12:24:34.746245+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-v1", "equity": 9581.3, "open_positions": 10, "logged_at": "2026-06-21T13:17:26.952312+00:00"}
+{"type": "heartbeat", "strategy": "lux-0.1-beta", "equity": 9572.97, "open_positions": 4, "logged_at": "2026-06-21T13:17:27.523638+00:00"}
+{"type": "open", "strategy": "tsmom-conservative-v1", "symbol": "xyz:CL", "direction": "short", "entry_px": 77.854426, "size_usd": 2364.44, "stop_px": 79.80078664999999, "target_px": 72.01534405000001, "opened_at": "2026-06-21 12:00:00+00:00", "checked_until": "2026-06-21 12:00:00+00:00", "thesis": "tsmom \u2192 follow:tsmom", "signals_last": {"tsmom": -1}, "logged_at": "2026-06-21T13:17:28.008078+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-conservative-v1", "equity": 9850.75, "open_positions": 10, "logged_at": "2026-06-21T13:18:08.661168+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 9710.64, "open_positions": 4, "logged_at": "2026-06-21T13:18:39.223978+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T13:18:40.571569+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T13:23:05.423627+00:00"}
