@@ -1098,3 +1098,11 @@
 {"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 9588.63, "open_positions": 4, "logged_at": "2026-06-21T19:16:51.508928+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T19:16:52.288474+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T19:20:01.417598+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-v1", "equity": 9581.3, "open_positions": 10, "logged_at": "2026-06-21T20:18:53.415841+00:00"}
+{"type": "heartbeat", "strategy": "lux-0.1-beta", "equity": 9730.81, "open_positions": 3, "logged_at": "2026-06-21T20:18:54.320263+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-atr-v1", "equity": 9862.22, "open_positions": 10, "logged_at": "2026-06-21T20:18:59.847900+00:00"}
+{"type": "open", "sign": -1, "entry_px": 82.5674832, "stop_px": 84.63167028, "target_px": 76.37492196000001, "remaining": 1.0, "partial_done": false, "hi_water": 82.5674832, "tp1_px": null, "tp1_frac": 0.0, "trail_dist": null, "strategy": "tsmom-conservative-v1", "symbol": "xyz:BRENTOIL", "direction": "short", "size_usd": 2391.98, "opened_at": "2026-06-21 19:00:00+00:00", "checked_until": "2026-06-21 19:00:00+00:00", "stop_pct_eff": 2.5, "atr_pct": 0.0079, "thesis": "tsmom \u2192 follow:tsmom", "signals_last": {"tsmom": -1}, "logged_at": "2026-06-21T20:19:03.452111+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-conservative-v1", "equity": 9965.51, "open_positions": 10, "logged_at": "2026-06-21T20:20:13.034971+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-liq-v1", "equity": 9588.63, "open_positions": 4, "logged_at": "2026-06-21T20:20:43.197298+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T20:20:44.591523+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-21T20:20:52.314977+00:00"}
