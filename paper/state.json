@@ -44,7 +44,7 @@
     "stop_px": 84.02558898144531,
     "target_px": 71.09857529199219,
     "opened_at": "2026-06-15 00:00:00+00:00",
-    "checked_until": "2026-06-19 02:00:00+00:00",
+    "checked_until": "2026-06-21 20:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -52,7 +52,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-21 19:00:00+00:00"
+    "_last_ts": "2026-06-21 20:00:00+00:00"
    },
    "xyz_BRENTOIL": {
     "strategy": "tsmom-v1",
@@ -63,7 +63,7 @@
     "stop_px": 87.1033723494873,
     "target_px": 73.70285352648926,
     "opened_at": "2026-06-15 00:00:00+00:00",
-    "checked_until": "2026-06-19 02:00:00+00:00",
+    "checked_until": "2026-06-21 20:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -71,7 +71,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-21 19:00:00+00:00"
+    "_last_ts": "2026-06-21 20:00:00+00:00"
    },
    "xyz_SILVER": {
     "strategy": "tsmom-v1",
@@ -82,7 +82,7 @@
     "stop_px": 73.9344136505127,
     "target_px": 62.559888473510746,
     "opened_at": "2026-06-15 13:00:00+00:00",
-    "checked_until": "2026-06-19 02:00:00+00:00",
+    "checked_until": "2026-06-21 20:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -90,7 +90,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-21 19:00:00+00:00"
+    "_last_ts": "2026-06-21 20:00:00+00:00"
    },
    "BTC": {
     "strategy": "tsmom-v1",
@@ -239,7 +239,7 @@
     "stop_px": 4457.3458525,
     "target_px": 4022.4828425000005,
     "opened_at": "2026-06-15 04:00:00+00:00",
-    "checked_until": "2026-06-19 02:00:00+00:00",
+    "checked_until": "2026-06-21 20:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -247,7 +247,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-21 19:00:00+00:00"
+    "_last_ts": "2026-06-21 20:00:00+00:00"
    },
    "xyz_BRENTOIL": {
     "strategy": "tsmom-conservative-v1",
@@ -258,7 +258,7 @@
     "stop_px": 83.89996946468352,
     "target_px": 75.71460659008027,
     "opened_at": "2026-06-16 07:00:00+00:00",
-    "checked_until": "2026-06-19 02:00:00+00:00",
+    "checked_until": "2026-06-21 20:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -266,7 +266,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-21 19:00:00+00:00"
+    "_last_ts": "2026-06-21 20:00:00+00:00"
    },
    "BTC": {
     "strategy": "tsmom-conservative-v1",
@@ -398,8 +398,8 @@
     "direction": "short",
     "size_usd": 2407.18,
     "opened_at": "2026-06-21 15:00:00+00:00",
-    "checked_until": "2026-06-19 02:00:00+00:00",
-    "_last_ts": "2026-06-21 19:00:00+00:00"
+    "checked_until": "2026-06-21 20:00:00+00:00",
+    "_last_ts": "2026-06-21 20:00:00+00:00"
    },
    "xyz:BRENTOIL": {
     "sign": -1,
@@ -485,7 +485,7 @@
   }
  },
  "lux-0.1-beta": {
-  "equity": 9531.100617850001,
+  "equity": 9527.669421850002,
   "positions": {
    "CRV": {
     "strategy": "lux-0.1-beta",
@@ -524,6 +524,24 @@
     "tp1_frac": 0.0,
     "trail_dist": null,
     "_last_ts": "2026-06-21 20:00:00+00:00"
+   },
+   "NEAR": {
+    "sign": 1,
+    "entry_px": 2.1189237,
+    "stop_px": 2.0659506074999996,
+    "target_px": 2.2778429774999998,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 2.1189237,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "lux-0.1-beta",
+    "symbol": "NEAR",
+    "direction": "long",
+    "size_usd": 7624.88,
+    "opened_at": "2026-06-21 20:00:00+00:00",
+    "checked_until": "2026-06-21 20:00:00+00:00"
    }
   }
  },
