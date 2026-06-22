@@ -376,7 +376,7 @@
   "positions": {}
  },
  "lux-0.1-beta": {
-  "equity": 9286.23121465,
+  "equity": 9289.575461650002,
   "positions": {
    "CRV": {
     "strategy": "lux-0.1-beta",
