@@ -802,14 +802,15 @@ footer .foot-mark b{ color:var(--amber); }
 
   const NF2 = new Intl.NumberFormat('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
   const NF0 = new Intl.NumberFormat('it-IT',{maximumFractionDigits:0});
-  function usd(n){ return NF2.format(n)+' $'; }
-  function signedUsd(n){ const s=n>0?'+':(n<0?'−':''); return s+NF2.format(Math.abs(n))+' $'; }
+  function usd(n){ return isFinite(n) ? NF2.format(n)+' $' : '—'; }
+  function signedUsd(n){ if(!isFinite(n)) return '—'; const s=n>0?'+':(n<0?'−':''); return s+NF2.format(Math.abs(n))+' $'; }
   function px(n){
+    if(!isFinite(n)) return '—';
     let d = n>=1000?2 : n>=100?2 : n>=10?2 : n>=1?3 : 4;
     if(n>=10000) d=0;
     return new Intl.NumberFormat('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n);
   }
-  function pctSigned(n){ const s=n>0?'+':(n<0?'−':''); return s+NF2.format(Math.abs(n))+' %'; }
+  function pctSigned(n){ if(!isFinite(n)) return '—'; const s=n>0?'+':(n<0?'−':''); return s+NF2.format(Math.abs(n))+' %'; }
   function clsOf(n){ return n>0?'pos':(n<0?'neg':'zero'); }
   function chipOf(n){ return n>0?'chip-pos':(n<0?'chip-neg':'chip-zero'); }
 
@@ -1073,6 +1074,7 @@ footer .foot-mark b{ color:var(--amber); }
       let delta=0, any=false;
       (a.positions||[]).forEach(p=>{
         const lv=LIVE[p.symbol]; if(!lv||!lv.ok) return;
+        if(!(p.entry_px>0)) return;     // gambe book / dati senza entry → niente div/0 (no NaN nell'equity)
         const dir=p.direction==='long'?1:-1;
         delta += dir*(lv.px-snapPx(p))/p.entry_px*p.size_usd; any=true;
       });
@@ -1124,7 +1126,7 @@ footer .foot-mark b{ color:var(--amber); }
   function renderPositions(){
     const body=$('#positions-body'); body.innerHTML=''; POS.length=0;
     const rows=[];
-    (DATA.accounts||[]).forEach(a=> (a.positions||[]).forEach(p=> rows.push({p, acct:a})));
+    (DATA.accounts||[]).forEach(a=> (a.positions||[]).forEach(p=>{ if(p.entry_px>0) rows.push({p, acct:a}); }));  // niente entry 0 → no stop Infinity%
     if(!rows.length){ body.innerHTML='<p class="note">Nessuna posizione aperta al momento.</p>'; return; }
     rows.forEach(({p,acct})=>{
       const risk=Math.abs(p.entry_px-p.stop_px), reward=Math.abs(p.target_px-p.entry_px);
