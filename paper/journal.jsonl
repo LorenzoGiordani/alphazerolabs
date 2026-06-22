@@ -1243,3 +1243,4 @@
 {"type": "close", "strategy": "tsmom-liq-v1", "symbol": "CRV", "reason": "manual_close", "exit_px": 0.20814162, "frac": 1.0, "remaining": 0.0, "pnl_usd": 52.43, "equity": 9428.15, "logged_at": "2026-06-22T10:18:33.121156+00:00"}
 {"type": "close", "strategy": "tsmom-liq-v1", "symbol": "XRP", "reason": "manual_close", "exit_px": 1.13432682, "frac": 1.0, "remaining": 0.0, "pnl_usd": 27.02, "equity": 9455.17, "logged_at": "2026-06-22T10:18:34.162581+00:00"}
 {"type": "close", "strategy": "tsmom-liq-v1", "symbol": "ZEC", "reason": "manual_close", "exit_px": 452.220426, "frac": 1.0, "remaining": 0.0, "pnl_usd": -37.25, "equity": 9417.92, "logged_at": "2026-06-22T10:18:35.215634+00:00"}
+{"type": "close", "strategy": "lux-0.1-beta", "symbol": "ZEC", "reason": "stopped", "exit_px": 456.39148174433996, "frac": 1.0, "remaining": 0.0, "pnl_usd": -195.55, "equity": 9486.12, "ts": "2026-06-22 11:00:00+00:00", "logged_at": "2026-06-22T11:06:35.494845+00:00"}
