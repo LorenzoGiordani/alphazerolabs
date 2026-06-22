@@ -1291,3 +1291,14 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-22T15:18:14.072398+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9998.66, "open_positions": 3, "logged_at": "2026-06-22T15:18:21.425712+00:00"}
 {"type": "heartbeat", "strategy": "claude-strategy-v1", "equity": 9997.99, "open_positions": 3, "logged_at": "2026-06-22T15:18:35.416261+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-v1", "equity": 10009.15, "open_positions": 10, "logged_at": "2026-06-22T16:16:53.430352+00:00"}
+{"type": "close", "strategy": "lux-0.1-beta", "symbol": "ZEC", "reason": "stopped", "exit_px": 448.63648205453995, "frac": 1.0, "remaining": -1.0, "pnl_usd": -190.52, "equity": 9092.37, "ts": "2026-06-22 15:00:00+00:00", "logged_at": "2026-06-22T16:16:53.981875+00:00"}
+{"type": "heartbeat", "strategy": "lux-0.1-beta", "equity": 9092.37, "open_positions": 4, "logged_at": "2026-06-22T16:16:54.195074+00:00"}
+{"type": "heartbeat", "strategy": "lux-confluence-rr2-v1", "equity": 9993.59, "open_positions": 5, "logged_at": "2026-06-22T16:16:54.953748+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-atr-v1", "equity": 8702.52, "open_positions": 10, "logged_at": "2026-06-22T16:17:35.970776+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-22T16:17:36.925667+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9998.66, "open_positions": 3, "logged_at": "2026-06-22T16:17:39.109424+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10155.17, "open_positions": 4, "logged_at": "2026-06-22T16:17:42.520497+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-22T16:17:49.476584+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9998.66, "open_positions": 3, "logged_at": "2026-06-22T16:17:50.739891+00:00"}
+{"type": "heartbeat", "strategy": "claude-strategy-v1", "equity": 9997.99, "open_positions": 3, "logged_at": "2026-06-22T16:17:53.395442+00:00"}
