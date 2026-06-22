@@ -228,7 +228,7 @@
   }
  },
  "tsmom-conservative-v1": {
-  "equity": 9778.863618250007,
+  "equity": 9717.455639950007,
   "positions": {
    "xyz_GOLD": {
     "strategy": "tsmom-conservative-v1",
@@ -325,25 +325,6 @@
     "trail_dist": null,
     "_last_ts": "2026-06-22 02:00:00+00:00"
    },
-   "HYPE": {
-    "strategy": "tsmom-conservative-v1",
-    "symbol": "HYPE",
-    "direction": "long",
-    "entry_px": 67.6675308,
-    "size_usd": 2394.54,
-    "stop_px": 65.97584253,
-    "target_px": 72.74259561,
-    "opened_at": "2026-06-21 08:00:00+00:00",
-    "checked_until": "2026-06-22 02:00:00+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 67.6675308,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-06-22 02:00:00+00:00"
-   },
    "xyz_CL": {
     "sign": -1,
     "entry_px": 78.12937099999999,
@@ -423,7 +404,7 @@
   }
  },
  "tsmom-liq-v1": {
-  "equity": 9408.174502749996,
+  "equity": 9350.262707299997,
   "positions": {
    "SUI": {
     "strategy": "tsmom-liq-v1",
@@ -434,7 +415,7 @@
     "stop_px": 0.7351264452999999,
     "target_px": 0.6634067921,
     "opened_at": "2026-06-18 16:00:00+00:00",
-    "checked_until": "2026-06-22 01:00:00+00:00",
+    "checked_until": "2026-06-22 02:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -442,7 +423,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-22 01:00:00+00:00"
+    "_last_ts": "2026-06-22 02:00:00+00:00"
    },
    "CRV": {
     "strategy": "tsmom-liq-v1",
@@ -453,7 +434,7 @@
     "stop_px": 0.21829158294999998,
     "target_px": 0.19699484315000002,
     "opened_at": "2026-06-20 14:00:00+00:00",
-    "checked_until": "2026-06-22 00:00:00+00:00",
+    "checked_until": "2026-06-22 02:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -461,7 +442,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-22 00:00:00+00:00"
+    "_last_ts": "2026-06-22 02:00:00+00:00"
    },
    "XRP": {
     "strategy": "tsmom-liq-v1",
@@ -472,7 +453,7 @@
     "stop_px": 1.1767720985,
     "target_px": 1.0619650645,
     "opened_at": "2026-06-21 00:00:00+00:00",
-    "checked_until": "2026-06-22 01:00:00+00:00",
+    "checked_until": "2026-06-22 02:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -480,7 +461,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-22 01:00:00+00:00"
+    "_last_ts": "2026-06-22 02:00:00+00:00"
    },
    "ZEC": {
     "sign": -1,
@@ -498,26 +479,8 @@
     "direction": "short",
     "size_usd": 2287.11,
     "opened_at": "2026-06-21 21:00:00+00:00",
-    "checked_until": "2026-06-22 01:00:00+00:00",
-    "_last_ts": "2026-06-22 01:00:00+00:00"
-   },
-   "WLD": {
-    "sign": 1,
-    "entry_px": 0.6478595460000001,
-    "stop_px": 0.6316630573500001,
-    "target_px": 0.6964490119500001,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 0.6478595460000001,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-liq-v1",
-    "symbol": "WLD",
-    "direction": "long",
-    "size_usd": 2258.21,
-    "opened_at": "2026-06-22 01:00:00+00:00",
-    "checked_until": "2026-06-22 01:00:00+00:00"
+    "checked_until": "2026-06-22 02:00:00+00:00",
+    "_last_ts": "2026-06-22 02:00:00+00:00"
    }
   }
  },
@@ -533,7 +496,7 @@
     "stop_px": 0.21911141894999997,
     "target_px": 0.19773469515,
     "opened_at": "2026-06-20 09:00:00+00:00",
-    "checked_until": "2026-06-22 00:00:00+00:00",
+    "checked_until": "2026-06-22 02:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -541,7 +504,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-22 00:00:00+00:00"
+    "_last_ts": "2026-06-22 02:00:00+00:00"
    },
    "SUI": {
     "strategy": "lux-0.1-beta",
@@ -627,27 +590,8 @@
   "last_decision_ts": ""
  },
  "tsmom-atr-v1": {
-  "equity": 9003.305899488489,
+  "equity": 8901.412208290109,
   "positions": {
-   "HYPE": {
-    "sign": 1,
-    "entry_px": 68.07861299999999,
-    "stop_px": 65.76622204285712,
-    "target_px": 72.70339491428571,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 68.07861299999999,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-atr-v1",
-    "symbol": "HYPE",
-    "direction": "long",
-    "size_usd": 2944.08,
-    "opened_at": "2026-06-21 14:00:00+00:00",
-    "checked_until": "2026-06-22 02:00:00+00:00",
-    "_last_ts": "2026-06-22 02:00:00+00:00"
-   },
    "WLD": {
     "sign": 1,
     "entry_px": 0.61537305,
