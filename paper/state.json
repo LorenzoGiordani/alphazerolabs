@@ -418,7 +418,7 @@
   "last_decision_ts": ""
  },
  "tsmom-atr-v1": {
-  "equity": 8702.5215822111,
+  "equity": 8599.290667378544,
   "positions": {
    "WLD": {
     "sign": 1,
@@ -435,25 +435,6 @@
     "symbol": "WLD",
     "direction": "long",
     "size_usd": 2050.53,
-    "opened_at": "2026-06-21 14:00:00+00:00",
-    "checked_until": "2026-06-22 18:00:00+00:00",
-    "_last_ts": "2026-06-22 18:00:00+00:00"
-   },
-   "XPL": {
-    "sign": 1,
-    "entry_px": 0.0910272018,
-    "stop_px": 0.08513295175714285,
-    "target_px": 0.1028157018857143,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 0.0910272018,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-atr-v1",
-    "symbol": "XPL",
-    "direction": "long",
-    "size_usd": 1540.11,
     "opened_at": "2026-06-21 14:00:00+00:00",
     "checked_until": "2026-06-22 18:00:00+00:00",
     "_last_ts": "2026-06-22 18:00:00+00:00"
@@ -609,6 +590,24 @@
     "opened_at": "2026-06-22 13:00:00+00:00",
     "checked_until": "2026-06-22 18:00:00+00:00",
     "_last_ts": "2026-06-22 18:00:00+00:00"
+   },
+   "xyz:NATGAS": {
+    "sign": 1,
+    "entry_px": 3.28095606,
+    "stop_px": 3.2306317114285714,
+    "target_px": 3.371539887428571,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 3.28095606,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-atr-v1",
+    "symbol": "xyz:NATGAS",
+    "direction": "long",
+    "size_usd": 5608.06,
+    "opened_at": "2026-06-22 18:00:00+00:00",
+    "checked_until": "2026-06-22 18:00:00+00:00"
    }
   }
  },
