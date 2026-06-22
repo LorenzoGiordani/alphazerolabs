@@ -383,6 +383,40 @@ def volume_profile(data, lookback_h: int = 168, value_area_pct: float = 70,
     return pd.Series(out, index=c.index)
 
 
+_XS_CACHE: dict = {}
+
+
+def _xsection_load(symbol: str):
+    """Cache rank cross-sectional precomputata: data/xsection/<SYMBOL>.parquet
+    (ts, rank_pct 0..100). Lazy + memoizzata. None se assente → segnale neutro."""
+    if symbol in _XS_CACHE:
+        return _XS_CACHE[symbol]
+    from pathlib import Path
+    p = Path(f"data/xsection/{symbol}.parquet")
+    df = _XS_CACHE[symbol] = (pd.read_parquet(p) if p.exists() else None)
+    return df
+
+
+def xsection_momentum(data, hi_pct: float = 66, lo_pct: float = 33) -> pd.Series:
+    """Cross-sectional momentum: rank dell'asset per ritorno relativo NEL BASKET
+    (non vs sé stesso come tsmom). +1 = top del basket (forza relativa → long),
+    -1 = bottom (debolezza → short). Market-neutral: netta il beta comune (corr
+    basket ~0.63) e isola il segnale relativo. Edge validato empiricamente
+    (IC +0.028, t +4.2; research_edges.py 2026-06-22). Legge la cache precomputata
+    data/xsection/<sym>.parquet (scripts/precompute_xsection.py); merge_asof
+    backward = anti-lookahead; neutro senza cache → pipeline intatta."""
+    c = data["candles"]
+    cache = _xsection_load(data.get("symbol")) if data.get("symbol") else None
+    if cache is None or cache.empty:
+        return pd.Series(0, index=c.index)
+    norm = lambda s: pd.to_datetime(s, utc=True).astype("datetime64[ns, UTC]")
+    left = pd.DataFrame({"ts": norm(c["ts"])})
+    right = pd.DataFrame({"ts": norm(cache["ts"]), "rk": cache["rank_pct"].astype(float)}).sort_values("ts")
+    rk = pd.merge_asof(left, right, on="ts", direction="backward")["rk"]
+    out = np.where(rk >= hi_pct, 1, np.where(rk <= lo_pct, -1, 0))
+    return pd.Series(out, index=c.index)
+
+
 SIGNALS = {
     "funding_percentile": funding_percentile,
     "range_breakout": range_breakout,
@@ -401,4 +435,5 @@ SIGNALS = {
     "liq_imbalance": liq_imbalance,
     "oi_trend": oi_trend,
     "volume_profile": volume_profile,
+    "xsection_momentum": xsection_momentum,
 }

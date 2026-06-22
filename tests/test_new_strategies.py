@@ -12,7 +12,7 @@ from backtest.strategy import compile_strategy, load
 
 NEW_STRATS = [
     "volprofile-reversion-v1", "liq-cascade-reversal-v1",
-    "vol-expansion-breakout-v1", "lux-confluence-rr2-v1",
+    "vol-expansion-breakout-v1", "lux-confluence-rr2-v1", "xsmom-v1",
 ]
 
 
@@ -26,8 +26,9 @@ def _candles(n: int = 400, base: float = 100.0) -> pd.DataFrame:
                          "close": close, "volume": vol})
 
 
-def test_volume_profile_in_registry():
+def test_new_signals_in_registry():
     assert "volume_profile" in SIGNALS
+    assert "xsection_momentum" in SIGNALS
 
 
 def test_volume_profile_values_and_extension():
