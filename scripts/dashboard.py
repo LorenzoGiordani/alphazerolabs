@@ -275,7 +275,13 @@ def build_data() -> dict:
                 "stop_px": round(p.get("stop_px", 0), 6), "target_px": round(p.get("target_px", 0), 6),
                 "opened_at": ts_short(p.get("opened_at", "")),
                 "chart": chart_series(s, p.get("opened_at", "")),
-            } for s, p in st.get("positions", {}).items()],
+            } for s, p in st.get("positions", {}).items() if "notional" not in p],
+            # gambe del book a portafoglio (dollar-neutral): niente stop/target per posizione
+            # → fuori dalle card (entry/stop/target=0 davano NaN nel risk/reward JS). Si
+            # leggono dalla equity curve; esposte a parte per direzione e notional reali.
+            "book": [{"symbol": clean_symbol(s), "side": "long" if p.get("notional", 0) >= 0 else "short",
+                      "notional_usd": round(p.get("notional", 0), 2)}
+                     for s, p in st.get("positions", {}).items() if "notional" in p],
         })
 
     dec_out = []
