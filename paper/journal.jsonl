@@ -1215,3 +1215,4 @@
 {"type": "heartbeat", "strategy": "tsmom-conservative-v1", "equity": 9716.41, "open_positions": 10, "logged_at": "2026-06-22T07:16:51.560631+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-22T07:16:52.295961+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10357.38, "open_positions": 1, "logged_at": "2026-06-22T07:16:56.949494+00:00"}
+{"type": "close", "strategy": "lux-0.1-beta", "symbol": "WLD", "reason": "target", "exit_px": 0.65076197396952, "frac": 1.0, "remaining": 0.0, "pnl_usd": 566.18, "equity": 9888.09, "ts": "2026-06-22 07:00:00+00:00", "logged_at": "2026-06-22T07:21:49.218629+00:00"}
