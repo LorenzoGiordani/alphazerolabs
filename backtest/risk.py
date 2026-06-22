@@ -25,11 +25,38 @@ STOP_PCT_FLOOR = 0.5
 STOP_PCT_CAP = 8.0
 
 
+# HIP-3 (xyz_*/xyz:*) classificati fine: indici, commodity e singole azioni hanno
+# volatilità e ampiezza di movimento diverse → RR/stop/holding diversi (un indice
+# non fa +12% per ittare un RR3, una commodity sì meno di una microcap crypto).
+_INDEX = {"SP500", "SPX", "US500", "XYZ100", "NAS100", "NASDAQ", "NDX", "US100",
+          "DJI", "DOW", "RTY", "RUSSELL", "DAX", "FTSE", "NIKKEI"}
+_COMMODITY = {"GOLD", "XAU", "SILVER", "XAG", "CL", "WTI", "OIL", "BRENTOIL", "BRENT",
+              "NATGAS", "NG", "COPPER", "HG", "PLATINUM", "PALLADIUM", "CORN", "WHEAT"}
+
+
 def asset_class_of(symbol: str | None) -> str:
-    """xyz_* / xyz: = stock/commodity HIP-3 (bassa vol). Tutto il resto = crypto."""
+    """crypto | index | commodity | stock. xyz_*/xyz:* = HIP-3 (bassa vol):
+    classificati fine per nome base; tutto il resto = crypto."""
     if symbol and symbol.startswith(("xyz_", "xyz:")):
-        return "stock"
+        base = symbol.split("_", 1)[-1].split(":", 1)[-1].upper()
+        if base in _INDEX:
+            return "index"
+        if base in _COMMODITY:
+            return "commodity"
+        return "stock"          # singola azione (es. MU, SNDK)
     return "crypto"
+
+
+# Default di uscita PER CLASSE (centralizzati): RR, stop ATR e holding tarati sul
+# comportamento dell'asset. Si applicano a tutte le strategie meccaniche; la spec
+# può ancora forzare il proprio `exit.by_class[classe]` (vince sull'override sotto).
+# crypto = {} → la spec mantiene i suoi valori (è la classe su cui sono tarate).
+CLASS_DEFAULTS = {
+    "crypto":    {},
+    "index":     {"target_r": 1.3, "stop_atr_mult": 1.5, "time_stop_h": 48},
+    "commodity": {"target_r": 1.8, "stop_atr_mult": 2.0, "time_stop_h": 96},
+    "stock":     {"target_r": 1.6, "stop_atr_mult": 1.8, "time_stop_h": 72},
+}
 
 
 def atr_pct(candles: pd.DataFrame, period: int = 14) -> pd.Series:
@@ -49,9 +76,12 @@ def resolve_exit(spec: dict, symbol: str | None) -> dict:
     """Fonde exit base con l'override exit.by_class[classe] e risolve max_leverage.
     Ritorna un dict piatto: stop_pct, target_r, time_stop_h, stop_atr_mult (opz),
     atr_period, partial (opz), max_leverage."""
+    cls = asset_class_of(symbol)
     base = {k: v for k, v in spec["exit"].items() if k != "by_class"}
-    override = spec["exit"].get("by_class", {}).get(asset_class_of(symbol), {})
-    merged = {**base, **override}
+    # precedenza: spec base < default-classe < override esplicito della spec
+    cls_default = CLASS_DEFAULTS.get(cls, {})
+    override = spec["exit"].get("by_class", {}).get(cls, {})
+    merged = {**base, **cls_default, **override}
     merged.setdefault("atr_period", 14)
     merged.setdefault("time_stop_h", 10**9)
     merged["max_leverage"] = float(override.get("max_leverage", spec["risk"]["max_leverage"]))

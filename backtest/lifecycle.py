@@ -59,9 +59,15 @@ def paper_symbols(spec: dict) -> str:
     # edge, post-mortem ripetuti — es. governance/microcap alta-beta). Lista o CSV.
     excl = uni.get("exclude", [])
     excl = set(x.strip() for x in (excl.split(",") if isinstance(excl, str) else excl))
+    # esclusione per CLASSE (crypto|index|commodity|stock): robusta ai nomi duplicati
+    # (xyz_CL vs xyz:CL). Es. le strategie trend escludono `index` (il trend perde
+    # sugli indici: backtest tsmom su SP500 Sharpe -5.5).
+    excl_classes = set(uni.get("exclude_classes", []))
+    from backtest.risk import asset_class_of
 
     def _filter(csv: str) -> str:
-        return ",".join(s for s in csv.split(",") if s and s not in excl)
+        return ",".join(s for s in csv.split(",")
+                        if s and s not in excl and asset_class_of(s) not in excl_classes)
 
     # selezione dinamica: tutti i perp core liquidi, risolti live da HL ad ogni run
     # (la lista si auto-aggiorna; ha priorita sull'eventuale paper_symbols esplicito)

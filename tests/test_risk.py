@@ -25,8 +25,11 @@ def _spec():
 
 
 def test_asset_class():
-    assert asset_class_of("xyz_GOLD") == "stock"
-    assert asset_class_of("xyz:SP500") == "stock"
+    assert asset_class_of("xyz_GOLD") == "commodity"
+    assert asset_class_of("xyz:CL") == "commodity"
+    assert asset_class_of("xyz:SP500") == "index"
+    assert asset_class_of("xyz:XYZ100") == "index"
+    assert asset_class_of("xyz_MU") == "stock"      # singola azione
     assert asset_class_of("BTC") == "crypto"
     assert asset_class_of(None) == "crypto"
 
@@ -42,10 +45,19 @@ def test_atr_pct_positive():
 def test_resolve_exit_by_class():
     s = _spec()
     crypto = resolve_exit(s, "BTC")
-    stock = resolve_exit(s, "xyz_GOLD")
     assert crypto["stop_atr_mult"] == 2.5 and crypto["max_leverage"] == 2.0
-    assert stock["stop_atr_mult"] == 1.5 and stock["target_r"] == 1.8
-    assert stock["max_leverage"] == 4.0   # override per classe
+    # singola azione: l'override esplicito della spec (by_class.stock) vince sui default-classe
+    stock = resolve_exit(s, "xyz_MU")
+    assert stock["stop_atr_mult"] == 1.5 and stock["target_r"] == 1.8 and stock["max_leverage"] == 4.0
+
+
+def test_resolve_exit_class_defaults():
+    """Indici/commodity senza override spec → default-classe centralizzati (CLASS_DEFAULTS)."""
+    s = _spec()
+    idx = resolve_exit(s, "xyz:SP500")
+    assert idx["target_r"] == 1.3 and idx["stop_atr_mult"] == 1.5 and idx["time_stop_h"] == 48
+    comm = resolve_exit(s, "xyz_GOLD")
+    assert comm["target_r"] == 1.8 and comm["stop_atr_mult"] == 2.0 and comm["time_stop_h"] == 96
 
 
 def test_effective_stop_pct():

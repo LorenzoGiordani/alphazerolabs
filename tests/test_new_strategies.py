@@ -31,6 +31,15 @@ def test_new_signals_in_registry():
     assert "xsection_momentum" in SIGNALS
 
 
+def test_exclude_classes_filters_indices():
+    from backtest.lifecycle import paper_symbols
+    spec = {"universe": {"exclude_classes": ["index"]},
+            "paper_symbols": "BTC,xyz:SP500,ETH,xyz_GOLD"}
+    out = paper_symbols(spec).split(",")
+    assert "xyz:SP500" not in out            # indice escluso per classe
+    assert "BTC" in out and "ETH" in out and "xyz_GOLD" in out   # crypto + commodity restano
+
+
 def test_volume_profile_values_and_extension():
     c = _candles()
     out = volume_profile({"candles": c}, lookback_h=168, recompute_h=6)

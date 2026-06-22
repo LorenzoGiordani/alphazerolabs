@@ -13,6 +13,7 @@ universe:
   selection: top_liquidity
   min_day_volume_usd: 1000000   # floor liquidita: sotto 1M$/24h troppo illiquido (noise-stop, no edge)
   exclude: []                   # nomi da escludere a mano (segnali senza edge ripetuto); cura post-mortem
+  exclude_classes: [index]      # il trend perde sugli indici (SP500/Nasdaq Sharpe -5.5): fuori dall'universo
   max_assets: 12
   kinds:
   - perp
