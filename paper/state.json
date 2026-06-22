@@ -324,42 +324,6 @@
     "opened_at": "2026-06-22 10:00:00+00:00",
     "checked_until": "2026-06-22 11:00:00+00:00",
     "_last_ts": "2026-06-22 11:00:00+00:00"
-   },
-   "xyz_BRENTOIL": {
-    "sign": -1,
-    "entry_px": 78.53828920000001,
-    "stop_px": 80.12982797142858,
-    "target_px": 75.67351941142857,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 78.53828920000001,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-conservative-v1",
-    "symbol": "xyz_BRENTOIL",
-    "direction": "short",
-    "size_usd": 2909.96,
-    "opened_at": "2026-06-22 11:00:00+00:00",
-    "checked_until": "2026-06-22 11:00:00+00:00"
-   },
-   "xyz_MU": {
-    "sign": 1,
-    "entry_px": 1183.8367199999998,
-    "stop_px": 1158.837435428571,
-    "target_px": 1223.8355753142855,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 1183.8367199999998,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-conservative-v1",
-    "symbol": "xyz_MU",
-    "direction": "long",
-    "size_usd": 2792.09,
-    "opened_at": "2026-06-22 11:00:00+00:00",
-    "checked_until": "2026-06-22 11:00:00+00:00"
    }
   }
  },
@@ -435,7 +399,7 @@
   "last_decision_ts": ""
  },
  "tsmom-atr-v1": {
-  "equity": 8804.10926284539,
+  "equity": 8805.22752634539,
   "positions": {
    "WLD": {
     "sign": 1,
@@ -607,24 +571,6 @@
     "opened_at": "2026-06-22 03:00:00+00:00",
     "checked_until": "2026-06-22 11:00:00+00:00",
     "_last_ts": "2026-06-22 11:00:00+00:00"
-   },
-   "xyz:SMSN": {
-    "sign": 1,
-    "entry_px": 234.706932,
-    "stop_px": 226.39055477142855,
-    "target_px": 248.01313556571432,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 234.706932,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-atr-v1",
-    "symbol": "xyz:SMSN",
-    "direction": "long",
-    "size_usd": 2485.03,
-    "opened_at": "2026-06-22 11:00:00+00:00",
-    "checked_until": "2026-06-22 11:00:00+00:00"
    }
   }
  },
