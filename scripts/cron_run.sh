@@ -21,6 +21,8 @@ stage "paper trading strategie attive"
 stage "executor agenti"
 "$UV" run scripts/agents_paper.py
 "$UV" run scripts/agents_paper.py --account agents-rr2-v1 --target-r 2.0 || true   # A/B RR2, stesse decisioni
+stage "portfolio book"
+"$UV" run scripts/portfolio_paper.py strategies/generated/xsmom-port-v1.yaml || true   # cross-sectional momentum
 
 if command -v claude >/dev/null 2>&1; then
     stage "reviewer"

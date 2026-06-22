@@ -40,12 +40,17 @@ def all_specs() -> list[tuple[Path, dict]]:
     return out
 
 
+NON_MECHANICAL_ENGINES = ("desk", "portfolio")   # girano via runner dedicati, non il loop a segnali
+
+
 def active_specs() -> list[tuple[Path, dict]]:
     """champion + challenger = ciò che gira nel loop paper MECCANICO.
-    Esclude engine:desk (strategie LLM-desk, eseguite da runner dedicati,
-    es. scripts/geopolitics_paper.py — il runner a segnali le romperebbe)."""
+    Esclude engine:desk (LLM-desk, es. scripts/geopolitics_paper.py) e
+    engine:portfolio (book cross-asset, scripts/portfolio_paper.py): il runner a
+    segnali per-simbolo le romperebbe."""
     return [(f, s) for f, s in all_specs()
-            if s.get("status") in ("champion", "challenger") and s.get("engine") != "desk"]
+            if s.get("status") in ("champion", "challenger")
+            and s.get("engine") not in NON_MECHANICAL_ENGINES]
 
 
 def paper_symbols(spec: dict) -> str:

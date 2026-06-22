@@ -43,6 +43,9 @@ jobs:
           uv run scripts/agents_paper.py
           uv run scripts/agents_paper.py --account agents-rr2-v1 --target-r 2.0 || true   # A/B RR2: stesse decisioni, zero LLM extra
 
+      - name: portfolio book (cross-sectional momentum)
+        run: uv run scripts/portfolio_paper.py strategies/generated/xsmom-port-v1.yaml || true
+
       # gira solo se il secret CLAUDE_CODE_OAUTH_TOKEN esiste (token piano Pro)
       - name: pipeline LLM (review + decide)
         if: env.CLAUDE_CODE_OAUTH_TOKEN != ''

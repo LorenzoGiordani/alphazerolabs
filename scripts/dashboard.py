@@ -152,9 +152,10 @@ def build_strategies(state: dict) -> list[dict]:
     from backtest.lifecycle import active_specs, all_specs, paper_stats, paper_symbols
     out = []
     seen = set()
-    # attive (meccaniche) + desk LLM (engine:desk, escluse da active_specs) attive in paper
+    # attive (meccaniche) + desk LLM + book a portafoglio (engine:desk/portfolio,
+    # escluse da active_specs) attive in paper
     specs = list(active_specs()) + [(p, s) for p, s in all_specs()
-                                    if s.get("engine") == "desk" and s["id"] in state]
+                                    if s.get("engine") in ("desk", "portfolio") and s["id"] in state]
     for path, spec in specs:
         sid = spec["id"]
         seen.add(sid)

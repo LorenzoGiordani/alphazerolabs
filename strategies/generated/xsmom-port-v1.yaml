@@ -1,0 +1,50 @@
+id: xsmom-port-v1
+parent: xsmom-v1
+status: challenger
+engine: portfolio           # book cross-asset, eseguita da scripts/portfolio_paper.py
+                            #   (active_specs la salta: non e meccanica per-simbolo)
+created: '2026-06-22'
+thesis: >
+  Cross-sectional momentum a PORTAFOGLIO: long il top-terzile del basket per forza
+  relativa (ultime 168h), short il bottom-terzile, dollar-neutral, ribilanciato
+  ogni 168h. Lo stesso edge che da -14.5% nell'engine per-simbolo stop-based (l'IC
+  e troppo sottile per trade discreti) rende +29.4% Sharpe 1.97 maxDD -12% a
+  portafoglio (backtest_portfolio.py, basket 9 crypto 6m): l'edge sta nello SPREAD
+  mantenuto, non nel singolo trade, e il dollar-neutral netta il beta comune (corr
+  basket 0.63) abbattendo il drawdown. Turnover basso (25 ribilanci/6m).
+  Falsificata se: in paper il book dollar-neutral non batte l'equal-weight B&H
+  risk-adjusted, o se l'edge sparisce coi costi reali di ribilanciamento.
+
+paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+
+portfolio:
+  lookback_h: 168           # finestra del ritorno trailing per il rank
+  rebalance_h: 168          # ribilancio settimanale (> giornaliero in backtest: meno noise/turnover)
+  long_q: 0.66              # long sopra il 66o percentile del basket
+  short_q: 0.33             # short sotto il 33o
+  gross: 1.0                # esposizione lorda (Σ|peso|); dollar-neutral → net ~0
+  dollar_neutral: true
+
+timeframe: 1h
+decision_every_h: 4
+
+signals: []                 # nessun segnale meccanico: i pesi escono dal rank cross-asset
+
+exit:                       # stub per la dashboard; il book non usa stop per-posizione
+  stop_pct: 0
+  target_r: 0
+  time_stop_h: 0
+
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 9
+
+evolution:
+  mutable: [portfolio]
+  notes: >
+    v1 — primo engine:portfolio. Cross-sectional momentum dollar-neutral
+    settimanale, gross 1.0. Backtest: +29.4%/Sharpe 1.97/maxDD -12% vs B&H
+    -19.9%/-0.36. Mutazioni: lookback, rebalance_h, quantili, gross, vol-weight.
+
+backtest: {}
