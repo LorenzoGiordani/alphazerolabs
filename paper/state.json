@@ -33,7 +33,7 @@
   "last_decision_ts": "2026-06-21T17:23:00.800287+00:00"
  },
  "tsmom-v1": {
-  "equity": 9857.288600429962,
+  "equity": 9856.266447929962,
   "positions": {
    "BTC": {
     "strategy": "tsmom-v1",
@@ -206,21 +206,21 @@
     "checked_until": "2026-06-22 13:00:00+00:00",
     "_last_ts": "2026-06-22 13:00:00+00:00"
    },
-   "xyz:INTC": {
+   "xyz:SNDK": {
     "sign": 1,
-    "entry_px": 137.92758,
-    "stop_px": 132.97787597142857,
-    "target_px": 145.84710644571427,
+    "entry_px": 2279.4557999999997,
+    "stop_px": 2234.6782748571427,
+    "target_px": 2351.099840228571,
     "remaining": 1.0,
     "partial_done": false,
-    "hi_water": 137.92758,
+    "hi_water": 2279.4557999999997,
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
     "strategy": "tsmom-v1",
-    "symbol": "xyz:INTC",
+    "symbol": "xyz:SNDK",
     "direction": "long",
-    "size_usd": 2747.16,
+    "size_usd": 5018.61,
     "opened_at": "2026-06-22 13:00:00+00:00",
     "checked_until": "2026-06-22 13:00:00+00:00"
    }
@@ -667,8 +667,8 @@
     "direction": "short",
     "size_usd": 3799.17,
     "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-22 12:00:00+00:00",
-    "_last_ts": "2026-06-22 12:00:00+00:00"
+    "checked_until": "2026-06-22 13:00:00+00:00",
+    "_last_ts": "2026-06-22 13:00:00+00:00"
    },
    "ETH": {
     "sign": 1,
@@ -861,7 +861,7 @@
   "last_decision_ts": "2026-06-21T17:23:00.800287+00:00"
  },
  "xsmom-port-v1": {
-  "equity": 10036.25235196632,
+  "equity": 10057.185070039164,
   "positions": {
    "XRP": {
     "notional": 2534.2047930283225,
