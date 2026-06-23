@@ -48,8 +48,10 @@ Principi non negoziabili:
 | `strategies/FORMAT.md` | Schema artefatto strategia (tesi, segnali, exit, risk immutabile, lineage) |
 | `scripts/run_strategy.py` | Backtest singola strategia su un asset |
 | `scripts/evolve.py` | **Loop evolutivo**: LLM propone mutazioni → valutazione basket → leaderboard |
-| `scripts/decide.py` | **Pipeline agenti**: contesto live → ruoli LLM → hard limits → Risk Manager |
+| `scripts/decide.py` | **Pipeline agenti**: contesto live → ruoli LLM → hard limits → Risk Manager. Fallback LLM: claude→opencode glm-5.2 |
 | `scripts/agents_paper.py` | Executor paper delle decisioni pipeline |
+| `scripts/claude_strategy.py` | Strategia ibrida: gate tsmom+liq_imbalance → PM LLM avverso |
+| `scripts/glm_strategy.py` | **Strategia glm-5.2**: gate tsmom+xsection (ortogonale) + veto event/crowding → auditor LLM correlazione |
 | `scripts/paper_trade.py` | Paper trading challenger segnale-based (cron) |
 | `scripts/review.py` | Reviewer: post-mortem trade chiusi → `paper/lessons.jsonl` |
 | `scripts/dashboard.py` | Dashboard statica (HTML, zero dipendenze) |
@@ -100,7 +102,7 @@ uv run scripts/dashboard.py && open dashboard/index.html
 sh scripts/cron_run.sh                           # run completo (in crontab ogni 4h)
 ```
 
-**Backend LLM**: `claude -p` headless (piano Pro Claude Code) quando la CLI nativa è installata; in alternativa modalità `--pack`/file-candidati con sessione Claude Code interattiva. Nessuna API key richiesta. ⚠️ Lo `~/.zshrc` locale ha un `ANTHROPIC_BASE_URL` (proxy DashScope, key scaduta) — gli script lo strippano dall'env.
+**Backend LLM**: `claude -p` headless (piano Pro Claude Code) come primario; **fallback automatico** su `opencode run -m opencode-go/glm-5.2` se claude fallisce (quota esaurita, CLI mancante, 429). Trasparente per i chiamanti (`_ask` in `decide.py`). In cloud: il workflow installa opencode + scrive `auth.json` dal secret `OPENCODE_GO_API_KEY`. Nessuna API key Anthropic richiesta. ⚠️ Lo `~/.zshrc` locale ha un `ANTHROPIC_BASE_URL` (proxy DashScope, key scaduta) — gli script lo strippano dall'env.
 
 ## Roadmap
 

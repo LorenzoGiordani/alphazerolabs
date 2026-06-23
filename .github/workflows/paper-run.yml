@@ -22,9 +22,19 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
+      OPENCODE_GO_API_KEY: ${{ secrets.OPENCODE_GO_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+
+      - name: setup opencode (fallback LLM glm-5.2)
+        if: env.OPENCODE_GO_API_KEY != ''
+        run: |
+          curl -fsSL https://opencode.ai/install | bash
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
+          mkdir -p "$HOME/.local/share/opencode"
+          printf '{"opencode-go":{"type":"api","key":"%s"}}\n' "$OPENCODE_GO_API_KEY" \
+            > "$HOME/.local/share/opencode/auth.json"
 
       - name: dati COT CFTC (settimanali)
         run: uv run scripts/fetch_cot.py || true
@@ -57,6 +67,8 @@ jobs:
           uv run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # variante RR2
           uv run scripts/claude_strategy.py BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV || true   # gate sistematico + layer LLM
           uv run scripts/agents_paper.py --account claude-strategy-v1 || true
+          uv run scripts/glm_strategy.py BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV || true   # glm-5.2 regime-confluence
+          uv run scripts/agents_paper.py --account glm-regime-confluence-v1 || true
 
       # EVOLUZIONE SUL CAMPO — promozione/retrocessione AD OGNI RUN (cheap, LLM-free,
       # gate conservativi: no-op finché non ci sono abbastanza trade chiusi).

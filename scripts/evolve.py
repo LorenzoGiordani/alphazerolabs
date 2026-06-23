@@ -76,18 +76,25 @@ EXIT_DOC = """Knob di uscita mutabili (blocco `exit`) — esplorali, l'harness m
   La sizing è vol-target (exposure=risk%/stop%): stop più stretto ⇒ più leva, fino al cap."""
 
 def ask_claude(prompt: str) -> dict:
-    """Headless Claude Code (`claude -p`) — usa il piano Pro, non l'API a consumo."""
+    """Headless Claude Code (`claude -p`) — usa il piano Pro, non l'API a consumo.
+    Fallback opencode-go/glm-5.2 se claude fallisce (quota/CLI)."""
+    import os
+    import sys
+    from scripts.decide import _ask_opencode
     env = {k: v for k, v in os.environ.items() if not k.startswith("ANTHROPIC_")}
-    r = subprocess.run(
-        ["claude", "-p", "--output-format", "json", "--append-system-prompt", SYSTEM],
-        input=prompt, capture_output=True, text=True, timeout=600, env=env,
-    )
-    if r.returncode != 0:
-        raise RuntimeError(f"claude -p fallito: {r.stderr[:500]}")
-    result = json.loads(r.stdout)["result"].strip()
-    if result.startswith("```"):
-        result = result.split("\n", 1)[1].rsplit("```", 1)[0]
-    return json.loads(result)
+    try:
+        r = subprocess.run(
+            ["claude", "-p", "--output-format", "json", "--append-system-prompt", SYSTEM],
+            input=prompt, capture_output=True, text=True, timeout=600, env=env,
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"claude -p fallito: {r.stderr[:500]}")
+        result = json.loads(r.stdout)["result"].strip()
+        result = result.split("\n", 1)[1].rsplit("```", 1)[0] if result.startswith("```") else result
+        return json.loads(result)
+    except RuntimeError as e:
+        print(f"[fallback] claude fallito ({str(e)[:140]}) → opencode glm-5.2", file=sys.stderr)
+        return _ask_opencode(prompt, as_json=True, system=SYSTEM)
 
 
 def eval_spec(spec: dict, data: dict) -> tuple[dict, pd.Series]:

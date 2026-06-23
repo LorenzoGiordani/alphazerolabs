@@ -80,7 +80,13 @@ ROLES = {
 }
 
 
-def _ask(prompt: str, as_json: bool = False):
+def _strip_fence(text: str) -> str:
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1].rsplit("```", 1)[0]
+    return text
+
+
+def _ask_claude(prompt: str, as_json: bool = False):
     """Headless Claude Code — piano Pro. Env ANTHROPIC_* rimosso (proxy DashScope in zshrc)."""
     import os
     import subprocess
@@ -93,14 +99,65 @@ def _ask(prompt: str, as_json: bool = False):
         raise RuntimeError(f"claude -p fallito (exit {r.returncode}): "
                            f"stderr={r.stderr[:300]} stdout={r.stdout[:300]}")
     text = json.loads(r.stdout)["result"].strip()
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1].rsplit("```", 1)[0]
+    text = _strip_fence(text)
     if as_json:
         import re
         m = re.search(r"\{.*\}", text, re.DOTALL)  # il modello a volte aggiunge prosa attorno
         if m:
             text = m.group(0)
     return json.loads(text) if as_json else text
+
+
+def _ask_opencode(prompt: str, as_json: bool = False, system: str | None = None):
+    """Fallback LLM: opencode-go/glm-5.2 via `opencode run --format json`.
+    Auth da XDG_DATA_HOME/opencode/auth.json (locale: ~/.local/share/opencode;
+    cloud: scritto dal workflow da GH secret OPENCODE_GO_API_KEY).
+    Output = stream JSONL; estrae i parti `text` dell'assistente."""
+    import os
+    import re
+    import subprocess
+    cmd = ["opencode", "run", "-m", "opencode-go/glm-5.2", "--format", "json", "--dangerously-skip-permissions"]
+    full = prompt
+    if system:
+        full = f"[ISTRUZIONI SISTEMA]\n{system}\n\n[/ISTRUZIONI SISTEMA]\n\n{prompt}"
+    if as_json:
+        full += "\n\nRispondi SOLO con JSON valido, niente markdown fence."
+    r = subprocess.run(cmd, input=full, capture_output=True, text=True, timeout=600)
+    if r.returncode != 0:
+        raise RuntimeError(f"opencode run fallito (exit {r.returncode}): "
+                           f"stderr={r.stderr[:300]} stdout={r.stdout[:300]}")
+    text = ""
+    for line in r.stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            ev = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if ev.get("type") == "text" and isinstance(ev.get("part"), dict):
+            text += ev["part"].get("text", "")
+    text = text.strip()
+    if not text:
+        raise RuntimeError(f"opencode run: nessun testo estratto. stdout={r.stdout[:300]}")
+    text = _strip_fence(text)
+    if as_json:
+        m = re.search(r"\{.*\}", text, re.DOTALL)
+        if m:
+            text = m.group(0)
+        return json.loads(text)
+    return text
+
+
+def _ask(prompt: str, as_json: bool = False):
+    """LLM call con fallback: prova claude (piano Pro), se fallisce (quota/CLI/timeout)
+    ritenta con opencode-go/glm-5.2. Trasparente per i chiamanti."""
+    try:
+        return _ask_claude(prompt, as_json)
+    except RuntimeError as e:
+        import sys
+        print(f"[fallback] claude fallito ({str(e)[:140]}) → opencode glm-5.2", file=sys.stderr)
+        return _ask_opencode(prompt, as_json)
 
 
 def signal_states(data: dict) -> dict:
