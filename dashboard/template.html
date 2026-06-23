@@ -293,8 +293,7 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 /* ---------- posizioni unificate (sintetica + espansa) ---------- */
 .live-stamp{ display:flex; align-items:center; gap:7px; margin-top:8px; font-family:var(--mono);
   font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--green); min-height:14px; }
-.pos-list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(420px,1fr)); gap:16px; }
-@media(max-width:560px){ .pos-list{ grid-template-columns:1fr; } }
+.pos-list{ display:grid; grid-template-columns:1fr; gap:10px; }
 .pcard{ border:1px solid var(--line); border-radius:var(--r); background:var(--bg-2); overflow:hidden;
   transition:border-color .15s ease; }
 .pcard:hover{ background:var(--bg-3); }
@@ -334,6 +333,12 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .pcard.open .pcard-toggle .chev{ transform:rotate(180deg); }
 .pcard-detail{ display:none; padding:0 16px 14px; }
 .pcard.open .pcard-detail{ display:block; }
+/* compatto di default: in riga solo head (asset+PnL+lato+conto) e foot (Dettaglio).
+   chart/strip/sub si aprono col toggle. */
+.pcard-sub, .pcard-chart, .pcard-strip{ display:none; }
+.pcard.open .pcard-sub{ display:flex; }
+.pcard.open .pcard-chart{ display:block; }
+.pcard.open .pcard-strip{ display:grid; }
 .pcard-legend{ display:flex; flex-wrap:wrap; gap:14px; padding:10px 0 4px; font-family:var(--mono);
   font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-4); }
 .pcard-legend .sw{ display:inline-block; width:10px; height:2px; vertical-align:middle; margin-right:5px; }
@@ -1683,18 +1688,7 @@ footer .foot-mark b{ color:var(--amber); }
       kpiTile('Esposizione netta', signedUsd(net)+' · '+(netX>=0?'+':'')+NF2.format(netX)+'×', clsOf(net))+
       kpiTile('Posizioni', dist.length)+
       kpiTile('Asset più pesante', topAsset?topAsset[0]+' '+Math.round(topAsset[1]/gross*100)+'%':'—')+'</div>';
-    // distanza da stop/target live
-    dist.sort((a,b)=>a.dStop-b.dStop);
-    html+='<div style="margin-top:12px;font-family:var(--mono);font-size:12px">'+
-      '<div style="color:var(--text-3);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Distanza da stop / target'+(dist.some(d=>d.live)?' <span class="live-dot"></span>live':'')+'</div>'+
-      dist.map(d=>{
-        const warn=d.dStop<1.0; // vicino allo stop
-        return '<div style="display:flex;gap:12px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line)">'+
-          '<span class="s-tick" style="min-width:54px">'+d.sym+'</span>'+
-          '<span class="side '+d.dir+'" style="font-size:9px">'+(d.dir==='long'?'▲':'▼')+'</span>'+
-          '<span class="'+(warn?'neg':'')+'">stop '+d.dStop.toFixed(2)+'%</span>'+
-          '<span class="pos" style="opacity:.8">target '+d.dTgt.toFixed(2)+'%</span></div>';
-      }).join('')+'</div>';
+    // distanza da stop/target ora vive nel DETTAGLIO di ogni posizione (sezione Posizioni)
     host.innerHTML=html;
   }
 
