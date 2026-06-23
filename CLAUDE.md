@@ -78,9 +78,17 @@ Pages (`lux-ai.pages.dev`, deploy da `paper-run.yml`). Mac = dev box, niente
 processi produttivi residenti. Precompute pesanti (Kronos, GDELT, xsection,
 HMM) in workflow dedicati fuori dall'hot path orario.
 
-### 10. Loop evolutivo: walk-forward sempre
+### 10. Loop evolutivo: walk-forward + DSR + complessità penalty
 Mai promuovere su backtest solo — il paper trading è il gate finale
-(`FORMAT.md`). `promote.py` ritira su performance paper (mean_r < 0 con
-campione, o drawdown equity ≤ -15% precoce). Gate statistico formale
-(deflated Sharpe, complessità penalty) = roadmap. Penalità per complessità
-(n. segnali e parametri) da implementare.
+(`FORMAT.md`). `promote.py` ritira su performance paper (basket_mean_r < 0
+con campione, o drawdown equity ≤ -15% precoce). Promozione richiede:
+- `basket_sharpe_r ≥ MIN_SHARPE` (0.3) + batta il champion di MARGIN (0.2)
+- **DSR ≥ 0.95** (deflated Sharpe, Bailey-López de Prado): gate statistico
+  contro overfitting da selezione. Il DSR è calcolato in `evolve.py` sul
+  basket returns e salvato in `spec.backtest.aggregate.dsr`. `promote.py`
+  lo legge via `backtest_dsr()` e vetoa se < 0.95 (skill non distinguibile
+  dal rumore su K prove).
+- **Complexity penalty** in `evolve.py`: leaderboard ordinato per
+  `adj_sharpe = mean_sharpe - complexity_penalty` (n_segnali extra × 0.02 +
+  n_parametri × 0.005). Penalizza candidati complessi che overfittano
+  più facilmente (più gradi di libertà = fit-trap).

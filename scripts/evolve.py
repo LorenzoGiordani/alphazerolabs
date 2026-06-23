@@ -129,6 +129,26 @@ def eval_basket(spec: dict, datasets: dict) -> dict:
     return {"aggregate": agg, "per_symbol": per_symbol, "basket_rets": basket_rets}
 
 
+def complexity_penalty(spec: dict) -> float:
+    """Penalità complessità (regola 10): n_segnali + n_parametri totali.
+    Ogni segnale extra e ogni parametro extra aumenta il rischio di overfitting
+    (più gradi di libertà = più facile fit-trap nel backtest). Ritorna un valore
+    non negativo da sottrarre allo Sharpe nel leaderboard. Base: 1 segnale = 0,
+    ogni extra = 0.02; ogni parametro = 0.005. Conservativa, non blocca."""
+    signals = spec.get("signals", [])
+    n_signals = max(0, len(signals) - 1)  # primo segnale gratis (base legittima)
+    n_params = 0
+    for s in signals:
+        p = s.get("params", {})
+        n_params += sum(1 for v in p.values() if isinstance(v, (int, float)))
+    # by_class exit params contano (override per-asset-class = più gradi)
+    by_class = spec.get("exit", {}).get("by_class", {})
+    for cls, cfg in by_class.items():
+        if isinstance(cfg, dict):
+            n_params += sum(1 for v in cfg.values() if isinstance(v, (int, float)))
+    return round(n_signals * 0.02 + n_params * 0.005, 3)
+
+
 def validate(spec: dict, parent: dict, idx: int) -> dict:
     for s in spec["signals"]:
         if s["name"] not in SIGNALS:
@@ -218,16 +238,20 @@ Proponi {n} mutazioni in YAML (schema identico al parent). Obiettivo: robustezza
         d = deflated_sharpe(rets, k_trials, trial_srs)
         agg["dsr"] = round(d["dsr"], 3)
         agg["dsr_sr0_ann"] = d["sr0_ann"]
+        agg["complexity_penalty"] = complexity_penalty(spec)
+        agg["adj_sharpe"] = round(agg["mean_sharpe"] - agg["complexity_penalty"], 3)
         out = OUT_DIR / f"{spec['id']}.yaml"
         out.write_text(yaml.safe_dump(spec, sort_keys=False, allow_unicode=True))
 
-    rows.sort(key=lambda r: r[1]["mean_sharpe"], reverse=True)
+    # leaderboard per adj_sharpe (mean_sharpe - complexity_penalty): penalizza
+    # candidati complessi che overfittano più facilmente (regola 10)
+    rows.sort(key=lambda r: r[1]["adj_sharpe"], reverse=True)
     print(f"\nLeaderboard (vs parent mean sharpe {pa['mean_sharpe']:.2f}, mean ret {pa['mean_return']:+.2%}; "
-          f"gate: DSR ≥ 0.95 su K={k_trials} prove):")
+          f"gate: DSR ≥ 0.95 su K={k_trials} prove; ordine per adj_sharpe = mean_sharpe - complexity_penalty):")
     for spec, a, _ in rows:
         gate = "✓ GATE" if a["dsr"] >= 0.95 else "✗"
-        print(f"  {spec['id']:<38} sharpe {a['mean_sharpe']:6.2f} | DSR {a['dsr']:.2f} {gate} | "
-              f"ret {a['mean_return']:+7.2%} | worstDD {a['worst_drawdown']:7.2%} | "
+        print(f"  {spec['id']:<38} adj {a['adj_sharpe']:6.2f} (sharpe {a['mean_sharpe']:5.2f} - pen {a['complexity_penalty']:4.2f}) "
+              f"| DSR {a['dsr']:.2f} {gate} | ret {a['mean_return']:+7.2%} | worstDD {a['worst_drawdown']:7.2%} | "
               f"trades {a['total_trades']:>3} | fold {a['folds']} | asset+ {a['positive_symbols']}")
 
 

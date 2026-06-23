@@ -21,6 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backtest.lifecycle import (ROOT, all_specs, backtest_dsr, family,
                                 paper_stats, set_status)
+from scripts.review import append_lesson
 
 LIFECYCLE_LOG = ROOT / "paper" / "lifecycle.jsonl"
 LESSONS = ROOT / "paper" / "lessons.jsonl"
@@ -28,6 +29,7 @@ LESSONS = ROOT / "paper" / "lessons.jsonl"
 MIN_SHARPE = 0.3   # sharpe_r minimo per essere "champion material"
 MARGIN = 0.2       # il challenger deve battere il champion di questo margine (sharpe_r)
 MAX_DD_PCT = 15.0  # drawdown equity oltre il quale ritira anche con pochi trade chiusi
+MIN_DSR = 0.95     # deflated Sharpe minimo per promozione (gate anti-overfitting, regola 10)
 
 
 def log_event(rec: dict) -> None:
@@ -38,12 +40,12 @@ def log_event(rec: dict) -> None:
 
 
 def add_lesson(strategy: str, verdict: str, lesson: str, tags: list[str]) -> None:
+    """Canale unificato via review.append_lesson (regola 7). Schema compatibile
+    con --add: trade_key, symbol=basket, verdict, lesson, tags."""
     rec = {"trade_key": f"lifecycle|{strategy}|{datetime.now(timezone.utc):%Y-%m-%d}",
            "symbol": "basket", "strategy": strategy, "verdict": verdict,
-           "lesson": lesson, "tags": tags,
-           "logged_at": datetime.now(timezone.utc).isoformat()}
-    with LESSONS.open("a") as f:
-        f.write(json.dumps(rec) + "\n")
+           "lesson": lesson, "tags": tags}
+    append_lesson(rec)
 
 
 def main() -> None:
@@ -101,7 +103,10 @@ def main() -> None:
                                ["lifecycle", "retire", "paper", "drawdown"])
                 changes += 1
 
-        # 2. miglior challenger qualificato (basket_sharpe_r, regola 5)
+        # 2. miglior challenger qualificato (basket_sharpe_r + DSR gate, regole 5 + 10)
+        # DSR: gate anti-overfitting. Il challenger deve avere DSR >= MIN_DSR dal
+        # backtest (salvato in spec.backtest.aggregate.dsr da evolve.py). Promuovere
+        # senza DSR = promuovere rumore selezionato (lezione FINSABER/Profit Mirage).
         qual = [(f, s, st) for f, s, st in challengers
                 if st["n_closed"] >= args.min_trades and st.get("basket_mean_r", 0) > 0
                 and st.get("basket_sharpe_r", 0) >= MIN_SHARPE]
@@ -110,6 +115,16 @@ def main() -> None:
         best = max(qual, key=lambda m: m[2].get("basket_sharpe_r", 0.0))
         bf, bs, bst = best
 
+        # gate DSR: se il backtest ha DSR < MIN_DSR, la skill apparente è
+        # compatibile col rumore su K prove → niente promozione
+        dsr = backtest_dsr(bs)
+        if dsr is not None and dsr < MIN_DSR:
+            print(f"  {bs['id']} (basket_sharpe {bst.get('basket_sharpe_r', 0.0)}) "
+                  f"DSR {dsr} < {MIN_DSR}: skill non distinguibile dal rumore (overfitting)")
+            continue
+        if dsr is None:
+            print(f"  ⚠ {bs['id']}: DSR backtest mancante — promozione senza gate anti-overfitting")
+
         beats = champ_sharpe is None or bst.get("basket_sharpe_r", 0.0) >= champ_sharpe + MARGIN
         if not beats:
             print(f"  {bs['id']} (basket_sharpe {bst.get('basket_sharpe_r', 0.0)}) "
@@ -117,17 +132,19 @@ def main() -> None:
             continue
 
         print(f"  → PROMOTE {bs['id']} a champion (basket_sharpe {bst.get('basket_sharpe_r', 0.0)}, "
-              f"DSR backtest {backtest_dsr(bs)})")
+              f"DSR {dsr if dsr is not None else 'n/a'})")
         if not args.dry_run:
             if champ:
                 set_status(champ[0], "retired")
                 log_event({"event": "dethrone", "strategy": champ[1]["id"], "family": fam,
                            "by": bs["id"], "stats": champ[2]})
             set_status(bf, "champion")
-            log_event({"event": "promote", "strategy": bs["id"], "family": fam, "stats": bst})
+            log_event({"event": "promote", "strategy": bs["id"], "family": fam, "stats": bst,
+                       "dsr": dsr})
             add_lesson(bs["id"], "thesis_right",
                        f"Promossa a CHAMPION: {bst['n_closed']} trade paper, basket_sharpe "
-                       f"{bst.get('basket_sharpe_r', 0.0)}, win {bst['win_rate']}, PnL {bst['total_pnl']}$. "
+                       f"{bst.get('basket_sharpe_r', 0.0)}, DSR {dsr}, win {bst['win_rate']}, "
+                       f"PnL {bst['total_pnl']}$. "
                        + (f"Spodesta {champ[1]['id']}." if champ else "Primo champion della famiglia."),
                        ["lifecycle", "promote", "paper", "champion"])
         changes += 1

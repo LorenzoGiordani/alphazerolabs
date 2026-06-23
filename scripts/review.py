@@ -75,6 +75,16 @@ def add_lessons(path: str) -> None:
     print(f"{n} lezioni aggiunte")
 
 
+def append_lesson(rec: dict) -> None:
+    """Canale unificato per scrivere una lezione singola (usato da promote.py).
+    Mantiene lo schema compatibile con --add: trade_key, symbol, verdict,
+    lesson, tags, logged_at. Aggiunge logged_at se mancante."""
+    LESSONS.parent.mkdir(exist_ok=True)
+    rec.setdefault("logged_at", datetime.now(timezone.utc).isoformat())
+    with LESSONS.open("a") as f:
+        f.write(json.dumps(rec) + "\n")
+
+
 def main() -> None:
     mode = sys.argv[1] if len(sys.argv) > 1 else "auto"
     if mode == "--add":

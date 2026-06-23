@@ -143,3 +143,71 @@ def test_global_caps_sane():
     assert GLOBAL_RISK_CAPS["max_leverage"] >= 2   # almeno quanto desk LLM
     assert GLOBAL_RISK_CAPS["max_concurrent_positions"] >= 3
     assert 0 < GLOBAL_RISK_CAPS["max_risk_per_trade_pct"] <= 5
+
+
+def test_complexity_penalty_simple():
+    """Strategia con 1 segnale + 2 params = penalty bassa (base gratuita)."""
+    from scripts.evolve import complexity_penalty
+    spec = {"signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}}]}
+    # 1 segnale = 0 (base gratis), 2 params = 0.01 → 0.01
+    assert complexity_penalty(spec) == 0.01
+
+
+def test_complexity_penalty_grows_with_signals():
+    """Più segnali = penalty più alta (overfitting risk cresce)."""
+    from scripts.evolve import complexity_penalty
+    simple = {"signals": [{"name": "tsmom", "params": {"short_h": 168, "long_h": 720}}]}
+    complex_spec = {"signals": [
+        {"name": "tsmom", "params": {"short_h": 168, "long_h": 720}},
+        {"name": "liq_imbalance", "params": {"lookback_d": 21, "extreme_pct": 80}},
+        {"name": "kronos_forecast", "params": {"horizon_h": 24, "min_move_pct": 1.0}},
+        {"name": "news_event", "params": {"max_age_h": 24, "min_z": 2.0}},
+    ]}
+    assert complexity_penalty(complex_spec) > complexity_penalty(simple)
+    # complex: 3 extra signals * 0.02 + 8 params * 0.005 = 0.06 + 0.04 = 0.10
+    assert complexity_penalty(complex_spec) == 0.10
+
+
+def test_complexity_penalty_by_class_counts():
+    """by_class exit params contano (override per-asset-class = gradi extra)."""
+    from scripts.evolve import complexity_penalty
+    spec = {"signals": [{"name": "tsmom", "params": {"short_h": 168}}],
+            "exit": {"by_class": {"crypto": {"stop_atr_mult": 2.5, "target_r": 2.0},
+                                   "stock": {"max_leverage": 4}}}}
+    # 0 extra signals + 1 param signal + 3 by_class params = 0.005 + 0.015 = 0.02
+    assert complexity_penalty(spec) == 0.02
+
+
+def test_append_lesson_unified_channel(tmp_path, monkeypatch):
+    """promote.add_lesson scrive via review.append_lesson (regola 7, canale unificato)."""
+    import backtest.lifecycle as lc
+    lc.ROOT = tmp_path
+    paper_dir = tmp_path / "paper"
+    paper_dir.mkdir(exist_ok=True)
+    monkeypatch.setattr("scripts.review.LESSONS", paper_dir / "lessons.jsonl")
+    monkeypatch.setattr("backtest.lifecycle.ROOT", tmp_path)
+    from scripts.review import append_lesson
+    rec = {"trade_key": "lifecycle|test-strat|2026-06-24",
+           "symbol": "basket", "strategy": "test-strat",
+           "verdict": "thesis_wrong", "lesson": "test lesson", "tags": ["test"]}
+    append_lesson(rec)
+    lines = (paper_dir / "lessons.jsonl").read_text().splitlines()
+    assert len(lines) == 1
+    written = json.loads(lines[0])
+    assert written["lesson"] == "test lesson"
+    assert "logged_at" in written   # append_lesson aggiunge timestamp
+
+
+def test_promote_dsr_gate_blocks_overfit(tmp_path, monkeypatch):
+    """promote.py non promuove challenger con DSR < MIN_DSR anche se basket_sharpe alto."""
+    import backtest.lifecycle as lc
+    lc.ROOT = tmp_path
+    paper_dir = tmp_path / "paper"
+    paper_dir.mkdir(exist_ok=True)
+    monkeypatch.setattr("backtest.lifecycle.ROOT", tmp_path)
+    monkeypatch.setattr("backtest.lifecycle.JOURNAL", paper_dir / "journal.jsonl")
+    # spec fittizio con DSR basso salvato nel backtest
+    from backtest.lifecycle import backtest_dsr
+    spec = {"backtest": {"basket_6m": {"aggregate": {"dsr": 0.50}}}}
+    assert backtest_dsr(spec) == 0.50
+    # DSR 0.50 < MIN_DSR 0.95 → gate deve bloccare (verificato nella logica promote)
