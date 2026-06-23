@@ -9,7 +9,7 @@
   "last_decision_ts": "2026-06-21T17:23:00.800287+00:00"
  },
  "tsmom-v1": {
-  "equity": 10163.673439166001,
+  "equity": 9848.768972675314,
   "positions": {
    "BTC": {
     "strategy": "tsmom-v1",
@@ -64,25 +64,6 @@
     "symbol": "xyz:CL",
     "direction": "short",
     "size_usd": 4449.58,
-    "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-22 23:00:00+00:00",
-    "_last_ts": "2026-06-22 23:00:00+00:00"
-   },
-   "xyz:SKHX": {
-    "sign": 1,
-    "entry_px": 1937.3874,
-    "stop_px": 1865.385859714286,
-    "target_px": 2052.589864457143,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 1937.3874,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-v1",
-    "symbol": "xyz:SKHX",
-    "direction": "long",
-    "size_usd": 2683.57,
     "opened_at": "2026-06-22 10:00:00+00:00",
     "checked_until": "2026-06-22 23:00:00+00:00",
     "_last_ts": "2026-06-22 23:00:00+00:00"
@@ -144,25 +125,6 @@
     "checked_until": "2026-06-22 23:00:00+00:00",
     "_last_ts": "2026-06-22 23:00:00+00:00"
    },
-   "xyz:DRAM": {
-    "sign": 1,
-    "entry_px": 79.66893060000001,
-    "stop_px": 77.36369821714287,
-    "target_px": 83.35730241257143,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 79.66893060000001,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-v1",
-    "symbol": "xyz:DRAM",
-    "direction": "long",
-    "size_usd": 3443.79,
-    "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-22 23:00:00+00:00",
-    "_last_ts": "2026-06-22 23:00:00+00:00"
-   },
    "xyz:MRVL": {
     "sign": 1,
     "entry_px": 306.291246,
@@ -182,24 +144,59 @@
     "checked_until": "2026-06-22 23:00:00+00:00",
     "_last_ts": "2026-06-22 23:00:00+00:00"
    },
-   "xyz:SNDK": {
+   "xyz:MU": {
     "sign": 1,
-    "entry_px": 2277.7554600000003,
-    "stop_px": 2220.555450857143,
-    "target_px": 2369.275474628572,
+    "entry_px": 1230.54606,
+    "stop_px": 1196.647853142857,
+    "target_px": 1284.7831909714284,
     "remaining": 1.0,
     "partial_done": false,
-    "hi_water": 2277.7554600000003,
+    "hi_water": 1230.54606,
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
     "strategy": "tsmom-v1",
-    "symbol": "xyz:SNDK",
+    "symbol": "xyz:MU",
     "direction": "long",
-    "size_usd": 4047.99,
-    "opened_at": "2026-06-22 19:00:00+00:00",
-    "checked_until": "2026-06-22 23:00:00+00:00",
-    "_last_ts": "2026-06-22 23:00:00+00:00"
+    "size_usd": 3652.71,
+    "opened_at": "2026-06-22 23:00:00+00:00",
+    "checked_until": "2026-06-22 23:00:00+00:00"
+   },
+   "xyz:INTC": {
+    "sign": 1,
+    "entry_px": 139.20783600000001,
+    "stop_px": 136.00576714285717,
+    "target_px": 144.33114617142863,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 139.20783600000001,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-v1",
+    "symbol": "xyz:INTC",
+    "direction": "long",
+    "size_usd": 4284.15,
+    "opened_at": "2026-06-22 23:00:00+00:00",
+    "checked_until": "2026-06-22 23:00:00+00:00"
+   },
+   "xyz:NVDA": {
+    "sign": -1,
+    "entry_px": 207.80843,
+    "stop_px": 210.26879497142855,
+    "target_px": 203.87184604571428,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 207.80843,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-v1",
+    "symbol": "xyz:NVDA",
+    "direction": "short",
+    "size_usd": 8321.67,
+    "opened_at": "2026-06-22 23:00:00+00:00",
+    "checked_until": "2026-06-22 23:00:00+00:00"
    }
   }
  },
@@ -300,7 +297,7 @@
     "stop_px": 0.21911141894999997,
     "target_px": 0.19773469515,
     "opened_at": "2026-06-20 09:00:00+00:00",
-    "checked_until": "2026-06-22 22:00:00+00:00",
+    "checked_until": "2026-06-22 23:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -308,7 +305,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-22 22:00:00+00:00"
+    "_last_ts": "2026-06-22 23:00:00+00:00"
    },
    "WLD": {
     "sign": 1,
@@ -587,8 +584,8 @@
     "direction": "short",
     "size_usd": 3799.17,
     "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-22 22:00:00+00:00",
-    "_last_ts": "2026-06-22 22:00:00+00:00"
+    "checked_until": "2026-06-22 23:00:00+00:00",
+    "_last_ts": "2026-06-22 23:00:00+00:00"
    },
    "NEAR": {
     "sign": -1,
@@ -692,23 +689,23 @@
   "last_decision_ts": "2026-06-22T19:22:53.570120+00:00"
  },
  "xsmom-port-v1": {
-  "equity": 10032.230946204112,
+  "equity": 10134.071793492663,
   "positions": {
    "XRP": {
-    "notional": 2466.44880174292,
-    "px": 1.1321
+    "notional": 2459.694989106754,
+    "px": 1.129
    },
    "NEAR": {
-    "notional": -2472.735674676524,
-    "px": 2.1404
+    "notional": -2387.5924214417737,
+    "px": 2.0667
    },
    "WLD": {
-    "notional": 2492.218054114455,
-    "px": 0.6245
+    "notional": 2472.0648096416317,
+    "px": 0.61945
    },
    "ZEC": {
-    "notional": -2468.1329530495827,
-    "px": 449.99
+    "notional": -2424.528301886792,
+    "px": 442.04
    }
   },
   "last_rebalance_ts": "2026-06-22T12:53:58.749463+00:00"
