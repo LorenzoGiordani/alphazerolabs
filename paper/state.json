@@ -337,7 +337,7 @@
   "last_decision_ts": ""
  },
  "tsmom-atr-v1": {
-  "equity": 8534.125027755694,
+  "equity": 8532.529458255694,
   "positions": {
    "PUMP": {
     "sign": -1,
@@ -509,6 +509,24 @@
     "opened_at": "2026-06-23 06:00:00+00:00",
     "checked_until": "2026-06-23 07:00:00+00:00",
     "_last_ts": "2026-06-23 07:00:00+00:00"
+   },
+   "ETH": {
+    "sign": -1,
+    "entry_px": 1679.664,
+    "stop_px": 1720.0916271428569,
+    "target_px": 1598.8087457142858,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 1679.664,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-atr-v1",
+    "symbol": "ETH",
+    "direction": "short",
+    "size_usd": 3545.71,
+    "opened_at": "2026-06-23 07:00:00+00:00",
+    "checked_until": "2026-06-23 07:00:00+00:00"
    }
   }
  },
@@ -670,23 +688,23 @@
   "last_decision_ts": "2026-06-22T19:22:53.570120+00:00"
  },
  "xsmom-port-v1": {
-  "equity": 10046.363877933645,
+  "equity": 10108.652497289411,
   "positions": {
    "XRP": {
-    "notional": 2459.912854030501,
-    "px": 1.1291
+    "notional": 2423.9651416122006,
+    "px": 1.1126
    },
    "NEAR": {
-    "notional": -2357.3243992606276,
-    "px": 2.0405
+    "notional": -2330.753234750461,
+    "px": 2.0175
    },
    "WLD": {
-    "notional": 2335.661265863198,
-    "px": 0.58527
+    "notional": 2331.0320057466683,
+    "px": 0.58411
    },
    "ZEC": {
-    "notional": -2406.318560772268,
-    "px": 438.72
+    "notional": -2330.024133391838,
+    "px": 424.81
    }
   },
   "last_rebalance_ts": "2026-06-22T12:53:58.749463+00:00"
