@@ -1524,3 +1524,6 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10359.41, "open_positions": 0, "logged_at": "2026-06-23T08:20:40.462225+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9949.13, "open_positions": 2, "logged_at": "2026-06-23T08:20:42.398306+00:00"}
 {"type": "heartbeat", "strategy": "claude-strategy-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-23T08:20:56.823188+00:00"}
+{"type": "close", "strategy": "tsmom-atr-v1", "symbol": "BTC", "reason": "target", "exit_px": 62347.42607753143, "frac": 1.0, "remaining": 0.0, "pnl_usd": 176.76, "equity": 8709.29, "ts": "2026-06-23 08:00:00+00:00", "logged_at": "2026-06-23T08:27:47.376277+00:00"}
+{"type": "close", "strategy": "lux-confluence-rr2-v1", "symbol": "ETH", "reason": "target", "exit_px": 1645.642791317143, "frac": 1.0, "remaining": 0.0, "pnl_usd": 192.77, "equity": 9876.74, "ts": "2026-06-23 08:00:00+00:00", "logged_at": "2026-06-23T08:28:01.648907+00:00"}
+{"type": "close", "strategy": "agents-rr2-v1", "symbol": "SUI", "reason": "stopped", "exit_px": 0.67534547298618, "frac": 1.0, "remaining": 0.0, "pnl_usd": -50.64, "equity": 9898.49, "ts": "2026-06-23 08:00:00+00:00", "logged_at": "2026-06-23T08:28:02.918314+00:00"}

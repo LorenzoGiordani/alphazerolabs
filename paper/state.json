@@ -222,8 +222,8 @@
     "direction": "short",
     "size_usd": 2681.17,
     "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-23 06:00:00+00:00",
-    "_last_ts": "2026-06-23 06:00:00+00:00"
+    "checked_until": "2026-06-23 07:00:00+00:00",
+    "_last_ts": "2026-06-23 07:00:00+00:00"
    }
   }
  },
@@ -337,7 +337,7 @@
   "last_decision_ts": ""
  },
  "tsmom-atr-v1": {
-  "equity": 8532.529458255694,
+  "equity": 8709.286174160268,
   "positions": {
    "PUMP": {
     "sign": -1,
@@ -374,25 +374,6 @@
     "direction": "short",
     "size_usd": 2332.51,
     "opened_at": "2026-06-21 22:00:00+00:00",
-    "checked_until": "2026-06-23 07:00:00+00:00",
-    "_last_ts": "2026-06-23 07:00:00+00:00"
-   },
-   "BTC": {
-    "sign": -1,
-    "entry_px": 64563.084800000004,
-    "stop_px": 65677.14765714286,
-    "target_px": 62334.95908571429,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 64563.084800000004,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-atr-v1",
-    "symbol": "BTC",
-    "direction": "short",
-    "size_usd": 5219.03,
-    "opened_at": "2026-06-22 01:00:00+00:00",
     "checked_until": "2026-06-23 07:00:00+00:00",
     "_last_ts": "2026-06-23 07:00:00+00:00"
    },
@@ -531,7 +512,7 @@
   }
  },
  "lux-confluence-rr2-v1": {
-  "equity": 9683.974525944413,
+  "equity": 9876.740777993276,
   "positions": {
    "CRV": {
     "sign": -1,
@@ -608,54 +589,12 @@
     "opened_at": "2026-06-23 00:00:00+00:00",
     "checked_until": "2026-06-23 07:00:00+00:00",
     "_last_ts": "2026-06-23 07:00:00+00:00"
-   },
-   "ETH": {
-    "sign": -1,
-    "entry_px": 1717.85636,
-    "stop_px": 1754.1276757142855,
-    "target_px": 1645.3137285714288,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 1717.85636,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "lux-confluence-rr2-v1",
-    "symbol": "ETH",
-    "direction": "short",
-    "size_usd": 4635.25,
-    "opened_at": "2026-06-23 04:00:00+00:00",
-    "checked_until": "2026-06-23 07:00:00+00:00",
-    "_last_ts": "2026-06-23 07:00:00+00:00"
    }
   }
  },
  "agents-rr2-v1": {
-  "equity": 9949.131679,
+  "equity": 9898.494211,
   "positions": {
-   "SUI": {
-    "strategy": "agents-rr2-v1",
-    "symbol": "SUI",
-    "direction": "long",
-    "entry_px": 0.711032178,
-    "size_usd": 999.95,
-    "stop_px": 0.6754805691,
-    "target_px": 0.7821353958,
-    "opened_at": "2026-06-22 08:00:00+00:00",
-    "checked_until": "2026-06-23 07:00:00+00:00",
-    "time_stop_h": 24,
-    "thesis": "SUI \u00e8 l'unico asset del basket con segnale quantitativo attivo (vwap_zscore=1), confermato da regime bull e forza relativa intraday di +2.8% \u2014 la pi\u00f9 alta nelle ultime 24h. Il funding a +1.37% APR indica posizionamento long fresco e non overextension: la domanda reale non ha ancora esaurito i venditori strutturali, lasciando spazio verso $0.90\u20130.93 prima di incontrare resistenza significativa. SOL ha il pattern lessons-validated (thesis_right) ma zero segnali attivi oggi; le regole impongono il registry, non il pattern discrezionale, quindi SUI prevale.",
-    "invalidation": "Chiusura oraria sotto VWAP giornaliero con volume \u2265 media delle ultime 4h; BTC che rompe $63k innescando risk-off generalizzato sul basket; funding SUI che vira negativo prima del target (segnale di unwinding long); assenza di follow-through con espansione di volume entro 8h dall'ingresso.",
-    "decision_ts": "2026-06-17T02:19:02.150833+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 0.711032178,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-06-23 07:00:00+00:00"
-   },
    "ZEC": {
     "strategy": "agents-rr2-v1",
     "symbol": "ZEC",
