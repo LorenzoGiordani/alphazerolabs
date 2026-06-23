@@ -27,7 +27,7 @@ decision_every_h: 4         # campionamento; ma di fatto decide SOLO se il gate 
 
 signals:
   - name: news_event        # GATE (non direzionale): apre la finestra di decisione
-    params: {topics: geopolitics, max_age_h: 48, min_z: 3.0}
+    params: {topics: geopolitics, max_age_h: 240, min_z: 2.0}
 
 entry:
   rule: news_event          # trigger: burst geopolitico attivo

@@ -55,26 +55,37 @@ def load_spec() -> dict:
 
 
 def active_bursts(params: dict) -> list[dict]:
-    """Burst geopolitici attivi nelle ultime max_age_h. Prova il live GDELT
-    (fail-soft per 429), poi ripiega sul parquet canonico. Lista vuota = gate chiuso."""
+    """Burst geopolitici attivi nelle ultime max_age_h.
+
+    Fonte PRIMARIA = gdelt_events.parquet (offline, rinfrescato da
+    gdelt-precompute.yml ogni ora): niente 429, niente gate chiuso per rate-limit.
+    Fonte secondaria = live GDELT via news_events_cached (come complemento fresco
+    se il precompute è indietro). Lista vuota = gate chiuso (zero costo LLM)."""
     topic = params.get("topics", "geopolitics")
-    min_z = float(params.get("min_z", 3.0))
-    max_age_h = int(params.get("max_age_h", 48))
+    min_z = float(params.get("min_z", 2.0))
+    max_age_h = int(params.get("max_age_h", 96))
+    now = datetime.now(timezone.utc)
+
     ev = None
+    if EVENTS_PARQUET.exists():
+        ev = pd.read_parquet(EVENTS_PARQUET)
+        if not ev.empty:
+            ev["ts"] = pd.to_datetime(ev["ts"], utc=True)
+    # integrazione con la cache live (se esiste e non vuota), per catturare burst
+    # troppo recenti per il precompute orario
     try:
         from pipeline.gdelt import news_events_cached
-        ev = news_events_cached(days=max(14, max_age_h // 24 + 2))   # cache condivisa col loop paper
+        live = news_events_cached(days=max(14, max_age_h // 24 + 2))
+        if live is not None and not live.empty:
+            live["ts"] = pd.to_datetime(live["ts"], utc=True)
+            ev = pd.concat([ev, live]).drop_duplicates(subset=["ts", "topic"]) if ev is not None else live
     except Exception as e:
-        print(f"  gdelt cache fallita ({e}), ripiego sul parquet", file=sys.stderr)
-    if (ev is None or ev.empty) and EVENTS_PARQUET.exists():
-        ev = pd.read_parquet(EVENTS_PARQUET)
+        print(f"  gdelt live fallita ({e}), uso solo parquet precompute", file=sys.stderr)
     if ev is None or ev.empty:
         return []
     ev = ev[(ev["topic"] == topic) & (ev["z"] >= min_z)].copy()
     if ev.empty:
         return []
-    now = datetime.now(timezone.utc)
-    ev["ts"] = pd.to_datetime(ev["ts"], utc=True)
     ev = ev[(now - ev["ts"]) <= pd.Timedelta(hours=max_age_h)]
     return [{"ts": str(r.ts)[:16], "z": round(float(r.z), 2), "tone": round(float(r.tone), 2)}
             for r in ev.itertuples()]
