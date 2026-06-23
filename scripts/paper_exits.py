@@ -28,6 +28,8 @@ def main() -> None:
     for sid, st in state.items():
         for sym in list(st.get("positions", {})):
             pos = st["positions"][sym]
+            if "notional" in pos or "stop_px" not in pos:
+                continue   # gamba book a portafoglio (engine:portfolio): la gestisce il rebalance, non lo stop/target
             try:
                 data = fetch_live(sym)
             except Exception as e:

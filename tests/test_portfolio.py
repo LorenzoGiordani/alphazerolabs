@@ -44,6 +44,13 @@ def test_portfolio_backtest_runs():
     assert np.isfinite(equal_weight_bh(px).iloc[-1])
 
 
+def test_update_position_skips_book_leg():
+    from scripts.paper_trade import update_position
+    book = {"notional": 2500.0, "px": 1.15}        # gamba book: niente direction/stop
+    out, eq = update_position(book, pd.DataFrame(), 999, 10_000.0)
+    assert out is book and eq == 10_000.0          # ritornata intatta, non gestita come trade
+
+
 def test_portfolio_spec_excluded_from_mechanical_loop():
     spec = load(ROOT / "strategies/generated/xsmom-port-v1.yaml")
     assert spec["engine"] == "portfolio"

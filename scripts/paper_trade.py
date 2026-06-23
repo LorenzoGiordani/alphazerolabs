@@ -60,6 +60,8 @@ def update_position(pos: dict, candles: pd.DataFrame, time_stop_h: int, equity: 
     candele chiuse dall'ultimo check. `forming` (barra in corso) attiva solo le uscite
     PROTETTIVE sul residuo (stop/target pieno), come un ordine exchange intrabar: niente
     partial/trailing persistiti finché la barra non chiude (no doppio conteggio)."""
+    if "direction" not in pos:  # non è una posizione trade (es. gamba book engine:portfolio) → non gestita qui
+        return pos, equity
     if "sign" not in pos:  # posizione aperta col vecchio schema (pre ATR/partial)
         pos["sign"] = 1 if pos["direction"] == "long" else -1
         pos.setdefault("remaining", 1.0)
