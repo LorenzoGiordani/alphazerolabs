@@ -9,7 +9,7 @@
   "last_decision_ts": "2026-06-21T17:23:00.800287+00:00"
  },
  "tsmom-v1": {
-  "equity": 10054.919387974387,
+  "equity": 10048.145497474388,
   "positions": {
    "BTC": {
     "strategy": "tsmom-v1",
@@ -20,7 +20,7 @@
     "stop_px": 66473.90256,
     "target_px": 56247.14832,
     "opened_at": "2026-06-20 14:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -28,7 +28,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "xyz:BRENTOIL": {
     "sign": -1,
@@ -46,8 +46,8 @@
     "direction": "short",
     "size_usd": 4527.68,
     "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "ZEC": {
     "sign": -1,
@@ -65,8 +65,8 @@
     "direction": "short",
     "size_usd": 2491.98,
     "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "ETH": {
     "sign": -1,
@@ -84,8 +84,8 @@
     "direction": "short",
     "size_usd": 2464.02,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "xyz:SPCX": {
     "sign": -1,
@@ -103,8 +103,8 @@
     "direction": "short",
     "size_usd": 1843.48,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "SOL": {
     "sign": -1,
@@ -122,8 +122,80 @@
     "direction": "short",
     "size_usd": 2463.54,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
+   },
+   "xyz:SKHX": {
+    "sign": 1,
+    "entry_px": 1687.73748,
+    "stop_px": 1604.2136357142856,
+    "target_px": 1821.3756308571428,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 1687.73748,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-v1",
+    "symbol": "xyz:SKHX",
+    "direction": "long",
+    "size_usd": 2031.76,
+    "opened_at": "2026-06-23 06:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00"
+   },
+   "xyz:CL": {
+    "sign": -1,
+    "entry_px": 72.8814208,
+    "stop_px": 73.80052265714286,
+    "target_px": 71.22703745714286,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 72.8814208,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-v1",
+    "symbol": "xyz:CL",
+    "direction": "short",
+    "size_usd": 7972.46,
+    "opened_at": "2026-06-23 06:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00"
+   },
+   "xyz:MU": {
+    "sign": 1,
+    "entry_px": 1129.12578,
+    "stop_px": 1076.8896205714286,
+    "target_px": 1212.7036350857143,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 1129.12578,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-v1",
+    "symbol": "xyz:MU",
+    "direction": "long",
+    "size_usd": 2172.48,
+    "opened_at": "2026-06-23 06:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00"
+   },
+   "xyz:SNDK": {
+    "sign": 1,
+    "entry_px": 2112.02232,
+    "stop_px": 2038.2332794285712,
+    "target_px": 2230.0847849142856,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 2112.02232,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-v1",
+    "symbol": "xyz:SNDK",
+    "direction": "long",
+    "size_usd": 2876.39,
+    "opened_at": "2026-06-23 06:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00"
    }
   }
  },
@@ -167,7 +239,7 @@
     "stop_px": 0.21911141894999997,
     "target_px": 0.19773469515,
     "opened_at": "2026-06-20 09:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00",
     "sign": -1,
     "remaining": 1.0,
     "partial_done": false,
@@ -175,7 +247,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "NEAR": {
     "sign": -1,
@@ -193,8 +265,8 @@
     "direction": "short",
     "size_usd": 6965.0,
     "opened_at": "2026-06-22 23:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "SOL": {
     "sign": -1,
@@ -212,8 +284,8 @@
     "direction": "short",
     "size_usd": 6962.49,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "ZEC": {
     "sign": -1,
@@ -231,8 +303,8 @@
     "direction": "short",
     "size_usd": 6959.98,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "ETH": {
     "sign": -1,
@@ -250,8 +322,8 @@
     "direction": "short",
     "size_usd": 6802.56,
     "opened_at": "2026-06-23 04:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    }
   }
  },
@@ -261,7 +333,7 @@
   "last_decision_ts": ""
  },
  "tsmom-atr-v1": {
-  "equity": 8456.640050929078,
+  "equity": 8360.436499309077,
   "positions": {
    "PUMP": {
     "sign": -1,
@@ -279,27 +351,8 @@
     "direction": "short",
     "size_usd": 1713.0,
     "opened_at": "2026-06-21 22:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
-   },
-   "EIGEN": {
-    "sign": 1,
-    "entry_px": 0.27385476,
-    "stop_px": 0.2519463792,
-    "target_px": 0.31767152159999995,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 0.27385476,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-atr-v1",
-    "symbol": "EIGEN",
-    "direction": "long",
-    "size_usd": 1152.43,
-    "opened_at": "2026-06-21 22:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "TAO": {
     "sign": -1,
@@ -317,8 +370,8 @@
     "direction": "short",
     "size_usd": 2332.51,
     "opened_at": "2026-06-21 22:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "BTC": {
     "sign": -1,
@@ -336,8 +389,8 @@
     "direction": "short",
     "size_usd": 5219.03,
     "opened_at": "2026-06-22 01:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "HYPE": {
     "sign": 1,
@@ -355,8 +408,8 @@
     "direction": "long",
     "size_usd": 1906.95,
     "opened_at": "2026-06-22 03:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "ETH": {
     "sign": -1,
@@ -374,8 +427,8 @@
     "direction": "short",
     "size_usd": 3770.92,
     "opened_at": "2026-06-22 12:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "xyz:NATGAS": {
     "sign": 1,
@@ -393,8 +446,8 @@
     "direction": "long",
     "size_usd": 5608.06,
     "opened_at": "2026-06-22 18:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "xyz:BRENTOIL": {
     "sign": -1,
@@ -412,8 +465,8 @@
     "direction": "short",
     "size_usd": 6412.23,
     "opened_at": "2026-06-23 01:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "xyz:GOLD": {
     "sign": -1,
@@ -431,8 +484,44 @@
     "direction": "short",
     "size_usd": 11315.38,
     "opened_at": "2026-06-23 03:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
+   },
+   "xyz:SPCX": {
+    "sign": -1,
+    "entry_px": 148.57028,
+    "stop_px": 154.74947248571428,
+    "target_px": 138.68357202285713,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 148.57028,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-atr-v1",
+    "symbol": "xyz:SPCX",
+    "direction": "short",
+    "size_usd": 2033.28,
+    "opened_at": "2026-06-23 06:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00"
+   },
+   "cash:WTI": {
+    "sign": -1,
+    "entry_px": 72.98340040000001,
+    "stop_px": 74.14545365714287,
+    "target_px": 70.6592938857143,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 72.98340040000001,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null,
+    "strategy": "tsmom-atr-v1",
+    "symbol": "cash:WTI",
+    "direction": "short",
+    "size_usd": 5252.3,
+    "opened_at": "2026-06-23 06:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00"
    }
   }
  },
@@ -455,8 +544,8 @@
     "direction": "short",
     "size_usd": 3799.17,
     "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "NEAR": {
     "sign": -1,
@@ -474,8 +563,8 @@
     "direction": "short",
     "size_usd": 2202.73,
     "opened_at": "2026-06-22 14:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "SOL": {
     "sign": -1,
@@ -493,8 +582,8 @@
     "direction": "short",
     "size_usd": 2954.61,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "ZEC": {
     "sign": -1,
@@ -512,8 +601,8 @@
     "direction": "short",
     "size_usd": 2130.08,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "ETH": {
     "sign": -1,
@@ -531,8 +620,8 @@
     "direction": "short",
     "size_usd": 4635.25,
     "opened_at": "2026-06-23 04:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "checked_until": "2026-06-23 06:00:00+00:00",
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    }
   }
  },
@@ -548,7 +637,7 @@
     "stop_px": 0.6754805691,
     "target_px": 0.7821353958,
     "opened_at": "2026-06-22 08:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00",
     "time_stop_h": 24,
     "thesis": "SUI \u00e8 l'unico asset del basket con segnale quantitativo attivo (vwap_zscore=1), confermato da regime bull e forza relativa intraday di +2.8% \u2014 la pi\u00f9 alta nelle ultime 24h. Il funding a +1.37% APR indica posizionamento long fresco e non overextension: la domanda reale non ha ancora esaurito i venditori strutturali, lasciando spazio verso $0.90\u20130.93 prima di incontrare resistenza significativa. SOL ha il pattern lessons-validated (thesis_right) ma zero segnali attivi oggi; le regole impongono il registry, non il pattern discrezionale, quindi SUI prevale.",
     "invalidation": "Chiusura oraria sotto VWAP giornaliero con volume \u2265 media delle ultime 4h; BTC che rompe $63k innescando risk-off generalizzato sul basket; funding SUI che vira negativo prima del target (segnale di unwinding long); assenza di follow-through con espansione di volume entro 8h dall'ingresso.",
@@ -560,7 +649,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    },
    "ZEC": {
     "strategy": "agents-rr2-v1",
@@ -571,7 +660,7 @@
     "stop_px": 475.1769456,
     "target_px": 407.2945248,
     "opened_at": "2026-06-22 08:00:00+00:00",
-    "checked_until": "2026-06-23 05:00:00+00:00",
+    "checked_until": "2026-06-23 06:00:00+00:00",
     "time_stop_h": 48,
     "thesis": "ZEC ha completato un rally di +17.8% in 7 giorni senza catalizzatore fondamentale identificabile, e oggi registra il primo pullback significativo (-3.2%) con funding ancora positivo (+1.37% APR): i longs non capitolano nonostante il prezzo scenda, segnale classico di distribuzione per esaurimento. Il pattern \u00e8 documentato nelle lezioni del journal come configurazione ad alto tasso di mean reversion (-15/20%). SOL \u00e8 il setup long preferito ma manca di segnale attivo \u2014 entrare ora sarebbe speculazione cieca; ZEC short \u00e8 invece il trade con il miglior allineamento storico tra regime, struttura di funding e pattern di price action. Size ridotta (0.75%) e leva bassa (2x) compensano il rischio di slippage su asset illiquido.",
     "invalidation": "Prezzo ZEC recupera e chiude sopra il massimo degli ultimi 7 giorni, oppure il funding rate scende sotto zero (segnale che i longs stanno capitolando e la pressione sell \u00e8 gi\u00e0 esaurita) \u2014 in entrambi i casi la tesi di distribuzione/esaurimento decade e si chiude immediatamente.",
@@ -583,7 +672,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-23 05:00:00+00:00"
+    "_last_ts": "2026-06-23 06:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-06-21T17:23:00.800287+00:00"
@@ -594,7 +683,7 @@
   "last_decision_ts": "2026-06-22T19:22:53.570120+00:00"
  },
  "xsmom-port-v1": {
-  "equity": 10158.503713515096,
+  "equity": 10046.363877933645,
   "positions": {
    "XRP": {
     "notional": 2459.912854030501,
@@ -605,8 +694,8 @@
     "px": 2.0405
    },
    "WLD": {
-    "notional": 2447.801101444649,
-    "px": 0.61337
+    "notional": 2335.661265863198,
+    "px": 0.58527
    },
    "ZEC": {
     "notional": -2406.318560772268,

@@ -1,6 +1,6 @@
 id: tsmom-v1
 parent: null
-status: challenger
+status: retired
 created: 2026-06-12
 thesis: 'Time-series momentum (Moskowitz-Ooi-Pedersen): il segno del ritorno passato
   predice il ritorno futuro, su ogni asset class — l''edge istituzionale più documentato.
@@ -11,9 +11,10 @@ thesis: 'Time-series momentum (Moskowitz-Ooi-Pedersen): il segno del ritorno pas
   '
 universe:
   selection: top_liquidity
-  min_day_volume_usd: 1000000   # floor liquidita: sotto 1M$/24h troppo illiquido (noise-stop, no edge)
-  exclude: []                   # nomi da escludere a mano (segnali senza edge ripetuto); cura post-mortem
-  exclude_classes: [index]      # il trend perde sugli indici (SP500/Nasdaq Sharpe -5.5): fuori dall'universo
+  min_day_volume_usd: 1000000
+  exclude: []
+  exclude_classes:
+  - index
   max_assets: 12
   kinds:
   - perp
