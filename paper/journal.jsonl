@@ -1405,3 +1405,13 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10359.41, "open_positions": 0, "logged_at": "2026-06-22T23:18:08.924564+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9998.66, "open_positions": 3, "logged_at": "2026-06-22T23:18:11.623459+00:00"}
 {"type": "heartbeat", "strategy": "claude-strategy-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-22T23:18:24.462823+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-v1", "equity": 10163.67, "open_positions": 10, "logged_at": "2026-06-23T00:16:43.661583+00:00"}
+{"type": "open", "sign": -1, "entry_px": 2.06628666, "stop_px": 2.1179438264999995, "target_px": 1.9113151604999998, "remaining": 1.0, "partial_done": false, "hi_water": 2.06628666, "tp1_px": null, "tp1_frac": 0.0, "trail_dist": null, "strategy": "lux-0.1-beta", "symbol": "NEAR", "direction": "short", "size_usd": 6965.0, "opened_at": "2026-06-22 23:00:00+00:00", "checked_until": "2026-06-22 23:00:00+00:00", "stop_pct_eff": 2.5, "atr_pct": 0.0164, "thesis": "tsmom AND liq_imbalance AND kronos_forecast \u2192 signal_vote", "signals_last": {"tsmom": -1, "liq_imbalance": -1, "kronos_forecast": -1, "smart_money_ratio": 0, "oi_trend": 0, "news_event": 0}, "logged_at": "2026-06-23T00:16:44.279207+00:00"}
+{"type": "heartbeat", "strategy": "lux-0.1-beta", "equity": 8703.11, "open_positions": 3, "logged_at": "2026-06-23T00:16:44.441243+00:00"}
+{"type": "heartbeat", "strategy": "lux-confluence-rr2-v1", "equity": 9789.3, "open_positions": 3, "logged_at": "2026-06-23T00:16:45.181224+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-atr-v1", "equity": 8498.37, "open_positions": 10, "logged_at": "2026-06-23T00:16:52.511315+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10359.41, "open_positions": 0, "logged_at": "2026-06-23T00:16:53.088286+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9998.66, "open_positions": 3, "logged_at": "2026-06-23T00:16:54.035738+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10359.41, "open_positions": 0, "logged_at": "2026-06-23T00:19:52.197897+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9998.66, "open_positions": 3, "logged_at": "2026-06-23T00:19:54.206806+00:00"}
+{"type": "heartbeat", "strategy": "claude-strategy-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-23T00:20:04.411401+00:00"}
