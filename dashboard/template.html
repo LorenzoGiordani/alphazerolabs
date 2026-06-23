@@ -528,6 +528,7 @@ footer .foot-mark b{ color:var(--amber); }
       <h2>Tutte le decisioni, e il perché</h2>
       <p class="note">Ordine cronologico inverso: sia le aperture automatiche dei sistemi, sia le proposte del desk AI. Per ognuna: il motivo dell'ingresso e cosa la farebbe chiudere.</p>
     </div>
+    <div class="book-filters" id="dec-filters"></div>
     <div class="feed" id="feed"></div>
   </section>
 
@@ -1199,9 +1200,19 @@ footer .foot-mark b{ color:var(--amber); }
   }
 
   /* ---------- render: decisions feed ---------- */
+  let decFilter='*';
   function renderFeed(){
+    const fhost=$('#dec-filters');
+    if(fhost){
+      fhost.innerHTML='';
+      const seen=new Map();
+      (DATA.decisions||[]).forEach(d=>{ if(d.account&&!seen.has(d.account)) seen.set(d.account, d.account_label||d.account); });
+      const mk=(id,label)=>{ const b=el('button','bchip'+(decFilter===id?' active':'')); b.textContent=label; b.onclick=()=>{ decFilter=id; renderFeed(); }; fhost.appendChild(b); };
+      mk('*','Tutte');
+      seen.forEach((label,id)=>mk(id,label));
+    }
     const host=$('#feed'); host.innerHTML='';
-    (DATA.decisions||[]).forEach(d=>{
+    (DATA.decisions||[]).filter(d=>decFilter==='*'||d.account===decFilter).forEach(d=>{
       const card=el('div','dcard v-'+d.risk_verdict);
       let out='';
       if(d.outcome){
