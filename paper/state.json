@@ -9,7 +9,7 @@
   "last_decision_ts": "2026-06-21T17:23:00.800287+00:00"
  },
  "tsmom-v1": {
-  "equity": 9921.865073485276,
+  "equity": 9820.225576145463,
   "positions": {
    "BTC": {
     "strategy": "tsmom-v1",
@@ -181,30 +181,11 @@
     "opened_at": "2026-06-23 01:00:00+00:00",
     "checked_until": "2026-06-23 04:00:00+00:00",
     "_last_ts": "2026-06-23 04:00:00+00:00"
-   },
-   "xyz:INTC": {
-    "sign": 1,
-    "entry_px": 136.66732799999997,
-    "stop_px": 133.03060079999997,
-    "target_px": 142.48609152,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 136.66732799999997,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-v1",
-    "symbol": "xyz:INTC",
-    "direction": "long",
-    "size_usd": 3729.24,
-    "opened_at": "2026-06-23 01:00:00+00:00",
-    "checked_until": "2026-06-23 04:00:00+00:00",
-    "_last_ts": "2026-06-23 04:00:00+00:00"
    }
   }
  },
  "tsmom-conservative-v1": {
-  "equity": 9763.330186546047,
+  "equity": 9973.405045107163,
   "positions": {
    "HYPE": {
     "sign": 1,
@@ -222,27 +203,8 @@
     "direction": "long",
     "size_usd": 2332.19,
     "opened_at": "2026-06-22 03:00:00+00:00",
-    "checked_until": "2026-06-22 23:00:00+00:00",
-    "_last_ts": "2026-06-22 23:00:00+00:00"
-   },
-   "xyz_GOLD": {
-    "sign": -1,
-    "entry_px": 4206.35856,
-    "stop_px": 4242.8512599999995,
-    "target_px": 4140.6717,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 4206.35856,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-conservative-v1",
-    "symbol": "xyz_GOLD",
-    "direction": "short",
-    "size_usd": 6930.54,
-    "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-22 23:00:00+00:00",
-    "_last_ts": "2026-06-22 23:00:00+00:00"
+    "checked_until": "2026-06-23 04:00:00+00:00",
+    "_last_ts": "2026-06-23 04:00:00+00:00"
    },
    "xyz_CL": {
     "sign": -1,
@@ -260,27 +222,8 @@
     "direction": "short",
     "size_usd": 2681.17,
     "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-22 23:00:00+00:00",
-    "_last_ts": "2026-06-22 23:00:00+00:00"
-   },
-   "xyz_SILVER": {
-    "sign": -1,
-    "entry_px": 66.39671799999999,
-    "stop_px": 67.79158182857141,
-    "target_px": 63.885963108571424,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 66.39671799999999,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-conservative-v1",
-    "symbol": "xyz_SILVER",
-    "direction": "short",
-    "size_usd": 2860.49,
-    "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-22 23:00:00+00:00",
-    "_last_ts": "2026-06-22 23:00:00+00:00"
+    "checked_until": "2026-06-23 04:00:00+00:00",
+    "_last_ts": "2026-06-23 04:00:00+00:00"
    }
   }
  },
@@ -289,7 +232,7 @@
   "positions": {}
  },
  "lux-0.1-beta": {
-  "equity": 8500.13932455,
+  "equity": 8325.6248431,
   "positions": {
    "CRV": {
     "strategy": "lux-0.1-beta",
@@ -364,25 +307,6 @@
     "direction": "short",
     "size_usd": 6959.98,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 04:00:00+00:00",
-    "_last_ts": "2026-06-23 04:00:00+00:00"
-   },
-   "WLD": {
-    "sign": 1,
-    "entry_px": 0.613492674,
-    "stop_px": 0.5981553571499999,
-    "target_px": 0.6595046245499999,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 0.613492674,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "lux-0.1-beta",
-    "symbol": "WLD",
-    "direction": "long",
-    "size_usd": 6805.01,
-    "opened_at": "2026-06-23 02:00:00+00:00",
     "checked_until": "2026-06-23 04:00:00+00:00",
     "_last_ts": "2026-06-23 04:00:00+00:00"
    },
@@ -725,31 +649,8 @@
   }
  },
  "agents-rr2-v1": {
-  "equity": 9998.6641165,
+  "equity": 9949.131679,
   "positions": {
-   "SOL": {
-    "strategy": "agents-rr2-v1",
-    "symbol": "SOL",
-    "direction": "long",
-    "entry_px": 73.8767724,
-    "size_usd": 1218.75,
-    "stop_px": 70.92170150399998,
-    "target_px": 79.786914192,
-    "opened_at": "2026-06-22 08:00:00+00:00",
-    "checked_until": "2026-06-23 03:00:00+00:00",
-    "time_stop_h": 48,
-    "thesis": "SOL replica il pattern ad alta aspettativa gi\u00e0 archiviato nelle lezioni (bull regime + funding basso + vwap_zscore + outperformance spot basket): funding a 0.38% APR vs 1.37% di ETH/SUI segnala posizionamento derivati non affollato, mantenendo asimmetria favorevole al long. Il +11.3% settimanale su basket misto con un solo segnale attivo (vwap_zscore=1) indica che il momentum spot non \u00e8 ancora stato prezzato nei derivati. La tesi \u00e8 valida se SOL tiene il regime bull nelle prossime 24h e non registra spike di funding oltre 1% APR. ZEC scartato: doppio segnale ma funding identico a ETH/SUI (1.37%), illiquidit\u00e0 e entry gi\u00e0 +6.6% intraday aumentano il costo dell'errore.",
-    "invalidation": "SOL rompe e chiude sotto $71.50 (\u2248-4% da entry, sotto VWAP), oppure funding supera 1.0% APR segnalando affollamento long, oppure BTC scende sotto $63,000 innescando risk-off correlato su tutto il basket.",
-    "decision_ts": "2026-06-16T08:19:13.498479+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 73.8767724,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-06-23 03:00:00+00:00"
-   },
    "SUI": {
     "strategy": "agents-rr2-v1",
     "symbol": "SUI",
