@@ -98,7 +98,9 @@ def _journal() -> list[dict]:
 
 def paper_stats(strategy_id: str) -> dict:
     """Performance paper realizzata di una strategia, da open↔close del journal.
-    R-multiple = pnl / capitale a rischio all'apertura — robusto con pochi trade."""
+    R-multiple = pnl / capitale a rischio all'apertura — robusto con pochi trade.
+    equity_dd_pct = drawdown corrente vs baseline $10k (da state.json): gate
+    precoce per ritirare strategie in perdita grave anche con pochi trade chiusi."""
     j = _journal()
     opens, closed = {}, []
     for e in j:
@@ -114,9 +116,21 @@ def paper_stats(strategy_id: str) -> dict:
             closed.append({"pnl": e.get("pnl_usd", 0.0),
                            "r": e.get("pnl_usd", 0.0) / risk if risk > 0 else 0.0})
     n = len(closed)
+    # drawdown corrente da state.json (equity unrealized incluse posizioni aperte)
+    state_path = ROOT / "paper" / "state.json"
+    equity_dd_pct = 0.0
+    if state_path.exists():
+        try:
+            st = json.loads(state_path.read_text())
+            eq = st.get(strategy_id, {}).get("equity")
+            if eq is not None:
+                equity_dd_pct = round((eq - 10000.0) / 10000.0 * 100, 2)
+        except Exception:
+            pass
     if n == 0:
         return {"n_closed": 0, "total_pnl": 0.0, "win_rate": 0.0,
-                "mean_r": 0.0, "sharpe_r": 0.0, "open_now": len(opens)}
+                "mean_r": 0.0, "sharpe_r": 0.0, "open_now": len(opens),
+                "equity_dd_pct": equity_dd_pct}
     rs = [c["r"] for c in closed]
     mean_r = sum(rs) / n
     sd = (sum((r - mean_r) ** 2 for r in rs) / (n - 1)) ** 0.5 if n > 1 else 0.0
@@ -127,6 +141,7 @@ def paper_stats(strategy_id: str) -> dict:
         "mean_r": round(mean_r, 3),
         "sharpe_r": round(mean_r / sd * (n ** 0.5), 3) if sd > 0 else 0.0,
         "open_now": len(opens),
+        "equity_dd_pct": equity_dd_pct,
     }
 
 

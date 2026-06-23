@@ -1,21 +1,22 @@
 id: lux-0.1-beta
 parent: tsmom-liq-v1
-status: challenger
+status: retired
 created: '2026-06-17'
-thesis: >
-  LUX 0.1 BETA — la flagship: distillazione del meglio appreso finora. Entra solo su
-  TRIPLA CONFLUENZA ORTOGONALE — trend (tsmom) + liquidazioni reali Coinalyze
-  (liq_imbalance, l'unico edge robusto provato) + forecast del foundation model Kronos.
+thesis: 'LUX 0.1 BETA — la flagship: distillazione del meglio appreso finora. Entra
+  solo su TRIPLA CONFLUENZA ORTOGONALE — trend (tsmom) + liquidazioni reali Coinalyze
+  (liq_imbalance, l''unico edge robusto provato) + forecast del foundation model Kronos.
   Tre fonti indipendenti (prezzo, flusso liquidazioni, modello) che devono concordare
   → entry rare ma ad altissima convinzione. La direzione esce dal VOTO di 5 segnali
-  ortogonali (ai tre si aggiungono smart-money positioning e OI-confirmed trend). Veto
-  sugli eventi news (tone falsificato come predittore — usato solo come filtro di
-  volatilità). Exit lesson-informed: stop alla soglia di invalidazione, vincenti a 3R.
-  Rischio: leva 3x, 2% per trade (esposizione effettiva ~0.8x via rischio/stop), 3
-  posizioni. Gira in parallelo al desk agenti LLM (LUX-aware: ragiona sulla stessa
-  confluenza) e ne condivide il pool di lezioni.
-  Falsificata se: la confluenza a 5 segnali NON batte il tsmom-liq a 2 segnali sullo
-  Sharpe_r in paper → i segnali extra sono rumore e va semplificata.
+  ortogonali (ai tre si aggiungono smart-money positioning e OI-confirmed trend).
+  Veto sugli eventi news (tone falsificato come predittore — usato solo come filtro
+  di volatilità). Exit lesson-informed: stop alla soglia di invalidazione, vincenti
+  a 3R. Rischio: leva 3x, 2% per trade (esposizione effettiva ~0.8x via rischio/stop),
+  3 posizioni. Gira in parallelo al desk agenti LLM (LUX-aware: ragiona sulla stessa
+  confluenza) e ne condivide il pool di lezioni. Falsificata se: la confluenza a 5
+  segnali NON batte il tsmom-liq a 2 segnali sullo Sharpe_r in paper → i segnali extra
+  sono rumore e va semplificata.
+
+  '
 universe:
   selection: explicit
   max_assets: 9
@@ -49,7 +50,7 @@ signals:
   params:
     topics: crypto
     max_age_h: 24
-    min_z: 3.0
+    min_z: 2.0
 entry:
   rule: tsmom AND liq_imbalance AND kronos_forecast
   direction: signal_vote
@@ -67,6 +68,7 @@ evolution:
   - signals
   - entry
   - exit
-  notes: 'LUX 0.1 BETA — tripla confluenza ortogonale (tsmom+liq+kronos), voto a 5 segnali, veto news. Flagship unica.'
+  notes: LUX 0.1 BETA — tripla confluenza ortogonale (tsmom+liq+kronos), voto a 5
+    segnali, veto news. Flagship unica.
 backtest: {}
 paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV

@@ -27,6 +27,7 @@ LESSONS = ROOT / "paper" / "lessons.jsonl"
 
 MIN_SHARPE = 0.3   # sharpe_r minimo per essere "champion material"
 MARGIN = 0.2       # il challenger deve battere il champion di questo margine (sharpe_r)
+MAX_DD_PCT = 15.0  # drawdown equity oltre il quale ritira anche con pochi trade chiusi
 
 
 def log_event(rec: dict) -> None:
@@ -65,19 +66,34 @@ def main() -> None:
         print(f"\n[{fam}] champion={champ[1]['id'] if champ else '—'} "
               f"(sharpe_r {champ_sharpe if champ else 'n/a'}), challenger={len(challengers)}")
 
-        # 1. ritira i challenger chiaramente perdenti (campione sufficiente)
+        # 1. ritira i challenger chiaramente perdenti (campione sufficiente o DD grave)
         for f, s, st in challengers:
+            dd = st.get("equity_dd_pct", 0.0)
             print(f"  challenger {s['id']}: {st['n_closed']} chiusi, "
-                  f"sharpe_r {st['sharpe_r']}, meanR {st['mean_r']}, PnL {st['total_pnl']}$")
+                  f"sharpe_r {st['sharpe_r']}, meanR {st['mean_r']}, "
+                  f"PnL {st['total_pnl']}$, DD {dd}%")
             if st["n_closed"] >= args.min_trades and st["mean_r"] < 0:
-                print(f"    → RETIRE (perdente con {st['n_closed']} trade)")
+                print(f"    → RETIRE (perdente con {st['n_closed']} trade, meanR<0)")
                 if not args.dry_run:
                     set_status(f, "retired")
-                    log_event({"event": "retire", "strategy": s["id"], "family": fam, "stats": st})
+                    log_event({"event": "retire", "strategy": s["id"], "family": fam, "stats": st,
+                               "reason": "mean_r_negative"})
                     add_lesson(s["id"], "thesis_wrong",
                                f"Ritirata da challenger: {st['n_closed']} trade paper, "
                                f"meanR {st['mean_r']} (perdente). Il paper trading ha falsificato l'edge.",
                                ["lifecycle", "retire", "paper"])
+                changes += 1
+            elif dd <= -MAX_DD_PCT:
+                print(f"    → RETIRE (drawdown {dd}% >= {MAX_DD_PCT}% con {st['n_closed']} trade)")
+                if not args.dry_run:
+                    set_status(f, "retired")
+                    log_event({"event": "retire", "strategy": s["id"], "family": fam, "stats": st,
+                               "reason": "drawdown_breach"})
+                    add_lesson(s["id"], "thesis_wrong",
+                               f"Ritirata da challenger: drawdown equity {dd}% "
+                               f"(soglia -{MAX_DD_PCT}%), {st['n_closed']} trade chiusi. "
+                               f"Perdita grave precoce — l'edge è falsificato dal capitale a rischio.",
+                               ["lifecycle", "retire", "paper", "drawdown"])
                 changes += 1
 
         # 2. miglior challenger qualificato
