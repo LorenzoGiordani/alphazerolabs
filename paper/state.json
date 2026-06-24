@@ -19,7 +19,14 @@
     "time_stop_h": 72,
     "thesis": "ZEC \u00e8 l'unico asset con segnali tecnici attivi multipli: vol_compression=1 in bear regime segnala distribuzione compressa, non accumulazione \u2014 il bias direzionale su trend negativo \u00e8 breakdown. Il funding anomalo +3.97% APR identifica longs intrappolati strutturalmente: il loro costo di carry accelera la capitolazione e la cascata quando cede. volume_profile=-1 conferma assenza di bid denso sotto zona corrente, amplificando il vacuum potenziale. Il contesto macro avverso (selloff AI chip, redemptions istituzionali) rimuove il bid esterno che potrebbe sostenere un rimbalzo.",
     "invalidation": "Funding gira negativo entro 48h (capitolazione longs completata senza trigger breakdown) oppure chiusura daily sopra $445 con volume surge rialzista \u2014 segnalerebbe accumulazione e non distribuzione, invalidando il bias di breakdown della compressione.",
-    "decision_ts": "2026-06-24T03:18:49.434183+00:00"
+    "decision_ts": "2026-06-24T03:18:49.434183+00:00",
+    "sign": -1,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 412.857412,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null
    }
   },
   "last_decision_ts": "2026-06-24T03:18:49.434183+00:00"
@@ -487,7 +494,7 @@
  "agents-rr2-v1": {
   "equity": 9973.0147551,
   "positions": {},
-  "last_decision_ts": "2026-06-21T17:23:00.800287+00:00"
+  "last_decision_ts": "2026-06-24T03:18:49.434183+00:00"
  },
  "claude-strategy-v1": {
   "equity": 10000.0,
