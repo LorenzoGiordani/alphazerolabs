@@ -1822,3 +1822,15 @@
 {"type": "heartbeat", "strategy": "glm-regime-confluence-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-24T13:50:22.977670+00:00"}
 {"type": "skip", "strategy": "geopolitics-v1", "symbol": "WTI", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-24T13:53:38.747463+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9998.28, "open_positions": 2, "logged_at": "2026-06-24T13:53:38.748152+00:00"}
+{"type": "open", "sign": -1, "entry_px": 61295.7384, "stop_px": 62536.84727142857, "target_px": 58813.52065714286, "remaining": 1.0, "partial_done": false, "hi_water": 61295.7384, "tp1_px": null, "tp1_frac": 0.0, "trail_dist": null, "strategy": "lux-confluence-rr2-v1", "symbol": "BTC", "direction": "short", "size_usd": 5072.77, "opened_at": "2026-06-24 13:00:00+00:00", "checked_until": "2026-06-24 13:00:00+00:00", "stop_pct_eff": 2.025, "atr_pct": 0.0067, "thesis": "tsmom AND liq_imbalance AND kronos_forecast \u2192 signal_vote", "signals_last": {"tsmom": -1, "liq_imbalance": -1, "kronos_forecast": 1}, "logged_at": "2026-06-24T14:15:59.797210+00:00"}
+{"type": "heartbeat", "strategy": "lux-confluence-rr2-v1", "equity": 10269.0, "open_positions": 4, "logged_at": "2026-06-24T14:16:07.177725+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10359.26, "open_positions": 1, "logged_at": "2026-06-24T14:16:08.498423+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9972.66, "open_positions": 1, "logged_at": "2026-06-24T14:16:09.625180+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9995.6, "open_positions": 4, "logged_at": "2026-06-24T14:16:15.076839+00:00"}
+{"type": "skip", "strategy": "agents-v1", "symbol": "ZEC", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-24T14:19:25.886480+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10359.26, "open_positions": 1, "logged_at": "2026-06-24T14:19:25.887115+00:00"}
+{"type": "skip", "strategy": "agents-rr2-v1", "symbol": "ZEC", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-24T14:19:26.868009+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9972.66, "open_positions": 1, "logged_at": "2026-06-24T14:19:26.868625+00:00"}
+{"type": "heartbeat", "strategy": "claude-strategy-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-24T14:19:39.507177+00:00"}
+{"type": "heartbeat", "strategy": "glm-regime-confluence-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-06-24T14:19:50.263864+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9998.28, "open_positions": 2, "logged_at": "2026-06-24T14:22:21.307121+00:00"}
