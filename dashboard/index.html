@@ -501,10 +501,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 .secnav a.active{ color:var(--amber); border-bottom-color:var(--amber); }
 
 /* ---------- manifesto hero ---------- */
-.nof-manifesto{ padding:48px 0 40px; margin-bottom:28px; border-bottom:1px solid var(--line);
+.nof-manifesto{ padding:48px 0 40px 18px; margin-bottom:28px; border-bottom:1px solid var(--line);
   position:relative; }
-.nof-manifesto::before{ content:""; position:absolute; left:0; top:60px; width:3px; height:48px;
-  background:linear-gradient(180deg,var(--amber),transparent); }
+.nof-manifesto::before{ content:""; position:absolute; left:0; top:8px; bottom:8px; width:2px;
+  background:linear-gradient(180deg,var(--amber),transparent 85%); opacity:.6; }
 .nof-mk{ font-family:var(--mono); font-size:11px; letter-spacing:.24em; text-transform:uppercase;
   color:var(--amber); }
 .nof-mh{ font-family:var(--serif); font-weight:700; font-size:clamp(28px,4.6vw,48px); line-height:1.07;
@@ -557,10 +557,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
 /* ---------- leaderboard strategies ---------- */
 .strat-grid{ counter-reset:rank; }
-.strat-card{ position:relative; padding-left:64px; }
+.strat-card{ position:relative; padding-left:78px; }
 .strat-card::before{ counter-increment:rank; content:"#"counter(rank);
-  position:absolute; left:20px; top:20px; font-family:var(--serif); font-weight:700;
-  font-size:27px; color:var(--text-3); letter-spacing:-.02em; line-height:1; }
+  position:absolute; left:16px; top:20px; font-family:var(--serif); font-weight:700;
+  font-size:23px; color:var(--text-3); letter-spacing:-.02em; line-height:1; }
 .strat-card:nth-child(1)::before{ color:var(--amber); }
 .strat-card:nth-child(2)::before{ color:var(--text-2); }
 .strat-card:nth-child(3)::before{ color:var(--text-3); }
@@ -568,6 +568,20 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 /* ---------- restyled decision cards (journal) ---------- */
 .dcard{ padding:18px 22px 17px; }
 .dcard .thesis{ font-size:17px; line-height:1.6; }
+.thesis-bullets{ list-style:none; margin:4px 0 0; padding:0; max-width:68ch; }
+.thesis-bullets li{ font-family:var(--serif); font-size:15.5px; line-height:1.5; color:var(--text);
+  padding:3px 0 3px 18px; position:relative; text-wrap:pretty; }
+.thesis-bullets li::before{ content:""; position:absolute; left:2px; top:11px; width:6px; height:6px;
+  border-radius:50%; background:var(--amber); opacity:.7; }
+.thesis-more{ margin-top:8px; max-width:68ch; }
+.thesis-more summary{ font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--text-3); cursor:pointer; list-style:none; }
+.thesis-more summary::-webkit-details-marker{ display:none; }
+.thesis-more summary:hover{ color:var(--amber); }
+.thesis-more summary::before{ content:"▸ "; }
+.thesis-more[open] summary::before{ content:"▾ "; }
+.thesis-more p{ font-family:var(--serif); font-size:15px; line-height:1.55; color:var(--text-2);
+  margin:8px 0 0; text-wrap:pretty; }
 
 /* ---------- restyled accounts ---------- */
 .acct .equity{ font-size:36px; }
@@ -23242,6 +23256,16 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   }
 
   /* ---------- render: decisions feed ---------- */
+  // tesi lunga → bullet point sintetici (prime 2 frasi), resto dietro "espandi"
+  function bullets(text){
+    const parts = String(text||'').split(/(?<=[.;])\s+/).filter(s=>s.trim());
+    if(parts.length<=1) return '<p class="thesis">'+(text||'')+'</p>';
+    const head = parts.slice(0,2);
+    const tail = parts.slice(2).join(' ');
+    let h = '<ul class="thesis-bullets">'+head.map(p=>'<li>'+p.trim()+'</li>').join('')+'</ul>';
+    if(tail) h += '<details class="thesis-more"><summary>Mostra la tesi completa</summary><p>'+tail+'</p></details>';
+    return h;
+  }
   let decFilter='*', decVerdict='*', decState='*';
   const VERDICT_PICKS=[['*','Tutti'],['approve','Approva'],['reduce','Riduci'],['veto','Veto'],['sistema','Automatica']];
   const STATE_PICKS=[['*','Tutte'],['open','Aperta'],['closed','Chiusa']];
@@ -23297,7 +23321,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
           (d.entry_px!=null?'<span class="dcard-ts num">@ '+px(d.entry_px)+' · '+NF0.format(d.size_usd)+' $</span>':'')+
           '<span class="verdict '+d.risk_verdict+'">'+(VERDICT_IT[d.risk_verdict]||d.risk_verdict)+' '+mult+'</span>'+
         '</div>'+
-        '<p class="thesis">'+d.thesis+'</p>'+
+        bullets(d.thesis)+
         '<div class="invalidation"><b>'+(d.risk_verdict==='sistema'?'Quando si chiude':'Cosa la smentisce')+'</b>'+d.invalidation+'</div>'+
         (d.risk_notes?'<div class="invalidation rm"><b>Risk Manager</b>'+d.risk_notes+'</div>':'')+
         out;
