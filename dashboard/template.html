@@ -1315,6 +1315,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   /* ---------- render: posizioni unificate (sintetica + espansa, live) ---------- */
   const POS=[];                 // {p, acct, card, dir, baseLast}
   const LIVE={};                // symbol -> {px, ts, ok}
+  if(typeof window!=='undefined') window.LUX_LIVE = LIVE;  // esponi al layer nof1
   const LIVEHIST={};            // symbol -> [[hh:mm:ss, px], ...] accumulati nella sessione
   function posPnl(p, last){
     const dir=p.direction==='long'?1:-1;
@@ -2107,26 +2108,59 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     renderTicker();
     function poll(){
       var syms=getHeld().filter(function(s){ return BINANCE[s]; });
-      if(!syms.length) return;
+      if(!syms.length){ renderAggregate(); return; }
       var symbols=encodeURIComponent(JSON.stringify(syms.map(function(s){return BINANCE[s];})));
       fetch('https://api.binance.com/api/v3/ticker/price?symbols='+symbols,{cache:'no-store'})
         .then(function(r){ return r.json(); })
         .then(function(arr){ var inv={}; arr.forEach(function(t){ inv[t.symbol]=t.price; });
-          var m={}; syms.forEach(function(s){ if(inv[BINANCE[s]]) m[s]=inv[BINANCE[s]]; }); renderTicker(m); })
+          syms.forEach(function(s){ if(inv[BINANCE[s]]) LIVEPX[s]=parseFloat(inv[BINANCE[s]]); });
+          renderTicker(LIVEPX); renderAggregate(); })
         .catch(function(){});
     }
     poll(); setInterval(poll,6000);
   }
 
-  /* ---------- aggregate equity chart ---------- */
+  /* ---------- aggregate equity chart (live: estende le curve col mark-to-market) ---------- */
+  var LIVEPX={};  // symbol -> px (da binance poll / ws)
+  function snapPxOf(sym){
+    for(var i=0;i<(D.accounts||[]).length;i++){ var ps=(D.accounts[i].positions||[]);
+      for(var j=0;j<ps.length;j++){ if(ps[j].symbol===sym){ var c=ps[j].chart;
+        return (c&&c.length)?c[c.length-1][1]:ps[j].entry_px; } } }
+    return null;
+  }
+  // live px: preferisce WS HL dell'IIFE (window.LUX_LIVE, 2s, tutti i perp),
+  // fallback a LIVEPX (binance poll 6s, solo crypto)
+  function livePxOf(sym){
+    if(window.LUX_LIVE && window.LUX_LIVE[sym] && window.LUX_LIVE[sym].ok) return window.LUX_LIVE[sym].px;
+    if(LIVEPX[sym] && isFinite(LIVEPX[sym]) && LIVEPX[sym]>0) return LIVEPX[sym];
+    return null;
+  }
+  // equity live di un conto = equity snapshot + somma unrealized P&L delle posizioni
+  function liveEquity(a){
+    var delta=0, any=false;
+    (a.positions||[]).forEach(function(p){
+      if(!(p.entry_px>0)) return;
+      var px=livePxOf(p.symbol); var snap=snapPxOf(p.symbol);
+      if(px==null) { if(snap==null) return; px=snap; }
+      var dir=p.direction==='long'?1:-1;
+      var base=snap!=null?snap:p.entry_px;
+      delta += dir*(px-base)/p.entry_px*p.size_usd;
+      if(livePxOf(p.symbol)!=null) any=true;
+    });
+    return {eq:a.equity+delta, any:any};
+  }
   function renderAggregate(){
     var host=$('#nof-agg-chart'); if(!host) return;
     var leg=$('#nof-agg-legend');
     var accs=(D.accounts||[]).filter(function(a){ return a.equity_curve && a.equity_curve.length>1; });
     if(!accs.length){ host.innerHTML=''; if(leg) leg.innerHTML=''; return; }
     var W=920,H=230,L=14,R=128,T=18,B=28;
+    var nowTs=Date.now();
+    // curve estese col punto live (solo se c'è almeno un prezzo live per quel conto)
+    var curves=accs.map(function(a){ var liv=liveEquity(a);
+      return (liv.any)?a.equity_curve.concat([[new Date(nowTs).toISOString().slice(0,16).replace('T',' '), liv.eq]]):a.equity_curve; });
     var allT=[],allV=[];
-    accs.forEach(function(a){ a.equity_curve.forEach(function(p){
+    curves.forEach(function(c){ c.forEach(function(p){
       allT.push(new Date(String(p[0]).replace(' ','T')).getTime()); allV.push(p[1]); }); });
     var minT=Math.min.apply(null,allT), maxT=Math.max.apply(null,allT);
     var minV=Math.min.apply(null,allV), maxV=Math.max.apply(null,allV);
@@ -2163,13 +2197,14 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     var legendHtml='';
     accs.forEach(function(a,idx){
       var col=COL[idx%COL.length];
-      var d=a.equity_curve.map(function(p,i){ var x=X(new Date(String(p[0]).replace(' ','T')).getTime()), y=Y(p[1]);
+      var c=curves[idx];
+      var d=c.map(function(p,i){ var x=X(new Date(String(p[0]).replace(' ','T')).getTime()), y=Y(p[1]);
         return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1); }).join(' ');
       var path=document.createElementNS(svgNS,'path');
       path.setAttribute('d',d); path.setAttribute('fill','none'); path.setAttribute('stroke',col);
       path.setAttribute('stroke-width','2'); path.setAttribute('stroke-linejoin','round'); path.setAttribute('stroke-linecap','round');
       svg.appendChild(path);
-      var last=a.equity_curve[a.equity_curve.length-1];
+      var last=c[c.length-1];
       var ex=X(new Date(String(last[0]).replace(' ','T')).getTime()), ey=Y(last[1]);
       var dot=document.createElementNS(svgNS,'circle');
       dot.setAttribute('cx',ex); dot.setAttribute('cy',ey); dot.setAttribute('r','3.2'); dot.setAttribute('fill',col);
@@ -2181,9 +2216,21 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     });
     host.innerHTML=''; host.appendChild(svg);
     if(leg) leg.innerHTML=legendHtml;
+    // aggiorna anche il tile "Equity totale" dello strip portfolio con il valore live aggregato
+    var totalEq=accs.reduce(function(s,a){ return s+liveEquity(a).eq; },0);
+    var anyLive=accs.some(function(a){ return liveEquity(a).any; });
+    if(anyLive){
+      var base=accs.length*10000, wr=totalEq-base;
+      var eqEl=document.querySelector('[data-pf-eq]'), wrEl=document.querySelector('[data-pf-wr]');
+      if(eqEl) eqEl.innerHTML=NF2.format(totalEq)+' <span class="cur">$</span>';
+      if(wrEl){ var cls=wr>0?'pos':wr<0?'neg':'zero'; wrEl.className='s '+cls;
+        wrEl.textContent=(wr>0?'+':wr<0?'−':'')+NF2.format(Math.abs(wr))+' $ · '+(wr>0?'+':wr<0?'−':'')+NF2.format(Math.abs(wr/base*100))+' %'; }
+    }
   }
   renderAggregate();
   var aggT; window.addEventListener('resize', function(){ clearTimeout(aggT); aggT=setTimeout(renderAggregate,160); });
+  // re-render aggregate ogni 2s usando i prezzi live WS HL (window.LUX_LIVE) — l'IIFE li aggiorna
+  setInterval(renderAggregate, 2000);
 
   /* ---------- keep in sync with IIFE refresh (re-fetch page data) ---------- */
   function refresh(){
