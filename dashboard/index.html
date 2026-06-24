@@ -713,7 +713,6 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     </div>
     <div class="book-filters" id="book-filters"></div>
     <div class="book-stats" id="book-stats"></div>
-    <div id="book-analytics"></div>
     <div class="table-scroll">
       <table class="pos-tbl">
         <thead>
@@ -812,7 +811,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-24 13:04",
+ "updated_utc": "2026-06-24 13:13",
  "accounts": [
   {
    "id": "agents-v1",
@@ -19625,7 +19624,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     "liq_imbalance": 0,
     "kronos_forecast": 1,
     "smart_money_ratio": 0,
-    "oi_trend": 0
+    "oi_trend": -1
    },
    "aligned": false,
    "direction": "—"
@@ -19648,8 +19647,8 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     "tsmom": -1,
     "liq_imbalance": 0,
     "kronos_forecast": 0,
-    "smart_money_ratio": 0,
-    "oi_trend": 0
+    "smart_money_ratio": -1,
+    "oi_trend": -1
    },
    "aligned": false,
    "direction": "—"
@@ -19673,7 +19672,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     "liq_imbalance": 0,
     "kronos_forecast": -1,
     "smart_money_ratio": 0,
-    "oi_trend": 0
+    "oi_trend": -1
    },
    "aligned": false,
    "direction": "—"
@@ -19685,7 +19684,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     "liq_imbalance": 0,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
-    "oi_trend": 0
+    "oi_trend": -1
    },
    "aligned": false,
    "direction": "—"
@@ -19708,6 +19707,18 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     "tsmom": -1,
     "liq_imbalance": 0,
     "kronos_forecast": -1,
+    "smart_money_ratio": 0,
+    "oi_trend": -1
+   },
+   "aligned": false,
+   "direction": "—"
+  },
+  {
+   "symbol": "CRV",
+   "signals": {
+    "tsmom": -1,
+    "liq_imbalance": 0,
+    "kronos_forecast": 1,
     "smart_money_ratio": 0,
     "oi_trend": 0
    },
@@ -19960,7 +19971,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "esce": "stop ravvicinato, obiettivo raggiunto o troppo tempo senza risultato",
    "rischio": "nessuna leva (1x), massimo 0,6% del capitale a rischio per operazione, al più 2 posizioni insieme",
    "status": "retired",
-   "asset_class": "tutti i perp (171), crypto+stock/commodity",
+   "asset_class": "tutti i perp (172), crypto+stock/commodity",
    "risk_profile": "conservativo",
    "stats": {
     "n_closed": 22,
@@ -19978,7 +19989,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "esce": "stop 2.5%, target 3.0R, tempo max 240h",
    "rischio": "leva max 1x, 0.6% a rischio per operazione",
    "status": "retired",
-   "asset_class": "tutti i perp (173), crypto+stock/commodity",
+   "asset_class": "tutti i perp (174), crypto+stock/commodity",
    "risk_profile": "conservativo",
    "stats": {
     "n_closed": 26,
@@ -23668,23 +23679,6 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     host.innerHTML=h+'</tbody></table></div>';
   }
 
-  function renderBookAnalytics(){
-    const host=$('#book-analytics'); if(!host) return;
-    const cl=closedTrades(); if(!cl.length){ host.innerHTML=''; return; }
-    const buckets=[{l:'≤-2',min:-1e9,max:-2},{l:'-2:-1',min:-2,max:-1},{l:'-1:0',min:-1,max:0},{l:'0:1',min:0,max:1},{l:'1:2',min:1,max:2},{l:'2:3',min:2,max:3},{l:'≥3',min:3,max:1e9}];
-    const rs=cl.map(t=>t.r_mult).filter(v=>v!=null);
-    const counts=buckets.map(b=>rs.filter(v=>v>b.min&&v<=b.max).length);
-    const maxc=Math.max(1,...counts);
-    const hist='<div style="display:flex;gap:6px;align-items:flex-end;height:96px;margin-top:6px">'+buckets.map((b,i)=>
-      '<div style="flex:1;text-align:center"><div style="height:'+Math.round(counts[i]/maxc*78)+'px;background:'+(b.max<=0?'var(--red)':'var(--green)')+';opacity:.7;border-radius:2px 2px 0 0"></div>'+
-      '<div style="font-family:var(--mono);font-size:10px;margin-top:3px">'+counts[i]+'</div>'+
-      '<div style="font-family:var(--mono);font-size:8.5px;color:var(--text-3)">'+b.l+'R</div></div>').join('')+'</div>';
-    const byReason={}; cl.forEach(t=>{ const r=t.reason||'?'; (byReason[r]=byReason[r]||{n:0,pnl:0}); byReason[r].n++; byReason[r].pnl+=t.pnl_usd; });
-    const reasons='<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-family:var(--mono);font-size:12px">'+
-      Object.entries(byReason).map(([r,v])=>'<span style="color:var(--text-3)">'+(REASON_IT[r]||r)+': <b style="color:var(--text-1)">'+v.n+'</b> · <span class="'+clsOf(v.pnl)+'">'+signedUsd(v.pnl)+'</span></span>').join('')+'</div>';
-    host.innerHTML='<h3 style="font-family:var(--serif);margin:18px 0 4px">Distribuzione esiti (R) &amp; motivo uscita</h3>'+hist+reasons;
-  }
-
   // banner "cosa è cambiato dall'ultimo accesso" (localStorage)
   function renderChangeBanner(){
     const host=$('#change-banner'); if(!host) return;
@@ -23706,7 +23700,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   function renderAll(){
     renderSummary(); renderAccounts(); renderPositions(); renderFeed(); renderLessons();
     renderTree(); renderLifecycle(); renderEvents(); renderStrats(); renderBook();
-    renderPortfolioKpi(); renderPortfolioCurve(); renderRiskPanel(); renderSignalsMatrix(); renderBookAnalytics();
+    renderPortfolioKpi(); renderPortfolioCurve(); renderRiskPanel(); renderSignalsMatrix();
     renderChangeBanner();
   }
   // ricarica i dati pipeline (eventi/decisioni/trade chiusi) senza reload pagina
