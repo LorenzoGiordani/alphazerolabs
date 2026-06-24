@@ -76,6 +76,10 @@ jobs:
       - name: promote/retire continuo
         run: uv run scripts/promote.py || true
 
+      # chiude le posizioni delle strategie appena ritirate + exit-check TP/SL
+      - name: exit-check (chiude retired + TP/SL)
+        run: uv run scripts/paper_exits.py || true
+
       # GENERAZIONE nuovi challenger — settimanale (lun 00:xx UTC), serve l'LLM ed è pesante.
       - name: evolve (genera challenger)
         if: env.CLAUDE_CODE_OAUTH_TOKEN != ''

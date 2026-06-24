@@ -211,3 +211,58 @@ def test_promote_dsr_gate_blocks_overfit(tmp_path, monkeypatch):
     spec = {"backtest": {"basket_6m": {"aggregate": {"dsr": 0.50}}}}
     assert backtest_dsr(spec) == 0.50
     # DSR 0.50 < MIN_DSR 0.95 → gate deve bloccare (verificato nella logica promote)
+
+
+def test_paper_exits_closes_retired_positions(tmp_path, monkeypatch):
+    """paper_exits chiude le posizioni delle strategie retired al prezzo attuale."""
+    import scripts.paper_exits as pe
+    import scripts.paper_trade as pt
+    import backtest.lifecycle as lc
+
+    paper_dir = tmp_path / "paper"
+    paper_dir.mkdir(exist_ok=True)
+    state_file = paper_dir / "state.json"
+    journal_file = paper_dir / "journal.jsonl"
+
+    # stato con una strategia retired (tsmom-v1) con una posizione aperta
+    state = {
+        "tsmom-v1": {
+            "equity": 9800.0,
+            "positions": {
+                "BTC": {
+                    "strategy": "tsmom-v1", "symbol": "BTC", "direction": "long",
+                    "entry_px": 70000.0, "stop_px": 67000.0, "target_px": 76000.0,
+                    "size_usd": 1000.0, "sign": 1, "remaining": 1.0,
+                    "checked_until": "2026-06-24 00:00", "opened_at": "2026-06-20 00:00",
+                }
+            },
+        }
+    }
+    state_file.write_text(json.dumps(state))
+    monkeypatch.setattr(pe, "STATE_FILE", state_file)
+    monkeypatch.setattr(pt, "STATE_FILE", state_file)
+    monkeypatch.setattr(pt, "JOURNAL", journal_file)
+
+    # all_specs ritorna tsmom-v1 con status retired
+    monkeypatch.setattr(
+        "scripts.paper_exits.all_specs",
+        lambda: [(tmp_path / "tsmom-v1.yaml", {"id": "tsmom-v1", "status": "retired"})]
+    )
+
+    # fetch_live ritorna candele fittizie con close=72000 (long in profitto)
+    import pandas as pd
+    candles = pd.DataFrame({"ts": pd.to_datetime(["2026-06-24 12:00"]), "close": [72000.0],
+                            "high": [72500.0], "low": [71500.0], "open": [71800.0]})
+    monkeypatch.setattr("scripts.paper_exits.fetch_live",
+                        lambda sym: {"candles": candles, "forming": None})
+
+    pe.main()
+
+    new_state = json.loads(state_file.read_text())
+    assert "BTC" not in new_state["tsmom-v1"]["positions"], "posizione retired non chiusa"
+    # equity deve riflettere il PnL realizzato (+fee)
+    assert new_state["tsmom-v1"]["equity"] > 9800.0, "PnL long in profitto non accreditato"
+    # journal deve avere l'evento close con reason=retired
+    close_events = [json.loads(l) for l in journal_file.read_text().splitlines()
+                    if json.loads(l).get("type") == "close"]
+    assert any(e.get("reason") == "retired" for e in close_events), "reason=retired non loggato"
