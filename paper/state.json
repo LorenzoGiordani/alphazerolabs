@@ -532,8 +532,8 @@
     "direction": "short",
     "size_usd": 3799.17,
     "opened_at": "2026-06-22 10:00:00+00:00",
-    "checked_until": "2026-06-23 22:00:00+00:00",
-    "_last_ts": "2026-06-23 22:00:00+00:00"
+    "checked_until": "2026-06-23 23:00:00+00:00",
+    "_last_ts": "2026-06-23 23:00:00+00:00"
    },
    "NEAR": {
     "sign": -1,
@@ -551,8 +551,8 @@
     "direction": "short",
     "size_usd": 2202.73,
     "opened_at": "2026-06-22 14:00:00+00:00",
-    "checked_until": "2026-06-23 22:00:00+00:00",
-    "_last_ts": "2026-06-23 22:00:00+00:00"
+    "checked_until": "2026-06-23 23:00:00+00:00",
+    "_last_ts": "2026-06-23 23:00:00+00:00"
    },
    "SOL": {
     "sign": -1,
@@ -570,8 +570,8 @@
     "direction": "short",
     "size_usd": 2954.61,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 22:00:00+00:00",
-    "_last_ts": "2026-06-23 22:00:00+00:00"
+    "checked_until": "2026-06-23 23:00:00+00:00",
+    "_last_ts": "2026-06-23 23:00:00+00:00"
    },
    "ZEC": {
     "sign": -1,
@@ -589,8 +589,8 @@
     "direction": "short",
     "size_usd": 2130.08,
     "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-23 22:00:00+00:00",
-    "_last_ts": "2026-06-23 22:00:00+00:00"
+    "checked_until": "2026-06-23 23:00:00+00:00",
+    "_last_ts": "2026-06-23 23:00:00+00:00"
    }
   }
  },
@@ -606,7 +606,7 @@
     "stop_px": 475.1769456,
     "target_px": 407.2945248,
     "opened_at": "2026-06-22 08:00:00+00:00",
-    "checked_until": "2026-06-23 22:00:00+00:00",
+    "checked_until": "2026-06-23 23:00:00+00:00",
     "time_stop_h": 48,
     "thesis": "ZEC ha completato un rally di +17.8% in 7 giorni senza catalizzatore fondamentale identificabile, e oggi registra il primo pullback significativo (-3.2%) con funding ancora positivo (+1.37% APR): i longs non capitolano nonostante il prezzo scenda, segnale classico di distribuzione per esaurimento. Il pattern \u00e8 documentato nelle lezioni del journal come configurazione ad alto tasso di mean reversion (-15/20%). SOL \u00e8 il setup long preferito ma manca di segnale attivo \u2014 entrare ora sarebbe speculazione cieca; ZEC short \u00e8 invece il trade con il miglior allineamento storico tra regime, struttura di funding e pattern di price action. Size ridotta (0.75%) e leva bassa (2x) compensano il rischio di slippage su asset illiquido.",
     "invalidation": "Prezzo ZEC recupera e chiude sopra il massimo degli ultimi 7 giorni, oppure il funding rate scende sotto zero (segnale che i longs stanno capitolando e la pressione sell \u00e8 gi\u00e0 esaurita) \u2014 in entrambi i casi la tesi di distribuzione/esaurimento decade e si chiude immediatamente.",
@@ -618,7 +618,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-23 22:00:00+00:00"
+    "_last_ts": "2026-06-23 23:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-06-21T17:23:00.800287+00:00"
@@ -629,23 +629,23 @@
   "last_decision_ts": "2026-06-22T19:22:53.570120+00:00"
  },
  "xsmom-port-v1": {
-  "equity": 10009.336706752667,
+  "equity": 10031.250925634904,
   "positions": {
    "XRP": {
-    "notional": 2414.596949891069,
-    "px": 1.1083
+    "notional": 2417.8649237472778,
+    "px": 1.1098
    },
    "NEAR": {
-    "notional": -2288.4704251386324,
-    "px": 1.9809
+    "notional": -2290.087800369686,
+    "px": 1.9823
    },
    "WLD": {
-    "notional": 2159.7493814350705,
-    "px": 0.54119
+    "notional": 2170.0854018676673,
+    "px": 0.54378
    },
    "ZEC": {
-    "notional": -2290.971917507679,
-    "px": 417.69
+    "notional": -2281.0443176831945,
+    "px": 415.88
    }
   },
   "last_rebalance_ts": "2026-06-22T12:53:58.749463+00:00"
