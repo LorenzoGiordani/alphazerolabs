@@ -105,27 +105,8 @@
   "positions": {}
  },
  "lux-confluence-rr2-v1": {
-  "equity": 10463.409495686856,
+  "equity": 10657.31379631056,
   "positions": {
-   "SOL": {
-    "sign": -1,
-    "entry_px": 71.8276316,
-    "stop_px": 74.20744125714286,
-    "target_px": 67.06801228571429,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 71.8276316,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "lux-confluence-rr2-v1",
-    "symbol": "SOL",
-    "direction": "short",
-    "size_usd": 2954.61,
-    "opened_at": "2026-06-23 00:00:00+00:00",
-    "checked_until": "2026-06-24 15:00:00+00:00",
-    "_last_ts": "2026-06-24 15:00:00+00:00"
-   },
    "CRV": {
     "sign": -1,
     "entry_px": 0.19952008799999998,
