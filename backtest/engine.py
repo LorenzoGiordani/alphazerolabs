@@ -6,9 +6,12 @@ fee taker + slippage su ogni variazione, funding orario sulle posizioni aperte,
 liquidazione approssimata (prezzo oltre 1/leva dall'entry → equity della posizione
 azzerata), stop-loss opzionale per posizione.
 
-Limiti noti (accettati per MVP): slippage fisso (no impatto da size), niente
-maintenance margin fine. Il funding ora è storico se si passa `funding_hist`
-(colonne ts, rate); in assenza ricade sulla costante `funding_hourly` (legacy).
+Limiti noti: niente maintenance margin fine. Lo slippage è fisso (legacy) di
+default, ma supporta un modello di market impact square-root (Almgren 2005)
+ott-in via `impact_k`: slip_eff = base + k·σ·√(Q/V) con σ e V entrambi orari
+(orizzonte coerente). Additivo (mai sotto il base), anti-lookahead (ADV/σ su
+dati passati). Il funding è storico se si passa
+`funding_hist` (colonne ts, rate); in assenza ricade sulla costante legacy.
 """
 
 from dataclasses import dataclass, field
@@ -49,18 +52,49 @@ def _funding_rate_lookup(candles: pd.DataFrame, funding_hist,
     return np.where(np.isfinite(out), out, default_hourly)
 
 
+def _liquidity_arrays(df: pd.DataFrame, window_h: int) -> tuple[np.ndarray, np.ndarray]:
+    """ADV (USD/ora) e volatilità oraria per barra, anti-lookahead: rolling su
+    dati ≤ i (la decisione al bar i usa la candela chiusa di i, fill a i+1).
+    volume è in valuta base → moltiplico per close per avere il notionale USD.
+    σ oraria (NON scalata a giornaliera): deve essere coerente col V orario
+    nella legge square-root, altrimenti l'impact viene gonfiato di √24."""
+    w = max(2, window_h)
+    vol_usd = df["volume"].astype(float) * df["close"].astype(float)
+    adv = vol_usd.rolling(w, min_periods=max(2, w // 4)).mean().to_numpy(dtype=float)
+    rets = np.log(df["close"].astype(float)).diff()
+    sigma_h = rets.rolling(w, min_periods=max(2, w // 4)).std().to_numpy(dtype=float)
+    return adv, sigma_h
+
+
 @dataclass
 class Backtest:
     candles: pd.DataFrame                      # ts, open, high, low, close, volume
     fee: float = HL_TAKER_FEE
-    slippage: float = DEFAULT_SLIPPAGE
+    slippage: float = DEFAULT_SLIPPAGE                 # base slippage (floor, sempre applicato)
     funding_hourly: float = DEFAULT_FUNDING_HOURLY   # fallback se funding_hist assente
     funding_hist: object = None                       # pd.DataFrame [ts, rate] storico reale
+    impact_k: object = None                           # coeff. square-root (None = slippage fisso legacy)
+    impact_window_h: int = 24                         # finestra rolling per ADV/σ
     max_leverage: float = 3.0
     start_equity: float = 10_000.0
 
     equity_curve: list = field(default_factory=list)
     trades: list = field(default_factory=list)
+
+    def _effective_slippage(self, i: int, notional_usd: float) -> float:
+        """Slippage effettivo per un ordine di `notional_usd` alla barra i.
+        Modello square-root (Almgren 2005): slip = base + k·σ·√(partecipazione),
+        con σ e V entrambi orari (orizzonte coerente). Additivo (≥ base, non
+        lusinga mai), partecipazione clampata a 1 (asset illiquidi → impact
+        saturato invece che esplodere). impact_k None → base."""
+        if not self.impact_k:
+            return self.slippage
+        adv = self._adv_usd[i] if self._adv_usd is not None else 0.0
+        sig = self._sigma_h[i] if self._sigma_h is not None else 0.0
+        if not np.isfinite(adv) or adv <= 0 or not np.isfinite(sig) or sig <= 0:
+            return self.slippage
+        participation = min(1.0, notional_usd / adv)
+        return self.slippage + float(self.impact_k) * sig * np.sqrt(participation)
 
     def run(self, strategy) -> pd.DataFrame:
         """strategy(history: df ≤ t) -> esposizione target. Ritorna equity curve.
@@ -68,6 +102,10 @@ class Backtest:
         unica fonte condivisa col paper engine."""
         df = self.candles.reset_index(drop=True)
         fund_rate = _funding_rate_lookup(df, self.funding_hist, self.funding_hourly)
+        if self.impact_k:
+            self._adv_usd, self._sigma_h = _liquidity_arrays(df, self.impact_window_h)
+        else:
+            self._adv_usd = self._sigma_h = None
         equity = self.start_equity
         pos = None  # dict da risk.open_levels + {exposure, size_usd}, oppure None
 
@@ -85,7 +123,8 @@ class Backtest:
                     self._log_trade(pos, liq_px, pos["remaining"], row.ts, "liquidated")
                     pos = None
                 else:
-                    for frac, px, reason in step_exit(pos, row.high, row.low, self.slippage):
+                    slip = self._effective_slippage(i, pos["size_usd"] * pos["remaining"])
+                    for frac, px, reason in step_exit(pos, row.high, row.low, slip):
                         equity += pos["size_usd"] * frac * (px / pos["entry_px"] - 1) * sign
                         equity -= pos["size_usd"] * frac * self.fee
                         self._log_trade(pos, px, frac, row.ts, reason)
@@ -117,7 +156,8 @@ class Backtest:
                 next_open = df.iloc[i + 1].open
                 # chiudi posizione esistente (residuo)
                 if pos is not None:
-                    px = next_open * (1 - self.slippage if pos["sign"] > 0 else 1 + self.slippage)
+                    slip = self._effective_slippage(i, pos["size_usd"] * pos["remaining"])
+                    px = next_open * (1 - slip if pos["sign"] > 0 else 1 + slip)
                     equity += pos["size_usd"] * pos["remaining"] * (px / pos["entry_px"] - 1) * pos["sign"]
                     equity -= pos["size_usd"] * pos["remaining"] * self.fee
                     self._log_trade(pos, px, pos["remaining"], df.iloc[i + 1].ts, "closed")
@@ -125,8 +165,9 @@ class Backtest:
                 # apri nuova
                 if target != 0.0 and equity > 0 and stop_pct:
                     sign = 1 if target > 0 else -1
-                    px = next_open * (1 + self.slippage if target > 0 else 1 - self.slippage)
                     size = abs(target) * equity
+                    slip = self._effective_slippage(i, size)
+                    px = next_open * (1 + slip if target > 0 else 1 - slip)
                     equity -= size * self.fee
                     pos = open_levels(exit_cfg, px, sign, stop_pct, atrp)
                     pos["exposure"], pos["size_usd"] = target, size

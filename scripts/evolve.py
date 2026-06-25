@@ -99,8 +99,10 @@ def ask_claude(prompt: str) -> dict:
 
 def eval_spec(spec: dict, data: dict) -> tuple[dict, pd.Series]:
     strat, _ = compile_strategy(spec, data)
+    _impact = os.environ.get("EVOLVE_IMPACT_K")  # opt-in: market impact square-root
+    impact_k = float(_impact) if _impact else None
     bt = Backtest(data["candles"], max_leverage=spec["risk"]["max_leverage"],
-                  funding_hist=data.get("funding"))
+                  funding_hist=data.get("funding"), impact_k=impact_k)
     equity = bt.run(strat)
     m = compute(equity, bt.trades)
     ev = evaluate(equity, data["candles"])

@@ -22,6 +22,11 @@ def read(path: str) -> pd.DataFrame | None:
 def main() -> None:
     spec_path, symbol = sys.argv[1], sys.argv[2]
     months = int(sys.argv[3]) if len(sys.argv) > 3 else 6
+    # --impact K (opzionale): abilita market impact square-root con coeff. K
+    impact_k = None
+    for a in sys.argv[4:]:
+        if a.startswith("--impact"):
+            impact_k = float(a.split("=", 1)[1]) if "=" in a else 0.5
 
     candles = pd.read_parquet(f"data/candles/{symbol}.parquet").tail(months * 30 * 24).reset_index(drop=True)
     data = {"candles": candles, "symbol": symbol,
@@ -33,12 +38,14 @@ def main() -> None:
     spec = load(spec_path)
     strat, sigs = compile_strategy(spec, data)
     fund_mode = "storico" if data.get("funding") is not None else "costante(legacy)"
+    impact_mode = f"impact k={impact_k}" if impact_k else "fisso(legacy)"
     print(f"{spec['id']} su {symbol}, {len(candles)} candele "
           f"({candles.ts.min():%Y-%m-%d} → {candles.ts.max():%Y-%m-%d})")
-    print(f"funding: {fund_mode} | barre con entry attivo: {int(((sigs != 0).all(axis=1)).sum())}\n")
+    print(f"funding: {fund_mode} | slippage: {impact_mode} | "
+          f"barre con entry attivo: {int(((sigs != 0).all(axis=1)).sum())}\n")
 
     bt = Backtest(candles, max_leverage=spec["risk"]["max_leverage"],
-                  funding_hist=data.get("funding"))
+                  funding_hist=data.get("funding"), impact_k=impact_k)
     equity = bt.run(strat)
 
     print(report("strategia", compute(equity, bt.trades)))
