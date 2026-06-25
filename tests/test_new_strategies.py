@@ -99,3 +99,61 @@ def test_new_strategies_load_and_compile():
         strat, sigs = compile_strategy(spec, data)
         out = strat(c)                             # una chiamata non deve esplodere
         assert "exposure" in out and "target_r" in out
+
+
+# --- test delle modifiche 25/06 (lux-flow-confluence + GLM gate + geo time_stop) ---
+
+def test_lux_flow_confluence_active_and_valid():
+    """lux-flow-confluence-v1 (nuova, 9/9 simboli positivi in backtest) e nel loop
+    meccanico; claude-strategy/xsmom-port ritirate e fuori dal loop."""
+    from backtest.lifecycle import active_specs
+    spec = load(ROOT / "strategies/generated/lux-flow-confluence-v1.yaml")
+    assert spec["parent"] == "lux-confluence-rr2-v1"   # lineage: rimuove la gamba kronos
+    assert "kronos_forecast" not in str(spec["signals"])  # kronos falsificato, non piu gambo AND
+    active = [s["id"] for _, s in active_specs()]
+    assert "lux-flow-confluence-v1" in active
+    assert "claude-strategy-v1" not in active           # ritirata 25/06
+    assert "xsmom-port-v1" not in active                # ritirata 25/06
+
+
+def test_glm_gate_fallback_conviction():
+    """Il gate GLM (25/06) accetta tsmom+xsection allineati (via preferenziale) OPPURE
+    tsmom + conviction>=2 dai vote (via di fallback quando xsection degrada a neutro
+    per cache assente in cloud). Il gate originale AND a 2 gambe era sempre chiuso."""
+    from scripts.glm_strategy import gate_candidates
+    ctx = {"assets": {
+        "BTC": {"signals": {"tsmom": 1, "xsection_momentum": 1, "news_event": 0,
+                            "kronos_vol": 0, "funding_percentile": 0,
+                            "hmm_regime": 1, "taker_flow": 1, "smart_money_ratio": 0,
+                            "oi_trend": 0}, "atr_pct": 3.0},   # core allineato
+        "ETH": {"signals": {"tsmom": 1, "xsection_momentum": 0, "news_event": 0,
+                            "kronos_vol": 0, "funding_percentile": 0,
+                            "hmm_regime": 1, "taker_flow": 1, "smart_money_ratio": 1,
+                            "oi_trend": 0}, "atr_pct": 2.5},  # fallback conviction=3
+        "SOL": {"signals": {"tsmom": 1, "xsection_momentum": 0, "news_event": 0,
+                            "kronos_vol": 0, "funding_percentile": 0,
+                            "hmm_regime": 0, "taker_flow": 0, "smart_money_ratio": 0,
+                            "oi_trend": 0}, "atr_pct": 2.0},  # conviction 0 → scartato
+    }}
+    cands = {c["symbol"]: c for c in gate_candidates(ctx)}
+    assert "BTC" in cands and cands["BTC"]["core_aligned"] is True
+    assert "ETH" in cands and cands["ETH"]["core_aligned"] is False   # via fallback
+    assert "SOL" not in cands                                        # conviction insufficiente
+
+
+def test_geo_time_stop_fallback():
+    """open_from_decision usa 96h di fallback se l'LLM emette time_stop_h=0
+    (bug latente: posizione eterna senza time-stop). Fix geopolitics 25/06."""
+    import importlib, scripts.geopolitics_paper as geo
+    importlib.reload(geo)
+    # proposta con time_stop_h=0 (LLM malfatto)
+    d = {"proposal": {"symbol": "BTC", "direction": "long", "leverage": 1,
+                      "risk_pct": 1.0, "stop_pct": 4.0, "target_r": 2.0,
+                      "time_stop_h": 0, "thesis": "t", "invalidation": "i"},
+         "risk": {"size_multiplier": 1.0, "verdict": "approve"}, "logged_at": "2026-06-25T00:00:00+00:00"}
+    # monkeypatch fetch_live per non toccare la rete
+    geo.fetch_live = lambda sym, lookback_h=50: {"candles": _candles()}
+    pos = geo.open_from_decision(d, 10000.0)
+    assert pos is not None
+    assert pos["time_stop_h"] == 96          # fallback, non 0 (che era il bug)
+

@@ -20,9 +20,8 @@ stage "paper trading strategie attive"
 "$UV" run scripts/paper_all.py
 stage "executor agenti"
 "$UV" run scripts/agents_paper.py
-"$UV" run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # A/B RR2, stesse decisioni
-stage "portfolio book"
-"$UV" run scripts/portfolio_paper.py strategies/generated/xsmom-port-v1.yaml || true   # cross-sectional momentum
+    "$UV" run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # A/B RR2, stesse decisioni
+# xsmom-port RETIRATA 25/06 (engine portfolio non ha prodotto trade chiusi): rimosso dal cron.
 
 if command -v claude >/dev/null 2>&1; then
     stage "reviewer"
@@ -32,10 +31,7 @@ if command -v claude >/dev/null 2>&1; then
     "$UV" run scripts/decide.py BTC,ETH,SOL,SUI,ZEC || true
     "$UV" run scripts/agents_paper.py || true    # esegui subito l'eventuale decisione
     "$UV" run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # variante RR2
-    # Claude Strategy: gate sistematico (confluenza) + layer LLM; chiama l'LLM solo a gate aperto
-    stage "claude strategy"
-    "$UV" run scripts/claude_strategy.py BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV || true
-    "$UV" run scripts/agents_paper.py --account claude-strategy-v1 || true
+    # Claude Strategy RETIRATA 25/06 (layer LLM non aggiungeva valore): rimosso dal cron.
     # desk geopolitico: gated su burst GDELT, chiama l'LLM solo se il gate è aperto
     stage "geopolitics desk"
     "$UV" run scripts/geopolitics_paper.py || true

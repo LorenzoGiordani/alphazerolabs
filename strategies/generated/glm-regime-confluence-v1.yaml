@@ -1,0 +1,60 @@
+id: glm-regime-confluence-v1
+parent: null
+status: challenger
+created: '2026-06-24'
+engine: desk                # ibrida: gate sistematico + layer LLM auditor. La esegue
+                            #   scripts/glm_strategy.py (decisione) + agents_paper.py
+                            #   --account glm-regime-confluence-v1 (apertura).
+                            #   active_specs la salta (NON_MECHANICAL_ENGINES).
+thesis: >
+  Strategia ibrida progettata da glm-5.2 su delega di Lorenzo, informata dalle
+  lezioni accumulate del progetto (166 lezioni, 8 segnali falsificati).
+  1. GATE ORTOGONALE: due lenti momentum indipendenti concordano — tsmom (trend
+     assoluto, Moskowitz) + xsection_momentum (forza relativa nel basket, market-
+     neutral, netta il beta). Confluenza assoluto+relativo = il move non e' solo
+     drift di mercato, e' alpha relativo confermato. Ortogonali a lux-confluence
+     (tsmom+liq+kronos) e claude-strategy (tsmom+liq).
+  2. VETO DI REGIME/EVENTO: news_event attivo (volatilita event-risk, il tono e
+     falsificato ma la vol no) O kronos_vol alta (regime imprevedibile) O
+     funding_percentile estremo CONTRO direzione (crowding headwind).
+  3. VOTE DI CONVINZIONE: hmm_regime(trending) + taker_flow + smart_money_ratio +
+     oi_trend. Ogni allineamento +1 al conviction score (0-4).
+  4. LLM AUDITOR DI PORTAFOGLIO: non oracolo, non predittore di prezzo (lezione
+     dura: forecast LLM = niente alpha). Giudica SOLO rischio di correlazione col
+     book aperto e freschezza. Una chiamata, solo se il gate ha candidati.
+  5. EXIT ROBUSTA: stop ATR 2x (floor 1x), RR2, time_stop 96h.
+
+  FIX 25/06 (rotta dalla nascita, 0 trade in 18 run): il gate AND a 2 gambe era
+  SEMPRE chiuso perche' la cache xsection_momentum (data/xsection/) non era
+  committata ne' rigenerata in CI (stesso bug di Kronos 20/06). Fix: (a) cache
+  xsection versionata + workflow xsection-precompute.yml giornaliero; (b) gate
+  allentato con via di fallback — tsmom + conviction>=2 dai vote accettato anche
+  senza xsection allineato (filtro regime, non collo single-signal).
+  Falsificata se: non batte in paper ne' tsmom puro ne' lux-flow-confluence (cioe'
+  se l'auditor LLM e l'xsection non aggiungono valore sopra il trend semplice).
+
+paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+
+timeframe: 1h
+decision_every_h: 4
+
+signals: []                 # nessun segnale meccanico nel loop: il gate e in glm_strategy.py
+
+exit:                       # stub per dashboard; stop/RR li propone l'auditor, entro gli hard limit
+  stop_pct: 0
+  target_r: 0
+  time_stop_h: 0
+
+risk:                       # hard limit insindacabili (validati in hard_check)
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 3
+
+evolution:
+  mutable: [signals, exit]
+  notes: >
+    v1 — gate tsmom+xsection (ortogonali) + veto event/crowding + conviction vote +
+    layer LLM auditor. Fix 25/06: cache xsection + gate allentato con fallback
+    conviction. Mutazioni: TSMOM_SOLO_MIN_VOTES, larghezza veto, contesto auditor.
+
+backtest: {}                # desk LLM: non backtestabile off-line, il paper e il gate

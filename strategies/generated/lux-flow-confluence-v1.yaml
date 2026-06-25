@@ -1,0 +1,73 @@
+id: lux-flow-confluence-v1
+parent: lux-confluence-rr2-v1          # lineage: semplifica il parent rimuovendo kronos
+status: challenger                     # va in paper subito (paper = gate finale)
+created: '2026-06-25'
+thesis: >
+  lux-confluence-rr2-v1 usava una confluence a 3 gambe (tsmom + liq_imbalance +
+  kronos_forecast), ma kronos_forecast e' stato FALSIFICATO come segnale direzionale
+  il 14/06 (Sharpe -0.2/-0.3 standalone, dimezza lo Sharpe come gate). La gamba
+  kronos era quindi MORTA ma ancora cablata in AND: bloccava entrate valide e
+  rumoreggiava con forecast senza alpha. Questa strategia la RIMUOVE: confluence a
+  2 gambe (tsmom + liq_imbalance), entrambe validate e ortogonali — tsmom = edge
+  di prezzo (Moskowitz, 58 futures), liq_imbalance = unico segnale di flusso
+  forzato sopravvissuto a TUTTE le falsificazioni del progetto (funding, OI, news
+  direzionale, mean-reversion: tutti falsificati; liq resta).
+  Backtest basket 9-asset 6m (validazione pre-deploy, 25/06): Rimuovere kronos
+  MIGLIORA ogni metrica — Sharpe +0.25 -> +1.26, DSR 0.58 -> 0.81, 6/9 -> 9/9
+  simboli positivi, worstDD -35% -> -22%. La gamba morta dragava il parent.
+  Exit RR2 + stop ATR (validati 21-22/06: RR2 su entry ad alta convinzione TP-itta
+  piu' spesso di RR3; ATR-stop anti noise-stop).
+  Falsificata se: in paper non batte il parent lux-confluence-rr2-v1 su PnL
+  realizzato (il kronos poteva avere valore come gate di rischio non testato), O
+  se liq_imbalance perde la cache Coinalyze (degrada a neutro -> nessuna entry).
+
+universe:
+  selection: explicit
+  max_assets: 9
+  kinds: [perp]
+  exclude_classes: [index]            # niente indici (tsmom su SP500 Sharpe -5.5, lezione 22/06)
+paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+
+timeframe: 1h
+decision_every_h: 4
+
+signals:
+  - name: tsmom
+    params: {short_h: 168, long_h: 720}
+  - name: liq_imbalance
+    params: {lookback_d: 21, extreme_pct: 80}
+
+entry:
+  rule: tsmom AND liq_imbalance       # 2 gambe ortogonali (prezzo + flusso forzato), no kronos
+  direction: signal_vote              # le 2 gambe concordi -> voto +/-, top-conviction
+
+exit:
+  stop_pct: 4.0                       # fallback se ATR non calcolabile
+  stop_atr_mult: 3.0                  # stop ATR-adaptive (lezione altcoin-noise-stop)
+  atr_period: 14
+  target_r: 2.0                       # RR2 (lezione 21-22/06: non RR3 che non chiude il TP)
+  time_stop_h: 240                    # tesi momentum ~10gg (parent lux-confluence)
+
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 6
+
+evolution:
+  mutable: [signals, entry, exit, universe.max_assets, decision_every_h]
+  notes: >
+    v1 seed: confluence 2-gambe (tsmom + liq_imbalance), rimuove la gamba kronos
+    del parent falsificata come direzionale. Mutazioni: soglia liq extreme_pct,
+    lookback liq, RR 1.8-2.5, aggiunta di smart_money_ratio come eventuale
+    terza gamba ortogonale (se mostra IC nel research).
+
+backtest:
+  basket_6m:                          # compilato 25/06 da eval_specs.py / eval_basket
+    aggregate:
+      mean_sharpe: 1.26
+      mean_return: 0.1211
+      worst_drawdown: -0.2184
+      total_trades: 985
+      positive_symbols: "9/9"
+      dsr: 0.81
+      note: "batte il parent lux-confluence-rr2 (Sharpe 0.25, DSR 0.58, 6/9). DSR<0.95 -> challenger, non champion; paper = gate finale"

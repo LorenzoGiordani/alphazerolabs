@@ -1,0 +1,49 @@
+name: xsection-precompute
+
+# Rigenera la cache rank cross-sectional (data/xsection/*.parquet) usata dal segnale
+# xsection_momentum — seconda gamba (ortogonale) del gate di glm-regime-confluence.
+# Senza cache fresca il segnale e neutro e il gate AND (tsmom AND xsection_momentum)
+# non scatta mai (bug 24/06: 18 run, 18 "no_setup"). Leggero (solo pandas rank, no
+# torch/modello): gira 1x/giorno. Trigger via Cloudflare Worker (lux-paper-cron).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: xsection-precompute
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  # basket Lux — stesso del workflow kronos-precompute (allineato a glm_strategy.py)
+  LUX_SYMBOLS: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+
+jobs:
+  precompute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      # candele 1h fresche (data/candles/ non e versionata)
+      - name: candele basket Lux
+        run: uv run scripts/fetch_candles.py --symbols "$LUX_SYMBOLS"
+
+      # rank cross-sectional: solo pandas, niente deps pesanti
+      - name: precompute rank
+        run: uv run scripts/precompute_xsection.py --symbols "$LUX_SYMBOLS" --months 12
+
+      - name: publish cache
+        run: |
+          git config user.name "lux-ai-cron"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/xsection/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: xsection precompute $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+            for i in 1 2 3; do
+              git pull --rebase -X theirs origin main && git push origin main && break
+              sleep 5
+            done
+          fi

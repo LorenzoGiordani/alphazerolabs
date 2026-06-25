@@ -64,31 +64,44 @@ def _aligned(a, b):
     return a != 0 and b != 0 and (a > 0) == (b > 0)
 
 
+# soglia conviction sotto la quale accettiamo tsmom da solo (cache xsection spesso
+# assente in cloud se il workflow non rigenera → AND a 2 gambe era sempre chiuso).
+# Core allineato (tsmom+xsection) accettato a qualunque conviction; tsmom da solo
+# solo se almeno N vote concordano (filtro regime, non collo di bottiglia single-signal).
+TSMOM_SOLO_MIN_VOTES = 2
+
+
 def gate_candidates(ctx: dict) -> list[dict]:
-    """Core tsmom+xsection allineati, veto applicato, conviction score dai vote."""
+    """Core tsmom+xsection allineati (via preferenziale) OPPURE tsmom + conviction alto
+    dai vote (via di fallback quando xsection degrada a neutro). Veto sempre applicato."""
     out = []
     for sym, a in ctx["assets"].items():
         sig = a.get("signals", {})
         t, x = sig.get("tsmom", 0), sig.get("xsection_momentum", 0)
-        if not _aligned(t, x):
+        if t == 0:
             continue
         direction = "long" if t > 0 else "short"
-        # veto: event-risk / regime incerto / crowding contro direzione
+        # veto: event-risk / regime incerto / crowding contro direzione (sempre applicato)
         if any(sig.get(v, 0) != 0 for v in VETO):
             continue
         fp = sig.get("funding_percentile", 0)
         if fp != 0 and ((direction == "long" and fp > 0) or (direction == "short" and fp < 0)):
             continue   # funding estremo CONTRO direzione = crowding headwind
-        # conviction vote
+        # conviction vote (prima di filtrare sul core: serve per la via di fallback)
         vote = 0
         for v in VOTES:
             sv = sig.get(v, 0)
             if sv != 0 and (sv > 0) == (t > 0):
                 vote += 1
+        # via preferenziale: core tsmom+xsection allineati; via fallback: tsmom + conviction
+        core_aligned = _aligned(t, x)
+        if not core_aligned and vote < TSMOM_SOLO_MIN_VOTES:
+            continue
         out.append({"symbol": sym, "direction": direction, "conviction": vote,
+                    "core_aligned": core_aligned,
                     "atr_pct": a.get("atr_pct"), "funding_apr": a.get("funding_apr"),
                     "chg_7d": a.get("chg_7d")})
-    out.sort(key=lambda c: c["conviction"], reverse=True)
+    out.sort(key=lambda c: (c["core_aligned"], c["conviction"]), reverse=True)
     return out
 
 

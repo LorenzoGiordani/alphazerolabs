@@ -53,8 +53,7 @@ jobs:
           uv run scripts/agents_paper.py
           uv run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # A/B RR2: stesse decisioni, zero LLM extra
 
-      - name: portfolio book (cross-sectional momentum)
-        run: uv run scripts/portfolio_paper.py strategies/generated/xsmom-port-v1.yaml || true
+      # xsmom-port RETIRATA 25/06 (engine portfolio non ha prodotto trade chiusi in paper): rimosso.
 
       # gira solo se il secret CLAUDE_CODE_OAUTH_TOKEN esiste (token piano Pro)
       - name: pipeline LLM (review + decide)
@@ -65,8 +64,7 @@ jobs:
           uv run scripts/decide.py BTC,ETH,SOL,SUI,ZEC || true
           uv run scripts/agents_paper.py || true
           uv run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # variante RR2
-          uv run scripts/claude_strategy.py BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV || true   # gate sistematico + layer LLM
-          uv run scripts/agents_paper.py --account claude-strategy-v1 || true
+          # Claude Strategy RETIRATA 25/06 (layer LLM non aggiungeva valore): rimosso.
           uv run scripts/glm_strategy.py BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV || true   # glm-5.2 regime-confluence
           uv run scripts/agents_paper.py --account glm-regime-confluence-v1 || true
           uv run scripts/geopolitics_paper.py || true   # desk macro cross-asset, gated su burst GDELT

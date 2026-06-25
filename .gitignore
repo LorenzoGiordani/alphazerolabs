@@ -6,6 +6,10 @@ data/*
 !data/coinalyze_1h/
 # cache forecast Kronos: versionata per il cloud (rigenerata dal workflow kronos-precompute)
 !data/kronos/
+# cache rank cross-sectional xsection_momentum: versionata per il cloud (workflow xsection-precompute)
+!data/xsection/
+# cache regime HMM: versionata per il cloud (regenerabile via precompute_hmm.py, nessun workflow CI dedicato)
+!data/hmm/
 .venv/
 __pycache__/
 .env
@@ -15,9 +19,6 @@ logs/
 
 # Kronos repo vendored (modello, non versionare)
 .kronos/
-
-# cache regime HMM (regenerabile via precompute_hmm.py)
-data/hmm/
 paper/executor.jsonl
 
 # skill bundle locali (dev tooling: impeccable, review-animations) — non runtime

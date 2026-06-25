@@ -156,7 +156,8 @@ def open_from_decision(d: dict, equity: float) -> dict | None:
         "stop_px": px * (1 - sign * stop_pct),
         "target_px": px * (1 + sign * stop_pct * float(p["target_r"])),
         "opened_at": str(last.ts), "checked_until": str(last.ts),
-        "time_stop_h": int(p["time_stop_h"]),
+        # fallback 96h se l'LLM omette/emette 0 → posizione eterna senza time-stop (bug latente)
+        "time_stop_h": int(p.get("time_stop_h") or 96),
         "thesis": p["thesis"], "invalidation": p["invalidation"], "decision_ts": d["logged_at"],
     }
     log_event({"type": "open", **pos})
