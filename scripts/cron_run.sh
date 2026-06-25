@@ -23,10 +23,10 @@ stage "executor agenti"
     "$UV" run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # A/B RR2, stesse decisioni
 # xsmom-port RETIRATA 25/06 (engine portfolio non ha prodotto trade chiusi): rimosso dal cron.
 
-if command -v claude >/dev/null 2>&1; then
+if command -v opencode >/dev/null 2>&1; then
     stage "reviewer"
     "$UV" run scripts/review.py || true          # post-mortem trade chiusi
-    # decisione pipeline ogni run (4h) — solo con CLI: usa il piano Pro
+    # decisione pipeline ogni run (4h) — LLM: opencode-go/glm-5.2 (consolidamento 25/06)
     stage "pipeline decide"
     "$UV" run scripts/decide.py BTC,ETH,SOL,SUI,ZEC || true
     "$UV" run scripts/agents_paper.py || true    # esegui subito l'eventuale decisione

@@ -6,16 +6,15 @@ Valutazione multi-asset: ranking su Sharpe medio del basket (selezione su
 singolo asset = overfitting, lezione gen 1).
 
 Terzo argomento file .yaml (multi-documento, separatore ---) → salta la chiamata
-LLM e valuta quei candidati. Serve quando il generatore è una sessione Claude
-Code interattiva (piano Pro) invece di `claude -p`.
+LLM e valuta quei candidati. Serve quando il generatore è una sessione interattiva
+invece della chiamata headless.
 
-Flusso: valuta parent → 1 chiamata Claude (N mutazioni in YAML) → validazione
+Flusso: valuta parent → 1 chiamata LLM (N mutazioni in YAML) → validazione
 hard (registry, blocco risk forzato uguale al parent) → backtest di ogni
 candidato → leaderboard → salvataggio in strategies/generated/.
 
-LLM via `claude -p` (headless Claude Code → coperto dal piano Pro, niente API
-key). Env ANTHROPIC_* rimosso dal subprocess: ~/.zshrc punta a un proxy
-DashScope scaduto che dirotterebbe la chiamata.
+LLM: opencode-go/glm-5.2 (consolidamento su singola key, 25/06) via ask_claude
+→ _ask_opencode. Robustezza fail-fast in decide._ask_opencode.
 """
 
 import json
@@ -76,25 +75,10 @@ EXIT_DOC = """Knob di uscita mutabili (blocco `exit`) — esplorali, l'harness m
   La sizing è vol-target (exposure=risk%/stop%): stop più stretto ⇒ più leva, fino al cap."""
 
 def ask_claude(prompt: str) -> dict:
-    """Headless Claude Code (`claude -p`) — usa il piano Pro, non l'API a consumo.
-    Fallback opencode-go/glm-5.2 se claude fallisce (quota/CLI)."""
-    import os
-    import sys
+    """LLM per l'evoluzione: opencode-go/glm-5.2 (consolidamento su singola key, 25/06).
+    Nome tenuto per non rompere gli import di evolve_auto; semanticamente ora è glm."""
     from scripts.decide import _ask_opencode
-    env = {k: v for k, v in os.environ.items() if not k.startswith("ANTHROPIC_")}
-    try:
-        r = subprocess.run(
-            ["claude", "-p", "--output-format", "json", "--append-system-prompt", SYSTEM],
-            input=prompt, capture_output=True, text=True, timeout=600, env=env,
-        )
-        if r.returncode != 0:
-            raise RuntimeError(f"claude -p fallito: {r.stderr[:500]}")
-        result = json.loads(r.stdout)["result"].strip()
-        result = result.split("\n", 1)[1].rsplit("```", 1)[0] if result.startswith("```") else result
-        return json.loads(result)
-    except RuntimeError as e:
-        print(f"[fallback] claude fallito ({str(e)[:140]}) → opencode glm-5.2", file=sys.stderr)
-        return _ask_opencode(prompt, as_json=True, system=SYSTEM)
+    return _ask_opencode(prompt, as_json=True, system=SYSTEM)
 
 
 def eval_spec(spec: dict, data: dict) -> tuple[dict, pd.Series]:

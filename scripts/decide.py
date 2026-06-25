@@ -5,7 +5,7 @@ JSON) → hard limit nel codice (veto deterministico, insindacabile) → Risk
 Manager LLM (veto qualitativo). Output: decisione nel journal.
 
 Modi:
-  uv run scripts/decide.py BTC,ETH,SOL              # full auto via `claude -p`
+  uv run scripts/decide.py BTC,ETH,SOL              # full auto via glm-5.2 (opencode-go)
   uv run scripts/decide.py BTC,ETH,SOL --pack       # stampa contesto+prompt (LLM = sessione Claude Code)
   uv run scripts/decide.py BTC,ETH,SOL --check p.json  # valida proposta Strategist e logga
 
@@ -86,26 +86,9 @@ def _strip_fence(text: str) -> str:
     return text
 
 
-def _ask_claude(prompt: str, as_json: bool = False):
-    """Headless Claude Code — piano Pro. Env ANTHROPIC_* rimosso (proxy DashScope in zshrc)."""
-    import os
-    import subprocess
-    env = {k: v for k, v in os.environ.items() if not k.startswith("ANTHROPIC_")}
-    if as_json:
-        prompt += "\n\nRispondi SOLO con JSON valido, niente markdown fence."
-    r = subprocess.run(["claude", "-p", "--output-format", "json"],
-                       input=prompt, capture_output=True, text=True, timeout=600, env=env)
-    if r.returncode != 0:
-        raise RuntimeError(f"claude -p fallito (exit {r.returncode}): "
-                           f"stderr={r.stderr[:300]} stdout={r.stdout[:300]}")
-    text = json.loads(r.stdout)["result"].strip()
-    text = _strip_fence(text)
-    if as_json:
-        import re
-        m = re.search(r"\{.*\}", text, re.DOTALL)  # il modello a volte aggiunge prosa attorno
-        if m:
-            text = m.group(0)
-    return json.loads(text) if as_json else text
+# (giugno 2026) consolidamento LLM su singola key glm: il path claude è stato
+# rimosso. _ask ora usa solo opencode-go/glm-5.2. La funzione _ask_claude è
+# recuperabile via git se si volesse ripristinare il doppio provider.
 
 
 # Pattern di errore LLM non transiente (quota/auth): un retry non li risolve.
@@ -212,14 +195,9 @@ def _ask_opencode(prompt: str, as_json: bool = False, system: str | None = None)
 
 
 def _ask(prompt: str, as_json: bool = False):
-    """LLM call con fallback: prova claude (piano Pro), se fallisce (quota/CLI/timeout)
-    ritenta con opencode-go/glm-5.2. Trasparente per i chiamanti."""
-    try:
-        return _ask_claude(prompt, as_json)
-    except Exception as e:
-        import sys
-        print(f"[fallback] claude fallito ({type(e).__name__}: {str(e)[:140]}) → opencode glm-5.2", file=sys.stderr)
-        return _ask_opencode(prompt, as_json)
+    """LLM call: opencode-go/glm-5.2 (consolidamento su singola key, 25/06).
+    Trasparente per i chiamanti; robustezza fail-fast in _ask_opencode."""
+    return _ask_opencode(prompt, as_json)
 
 
 def signal_states(data: dict) -> dict:
@@ -348,7 +326,7 @@ def main() -> None:
         print(render_pack(ctx))
         return
 
-    # full auto via claude -p (richiede CLI nativa installata)
+    # full auto via glm-5.2 (opencode-go, consolidamento LLM 25/06)
     brief = _ask(f"{ROLES['analyst']}\n\nCONTESTO:\n{json.dumps(ctx, default=str)}")
     bull = _ask(f"{ROLES['bull']}\n\nBRIEF:\n{brief}")
     bear = _ask(f"{ROLES['bear']}\n\nBRIEF:\n{brief}")
