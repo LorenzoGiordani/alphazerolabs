@@ -6,8 +6,9 @@ fee taker + slippage su ogni variazione, funding orario sulle posizioni aperte,
 liquidazione approssimata (prezzo oltre 1/leva dall'entry → equity della posizione
 azzerata), stop-loss opzionale per posizione.
 
-Limiti noti (accettati per MVP): funding costante (non storico), slippage fisso
-(no impatto da size), niente maintenance margin fine.
+Limiti noti (accettati per MVP): slippage fisso (no impatto da size), niente
+maintenance margin fine. Il funding ora è storico se si passa `funding_hist`
+(colonne ts, rate); in assenza ricade sulla costante `funding_hourly` (legacy).
 """
 
 from dataclasses import dataclass, field
@@ -19,7 +20,33 @@ from backtest.risk import open_levels, step_exit
 
 HL_TAKER_FEE = 0.00045          # tier base Hyperliquid
 DEFAULT_SLIPPAGE = 0.0002       # 2 bps
-DEFAULT_FUNDING_HOURLY = 0.0000125  # ≈0.01%/8h, tipico regime neutro
+DEFAULT_FUNDING_HOURLY = 0.0000125  # ≈0.01%/8h, tipico regime neutro (fallback)
+
+
+def _funding_rate_lookup(candles: pd.DataFrame, funding_hist,
+                         default_hourly: float) -> np.ndarray:
+    """Tasso di funding orario allineato barra-per-barra alle candele.
+
+    funding_hist: colonne [ts, rate], rate = tasso di settlement (Binance ~ogni
+    8h). Lo si proietta sulla griglia oraria delle candele con merge_asof
+    (last-known rate, direction backward) e si converte in tasso orario
+    dividendo per lo step orario inferito dai ts. Se funding_hist manca o è
+    vuoto, torna la costante default_hourly (behavior legacy)."""
+    n = len(candles)
+    if funding_hist is None or len(funding_hist) == 0 or "rate" not in funding_hist.columns:
+        return np.full(n, default_hourly)
+    fr = funding_hist[["ts", "rate"]].dropna().sort_values("ts").reset_index(drop=True)
+    if len(fr) >= 2:
+        span_s = (fr["ts"].iloc[-1] - fr["ts"].iloc[0]).total_seconds()
+        step_h = max(round(span_s / 3600 / (len(fr) - 1)), 1)
+    else:
+        step_h = 8
+    fr = fr.assign(rate_h=fr["rate"] / step_h)
+    order = candles[["ts"]].reset_index().rename(columns={"index": "_order"})
+    m = pd.merge_asof(order.sort_values("ts"), fr[["ts", "rate_h"]],
+                      on="ts", direction="backward")
+    out = m.sort_values("_order")["rate_h"].to_numpy(dtype=float)
+    return np.where(np.isfinite(out), out, default_hourly)
 
 
 @dataclass
@@ -27,7 +54,8 @@ class Backtest:
     candles: pd.DataFrame                      # ts, open, high, low, close, volume
     fee: float = HL_TAKER_FEE
     slippage: float = DEFAULT_SLIPPAGE
-    funding_hourly: float = DEFAULT_FUNDING_HOURLY
+    funding_hourly: float = DEFAULT_FUNDING_HOURLY   # fallback se funding_hist assente
+    funding_hist: object = None                       # pd.DataFrame [ts, rate] storico reale
     max_leverage: float = 3.0
     start_equity: float = 10_000.0
 
@@ -39,6 +67,7 @@ class Backtest:
         Uscita (stop/partial/target/trailing) delegata a backtest.risk.step_exit:
         unica fonte condivisa col paper engine."""
         df = self.candles.reset_index(drop=True)
+        fund_rate = _funding_rate_lookup(df, self.funding_hist, self.funding_hourly)
         equity = self.start_equity
         pos = None  # dict da risk.open_levels + {exposure, size_usd}, oppure None
 
@@ -63,7 +92,7 @@ class Backtest:
                     if pos["remaining"] <= 1e-9:
                         pos = None
                     else:  # funding sul nozionale residuo (long paga se rate>0)
-                        equity -= pos["size_usd"] * pos["remaining"] * self.funding_hourly * sign
+                        equity -= pos["size_usd"] * pos["remaining"] * fund_rate[i] * sign
 
             if equity <= 0:
                 equity = 0.0

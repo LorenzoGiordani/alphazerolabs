@@ -99,7 +99,8 @@ def ask_claude(prompt: str) -> dict:
 
 def eval_spec(spec: dict, data: dict) -> tuple[dict, pd.Series]:
     strat, _ = compile_strategy(spec, data)
-    bt = Backtest(data["candles"], max_leverage=spec["risk"]["max_leverage"])
+    bt = Backtest(data["candles"], max_leverage=spec["risk"]["max_leverage"],
+                  funding_hist=data.get("funding"))
     equity = bt.run(strat)
     m = compute(equity, bt.trades)
     ev = evaluate(equity, data["candles"])

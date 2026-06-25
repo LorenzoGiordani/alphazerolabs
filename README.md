@@ -41,7 +41,7 @@ Principi non negoziabili:
 | `scripts/fetch_universe.py` | Universo asset Hyperliquid (mainnet, volumi reali) filtrato per liquidità |
 | `scripts/fetch_candles.py` | Candele 1h 12 mesi: Binance (crypto), yfinance (commodities/stock), HL fallback |
 | `scripts/fetch_derivs.py` | Funding + taker flow storici (Binance fapi) |
-| `backtest/engine.py` | Exchange simulato: fill t+1 (anti-lookahead), fee/slippage/funding, stop/target intrabar, liquidazioni |
+| `backtest/engine.py` | Exchange simulato: fill t+1 (anti-lookahead), fee/slippage/**funding storico** (opzionale, altrimenti costante legacy), stop/target intrabar, liquidazioni |
 | `backtest/signals.py` | **Registry segnali** (chiuso, l'LLM compone ma non inventa codice) |
 | `backtest/strategy.py` | Artefatto YAML → callback engine (rule AND/OR, direction, sizing) |
 | `backtest/walkforward.py` | Metriche per fold temporali e regime bull/bear/chop |

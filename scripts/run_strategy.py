@@ -32,11 +32,13 @@ def main() -> None:
 
     spec = load(spec_path)
     strat, sigs = compile_strategy(spec, data)
+    fund_mode = "storico" if data.get("funding") is not None else "costante(legacy)"
     print(f"{spec['id']} su {symbol}, {len(candles)} candele "
           f"({candles.ts.min():%Y-%m-%d} → {candles.ts.max():%Y-%m-%d})")
-    print(f"barre con entry attivo: {int(((sigs != 0).all(axis=1)).sum())}\n")
+    print(f"funding: {fund_mode} | barre con entry attivo: {int(((sigs != 0).all(axis=1)).sum())}\n")
 
-    bt = Backtest(candles, max_leverage=spec["risk"]["max_leverage"])
+    bt = Backtest(candles, max_leverage=spec["risk"]["max_leverage"],
+                  funding_hist=data.get("funding"))
     equity = bt.run(strat)
 
     print(report("strategia", compute(equity, bt.trades)))
