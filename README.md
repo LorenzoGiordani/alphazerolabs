@@ -58,7 +58,8 @@ Principi non negoziabili:
 | `scripts/cron_run.sh` | Run unificato ogni 4h (crontab) |
 | `pipeline/live.py` | Dati live: Binance (crypto), yfinance (xyz_*), OI, news RSS 6 fonti |
 | `paper/*.jsonl` | Journal: trade, decisioni con tesi, lezioni — il "prodotto pubblico" |
-| `db/schema.sql` | Schema Postgres/Supabase (journal + lessons pgvector) — da collegare |
+| `db/schema.sql` | Schema Postgres/Supabase: trades, decisions, lessons (pgvector), equity_snapshots |
+| `scripts/sync_supabase.py` | Sync incrementale journal→Supabase (idempotente via source_key, no-op senza credenziali) |
 
 I dati storici (`data/`) non sono nel repo: si rigenerano con i 3 script fetch (~5 min).
 
@@ -108,15 +109,18 @@ sh scripts/cron_run.sh                           # run completo (in crontab ogni
 
 ## Roadmap
 
+Stato reale (audit giugno 2026). M1–M4 costruiti; l'unico gate rimasto prima dei fondi reali è il **track record paper nel tempo** (mesi, non ingegneria).
+
 - [x] M1 — dati, harness, registry, formato strategia, loop evolutivo (3 generazioni)
-- [x] M2 (parziale) — paper trading live in cron, pipeline agenti end-to-end, reflection loop
-- [ ] CLI nativa → pipeline completamente autonoma (decisioni + review in cron)
-- [ ] COT report CFTC (posizionamento commodities = analogo del funding)
-- [ ] Champion/challenger con gate statistico formale (deflated Sharpe)
-- [ ] Journal → Supabase (pgvector recall semantico)
-- [ ] Interfaccia v2 (design in corso, `dashboard/design-prompt.md`) → Cloudflare Pages
-- [ ] M4 — testnet Hyperliquid (API wallet solo-trading)
-- [ ] M5 — vault HyperEVM (solo a track record dimostrato)
+- [x] M2 — paper trading live in cron, pipeline agenti end-to-end, reflection loop, **CLI nativa autonoma** in cloud (paper-run.yml: decide+review+promote+evolve orari)
+- [x] COT report CFTC (posizionamento commodities = analogo del funding)
+- [x] Champion/challenger con gate statistico formale (**deflated Sharpe ≥0.95** enforced in `promote.py`)
+- [x] Journal → Supabase (schema + `sync_supabase.py` idempotente + workflow cloud gated; il recall semantico pgvector è cablato, l'embedding da popolare a progetto creato)
+- [x] Interfaccia v2 → Cloudflare Pages (`lux-ai.pages.dev`, deploy nel workflow)
+- [x] M4 — testnet Hyperliquid (`execute_testnet.py` dry-run sicuro, isolato per regola #2 — va in cron solo con `HL_API_SECRET` configurato)
+- [ ] **M5 — vault HyperEVM** (ERC-4626, solo a track record paper dimostrato su mesi). Gate di tempo, non di codice.
+
+**Cosa manca a M5**: niente ingegneria — serve che le strategie paper accumulate dimostrino nel tempo un edge robusto (deflated Sharpe, basket multi-asset) prima di muovere un euro reale on-chain. `promote.py` è il gate formale che decide quando il track record è "dimostrato".
 
 ## Riferimenti
 

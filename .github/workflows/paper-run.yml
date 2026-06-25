@@ -23,6 +23,8 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
       OPENCODE_GO_API_KEY: ${{ secrets.OPENCODE_GO_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -88,6 +90,10 @@ jobs:
           else
             echo "evolve: salta (gira lun 00:xx UTC)"
           fi
+
+      - name: sync journal → Supabase (idempotente, gated su credenziali)
+        if: env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
+        run: uv run scripts/sync_supabase.py || true
 
       - name: dashboard
         run: uv run scripts/dashboard.py
