@@ -108,26 +108,88 @@ def _ask_claude(prompt: str, as_json: bool = False):
     return json.loads(text) if as_json else text
 
 
+# Pattern di errore LLM non transiente (quota/auth): un retry non li risolve.
+# Derivati da errori reali visti in produzione (opencode-go 'Weekly usage limit
+# reached. Resets in 3 days', 'AI_RetryError: Failed after 3 attempts', ...).
+# Tenuti a livello modulo così sono testabili senza chiamare il modello.
+OPENCODE_QUOTA_ERRORS = (
+    "usage limit reached", "weekly usage limit", "resets in",
+    "ai_retryerror", "ai_apicallerror", "failed after",
+    "insufficient balance", "insufficient credit", "insufficient_quota",
+    "rate_limit_error", "unauthorized", "invalid api key",
+    "authentication failed", "permission_denied",
+)
+
+
 def _ask_opencode(prompt: str, as_json: bool = False, system: str | None = None):
-    """Fallback LLM: opencode-go/glm-5.2 via `opencode run --format json`.
+    """LLM: opencode-go/glm-5.2 via `opencode run --format json`.
     Auth da XDG_DATA_HOME/opencode/auth.json (locale: ~/.local/share/opencode;
     cloud: scritto dal workflow da GH secret OPENCODE_GO_API_KEY).
-    Output = stream JSONL; estrae i parti `text` dell'assistente."""
-    import os
+    Output = stream JSONL; estrae i parti `text` dell'assistente.
+
+    Robustezza: opencode, su errore di quota/auth del modello, NON esce da solo —
+    ritenta e resta appeso fino al timeout (visto in produzione: 180s+ persi per
+    ogni chiamata fallita). Con --print-logs --log-level ERROR gli errori di stream
+    finiscono su stderr: un thread li legge in streaming e KILLA il processo non
+    appena rileva un errore non transiente (quota/auth), così fail-fast in ~3s.
+    Questi errori un retry non li risolve."""
     import re
     import subprocess
-    cmd = ["opencode", "run", "-m", "opencode-go/glm-5.2", "--format", "json", "--dangerously-skip-permissions"]
+    import threading
+    cmd = ["opencode", "run", "-m", "opencode-go/glm-5.2", "--format", "json",
+           "--dangerously-skip-permissions", "--print-logs", "--log-level", "ERROR"]
     full = prompt
     if system:
         full = f"[ISTRUZIONI SISTEMA]\n{system}\n\n[/ISTRUZIONI SISTEMA]\n\n{prompt}"
     if as_json:
         full += "\n\nRispondi SOLO con JSON valido, niente markdown fence."
-    r = subprocess.run(cmd, input=full, capture_output=True, text=True, timeout=600)
-    if r.returncode != 0:
-        raise RuntimeError(f"opencode run fallito (exit {r.returncode}): "
-                           f"stderr={r.stderr[:300]} stdout={r.stdout[:300]}")
+    # pattern di errore non transiente (quota/auth): un retry non li risolve.
+    QUOTA = OPENCODE_QUOTA_ERRORS
+    try:
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, text=True)
+    except FileNotFoundError:
+        raise RuntimeError("opencode non installato (setup opencode mancante / OPENCODE_GO_API_KEY non impostata)")
+    try:
+        proc.stdin.write(full)
+        proc.stdin.close()
+    except BrokenPipeError:
+        pass
+    killed = {"reason": None}
+
+    def watch_err() -> None:
+        # drena stderr (evita deadlock buffer) e killa al primo errore non transiente
+        try:
+            for line in proc.stderr:
+                low = line.lower()
+                for p in QUOTA:
+                    if p in low:
+                        killed["reason"] = (p, line.strip()[:220])
+                        proc.kill()
+                        return
+        except Exception:
+            pass
+
+    tw = threading.Thread(target=watch_err, daemon=True)
+    tw.start()
+    try:
+        proc.wait(timeout=180)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            pass
+        raise RuntimeError("opencode run timeout (180s): glm-5.2 non raggiungibile o appeso")
+    tw.join(timeout=2)
+    if killed["reason"]:
+        p, msg = killed["reason"]
+        raise RuntimeError(f"opencode-go/glm-5.2 non disponibile ({p}): {msg}")
+    stdout = proc.stdout.read() if proc.stdout else ""
+    if proc.returncode != 0:
+        raise RuntimeError(f"opencode run fallito (exit {proc.returncode}): stdout={stdout[:300]}")
     text = ""
-    for line in r.stdout.splitlines():
+    for line in stdout.splitlines():
         line = line.strip()
         if not line:
             continue
@@ -139,7 +201,7 @@ def _ask_opencode(prompt: str, as_json: bool = False, system: str | None = None)
             text += ev["part"].get("text", "")
     text = text.strip()
     if not text:
-        raise RuntimeError(f"opencode run: nessun testo estratto. stdout={r.stdout[:300]}")
+        raise RuntimeError(f"opencode run: nessun testo estratto. stdout={stdout[:300]}")
     text = _strip_fence(text)
     if as_json:
         m = re.search(r"\{.*\}", text, re.DOTALL)
@@ -154,9 +216,9 @@ def _ask(prompt: str, as_json: bool = False):
     ritenta con opencode-go/glm-5.2. Trasparente per i chiamanti."""
     try:
         return _ask_claude(prompt, as_json)
-    except RuntimeError as e:
+    except Exception as e:
         import sys
-        print(f"[fallback] claude fallito ({str(e)[:140]}) → opencode glm-5.2", file=sys.stderr)
+        print(f"[fallback] claude fallito ({type(e).__name__}: {str(e)[:140]}) → opencode glm-5.2", file=sys.stderr)
         return _ask_opencode(prompt, as_json)
 
 
