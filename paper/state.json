@@ -105,27 +105,8 @@
   "positions": {}
  },
  "lux-confluence-rr2-v1": {
-  "equity": 10633.207715746901,
+  "equity": 11044.41312628089,
   "positions": {
-   "BTC": {
-    "sign": -1,
-    "entry_px": 61295.7384,
-    "stop_px": 62536.84727142857,
-    "target_px": 58813.52065714286,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 61295.7384,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "lux-confluence-rr2-v1",
-    "symbol": "BTC",
-    "direction": "short",
-    "size_usd": 5072.77,
-    "opened_at": "2026-06-24 13:00:00+00:00",
-    "checked_until": "2026-06-25 12:00:00+00:00",
-    "_last_ts": "2026-06-25 12:00:00+00:00"
-   },
    "ZEC": {
     "sign": -1,
     "entry_px": 398.640256,
@@ -163,24 +144,6 @@
     "opened_at": "2026-06-24 17:00:00+00:00",
     "checked_until": "2026-06-25 12:00:00+00:00",
     "_last_ts": "2026-06-25 12:00:00+00:00"
-   },
-   "XRP": {
-    "sign": -1,
-    "entry_px": 1.07398516,
-    "stop_px": 1.09393117,
-    "target_px": 1.0340931400000004,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 1.07398516,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "lux-confluence-rr2-v1",
-    "symbol": "XRP",
-    "direction": "short",
-    "size_usd": 5726.8,
-    "opened_at": "2026-06-25 12:00:00+00:00",
-    "checked_until": "2026-06-25 12:00:00+00:00"
    }
   }
  },
