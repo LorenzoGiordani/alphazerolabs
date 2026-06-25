@@ -134,8 +134,25 @@ def map_records(records: list[dict]) -> dict[str, list[dict]]:
                 "context": {k: v for k, v in r.items() if k != "type"},
             })
 
-    return {"trades": list(trades.values()), "decisions": decisions,
+    return {"trades": _normalize_trade_keys(list(trades.values())), "decisions": decisions,
             "equity_snapshots": snapshots}
+
+
+# chiavi canoniche: tutte le righe trades devono averle (PostgREST le richiede
+# uniformi nell'array di un upsert). Aggiungo i campi di uscita mancati come None.
+_TRADE_KEYS = {
+    "source_key", "strategy", "symbol", "direction", "size_usd", "leverage",
+    "entry_px", "stop_px", "target_px", "thesis", "invalidation",
+    "market_context", "risk_decision", "status", "opened_at",
+    "exit_px", "exit_reason", "pnl_usd", "closed_at",
+}
+
+
+def _normalize_trade_keys(rows: list[dict]) -> list[dict]:
+    out = []
+    for r in rows:
+        out.append({k: r.get(k) for k in _TRADE_KEYS})
+    return out
 
 
 def map_lessons(records: list[dict]) -> list[dict]:
