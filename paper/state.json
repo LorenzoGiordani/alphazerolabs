@@ -15,7 +15,7 @@
     "stop_px": 445.88600496000004,
     "target_px": 346.80022608,
     "opened_at": "2026-06-24 02:00:00+00:00",
-    "checked_until": "2026-06-26 19:00:00+00:00",
+    "checked_until": "2026-06-26 20:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "ZEC \u00e8 l'unico asset con segnali tecnici attivi multipli: vol_compression=1 in bear regime segnala distribuzione compressa, non accumulazione \u2014 il bias direzionale su trend negativo \u00e8 breakdown. Il funding anomalo +3.97% APR identifica longs intrappolati strutturalmente: il loro costo di carry accelera la capitolazione e la cascata quando cede. volume_profile=-1 conferma assenza di bid denso sotto zona corrente, amplificando il vacuum potenziale. Il contesto macro avverso (selloff AI chip, redemptions istituzionali) rimuove il bid esterno che potrebbe sostenere un rimbalzo.",
     "invalidation": "Funding gira negativo entro 48h (capitolazione longs completata senza trigger breakdown) oppure chiusura daily sopra $445 con volume surge rialzista \u2014 segnalerebbe accumulazione e non distribuzione, invalidando il bias di breakdown della compressione.",
@@ -27,7 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-26 19:00:00+00:00"
+    "_last_ts": "2026-06-26 20:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-06-26T14:21:34.350696+00:00"
@@ -49,31 +49,8 @@
   "positions": {}
  },
  "geopolitics-v1": {
-  "equity": 9998.275051,
+  "equity": 10083.78723525966,
   "positions": {
-   "xyz:NATGAS": {
-    "strategy": "geopolitics-v1",
-    "symbol": "xyz:NATGAS",
-    "direction": "long",
-    "entry_px": 3.19483884,
-    "size_usd": 3000.0,
-    "stop_px": 3.1309420632,
-    "target_px": 3.3865291704000002,
-    "opened_at": "2026-06-23 20:00:00+00:00",
-    "checked_until": "2026-06-26 19:00:00+00:00",
-    "time_stop_h": 72,
-    "thesis": "Il canale LNG-Hormuz rimane aperto e non \u00e8 in de-escalation come il crude: le LNG carriers operano su fixture long-term con penali alte e non rientrano in autonomia, il Qatar non ha rotte alternative per il ~25% del flusso GNL globale, e il premium di scarsit\u00e0 \u00e8 fisicamente radicato \u2014 non eroso dal giorno. tsmom=+1 \u00e8 l'unico segnale long dell'intero basket, confermando flusso sistemico nella direzione; El Ni\u00f1o (domanda raffreddamento Asia) e scorte europee sotto media stagionale aggiungono supporto strutturale indipendente dal catalizzatore geopolitico. Le strategie LUX non coprono NATGAS nel loro universe corrente (lux_confluence non confermabile): vado senza allineamento LUX esplicito \u2014 motivazione: il premium LNG \u00e8 un catalyst commodity-specifico out-of-sample per LUX, focalizzato su crypto/equity, e tsmom=+1 \u00e8 il proxy direzionale pi\u00f9 prossimo a una confluenza disponibile; la posizione \u00e8 aggiuntiva rispetto al book short-pesante esistente su crypto/equity, zero duplicazione di esposizione. Stop a 2.0% (>3\u00d7 ATR stimato da posizione tsmom-atr-v1 su stesso asset, ATR\u22480.51%) garantisce permanenza fuori dal rumore; time_stop 72h coerente con orizzonte di maturazione del catalizzatore LNG.",
-    "invalidation": "Ripresa documentata dei transiti LNG attraverso Hormuz nelle 48-72h (MarineTraffic, Bloomberg LNG Tracker) che comprima il premium fisico; oppure crollo del differenziale TTF spot vs mese successivo (struttura backwardation = mercato che prezza risoluzione imminente); oppure chiusura sotto -2% dall'entry su volumi in espansione (segnale di distribuzione, non rumore).",
-    "decision_ts": "2026-06-23T21:23:31.060013+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 3.19483884,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-06-26 19:00:00+00:00"
-   },
    "ETH": {
     "strategy": "geopolitics-v1",
     "symbol": "ETH",
@@ -83,7 +60,7 @@
     "stop_px": 1763.2752744,
     "target_px": 1413.947154,
     "opened_at": "2026-06-23 22:00:00+00:00",
-    "checked_until": "2026-06-26 19:00:00+00:00",
+    "checked_until": "2026-06-26 20:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "Canale deleveraging\u2192crypto \u00e8 lineare: liquidity gating (North Haven) + AI/tech cracking \u2192 forced-selling cross-asset, ETH \u00e8 l'asset pi\u00f9 liquido e correlato al deleveraging. tsmom -1 allineato, funding 0.014% Apr (no squeeze protection), acceleration -3.5% 24h = momentum fresco non stale. LUX confluence aligned=true con direction short. Oil esausto (-15% gi\u00e0 discountato, crowding risk), gold ambiguo per safe-haven bid, NatGas isolato dal canale macro attivo.",
     "invalidation": "ETH reclaim >1.720 con funding spike >0.03% Apr = risk-on recovery; o gating North Haven riscatti sbloccati = catalizzatore bullish improvviso che rompe il canale deleveraging.",
@@ -95,7 +72,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-26 19:00:00+00:00"
+    "_last_ts": "2026-06-26 20:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-06-24T17:31:27.327899+00:00"
@@ -119,23 +96,23 @@
   "last_decision_ts": "2026-06-22T19:22:53.570120+00:00"
  },
  "xsmom-port-v1": {
-  "equity": 9806.364506784095,
+  "equity": 9758.708613044873,
   "positions": {
    "XRP": {
-    "notional": 2279.9564270152523,
-    "px": 1.0465
+    "notional": 2273.856209150329,
+    "px": 1.0437
    },
    "NEAR": {
-    "notional": -2086.6451016635874,
-    "px": 1.8062
+    "notional": -2091.7282809611847,
+    "px": 1.8106
    },
    "WLD": {
-    "notional": 1881.0359964881477,
-    "px": 0.47135
+    "notional": 1873.8526618245673,
+    "px": 0.46955
    },
    "ZEC": {
-    "notional": -2282.415533128565,
-    "px": 416.13
+    "notional": -2311.704695041685,
+    "px": 421.47
    }
   },
   "last_rebalance_ts": "2026-06-22T12:53:58.749463+00:00"
@@ -150,61 +127,61 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 10040.60490750602,
+  "equity": 10068.298024098936,
   "positions": {
    "BTC": {
-    "notional": -1671.675873532918,
-    "px": 59736.0
+    "notional": -1670.2206849460742,
+    "px": 59684.0
    },
    "ETH": {
-    "notional": -1681.8473380372036,
-    "px": 1573.2
+    "notional": -1678.3194355356,
+    "px": 1569.9
    },
    "XRP": {
-    "notional": -1683.396068590548,
-    "px": 1.0465
+    "notional": -1678.891998841811,
+    "px": 1.0437
    },
    "WLD": {
-    "notional": 1694.5283290192694,
-    "px": 0.47135
+    "notional": 1688.0572332470522,
+    "px": 0.46955
    },
    "ZEC": {
-    "notional": 1713.1882518588052,
-    "px": 416.13
+    "notional": 1735.172788577922,
+    "px": 421.47
    },
    "CRV": {
-    "notional": 1676.3076067886116,
-    "px": 0.193
+    "notional": 1679.000121597443,
+    "px": 0.19331
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:08.155546+00:00"
  },
  "xsmom-highvol-combo-v1": {
-  "equity": 10037.335126367481,
+  "equity": 10018.766558628695,
   "positions": {
    "BTC": {
-    "notional": 1671.675873532918,
-    "px": 59736.0
+    "notional": 1670.2206849460742,
+    "px": 59684.0
    },
    "SOL": {
-    "notional": 1727.7536458185466,
-    "px": 73.028
+    "notional": 1706.86293993508,
+    "px": 72.145
    },
    "SUI": {
-    "notional": 1697.8380065952508,
-    "px": 0.6961
+    "notional": 1701.9356475248298,
+    "px": 0.69778
    },
    "NEAR": {
-    "notional": -1682.5964637713562,
-    "px": 1.8062
+    "notional": -1686.6953589327968,
+    "px": 1.8106
    },
    "WLD": {
-    "notional": -1694.5283290192694,
-    "px": 0.47135
+    "notional": -1688.0572332470522,
+    "px": 0.46955
    },
    "CRV": {
-    "notional": -1676.3076067886116,
-    "px": 0.193
+    "notional": -1679.000121597443,
+    "px": 0.19331
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:19.266461+00:00"
