@@ -1,0 +1,70 @@
+name: deploy-dashboard
+
+# Deploy istantaneo della dashboard pubblica su Cloudflare Pages
+# (lux-ai.pages.dev) appena si cambia il frontend (template.html, dashboard.py)
+# o su richiesta manuale. Non aspetta il paper-run orario, così i fix UI
+# vanno online subito. Rigenera index.html dai dati già committati e fa
+# il deploy dello stesso singolo file che usa paper-run.yml.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'dashboard/**'
+      - 'scripts/dashboard.py'
+      - 'paper/state.json'
+      - 'paper/*.jsonl'
+      - 'paper/backtests.json'
+
+concurrency:
+  group: deploy-dashboard
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: install uv
+        run: pip install -q uv
+
+      - name: sync deps (uv)
+        run: uv sync --frozen 2>/dev/null || uv sync
+
+      - name: rigenera index.html dai dati correnti
+        run: uv run scripts/dashboard.py
+
+      - name: deploy dashboard pubblica (lux-ai.pages.dev)
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: |
+          mkdir -p /tmp/lux-deploy && cp dashboard/index.html /tmp/lux-deploy/
+          npx -y wrangler@4 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
+
+      - name: committa index.html rigenerato (se cambiato)
+        run: |
+          git config user.name "lux-ai-cron"
+          git config user.email "actions@users.noreply.github.com"
+          git add dashboard/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: dashboard rebuild [deploy-dashboard]"
+            for i in 1 2 3; do
+              git pull --rebase -X theirs origin main && git push origin main && break
+              sleep 5
+            done
+          fi
