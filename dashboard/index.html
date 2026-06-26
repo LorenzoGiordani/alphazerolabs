@@ -245,6 +245,10 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .strat-card .s-stat.live{ color:var(--green); border-color:var(--green-dim); }
 .strat-card .s-stat.retired{ color:var(--text-4); border-color:var(--line-2); background:transparent; }
 /* ---------- archivio strategie ritirate ---------- */
+/* grid-column:1/-1: l'archivio e' figlio di #strats (.strat-grid auto-fit). Senza
+   questo spanerebbe 1 sola colonna, vincolando la .strat-grid interna a 1 colonna
+   -> le ritirate andrebbero in verticale. Spanna tutta la riga cosi' auto-fit le
+   dispone in orizzontale come le attive. */
 .strat-archive{ grid-column:1/-1; margin-top:32px; padding-top:24px; border-top:1px dashed var(--line-2); }
 .strat-archive-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
 .strat-archive-head h3{ font-family:var(--serif); font-weight:700; font-size:17px; margin:0; color:var(--text-2); }
@@ -905,7 +909,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-26 22:20",
+ "updated_utc": "2026-06-26 22:29",
  "accounts": [
   {
    "id": "agents-v1",
@@ -12427,7 +12431,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     "liq_imbalance": 0,
     "kronos_forecast": -1,
     "smart_money_ratio": 0,
-    "oi_trend": 1
+    "oi_trend": 0
    },
    "aligned": false,
    "direction": "—"
@@ -12472,7 +12476,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "symbol": "WLD",
    "signals": {
     "tsmom": 0,
-    "liq_imbalance": -1,
+    "liq_imbalance": 0,
     "kronos_forecast": 1,
     "smart_money_ratio": 0,
     "oi_trend": 0
@@ -12484,10 +12488,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "symbol": "ZEC",
    "signals": {
     "tsmom": -1,
-    "liq_imbalance": 1,
+    "liq_imbalance": 0,
     "kronos_forecast": -1,
     "smart_money_ratio": 0,
-    "oi_trend": 1
+    "oi_trend": 0
    },
    "aligned": false,
    "direction": "—"
@@ -12496,7 +12500,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "symbol": "CRV",
    "signals": {
     "tsmom": -1,
-    "liq_imbalance": -1,
+    "liq_imbalance": 0,
     "kronos_forecast": 1,
     "smart_money_ratio": 0,
     "oi_trend": 0
@@ -12804,7 +12808,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "esce": "stop ravvicinato, obiettivo raggiunto o troppo tempo senza risultato",
    "rischio": "nessuna leva (1x), massimo 0,6% del capitale a rischio per operazione, al più 2 posizioni insieme",
    "status": "retired",
-   "asset_class": "tutti i perp (193), crypto+stock/commodity",
+   "asset_class": "tutti i perp (194), crypto+stock/commodity",
    "risk_profile": "conservativo",
    "stats": {
     "n_closed": 159,
@@ -12822,7 +12826,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "esce": "stop 2.5%, target 3.0R, tempo max 240h",
    "rischio": "leva max 1x, 0.6% a rischio per operazione",
    "status": "retired",
-   "asset_class": "tutti i perp (195), crypto+stock/commodity",
+   "asset_class": "tutti i perp (196), crypto+stock/commodity",
    "risk_profile": "conservativo",
    "stats": {
     "n_closed": 142,
@@ -15805,53 +15809,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   "generated_at": "2026-06-26T22:20 UTC",
   "strategies": []
  },
- "llm_stats": {
-  "total": 7,
-  "roles": [
-   {
-    "role": "strategist",
-    "n": 3,
-    "avg_lat": 50.4,
-    "tok_in": 3832,
-    "tok_out": 7899
-   },
-   {
-    "role": "reviewer",
-    "n": 1,
-    "avg_lat": 31.6,
-    "tok_in": 1133,
-    "tok_out": 1362
-   },
-   {
-    "role": "analyst",
-    "n": 1,
-    "avg_lat": 24.0,
-    "tok_in": 5893,
-    "tok_out": 1505
-   },
-   {
-    "role": "bull",
-    "n": 1,
-    "avg_lat": 10.0,
-    "tok_in": 770,
-    "tok_out": 434
-   },
-   {
-    "role": "bear",
-    "n": 1,
-    "avg_lat": 12.6,
-    "tok_in": 770,
-    "tok_out": 459
-   }
-  ],
-  "by_effort": {
-   "medium": 1,
-   "max": 4,
-   "low": 2
-  },
-  "cached": 0,
-  "tot_tok": 24057
- }
+ "llm_stats": {}
 }
 </script>
 
