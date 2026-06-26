@@ -15,7 +15,7 @@
     "stop_px": 445.88600496000004,
     "target_px": 346.80022608,
     "opened_at": "2026-06-24 02:00:00+00:00",
-    "checked_until": "2026-06-26 21:00:00+00:00",
+    "checked_until": "2026-06-26 22:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "ZEC \u00e8 l'unico asset con segnali tecnici attivi multipli: vol_compression=1 in bear regime segnala distribuzione compressa, non accumulazione \u2014 il bias direzionale su trend negativo \u00e8 breakdown. Il funding anomalo +3.97% APR identifica longs intrappolati strutturalmente: il loro costo di carry accelera la capitolazione e la cascata quando cede. volume_profile=-1 conferma assenza di bid denso sotto zona corrente, amplificando il vacuum potenziale. Il contesto macro avverso (selloff AI chip, redemptions istituzionali) rimuove il bid esterno che potrebbe sostenere un rimbalzo.",
     "invalidation": "Funding gira negativo entro 48h (capitolazione longs completata senza trigger breakdown) oppure chiusura daily sopra $445 con volume surge rialzista \u2014 segnalerebbe accumulazione e non distribuzione, invalidando il bias di breakdown della compressione.",
@@ -27,7 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-26 21:00:00+00:00"
+    "_last_ts": "2026-06-26 22:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-06-26T14:21:34.350696+00:00"
@@ -49,32 +49,8 @@
   "positions": {}
  },
  "geopolitics-v1": {
-  "equity": 10083.78723525966,
-  "positions": {
-   "ETH": {
-    "strategy": "geopolitics-v1",
-    "symbol": "ETH",
-    "direction": "short",
-    "entry_px": 1663.46724,
-    "size_usd": 833.22,
-    "stop_px": 1763.2752744,
-    "target_px": 1413.947154,
-    "opened_at": "2026-06-23 22:00:00+00:00",
-    "checked_until": "2026-06-26 21:00:00+00:00",
-    "time_stop_h": 72,
-    "thesis": "Canale deleveraging\u2192crypto \u00e8 lineare: liquidity gating (North Haven) + AI/tech cracking \u2192 forced-selling cross-asset, ETH \u00e8 l'asset pi\u00f9 liquido e correlato al deleveraging. tsmom -1 allineato, funding 0.014% Apr (no squeeze protection), acceleration -3.5% 24h = momentum fresco non stale. LUX confluence aligned=true con direction short. Oil esausto (-15% gi\u00e0 discountato, crowding risk), gold ambiguo per safe-haven bid, NatGas isolato dal canale macro attivo.",
-    "invalidation": "ETH reclaim >1.720 con funding spike >0.03% Apr = risk-on recovery; o gating North Haven riscatti sbloccati = catalizzatore bullish improvviso che rompe il canale deleveraging.",
-    "decision_ts": "2026-06-23T23:20:23.171086+00:00",
-    "sign": -1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 1663.46724,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-06-26 21:00:00+00:00"
-   }
-  },
+  "equity": 10126.565186658709,
+  "positions": {},
   "last_decision_ts": "2026-06-24T17:31:27.327899+00:00"
  },
  "tsmom-atr-v1": {
@@ -96,23 +72,23 @@
   "last_decision_ts": "2026-06-22T19:22:53.570120+00:00"
  },
  "xsmom-port-v1": {
-  "equity": 9767.090448821775,
+  "equity": 9784.055982034974,
   "positions": {
    "XRP": {
-    "notional": 2270.58823529412,
-    "px": 1.0422
+    "notional": 2282.5708061002206,
+    "px": 1.0477
    },
    "NEAR": {
-    "notional": -2073.4750462107227,
-    "px": 1.7948
+    "notional": -2072.4353049907595,
+    "px": 1.7939
    },
    "WLD": {
-    "notional": 1870.1013648335863,
-    "px": 0.46861
+    "notional": 1868.066086678905,
+    "px": 0.4681
    },
    "ZEC": {
-    "notional": -2314.556823168057,
-    "px": 421.99
+    "notional": -2308.57832382624,
+    "px": 420.9
    }
   },
   "last_rebalance_ts": "2026-06-22T12:53:58.749463+00:00",
@@ -120,6 +96,10 @@
    {
     "ts": "2026-06-26T22:16:07.130207+00:00",
     "eq": 9767.09
+   },
+   {
+    "ts": "2026-06-26T23:16:00.565832+00:00",
+    "eq": 9784.06
    }
   ]
  },
@@ -133,31 +113,31 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 10058.967038562789,
+  "equity": 10036.57661941193,
   "positions": {
    "BTC": {
-    "notional": -1675.7615953344416,
-    "px": 59882.0
+    "notional": -1679.3156136138489,
+    "px": 60009.0
    },
    "ETH": {
-    "notional": -1683.023305537738,
-    "px": 1574.3
+    "notional": -1685.9097712208682,
+    "px": 1577.0
    },
    "XRP": {
-    "notional": -1676.479104333559,
-    "px": 1.0422
+    "notional": -1685.3263841971502,
+    "px": 1.0477
    },
    "WLD": {
-    "notional": 1684.677883232672,
-    "px": 0.46861
+    "notional": 1682.8444060972104,
+    "px": 0.4681
    },
    "ZEC": {
-    "notional": 1737.3136048876488,
-    "px": 421.99
+    "notional": 1732.8261245461063,
+    "px": 420.9
    },
    "CRV": {
-    "notional": 1678.7395556482013,
-    "px": 0.19328
+    "notional": 1677.9578578004762,
+    "px": 0.19319
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:08.155546+00:00",
@@ -165,35 +145,39 @@
    {
     "ts": "2026-06-26T22:16:03.615655+00:00",
     "eq": 10058.97
+   },
+   {
+    "ts": "2026-06-26T23:15:55.478171+00:00",
+    "eq": 10036.58
    }
   ]
  },
  "xsmom-highvol-combo-v1": {
-  "equity": 10031.819636854627,
+  "equity": 10043.24906478413,
   "positions": {
    "BTC": {
-    "notional": 1675.7615953344416,
-    "px": 59882.0
+    "notional": 1679.3156136138489,
+    "px": 60009.0
    },
    "SOL": {
-    "notional": 1701.8945953874834,
-    "px": 71.935
+    "notional": 1698.5113893384057,
+    "px": 71.792
    },
    "SUI": {
-    "notional": 1696.0574840484696,
-    "px": 0.69537
+    "notional": 1703.862514390525,
+    "px": 0.69857
    },
    "NEAR": {
-    "notional": -1671.9765990348965,
-    "px": 1.7948
+    "notional": -1671.1381886609654,
+    "px": 1.7939
    },
    "WLD": {
-    "notional": -1684.677883232672,
-    "px": 0.46861
+    "notional": -1682.8444060972104,
+    "px": 0.4681
    },
    "CRV": {
-    "notional": -1678.7395556482013,
-    "px": 0.19328
+    "notional": -1677.9578578004762,
+    "px": 0.19319
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:19.266461+00:00",
@@ -201,35 +185,39 @@
    {
     "ts": "2026-06-26T22:16:12.076197+00:00",
     "eq": 10031.82
+   },
+   {
+    "ts": "2026-06-26T23:16:06.606221+00:00",
+    "eq": 10043.25
    }
   ]
  },
  "xsmom-highvol-voltarget-v1": {
-  "equity": 10006.560589413217,
+  "equity": 10017.861454938542,
   "positions": {
    "BTC": {
-    "notional": 1672.1957866988362,
-    "px": 59882.0
+    "notional": 1675.742242477046,
+    "px": 60009.0
    },
    "SOL": {
-    "notional": 1661.8153256173912,
-    "px": 71.935
+    "notional": 1658.5117933790748,
+    "px": 71.792
    },
    "SUI": {
-    "notional": 1660.9103155722437,
-    "px": 0.69537
+    "notional": 1668.5536033324736,
+    "px": 0.69857
    },
    "NEAR": {
-    "notional": -1652.1226849294892,
-    "px": 1.7948
+    "notional": -1651.2942302735742,
+    "px": 1.7939
    },
    "WLD": {
-    "notional": -1663.330138785362,
-    "px": 0.46861
+    "notional": -1661.5198949348667,
+    "px": 0.4681
    },
    "CRV": {
-    "notional": -1666.4080147604022,
-    "px": 0.19328
+    "notional": -1665.6320590416085,
+    "px": 0.19319
    }
   },
   "last_rebalance_ts": "2026-06-26T21:23:20.093714+00:00",
@@ -241,6 +229,10 @@
    {
     "ts": "2026-06-26T22:16:16.683639+00:00",
     "eq": 10006.56
+   },
+   {
+    "ts": "2026-06-26T23:16:12.756268+00:00",
+    "eq": 10017.86
    }
   ]
  }
