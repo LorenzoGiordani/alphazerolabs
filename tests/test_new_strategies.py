@@ -280,6 +280,27 @@ def test_promote_does_not_retire_portfolio_on_noise():
     assert per_symbol_retire2, "le per-simbolo in perdita devono essere ritirabili"
 
 
+def test_vol_target_overlay_multiplier():
+    """Regression: il vol-target overlay (Moreira-Muir) cablato in portfolio_paper.py.
+    Il moltiplicatore m = clip(target/realized, floor, cap). warmup -> 1.0 (no dati
+    sufficienti), alta vol -> floor (de-risk), bassa vol -> cap (re-leverage),
+    disabled -> 1.0. Blocca regressioni se qualcuno tocca _vol_target_multiplier."""
+    from scripts.portfolio_paper import _vol_target_multiplier
+    vt = {"enabled": True, "target_vol_ann": 0.20, "vol_window_h": 720,
+          "gross_floor": 0.3, "gross_cap": 1.5}
+    # warmup: troppi pochi punti -> neutro
+    assert _vol_target_multiplier([{"ts": "t", "eq": 10000 + i} for i in range(5)], vt) == 1.0
+    # vol alta (rumore grosso) -> m al floor (de-risk)
+    import random; random.seed(0)
+    hist_hi = [{"ts": "t", "eq": 10000 * (1 + random.gauss(0, 0.3))} for _ in range(200)]
+    assert _vol_target_multiplier(hist_hi, vt) == 0.3
+    # vol bassa (drift stabile) -> m al cap (re-leverage)
+    hist_lo = [{"ts": "t", "eq": 10000 * (1 + 0.001 * i)} for i in range(200)]
+    assert _vol_target_multiplier(hist_lo, vt) == 1.5
+    # overlay disabilitato -> neutro sempre
+    assert _vol_target_multiplier(hist_lo, {"enabled": False}) == 1.0
+
+
 def test_portfolio_backtest_12m_edge_holds():
     """L'edge cross-sectional a portafoglio e' confermato a 12m (regression gate).
     Era +29.4% a 6m nel deploy originale; a 12m e' +79.8% Sharpe 2.11. Questo test

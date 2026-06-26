@@ -1,6 +1,11 @@
 id: glm-regime-confluence-v1
 parent: null
-status: challenger
+status: retired          # 26/06: ZOMBIE. 0 trade in 3 giorni di paper (last rebalance vuoto),
+                        # backtest: {} (non backtestabile, desk LLM). Il gate
+                        # tsmom+xsection + auditor LLM non hanno aggiunto valore
+                        # sopra il trend semplice — conferma la lezione che il
+                        # forecast/regime-filter LLM non produce alpha.
+                        # Rilevazione manuale Lorenzo: 'non sta producendo risultati'.
 created: '2026-06-24'
 engine: desk                # ibrida: gate sistematico + layer LLM auditor. La esegue
                             #   scripts/glm_strategy.py (decisione) + agents_paper.py
@@ -30,8 +35,13 @@ thesis: >
   xsection versionata + workflow xsection-precompute.yml giornaliero; (b) gate
   allentato con via di fallback — tsmom + conviction>=2 dai vote accettato anche
   senza xsection allineato (filtro regime, non collo single-signal).
-  Falsificata se: non batte in paper ne' tsmom puro ne' lux-flow-confluence (cioe'
-  se l'auditor LLM e l'xsection non aggiungono valore sopra il trend semplice).
+  ESITO: RITIRATA. Mai aperto un trade in 3 giorni di paper (gate sempre chiuso
+  anche dopo il fix del 25/06). Non backtestabile (desk LLM). Il track record
+  dimostrativo manca del tutto → nessuna evidenza di edge. Rilevazione manuale
+  di Lorenzo (26/06): 'non sta producendo risultati'. Originally: falsificata se
+  non batteva in paper ne' tsmom puro ne' lux-flow-confluence — non ha mai
+  raggiunto l'evidenza per essere valutata. Conclusione: l'auditor/regime-filter
+  LLM su strategie ibride non produce alpha in questo setup.
 
 paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
 

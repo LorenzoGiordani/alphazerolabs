@@ -50,7 +50,7 @@ jobs:
       # Gira tutte le engine:portfolio attive (champion/challenger).
       - name: portfolio paper trading
         run: |
-          for pf in strategies/generated/*port-v1.yaml strategies/generated/*combo-v1.yaml; do
+          for pf in strategies/generated/*port-v1.yaml strategies/generated/*combo-v1.yaml strategies/generated/*voltarget-v1.yaml; do
             [ -f "$pf" ] || continue
             uv run scripts/portfolio_paper.py "$pf" || true
           done
@@ -64,8 +64,8 @@ jobs:
           uv run scripts/agents_paper.py || true
           uv run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # variante RR2
           # Claude Strategy RETIRATA 25/06 (layer LLM non aggiungeva valore): rimosso.
-          uv run scripts/glm_strategy.py BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV || true   # glm-5.2 regime-confluence
-          uv run scripts/agents_paper.py --account glm-regime-confluence-v1 || true
+          # glm-regime-confluence RETIRATA 26/06: zombie (0 trade in 3 giorni, gate sempre chiuso,
+          # non backtestabile desk LLM). Auditor/regime-filter LLM non produce alpha: rimosso.
           uv run scripts/geopolitics_paper.py || true   # desk macro cross-asset, gated su burst GDELT
 
       # EVOLUZIONE SUL CAMPO — promozione/retrocessione AD OGNI RUN (cheap, LLM-free,

@@ -28,6 +28,33 @@ from scripts.paper_trade import STATE_FILE, log_event
 
 COST = HL_TAKER_FEE + DEFAULT_SLIPPAGE
 
+# Vol-target overlay (Moreira-Muir 2017): scala il gross inverso alla vol realizzata
+# del book. Cablato qui per i candidati con portfolio.vol_target.enabled=true.
+# Cron ogni 4h -> annualizzo per sqrt(PERIODS_PER_YEAR_HEARTBEAT). Warmup m=1.0.
+PERIODS_PER_YEAR_HEARTBEAT = 6 * 365   # heartbeat ogni 4h
+
+
+def _vol_target_multiplier(history: list, vt: dict) -> float:
+    """m = clip(target_vol / realized_vol, gross_floor, gross_cap).
+    history: lista di dict {"ts", "eq"} passati (anti-lookahead: solo <= now).
+    Ritorna 1.0 in warmup (< min_periods punti)."""
+    if not vt or not vt.get("enabled"):
+        return 1.0
+    min_p = int(vt.get("vol_window_h", 720)) // 4          # ~punti heartbeat necessari
+    min_p = max(min_p, 30)
+    eqs = [float(h["eq"]) for h in history if h.get("eq")]
+    if len(eqs) < min_p:
+        return 1.0                                       # warmup
+    import numpy as _np
+    window = eqs[-min_p:]
+    rets = _np.diff(window) / _np.array(window[:-1])
+    if len(rets) < 5 or _np.std(rets) <= 0:
+        return 1.0
+    realized_ann = float(_np.std(rets) * _np.sqrt(PERIODS_PER_YEAR_HEARTBEAT))
+    target = float(vt.get("target_vol_ann", 0.20))
+    m = target / realized_ann
+    return float(_np.clip(m, float(vt.get("gross_floor", 0.3)), float(vt.get("gross_cap", 1.5))))
+
 
 def trailing_returns(symbols: list[str], lookback_h: int,
                     multi_horizon: list[int] | None = None) -> tuple[pd.Series, dict]:
@@ -135,7 +162,9 @@ def main() -> None:
     factor = pf.get("factor", "xsmom")           # xsmom (rank ret) | highvol (rank std)
 
     state = json.loads(STATE_FILE.read_text()) if STATE_FILE.exists() else {}
-    st = state.setdefault(acct, {"equity": 10_000.0, "positions": {}, "last_rebalance_ts": ""})
+    st = state.setdefault(acct, {"equity": 10_000.0, "positions": {}, "last_rebalance_ts": "",
+                                 "equity_history": []})
+    vt = pf.get("vol_target")                            # overlay Moreira-Muir (opt-in)
     now = datetime.now(timezone.utc)
     print(f"portfolio paper {acct} {now:%Y-%m-%d %H:%M} UTC — equity {st['equity']:.2f}$")
 
@@ -165,8 +194,12 @@ def main() -> None:
     due = (not st["last_rebalance_ts"] or
            now - datetime.fromisoformat(st["last_rebalance_ts"]) >= pd.Timedelta(hours=rebalance_h).to_pytimedelta())
     if due and len(rets) >= 3:
+        m = _vol_target_multiplier(st.get("equity_history", []), vt)   # anti-lookahead: solo passato
+        gross_eff = gross * m
+        if vt and vt.get("enabled") and abs(m - 1.0) > 1e-6:
+            print(f"  vol-target: realized->m={m:.2f} (gross {gross:.2f}->{gross_eff:.2f})")
         w = xs_momentum_weights(rets, long_q=float(pf.get("long_q", 0.66)),
-                                short_q=float(pf.get("short_q", 0.33)), gross=gross,
+                                short_q=float(pf.get("short_q", 0.33)), gross=gross_eff,
                                 dollar_neutral=bool(pf.get("dollar_neutral", True)))
         target = {s: float(w[s]) * st["equity"] for s in w.index if abs(w[s]) > 1e-9}
         current = {s: st["positions"].get(s, {}).get("notional", 0.0) for s in set(target) | set(st["positions"])}
@@ -183,6 +216,8 @@ def main() -> None:
 
     net = sum(p["notional"] for p in st["positions"].values())
     gross_now = sum(abs(p["notional"]) for p in st["positions"].values())
+    # equity history per vol-target overlay (append + trim a 720 punti ~120g)
+    st["equity_history"] = (st.get("equity_history", []) + [{"ts": now.isoformat(), "eq": round(st["equity"], 2)}])[-720:]
     print(f"fine: equity {st['equity']:.2f}$, gambe {len(st['positions'])}, "
           f"gross {gross_now:.0f}$, net {net:+.0f}$")
     STATE_FILE.write_text(json.dumps(state, indent=1, default=str))
