@@ -13,7 +13,6 @@ Uso: .venv/bin/python scripts/evolve_auto.py [--n 4] [--months 6] [--dsr 0.90]
 
 import argparse
 import sys
-from datetime import date
 from pathlib import Path
 
 import yaml

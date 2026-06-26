@@ -308,7 +308,7 @@ def ask(prompt: str, system: str | None = None, as_json: bool = False,
         payload["tool_choice"] = {"type": "tool", "name": schema_name}
 
     t0 = time.time()
-    ok, err, data, result = True, None, None, None
+    err, data, result = None, None, None
     try:
         data = _post(base_url, api_key, payload, timeout)
         if schema:
@@ -325,7 +325,7 @@ def ask(prompt: str, system: str | None = None, as_json: bool = False,
             if not result:
                 raise RuntimeError("risposta GLM-5.2 senza testo")
     except Exception as e:
-        ok, err = False, f"{type(e).__name__}: {str(e)[:200]}"
+        err = f"{type(e).__name__}: {str(e)[:200]}"
         _trace({"role": role, "model": model, "effort": effort, "ok": False, "cached": False,
                 "latency_s": round(time.time() - t0, 2), "error": err, "usage": {}})
         raise

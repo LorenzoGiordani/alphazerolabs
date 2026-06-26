@@ -217,7 +217,6 @@ def test_paper_exits_closes_retired_positions(tmp_path, monkeypatch):
     """paper_exits chiude le posizioni delle strategie retired al prezzo attuale."""
     import scripts.paper_exits as pe
     import scripts.paper_trade as pt
-    import backtest.lifecycle as lc
 
     paper_dir = tmp_path / "paper"
     paper_dir.mkdir(exist_ok=True)

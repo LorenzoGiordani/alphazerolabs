@@ -16,8 +16,7 @@ Output: verdetto per ipotesi. Niente trading, solo misura. Uso:
 """
 import argparse
 import json
-import sys
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -129,7 +128,7 @@ def study_correlation(panel):
     mean_pair = float(iu.stack().mean())
     print(f"\n[D] CORRELAZIONE basket ({len(cm)} asset)")
     print(f"  corr media a coppie {mean_pair:+.2f}")
-    print(f"  → alta = un long-basket e quasi 1 scommessa; market-neutral/cap correlazione sensati"
+    print("  → alta = un long-basket e quasi 1 scommessa; market-neutral/cap correlazione sensati"
           if mean_pair > 0.4 else "  → bassa: diversificazione gia presente")
 
 

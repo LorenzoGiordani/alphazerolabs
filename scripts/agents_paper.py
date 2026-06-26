@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
 from pipeline.live import fetch_live
-from scripts.paper_trade import JOURNAL, STATE_FILE, log_event, update_position
+from scripts.paper_trade import STATE_FILE, log_event, update_position
 
 # Account che esegue + SORGENTE delle decisioni che consuma. Le decisioni del desk
 # agents storico NON portano campo "strategy" → appartengono per default a "agents-v1".
@@ -79,7 +79,9 @@ def open_from_decision(d: dict, equity: float) -> dict | None:
         "stop_px": px * (1 - sign * stop_pct),
         "target_px": px * (1 + sign * stop_pct * target_r),
         "opened_at": str(last.ts), "checked_until": str(last.ts),
-        "time_stop_h": int(p["time_stop_h"]),
+        # fallback 96h se l'LLM omette/emette 0 → time_stop 0 uscirebbe a OGNI candela
+        # (>=0h è sempre vero). Stesso fix del desk geopolitics (consistenza).
+        "time_stop_h": int(p.get("time_stop_h") or 96),
         "thesis": p["thesis"], "invalidation": p["invalidation"],
         "decision_ts": d["logged_at"],
     }

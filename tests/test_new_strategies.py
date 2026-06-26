@@ -1,4 +1,5 @@
 """Test del nuovo segnale volume_profile e delle strategie di ricerca 2026-06-22."""
+import json
 import sys
 from pathlib import Path
 
@@ -141,19 +142,48 @@ def test_glm_gate_fallback_conviction():
     assert "SOL" not in cands                                        # conviction insufficiente
 
 
-def test_geo_time_stop_fallback():
+def test_geo_time_stop_fallback(monkeypatch, tmp_path):
     """open_from_decision usa 96h di fallback se l'LLM emette time_stop_h=0
-    (bug latente: posizione eterna senza time-stop). Fix geopolitics 25/06."""
+    (bug latente: posizione eterna senza time-stop). Fix geopolitics 25/06.
+
+    Isolamento: log_event scrive sul journal REALE se non monkeypatchato →
+    inquinerebbe paper/journal.jsonl (e il cron lo committeva). Redirect a tmp."""
     import importlib, scripts.geopolitics_paper as geo
+    import scripts.paper_trade as pt
     importlib.reload(geo)
+    fake_journal = tmp_path / "journal.jsonl"
+    monkeypatch.setattr(pt, "JOURNAL", fake_journal)
+    monkeypatch.setattr(geo, "log_event", pt.log_event)
     # proposta con time_stop_h=0 (LLM malfatto)
     d = {"proposal": {"symbol": "BTC", "direction": "long", "leverage": 1,
                       "risk_pct": 1.0, "stop_pct": 4.0, "target_r": 2.0,
                       "time_stop_h": 0, "thesis": "t", "invalidation": "i"},
          "risk": {"size_multiplier": 1.0, "verdict": "approve"}, "logged_at": "2026-06-25T00:00:00+00:00"}
     # monkeypatch fetch_live per non toccare la rete
-    geo.fetch_live = lambda sym, lookback_h=50: {"candles": _candles()}
+    monkeypatch.setattr(geo, "fetch_live", lambda sym, lookback_h=50: {"candles": _candles()})
     pos = geo.open_from_decision(d, 10000.0)
     assert pos is not None
     assert pos["time_stop_h"] == 96          # fallback, non 0 (che era il bug)
+    # l'evento open va nel journal REDIRECT (tmp), non in quello reale
+    assert fake_journal.exists() and json.loads(fake_journal.read_text())["thesis"] == "t"
+
+
+def test_agents_time_stop_fallback(monkeypatch, tmp_path):
+    """agents_paper.open_from_decision usa lo stesso fallback 96h del desk geo se
+    l'LLM emette time_stop_h=0 (bug latente simmetrico: 0h uscirebbe a ogni candela).
+    Fix consistenza 25/06. Journal redirect a tmp (vedi test geo per la motivazione)."""
+    import importlib, scripts.agents_paper as ag
+    import scripts.paper_trade as pt
+    importlib.reload(ag)
+    fake_journal = tmp_path / "journal.jsonl"
+    monkeypatch.setattr(pt, "JOURNAL", fake_journal)
+    d = {"proposal": {"symbol": "BTC", "direction": "long", "leverage": 1,
+                      "risk_pct": 1.0, "stop_pct": 4.0, "target_r": 2.0,
+                      "time_stop_h": 0, "thesis": "t", "invalidation": "i"},
+         "risk": {"size_multiplier": 1.0, "verdict": "approve"}, "logged_at": "2026-06-25T00:00:00+00:00"}
+    monkeypatch.setattr(ag, "fetch_live", lambda sym, lookback_h=50: {"candles": _candles()})
+    pos = ag.open_from_decision(d, 10000.0)
+    assert pos is not None
+    assert pos["time_stop_h"] == 96          # fallback, non 0
+    assert fake_journal.exists() and json.loads(fake_journal.read_text())["thesis"] == "t"
 

@@ -117,7 +117,7 @@ Credenziali (priorità): env `ZAI_API_KEY` → `.env` → config zcode locale (`
 
 ## Roadmap
 
-Stato reale (audit giugno 2026). M1–M4 costruiti; l'unico gate rimasto prima dei fondi reali è il **track record paper nel tempo** (mesi, non ingegneria).
+Stato reale (audit giugno 2026, sessione di hardening). M1–M4 costruiti; l'unico gate rimasto prima dei fondi reali è il **track record paper nel tempo** (mesi, non ingegneria).
 
 - [x] M1 — dati, harness, registry, formato strategia, loop evolutivo (3 generazioni)
 - [x] M2 — paper trading live in cron, pipeline agenti end-to-end, reflection loop, **CLI nativa autonoma** in cloud (paper-run.yml: decide+review+promote+evolve orari)
@@ -129,6 +129,15 @@ Stato reale (audit giugno 2026). M1–M4 costruiti; l'unico gate rimasto prima d
 - [ ] **M5 — vault HyperEVM** (ERC-4626, solo a track record paper dimostrato su mesi). Gate di tempo, non di codice.
 
 **Cosa manca a M5**: niente ingegneria — serve che le strategie paper accumulate dimostrino nel tempo un edge robusto (deflated Sharpe, basket multi-asset) prima di muovere un euro reale on-chain. `promote.py` è il gate formale che decide quando il track record è "dimostrato".
+
+### Hardening & audit (25/06)
+Suite di test verde (**98 pass**). Sessione di audit + bugfix:
+- **Integrità del journal (finding chiave)** — i test `*_time_stop_fallback` chiamavano `open_from_decision` → `log_event` scriveva aperture **false** (`thesis:"t"`) sul journal REALE `paper/journal.jsonl`, e il cron le committeva. Bug cronico: ogni `pytest` corrompeva il "prodotto pubblico". Fix: monkeypatch del `JOURNAL` verso `tmp_path` + pulizia di 6 righe false già committate.
+- **`agents_paper.py`**: floor difensivo `time_stop_h or 96` (bug latente simmetrico al desk geo: un LLM che emette `time_stop_h=0` faceva scattare l'uscita a *ogni* candela chiusa). Aggiunto test di regressione.
+- **`backtest_report.py`**: `pd.Timestamp.utcnow()` deprecato in pandas → `Timestamp.now(tz="UTC")` (rottura imminente al prossimo upgrade).
+- **`cron_run.sh`**: leftover strutturale (riga indentata copia-incollata dal blocco YAML del workflow cloud) + prima chiamata `agents_paper.py` senza `|| true` (un errore interrompeva tutta la catena locale).
+- **Cleanup lint**: import inutilizzati, variabili morte, `NameError` latente (`notional` non definito in `test_impact.py`) risolti. `ruff --select F` pulito.
+- `.gitignore`: tooling temporaneo di live-render/screenshot del design skill (`scripts/_render_*.js`, `scripts/_shot_*.png`).
 
 ## Riferimenti
 

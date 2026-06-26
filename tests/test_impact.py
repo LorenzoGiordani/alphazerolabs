@@ -52,7 +52,7 @@ def test_disabled_identical_to_legacy():
 def test_slippage_never_below_base():
     c = _candles(vol=10.0)  # poco liquido
     bt = Backtest(c, impact_k=0.5, impact_window_h=24)
-    bt.run(_strat_long(notional if False else 1.0))  # inizializza gli array
+    bt.run(_strat_long(1.0))  # inizializza gli array
     # campiona su barre calde (dopo warmup)
     for i in range(50, len(c)):
         slip = bt._effective_slippage(i, notional_usd=10_000.0)

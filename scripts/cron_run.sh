@@ -19,8 +19,8 @@ stage() { echo "--- $1 [$(date -u '+%H:%M:%S')]"; }
 stage "paper trading strategie attive"
 "$UV" run scripts/paper_all.py
 stage "executor agenti"
-"$UV" run scripts/agents_paper.py
-    "$UV" run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # A/B RR2, stesse decisioni
+"$UV" run scripts/agents_paper.py || true
+"$UV" run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # A/B RR2, stesse decisioni
 # xsmom-port RETIRATA 25/06 (engine portfolio non ha prodotto trade chiusi): rimosso dal cron.
 
 if command -v claude >/dev/null 2>&1; then

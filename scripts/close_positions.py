@@ -14,7 +14,6 @@ Uso: uv run scripts/close_positions.py --non-crypto --accounts tsmom-liq-v1
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent

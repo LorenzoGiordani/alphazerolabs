@@ -734,6 +734,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     </div>
     <script>
     (function(){
+      function run(){
       var el=document.getElementById('data'); if(!el) return;
       var D; try{ D=JSON.parse(el.textContent); }catch(e){ return; }
       var s=D.llm_stats||{}; if(!s.total){ document.getElementById('llm-empty').style.display='inline'; return; }
@@ -749,11 +750,15 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       var h='<thead><tr>'+['Ruolo','Chiamate','Latenza media (s)','Token in','Token out'].map(function(x){return '<th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)">'+x+'</th>';}).join('')+'</tr></thead>';
       var b='<tbody>'+rows.map(function(r){ return '<tr>'+[r.role,r.n,r.avg_lat,r.tok_in,r.tok_out].map(function(v,i){ return '<td style="padding:6px 10px;border-bottom:1px solid var(--line)'+(i?'':';font-weight:600')+'">'+v+'</td>'; }).join('')+'</tr>'; }).join('')+'</tbody>';
       t.innerHTML=h+b;
+      }
+      if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', run);
+      else run();
     })();
     </script>
   </section>
 
   <!-- POSIZIONI -->
+  <section id="posizioni">
     <div class="sec-head">
       <span class="kicker">03 · Posizioni aperte</span>
       <h2>Esposizione corrente</h2>
@@ -2129,7 +2134,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
   /* ---------- boot ---------- */
   // router a pagine: una scheda = una vista. Eventi rimosso dalla nav.
-  const ROUTES=['stato','strategie','strategia','posizioni','rischio','decisioni','book','lezioni','evoluzione'];
+  const ROUTES=['stato','strategie','strategia','backtest','posizioni','rischio','decisioni','book','lezioni','evoluzione','llm'];
   function showRoute(){
     const raw=(location.hash||'#stato').replace('#','');
     let id=raw.split('?')[0];

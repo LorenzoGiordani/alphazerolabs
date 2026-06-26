@@ -127,7 +127,6 @@ def backtest_strategy(spec_path: Path, months: int) -> dict | None:
             per_symbol.append(res)
     if not per_symbol:
         return None
-    c0 = per_symbol[0]
     window = _dataset(symbols[0], months)["candles"]
     return {
         "id": spec["id"],
@@ -177,7 +176,7 @@ def main() -> int:
         "months": months,
         "impact_k": IMPACT_K,
         "funding_mode": "storico (dove disponibile)",
-        "generated_at": pd.Timestamp.utcnow().strftime("%Y-%m-%dT%H:%M UTC"),
+        "generated_at": pd.Timestamp.now(tz="UTC").strftime("%Y-%m-%dT%H:%M UTC"),
         "strategies": results,
     }
     OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=1))

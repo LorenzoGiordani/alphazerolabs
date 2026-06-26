@@ -32,3 +32,7 @@ paper/llm_cache/
 
 # config CLI Supabase temporanea (project-ref, versioni) — non versionare
 supabase/.temp/
+
+# tooling temporaneo di live-render / screenshot del design skill (prefisso _)
+scripts/_render_*.js
+scripts/_shot_*.png

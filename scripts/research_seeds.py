@@ -19,7 +19,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from backtest.metrics import buy_and_hold, compute
+from backtest.metrics import buy_and_hold
 from backtest.signals import SIGNALS
 from backtest.stats import deflated_sharpe, sharpe_moments
 from scripts.evolve import OUT_DIR, eval_basket, load_data

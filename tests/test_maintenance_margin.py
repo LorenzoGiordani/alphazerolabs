@@ -95,18 +95,17 @@ def test_funding_erosion_triggers_mtm_liquidation():
     px = [100.0] * 50
     c = _candles(px)
     # leva 2: legacy liquida solo a 50; prezzo fermo 100 -> mai. Sopravvive.
-    eq_legacy = Backtest(c, max_leverage=2.0, funding_hourly=0.05,
-                         maintenance_margin_frac=None).run(_strat(2.0, 80, 2.0))
+    bt_legacy = Backtest(c, max_leverage=2.0, funding_hourly=0.05,
+                         maintenance_margin_frac=None)
+    bt_legacy.run(_strat(2.0, 80, 2.0))
     # MTM MMR 30%: size=20000, MMR=6000. funding 0.05/h*20000=1000/h pagato.
     # equity scende di ~1000/h; dopo ~5 barre account_eq < 6000 -> liquida.
     bt_mtm = Backtest(c, max_leverage=2.0, funding_hourly=0.05,
                       maintenance_margin_frac=0.30)
-    eq_mtm = bt_mtm.run(_strat(2.0, 80, 2.0))
+    bt_mtm.run(_strat(2.0, 80, 2.0))
     # proprieta' chiave: il MTM registra liquidazioni (funding eroso il collaterale),
     # il legacy (soglia 1/lev fissa, prezzo costante) NON registra liquidazioni.
     assert any(t["reason"] == "liquidated" for t in bt_mtm.trades)
-    bt_legacy = Backtest(c, max_leverage=2.0, funding_hourly=0.05)
-    bt_legacy.run(_strat(2.0, 80, 2.0))
     assert not any(t["reason"] == "liquidated" for t in bt_legacy.trades)
 
 

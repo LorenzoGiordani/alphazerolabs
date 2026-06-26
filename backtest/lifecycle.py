@@ -193,7 +193,6 @@ def validate_spec_risk(spec: dict) -> list[str]:
     risk = spec.get("risk", {})
     if not risk:
         return ["blocco risk mancante"]
-    sid = spec.get("id", "?")
     lev = float(risk.get("max_leverage", 2))
     if lev > GLOBAL_RISK_CAPS["max_leverage"]:
         warnings.append(f"max_leverage {lev} > cap {GLOBAL_RISK_CAPS['max_leverage']}")

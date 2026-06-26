@@ -11,7 +11,6 @@ data/xsection/<sym>.parquet (ts, rank_pct). LLM-free e leggero → ok in cron.
 Uso: uv run scripts/precompute_xsection.py --symbols BTC,ETH,SOL,... [--lookback-h 168] [--months 6]
 """
 import argparse
-import sys
 from pathlib import Path
 
 import pandas as pd
