@@ -248,3 +248,4 @@
 {"stage": "gate", "strategy": "glm-regime-confluence-v1", "verdict": "no_setup", "candidates": [], "logged_at": "2026-06-25T21:16:53.918645+00:00"}
 {"stage": "gate", "strategy": "glm-regime-confluence-v1", "verdict": "no_setup", "candidates": [], "logged_at": "2026-06-25T22:16:37.309313+00:00"}
 {"stage": "gate", "strategy": "glm-regime-confluence-v1", "verdict": "no_setup", "candidates": [], "logged_at": "2026-06-25T23:16:30.618090+00:00"}
+{"stage": "gate", "strategy": "glm-regime-confluence-v1", "verdict": "no_setup", "candidates": [], "logged_at": "2026-06-26T00:16:31.025312+00:00"}
