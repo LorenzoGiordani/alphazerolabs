@@ -71,14 +71,38 @@ def main() -> None:
         # 1. ritira i challenger chiaramente perdenti (campione sufficiente o DD grave)
         # Usa basket_mean_r (mean R per-asset, regola 5): pooled maschererebbe
         # strategie che vincono su 1 asset e perdono sugli altri.
+        #
+        # ECCEZIONE engine:portfolio: n_closed qui e' il # di letture rebalance/heartbeat
+        # (cron ogni 4h, autocorrelate), NON trade indipendenti. basket_mean_r e' il
+        # ritorno per-rebalance su pochi giorni = rumore (lezione: xsmom-port ritirata
+        # dopo 4 giorni su mean_r -0.00049, falsa ritirazione). L'edge di un portfolio
+        # e' uno Sharpe lento su MESI; non si falsifica da poche letture. Per i
+        # portfolio vale SOLO il breach di drawdown (hard risk limit); oltre quello
+        # serve tempo (cfr. README: il gate M5 e' TEMPO non codice).
         for f, s, st in challengers:
+            is_portfolio = s.get("engine") == "portfolio"
             dd = st.get("equity_dd_pct", 0.0)
             bmr = st.get("basket_mean_r", st.get("mean_r", 0.0))
             print(f"  challenger {s['id']}: {st['n_closed']} chiusi, "
                   f"basket_sharpe {st.get('basket_sharpe_r', 0.0)}, "
                   f"basket_meanR {bmr}, PnL {st['total_pnl']}$, DD {dd}%, "
-                  f"symbols {st.get('symbols_traded', 0)}")
-            if st["n_closed"] >= args.min_trades and bmr < 0:
+                  f"symbols {st.get('symbols_traded', 0)}"
+                  + ("  [portfolio: gate mean_r sospeso]" if is_portfolio else ""))
+            if dd <= -MAX_DD_PCT:
+                print(f"    → RETIRE (drawdown {dd}% >= {MAX_DD_PCT}% con {st['n_closed']} trade)")
+                if not args.dry_run:
+                    set_status(f, "retired")
+                    log_event({"event": "retire", "strategy": s["id"], "family": fam, "stats": st,
+                               "reason": "drawdown_breach"})
+                    add_lesson(s["id"], "thesis_wrong",
+                               f"Ritirata da challenger: drawdown equity {dd}% "
+                               f"(soglia -{MAX_DD_PCT}%), {st['n_closed']} trade chiusi. "
+                               f"Perdita grave precoce — l'edge è falsificato dal capitale a rischio.",
+                               (["lifecycle", "retire", "paper", "drawdown"]
+                                + (["portfolio"] if is_portfolio else [])))
+                changes += 1
+            elif not is_portfolio and st["n_closed"] >= args.min_trades and bmr < 0:
+                # per-simbolo: n_closed sono trade discreti, mean_r negativo = edge falsificato
                 print(f"    → RETIRE (perdente con {st['n_closed']} trade, basket_meanR<0)")
                 if not args.dry_run:
                     set_status(f, "retired")
@@ -89,18 +113,6 @@ def main() -> None:
                                f"basket_meanR {bmr} (perdente su media per-asset). "
                                f"Il paper trading ha falsificato l'edge.",
                                ["lifecycle", "retire", "paper"])
-                changes += 1
-            elif dd <= -MAX_DD_PCT:
-                print(f"    → RETIRE (drawdown {dd}% >= {MAX_DD_PCT}% con {st['n_closed']} trade)")
-                if not args.dry_run:
-                    set_status(f, "retired")
-                    log_event({"event": "retire", "strategy": s["id"], "family": fam, "stats": st,
-                               "reason": "drawdown_breach"})
-                    add_lesson(s["id"], "thesis_wrong",
-                               f"Ritirata da challenger: drawdown equity {dd}% "
-                               f"(soglia -{MAX_DD_PCT}%), {st['n_closed']} trade chiusi. "
-                               f"Perdita grave precoce — l'edge è falsificato dal capitale a rischio.",
-                               ["lifecycle", "retire", "paper", "drawdown"])
                 changes += 1
 
         # 2. miglior challenger qualificato (basket_sharpe_r + DSR gate, regole 5 + 10)

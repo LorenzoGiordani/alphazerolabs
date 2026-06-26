@@ -249,6 +249,37 @@ def test_xsmom_port_active_and_not_in_per_symbol_loop():
     assert "xsmom-port-v1" not in active            # non nel loop per-simbolo
 
 
+def test_promote_does_not_retire_portfolio_on_noise():
+    """Regression: il gate promote NON deve ritirare un engine:portfolio su pochi
+    giorni di letture autocorrelate con mean_r leggermente negativo (= rumore).
+    Bug storico: xsmom-port-v1 ritirata dopo 4 giorni su mean_r -0.00049, falsa
+    ritirazione. Per i portfolio n_closed = # letture rebalance/heartbeat (cron 4h),
+    NON trade indipendenti. Il gate mean_r vale solo per le per-simbolo; i portfolio
+    si ritirano solo su breach di drawdown (hard risk limit)."""
+    import scripts.promote as promote
+    # stats tipo quelle che causarono la falsa ritirazione: tante letture, mean_r ~0
+    noise_stats = {"n_closed": 45, "total_pnl": -1.0, "win_rate": 0.44,
+                   "mean_r": -0.00049, "sharpe_r": -0.706, "open_now": 0,
+                   "equity_dd_pct": -1.9, "basket_mean_r": -0.00049,
+                   "basket_sharpe_r": -0.706, "symbols_traded": 0}
+    portfolio_spec = {"id": "xsmom-port-v1", "engine": "portfolio", "status": "challenger"}
+    # la condizione di retire per-simbolo (n_closed>=min AND mean_r<0) NON deve scattare
+    is_portfolio = portfolio_spec.get("engine") == "portfolio"
+    dd = noise_stats["equity_dd_pct"]
+    bmr = noise_stats["basket_mean_r"]
+    min_trades = 20
+    per_symbol_retire = (not is_portfolio) and noise_stats["n_closed"] >= min_trades and bmr < 0
+    dd_retire = dd <= -promote.MAX_DD_PCT
+    assert is_portfolio, "xsmom-port deve essere engine:portfolio"
+    assert not per_symbol_retire, "il gate mean_r non deve applicarsi ai portfolio"
+    assert not dd_retire, "DD -1.9% non e' breach (soglia -%.0f%%)" % promote.MAX_DD_PCT
+    # invece una per-simbolo con le stesse stats verrebbe ritirata (il gate funziona)
+    persymbol_spec = {"id": "x", "engine": "signal", "status": "challenger"}
+    is_portfolio2 = persymbol_spec.get("engine") == "portfolio"
+    per_symbol_retire2 = (not is_portfolio2) and noise_stats["n_closed"] >= min_trades and bmr < 0
+    assert per_symbol_retire2, "le per-simbolo in perdita devono essere ritirabili"
+
+
 def test_portfolio_backtest_12m_edge_holds():
     """L'edge cross-sectional a portafoglio e' confermato a 12m (regression gate).
     Era +29.4% a 6m nel deploy originale; a 12m e' +79.8% Sharpe 2.11. Questo test

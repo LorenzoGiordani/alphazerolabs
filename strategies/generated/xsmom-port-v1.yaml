@@ -1,6 +1,9 @@
 id: xsmom-port-v1
 parent: xsmom-v1
-status: retired
+status: challenger      # 26/06: RIPRESA (2a volta). Falsa ritirazione del cron corretta:
+                        # il gate promote ritirava i portfolio su n_closed(letture 4h)/mean_r
+                        # = rumore su pochi giorni. Ora i portfolio si ritirano solo su DD breach.
+                        # Backtest edge +79.8% confermato a 12m, resta il core.
 engine: portfolio
 created: '2026-06-22'
 thesis: 'Cross-sectional momentum a PORTAFOGLIO: long il top-terzile del basket per

@@ -56,6 +56,7 @@ Principi non negoziabili:
 | `scripts/review.py` | Reviewer: post-mortem trade chiusi → `paper/lessons.jsonl` |
 | `scripts/dashboard.py` | Dashboard statica (HTML, zero dipendenze) — include sezione **Backtest** onesto || `scripts/backtest_report.py` | Backtest basket multi-asset delle strategie attive (funding storico + slippage size-aware) → `paper/backtests.json` → sezione Backtest |
 | `scripts/robustness_portfolio.py` | **Audit robustezza** edge portfolio: parameter stability + block bootstrap CI + true OOS (8m train / 4m test) |
+| `scripts/voltarget_portfolio.py` | **Vol-target overlay** (Moreira-Muir): scala gross inverso a vol realizzata del book, abbatte la coda DD |
 | `scripts/cron_run.sh` | Run unificato ogni 4h (crontab) |
 | `pipeline/live.py` | Dati live: Binance (crypto), yfinance (xyz_*), OI, news RSS 6 fonti |
 | `paper/*.jsonl` | Journal: trade, decisioni con tesi, lezioni — il "prodotto pubblico" |
@@ -165,6 +166,15 @@ Il risk premium crypto: long alt volatili (SOL/CRV/ZEC) / short blue chip calmi 
 | **combo 70/30** | 2.62 | 0.43 | **3.05** (DD -9.6%) | — | best risk-adjusted; bootstrap DD: coda 5% avversa -25.5%, solo 6% prob di DD peggiore di -25% |
 
 Verdetto onesto: **nessuno passa il gate rigoroso CI95-inf > 1.0** — NON perche' gli edge siano falsi, ma perche' **12 mesi (~50 ribilanci settimanali) sono fondamentalmente insufficienti per inchiodare uno Sharpe** (CI larghi ±2). highvol e' il piu' robusto in superficie; xsmom e' reale ma peaky e sensibile all'overfitting da selezione. La combo ha il profilo migliore e il DD genuinamente basso. **Trovata**: il blend-ratio sweep mostra w_xs=0.50 marginalmente migliore del 70/30 scelto (Sharpe 2.75 vs 2.62, stesso maxDD -15.8%) — altopiano robusto, 50/50 e' un'alternativa valida. **Caveat giallo**: l'OOS (ultimi 4m) ha Sharpe PIU' ALTO dell'in-sample → test window breve e probabilmente regime-favorvole (non leggere 3.x come attesa realistica). **Conclusione capitale**: la certezza statistica non si compra con piu' backtest sugli stessi dati — serve TEMPO (track record forward out-of-sample). Questo conferma che il gate verso M5 e' di **tempo, non di codice**. Le strategie sono **promettenti ma non ancora provate**.
+
+**🛡 VOL-TARGET OVERLAY (26/06, `scripts/voltarget_portfolio.py`).** Il bootstrap della combo mostrava coda avversa DD al 5° percentile = -23.2% (3% prob di drawdown peggiore di -25%) — il rischio di rovina reale e' la CODA, non lo Sharpe. Overlay Moreira-Muir ("Volatility-Managed Portfolios" 2017): scala il gross `m = clip(σ*/σ_realized, 0.3, 1.5)` dove σ_realized e' la vol annualizzata del **book stesso** sui rendimenti passati (rolling 720h, anti-lookahead). Funziona perche' la vol clusterizza (GARCH): i rendimenti avversi si concentrano nei periodi ad alta vol, quindi de-riskare li' abbatte la coda.
+
+| Config combo 50/50 | Sharpe | maxDD | coda5% DD | P(DD<-25%) |
+|---|---|---|---|---|
+| **OFF (baseline)** | 2.75 | -15.8% | -23.2% | 3% |
+| **σ\*=20% overlay** | 2.68 | **-11.3%** | **-17.9%** | **0%** |
+
+Costo Sharpe **nullo** (-0.06), maxDD -4.5pp, coda avversa **+5.3pp**, **rovina eliminata** (P(DD<-25%) 3%→0%). Gradiente monotono pulito (σ\*=20/25/30% → coda -17.9/-22/-25.9%) = non overfit a un punto fortunato. avg_gross 0.72-0.78 (de-risk ~25% medio), moltiplicatore min 0.34 nei periodi turbolenti. La firma (costo Sharpe minuscolo + riduzione DD materiale nella coda) e' esattamente cio' che Moreira-Muir documentano come vol-targeting reale. Sweet spot σ\*=20-25%. **Caveat onesto**: σ*/vol_window/floor-cap sono nuovi parametri selezionati sui dati, ma il risultato e' robusto sull'intervallo e floor/cap non sono binding. **Non cablato a caldo** nel paper engine (portfolio_paper.py e' stateless, serve storare equity history; il paper track record e' il gate M5 → non si rischia senza test dedicati). Candidato pronto: `strategies/generated/xsmom-highvol-voltarget-v1.yaml`.
 
 **Onestà del backtest (funding storico + slippage size-aware).** Il funding è ora storico reale per-asset (la costante legacy sovrastimava di ~8x e nascondeva i flip di segno nei mesi bear). Lo slippage è opzionalmente un modello square-root (Almgren 2005, additivo sul base). Slippage size-aware (square-root, Almgren 2005) e liquidazione mark-to-market su account equity (con MMR) opt-in. Su CRV (illiquido) l'impact smaschera un Profit Mirage: Sharpe 0.73→0.16 a $10k. Su BTC (liquido) l'edge regge fino a $10M AUM (1.37→1.33). La liquidazione MTM coincide col legacy a leva ragionevole (≤5, nessuna posizione attiva la rischia) ma a leva 8 + flash crash lascia il margine residuo realistico (1088$ vs 0 del legacy rigido). `run_strategy.py --impact 0.5 --mmr 0.01` per attivarli.
 
