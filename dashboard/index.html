@@ -905,7 +905,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-26 20:24",
+ "updated_utc": "2026-06-26 20:33",
  "accounts": [
   {
    "id": "agents-v1",
@@ -9710,6 +9710,39 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
  ],
  "lessons": [
   {
+   "ts": "2026-06-26 19:55",
+   "scope": "basket",
+   "verdict": "bug_fixed",
+   "lesson": "BUG nel gate promote: ritirava i engine:portfolio su RUMORE. Per i portfolio, _portfolio_stats pone n_closed = # di letture rebalance/heartbeat (cron ogni 4h, autocorrelate), NON trade indipendenti, e basket_mean_r = ritorno per-rebalance. Il gate (n_closed >= min_trades AND mean_r < 0) ritirava quindi un portfolio dopo pochi giorni su un mean_r near-zero. SINTOMO: xsmom-port-v1 ritirata alle 15:21 UTC su 50 letture (~7 giorni), mean_r -0.0005 (-0.05%/rebalance), DD solo -1.94% (entro ogni soglia), equity 9806 (-1.9%). Statisticamente assurdo: 50 letture 4h autocorrelate con -0.05%/rebalance e' puro rumore — lo stesso giudizio prematuro che il README condanna ('12m insufficienti per inchiodare uno Sharpe'). Stessa classe di bug della falsa ritirazione del 25/06 (strumentazione), ma ora nel GATE non nella strumentazione. FIX: per engine:portfolio il gate mean_r/n_closed e' SOSPESO (vale solo il breach di drawdown, l'hard risk limit). Motivazione filosofica coerente col progetto: l'edge di un portfolio e' uno Sharpe lento su MESI, non si falsifica da poche letture; il gate M5 e' TEMPO non codice. xsmom-port-v1 RIRESUMATA a challenger. Regression test aggiunto (test_promote_does_not_retire_portfolio_on_noise). Lezione generale: le metriche derivate (n_closed come proxy) perdono il significato originale quando cambiano engine — un gate che usa n_closed assume 'trade discreti indipendenti', falso per i portfolio.",
+   "tags": [
+    "bugfix",
+    "promote",
+    "portfolio",
+    "false_retirement",
+    "selection_bias",
+    "noise",
+    "gate",
+    "lifecycle",
+    "regression_test"
+   ]
+  },
+  {
+   "ts": "2026-06-26 19:40",
+   "scope": "basket",
+   "verdict": "thesis_right",
+   "lesson": "VOL-TARGET OVERLAY (Moreira-Muir 2017 adattato) riduce la coda DD con costo Sharpe nullo. Scala il gross m = clip(sigma*/sigma_realized, 0.3, 1.5) dove sigma_realized e' la vol annualizzata del BOOK STESSO sui rendimenti passati (rolling 720h, anti-lookahead). Motivo per cui FUNZIONA: la volatilita' clusterizza (GARCH) -> i rendimenti avversi si concentrano nei periodi ad alta vol -> de-riskare in quei periodi abbatte la coda. RISULTATO combo 50/50 sigma*=20% vs baseline (OFF): Sharpe 2.68 vs 2.75 (delta -0.06, nullo), maxDD -11.3% vs -15.8% (-4.5pp), coda5% DD -17.9% vs -23.2% (+5.3pp), P(DD<-25%) 0% vs 3% (rovina eliminata). Gradiente MONOTONO pulito (sigma*=20/25/30% -> coda -17.9/-22/-25.9%) = non e' overfit a un punto fortunato. avg_gross scende a 0.72-0.78 (de-risk ~25% medio), moltiplicatore min 0.34 nei periodi turbolenti. La firma (costo Sharpe minuscolo + riduzione DD materiale nella coda) e' ESATTAMENTE cio' che Moreira-Muir documentano come vol-targeting reale. SWEET SPOT sigma*=20-25%. CAVEAT onesta': sigma*, vol_window, floor/cap sono NUOVI parametri selezionati sui dati (selection bias); ma il risultato e' robusto sull'intervallo [20%,25%] e floor/cap non sono binding (m min 0.34 > floor 0.3, cap mai toccato). DEPLOY: non cablato a caldo nel paper engine (portfolio_paper.py e' stateless, serve storare equity history; il paper track record e' il gate M5, non si rischia senza test dedicati). Candidato pronto: combo 50/50 + sigma*=20% overlay.",
+   "tags": [
+    "vol_target",
+    "volatility_managed",
+    "moreira_muir",
+    "drawdown_reduction",
+    "risk_management",
+    "garch",
+    "portfolio",
+    "robustness"
+   ]
+  },
+  {
    "ts": "2026-06-26 17:30",
    "scope": "basket",
    "verdict": "thesis_partial",
@@ -12798,6 +12831,17 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "note": "v1 seed: 70/30 xsmom/highvol. Mutazioni: tilt pesi (50/50, 80/20), aggiunta multihorizon come terza gamba ortogonale.\n"
   },
   {
+   "id": "xsmom-highvol-voltarget-v1",
+   "parent": "xsmom-highvol-combo-v1",
+   "status": "challenger",
+   "sharpe": 2.68,
+   "sharpe_r": 0.0,
+   "n_closed": 0,
+   "mean_r": 0.0,
+   "pnl_paper": 0.0,
+   "note": "v1 seed: combo 50/50 + vol-target sigma*=20%. Mutazioni: sigma* (25%, 30%), vol_window (480h, 1440h), floor/cap. CAVEAT onesto: i parametri del vol_target sono "
+  },
+  {
    "id": "xsmom-multihorizon-v1",
    "parent": "xsmom-port-v1",
    "status": "challenger",
@@ -12811,7 +12855,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   {
    "id": "xsmom-port-v1",
    "parent": "xsmom-v1",
-   "status": "retired",
+   "status": "challenger",
    "sharpe": 2.11,
    "sharpe_r": -0.795,
    "n_closed": 50,
@@ -13379,6 +13423,24 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    }
   },
   {
+   "id": "xsmom-highvol-voltarget-v1",
+   "nome": "xsmom-highvol-voltarget-v1",
+   "cosa": "COMBO 50/50 dei due edge ortogonali (xsmom + highvol, corr 0.28) con VOL-TARGET OVERLAY (Moreira-Muir \"Volatility-Managed Portfolios\" 2017). Il blend-ratio sweep dell'audit di robustezza ha mostrato 50/50 marginalmente > del 70/30 scelto in xsmom-highvol-combo-v1 (Sharpe 2.75 vs …",
+   "entra": "segnali: ",
+   "esce": "stop 0%, target 0R, tempo max 0h",
+   "rischio": "leva max 2x, 1.0% a rischio per operazione",
+   "status": "challenger",
+   "asset_class": "crypto",
+   "risk_profile": "bilanciato",
+   "stats": {
+    "n_closed": 0,
+    "sharpe_r": 0.0,
+    "mean_r": 0.0,
+    "win_rate": 0.0,
+    "total_pnl": 0.0
+   }
+  },
+  {
    "id": "xsmom-multihorizon-v1",
    "nome": "xsmom-multihorizon-v1",
    "cosa": "CROSS-SECTIONAL MOMENTUM MULTI-ORIZZONTE. Stesso edge del parent xsmom-port-v1 (rank relativo nel basket, dollar-neutral) ma mediato su 3 orizzonti (lb 96/168/336h): il segnale a 96h cattura i movimenti di medio termine, 168h e' il core del parent, 336h il trend di fondo. La medi…",
@@ -13403,7 +13465,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "entra": "segnali: ",
    "esce": "stop 0%, target 0R, tempo max 0h",
    "rischio": "leva max 2x, 1.0% a rischio per operazione",
-   "status": "retired",
+   "status": "challenger",
    "asset_class": "crypto",
    "risk_profile": "bilanciato",
    "stats": {
