@@ -4,8 +4,9 @@
 
 ## Anagrafica
 
-- **status**: challenger
+- **status**: retired
 - **created**: 2026-06-12
+- **family**: tsmom
 
 ## Tesi
 
@@ -17,18 +18,10 @@ TSMOM canonico adattato: orizzonti 7g/30g, exit posizionali (10 giorni).
 
 ## Performance (paper)
 
-- equity: $9,688.43
-- trade chiusi: 3 · win rate: 0%
-- PnL totale: $-304.89
-- posizioni aperte ora: 3
-
-### Posizioni aperte
-
-| symbol | dir | entry | stop | target | size |
-|---|---|---|---|---|---|
-| xyz_CL | short | 80.79383555908203 | 84.02558898144531 | 71.09857529199219 | $2,448.34 |
-| xyz_BRENTOIL | short | 83.75324264373779 | 87.1033723494873 | 73.70285352648926 | $2,448.06 |
-| xyz_SILVER | short | 71.09078235626221 | 73.9344136505127 | 62.559888473510746 | $2,422.38 |
+- equity: $10,272.47
+- trade chiusi: 32 · win rate: 41%
+- PnL totale: $-234.43
+- posizioni aperte ora: 0
 
 ### Trade chiusi
 
@@ -37,6 +30,35 @@ TSMOM canonico adattato: orizzonti 7g/30g, exit posizionali (10 giorni).
 | BTC | stopped | 65589.15737643359 | $-101.64 |
 | ETH | stopped | 1727.6583308936642 | $-101.63 |
 | xyz_GOLD | stopped | 4373.615723492864 | $-101.62 |
+| HYPE | stopped | 67.90463728381438 | $-98.43 |
+| xyz:SKHX | stopped | 1815.2639273894401 | $-98.37 |
+| ZEC | stopped | 451.588781936448 | $-96.39 |
+| xyz_CL | manual_close | 75.36506847381591 | $163.41 |
+| xyz_BRENTOIL | manual_close | 79.32585955810546 | $128.31 |
+| xyz_SILVER | manual_close | 66.48829347381592 | $155.74 |
+| xyz:CL | manual_close | 75.39507599999999 | $60.89 |
+| xyz:XYZ100 | manual_close | 30385.9216 | $1.37 |
+| xyz:SP500 | manual_close | 7485.5026 | $-3.19 |
+| xyz:BRENTOIL | manual_close | 78.8967762 | $56.86 |
+| xyz:SKHX | manual_close | 1925.01492 | $27.49 |
+| xyz:MRVL | stopped | 307.6294162662513 | $-102.54 |
+| xyz:SNDK | target | 2350.6296202605254 | $154.44 |
+| xyz:MU | target | 1221.4616654272459 | $156.35 |
+| xyz:SKHX | stopped | 1865.012782542343 | $-101.46 |
+| xyz:DRAM | stopped | 77.34822547749944 | $-101.87 |
+| xyz:SNDK | stopped | 2220.111339766972 | $-104.27 |
+| xyz:SILVER | target | 63.898740301193136 | $176.41 |
+| xyz:MRVL | stopped | 297.39970238972575 | $-102.34 |
+| xyz:INTC | stopped | 133.00399467983996 | $-101.64 |
+| HYPE | stopped | 64.94783740208639 | $-97.36 |
+| xyz:CL | target | 72.32376853562056 | $176.70 |
+| xyz:NVDA | target | 202.7854776028663 | $155.36 |
+| xyz:CL | stopped | 73.8152827616743 | $-105.74 |
+| xyz:SNDK | stopped | 2037.8256327726856 | $-102.34 |
+| xyz:SPCX | stopped | 162.1272792291943 | $-99.77 |
+| xyz:MU | stopped | 1076.6742426473143 | $-101.90 |
+| xyz:SKHX | stopped | 1603.8927929871427 | $-101.85 |
+| xyz:BRENTOIL | target | 75.71442554285143 | $176.59 |
 
 ## Lezioni
 
@@ -44,5 +66,39 @@ TSMOM canonico adattato: orizzonti 7g/30g, exit posizionali (10 giorni).
 - **thesis_wrong** (BTC, $-101.64): Un segnale TSMOM short su BTC dopo un drawdown multi-giorno tende a coincidere con l'esaurimento del momentum ribassista, non con la sua accelerazione. Prima di entrare short su TSMOM in contesti di alta volatilità, esigere conferma strutturale (es. incapacità di rimbalzo su daily close o break di supporto volumetrico) per distinguere trend in atto da momentum già consumato. #tsmom #momentum_exhaustion #BTC #short #whipsaw #entry_timing
 - **thesis_wrong** (ETH, $-101.63): Il segnale tsmom -1 era tecnicamente valido sul passato ma il momentum aveva già esaurito la direzionalità: ETH a 1660 era vicino all'estremo del drawdown recente e il prezzo ha immediatamente invertito. Un filtro di 'freshness' (il segnale -1 deve essere presente da ≤2 barre, non cronico) e la conferma cross-sectional (ETH sotto-performante rispetto al basket nella stessa finestra) separano i momentum genuini dai falsi segnali in regime di possibile mean-reversion. #tsmom #signal_staleness #trend_exhaustion #whipsaw #regime_filter
 - **thesis_wrong** (xyz_GOLD, $-101.62): Un segnale tsmom=-1 su un asset con forte tailwind macro (oro in regime risk-off / dollaro debole) ha edge vicino a zero: il momentum di breve periodo è rumore rispetto al flusso dominante. I segnali tsmom short su safe-haven richiedono un filtro regime (es. dollaro in trend rialzista O risk appetite positivo) prima di entrare — senza conferma macro, il fade è contro la corrente più forte. #tsmom #regime_filter #macro_override #gold #short #trend_following #false_signal
+- **execution_issue** (HYPE, $-98.43): Su asset ad alta volatilità (HYPE-class, beta elevato), uno stop fisso al 4% viene consumato dal rumore intraday prima che il momentum si dispieghi: lo stop sul tsmom va calibrato su ATR-24h normalizzato (≥1.5× ATR) così da separare segnale da rumore; in alternativa, ridurre il size per rispettare il risk-per-trade con uno stop più largo. #tsmom #stop-sizing #atr-calibration #high-beta-crypto #volatility-adjusted-exits
+- **thesis_wrong** (xyz:SKHX, $-98.37): Un segnale tsmom=1 su finestra breve può coincidere con l'esaurimento locale del move piuttosto che con l'inizio di un trend sostenuto: prima di entrare long su momentum verificare che il regime supporti la persistenza (es. rendimento rolling multi-giorno positivo, volatilità non in spike, trend di mercato allineato); in regime avverso il segnale diventa lagging e il fade è più probabile del follow-through. #tsmom #momentum-exhaustion #regime-filter #long #stopped
+- **execution_issue** (ZEC, $-96.39): I segnali tsmom su crypto ad alta volatilità richiedono un filtro sul regime intraday: ZEC ha percorso l'intera distanza stop (4%) in 2 ore, consumando il margine prima che la tesi si dispiegasse. In futuro, condizionare l'ingresso short a una candela oraria di conferma nella direzione del segnale, oppure ampliare lo stop a 2×ATR-daily invece di ATR-period per ridurre il whipsaw da rumore intraday. #tsmom #crypto-volatility #stop-sizing #entry-timing #whipsaw
+- **execution_issue** (xyz_CL, $163.41): In tsmom trend-following, l'override manuale prima del target converte un setup 3:1 in un realized 1.67:1, erodendo l'expectancy: l'edge del momentum si materializza nelle code fat-tail, non nei mean-revert intermedi — uscire discrezionalmente equivale a tagliare i vincitori sistematicamente; ogni chiusura anticipata deve essere giustificata dal flip del segnale tsmom, non dall'avversione alla volatilità intermedia. #tsmom #systematic-override #exit-discipline #crude-oil #trend-following #expectancy-erosion
+- **execution_issue** (xyz_BRENTOIL, $128.31): In strategie tsmom con segnale confermato e non invertito, il manual override prima del target cattura solo una frazione del move atteso (~44% in questo caso: 4.4 pt su 10.1 pt pianificati) e contraddice la logica di persistenza del momentum — il discomfort emotivo in profitto non è un segnale di uscita. Regola generale: in assenza di stop hit o flip del segnale tsmom, non sovrascrivere l'uscita pianificata; se l'orizzonte temporale risulta inaccettabile ex-post, correggere il target al momento dell'apertura, mai in corsa. #tsmom #premature_exit #execution_discipline #momentum_persistence #manual_override
+- **execution_issue** (xyz_SILVER, $155.74): Le strategie tsmom con R:R asimmetrico (qui ~3:1) dipendono strutturalmente dai winner che raggiungono il target: una chiusura manuale a metà corsa (54% del move catturato, $66.49 vs target $62.56) distrugge l'EV atteso anche quando la tesi è corretta. Un exit discrezionale su un segnale sistematico deve richiedere un contro-segnale esplicito (es. tsmom flippato a +1, o volatility spike sopra soglia) — non impazienz a o profit-taking arbitrario. #tsmom #momentum #manual_override #cut_winners_short #silver #execution #ev_destruction
+- **execution_issue** (xyz:CL, $60.89): Le strategie tsmom hanno payoff right-skewed: l'EV positivo dipende da pochi trade grandi che compensano molti piccoli loss. Questo short CL ha catturato solo il 21% del target meccanico (entry 77.38 → exit 75.40 vs target 68.09) tramite manual_close dopo 44h — la tesi direzionale era corretta, il segnale tsmom=-1 ha predetto il decline. L'override manuale su un winner in corso è il modo più rapido per distruggere l'edge di un sistema momentum: o si lascia girare fino a stop/target, o si ridefinisce ex ante un time-stop con regola scritta prima dell'apertura. #momentum #early_exit #manual_override #winner_cutting #crude_oil #tsmom
+- **execution_issue** (xyz:XYZ100, $1.37): Le strategie tsmom hanno valore atteso positivo solo se si lascia maturare la distribuzione asimmetrica R/R (qui 3:1 configurato). Chiudere manualmente a breakeven dopo 44h di consolidamento distrugge esattamente il premio che giustifica i drawdown del sistema: o si usa un time-stop meccanico pre-definito, o si regge fino a stop/target. Il manual_close discrezionale trasforma un edge statistico in noise. #tsmom #manual_override #rr_destruction #systematic_discipline #time_stop
+- **execution_issue** (xyz:SP500, $-3.19): Le strategie momentum sistematiche (tsmom) traggono edge dalla distribuzione asimmetrica stop/target: chiudere manualmente prima che uno dei due livelli venga toccato annulla l'aspettativa statistica. Un'uscita a -$3.19 su un setup 1:3 R/R significa aver pagato il costo di transazione senza lasciare che la tesi si resolvesse; in assenza di un segnale di invalidazione esplicito (cambio regime, loss-limit di portafoglio), il time-stop strutturato è preferibile al giudizio discrezionale intra-trade. #tsmom #manual_override #execution_discipline #systematic_exit #risk_reward_preservation
+- **execution_issue** (xyz:BRENTOIL, $56.86): Le strategie tsmom traggono la loro positive-expectancy dall'asimmetria losses brevi / wins lunghi: chiudere manualmente un trade vincente a 20% del move verso target (78.90 vs target 71.13, entry 80.83) annulla statisticamente il vantaggio del segnale anche quando la tesi direzionale è corretta. Una chiusura anticipata va giustificata solo da un cambio esplicito del segnale (tsmom > 0) o da un invalidamento macro, mai da impaziienza o gestione discrezionale del P&L. Regola: in tsmom, la stop-loss gestisce il rischio, il target o il segnale invertito gestiscono l'uscita. #tsmom #early-exit #execution #brent-oil #let-winners-run #manual-override
+- **execution_issue** (xyz:SKHX, $27.49): Le strategie tsmom dipendono statisticamente dalla coda destra dei vincitori: chiudere manualmente dopo ~9h a +1.2% su un target al +12% (R/R 3:1) cattura meno del 10% del payoff atteso e rende il sistema EV-negativo nel lungo periodo. Le uscite anticipate su trade sistematici devono essere governate da regole esplicite (time-stop, cambio di regime segnalato, trailing ATR) — mai da giudizio discrezionale intra-trade. #tsmom #early_exit #systematic_discipline #rr_destruction #manual_override
+- **execution_issue** (xyz:MRVL, $-102.54): Su singole equity tech ad alta volatilità idiosincratica (semiconduttori come MRVL, ATR/day tipicamente 3-5%), lo stop fisso calibrato sull'ATR dell'asset viene colpito dal rumore di gap intra-giornaliero (guidance, analyst revision, settore) prima che la direzionalità tsmom si dispieghi. Regola: per equity individuali con atr_pct > 0.025, usare 1.5x ATR come stop minimo e ridurre la size proporzionalmente — oppure sostituire il ticker con l'ETF settoriale (SOXX per semiconduttori) che ha lo stesso segnale tsmom ma rumore idiosincratico eliminato. Nota: record open mancante (open={}) impedisce verifica tesi — bug di logging già classificato, vedi lezione NEAR. #tsmom #stop_sizing #atr_calibration #equity_idiosyncratic_risk #semiconductor #missing_open #execution
+- **thesis_right** (xyz:SNDK, $154.44): Quando tsmom centra il target in meno di 3h dall'apertura, il regime è in alta persistenza: il target fisso blocca il payoff sul piano iniziale mentre il movimento prosegue. In regimi di forte momentum intraday sostituire il target fisso con trailing stop su 1.5×ATR dopo il 50% del percorso entry→target aumenta l'E[PnL] senza ampliare il drawdown massimo. #tsmom #momentum-persistence #trailing-stop #target-management #intraday-regime
+- **execution_issue** (xyz:MU, $156.35): Quando close_ts < open_ts (chiusura 20:00 UTC, apertura 23:00 UTC) e exit_px < entry_px su un long ma reason='target' con PnL positivo, il record è auto-contraddittorio: nessuna valutazione della tesi è affidabile. Prima di trarre qualsiasi conclusione da un post-mortem, verificare l'integrità temporale e la coerenza direzione/prezzo/PnL del record — un close-before-open indica race condition nel logging o timezone mismatch, e qualsiasi lezione estratta da dati corrotti produce false credenze sul segnale. #data-integrity #timestamp-inversion #logging-bug #tsmom #MU
+- **execution_issue** (xyz:SKHX, $-101.46): L'exit a 1865 (1.9% sotto entry) con hard stop a 1825 (4% sotto) indica un trigger intermedio — probabile close-bar sotto soglia o signal-flip — che ha chiuso il trade dopo 23h, ben prima che la tesi tsmom avesse orizzonte sufficiente per manifestarsi; momentum time-series estrae edge su holding di 3-10 giorni: usare stop basato su close settimanale o time-stop minimo di 48h evita di tagliare segnali validi su rumore intraday. #tsmom #stop-horizon-mismatch #holding-period-too-short #signal-exit-inconsistency
+- **thesis_wrong** (xyz:SNDK, $-104.27): Un segnale tsmom isolato (senza conferma di regime o filtro su volatility-of-volatility) è un proxy di crowding: quando tutti vedono lo stesso segnale long, l'entry avviene già vicino al picco del burst momentumistico e la mean-reversion è più probabile del follow-through. Richiedere almeno un secondo segnale ortogonale (es. microstruktura, breadth) prima di aprire posizioni tsmom in finestre <8h riduce il tasso di whipsaw senza eliminare il segnale. #tsmom #whipsaw #single-signal #crowding #false-breakout #intraday-regime
+- **execution_issue** (xyz:DRAM, $-101.87): Il campo 'open' è vuoto: senza entry_px, direzione e tesi originale registrati non è possibile distinguere tesi sbagliata da stop mal piazzato. Per tsmom, ogni entrata deve loggare almeno {entry_px, direction, atr_at_entry, regime_tag} — altrimenti il post-mortem è cieco e la lezione si perde. Regola generale: uno stop su tsmom-v1 senza open data è segnale di bug nel logging prima che di errore di trading. #tsmom #missing-open-data #logging-bug #post-mortem-blinded #data-quality
+- **thesis_right** (xyz:SILVER, $176.41): Il tsmom su commodity hard (Silver, Gold) cattura la persistenza di regime macro (inflazione attesa, dollaro debole): quando il segnale momentum è allineato al regime, tenere fino al target batte l'uscita discrezionale anticipata. Mancano i dati di open per valutare il setup R:R, ma l'hit del target con PnL positivo conferma che il segnale era genuino, non rumore. Gap critico: senza entry_px e stop_px nel log open non è possibile calcolare MAE/MFE né verificare se il rischio assunto era calibrato — loggare sempre open completo. #tsmom #silver #commodities #macro_regime #target_hit #incomplete_open_log
+- **thesis_wrong** (xyz:MRVL, $-102.34): I segnali tsmom long che vengono stoppati in <12h segnalano ingresso a momentum esaurito, non nascente: il segnale ha catturato la coda di un move, non l'inizio. Le strategie tsmom su timeframe intraday richiedono un filtro di regime (es. asset > MA-50, breadth settoriale positivo) per discriminare momentum genuino da rumore di fine-move; senza filtro, il win-rate scende e un R:R 1.6:1 non è sufficiente a mantenere EV positivo. #tsmom #regime-filter #momentum-exhaustion #false-signal #rr-ratio-insufficient
+- **thesis_wrong** (xyz:INTC, $-101.64): tsmom long su asset in trend ribassista strutturale (INTC) cattura rimbalzi di rumore, non momentum reale: segnale +1 su lookback corto viene sopraffatto dal trend primario in meno di 4h. Per longs tsmom su equity, richiedere conferma momentum positivo anche su lookback lungo (es. 12m return > 0) — senza filtro regime il segnale è rumore nel verso sbagliato, non edge. #tsmom #bear-regime #false-signal #regime-filter #equity-momentum #lookback-mismatch
+- **execution_issue** (HYPE, $-97.36): Su asset ad alta volatilità (HYPE-class, ATR giornaliero spesso >4%), uno stop fisso al ~4% viene triggerato dal rumore intra-sessione prima che il momentum si esprima: i trade tsmom-long in regime bull richiedono stop calibrati sull'ATR (≥1.5×ATR daily) oppure entry ritardata su pullback confermato per evitare lo stop-hunt sulla prima correzione. #tsmom #stop-sizing #atr-calibration #high-vol-asset #execution
+- **execution_issue** (xyz:CL, $176.70): In una strategia tsmom con segnale confermato (−1 pulito) e trade in profitto, ridurre il target in corsa inverte la skew attesa: le vincite vengono tapate mentre le perdite restano esposte allo stop pieno. Il trade ha chiuso a 72.32 con reason='target' ma il target originale era 68.09 — circa 4 punti CL non catturati. In regime di momentum confermato, non accorciare il target: l'edge di tsmom dipende dall'asimmetria win/loss, che si degrada se si esce a R parziale su ogni trade vincente. #tsmom #CL #target-management #R-multiple #momentum-followthrough #energy
+- **thesis_right** (xyz:NVDA, $155.36): Quando il segnale tsmom è unidirezionale e non conflittuale (stack a singolo indicatore), su asset liquidi ad alta capitalizzazione il momentum tende a risolversi al target entro la stessa sessione intraday: uno stop ≤2× ATR con R:R ≥1.5 è sufficiente — stop più larghi non migliorano il win-rate ma gonfiano il drawdown potenziale per trade. #tsmom #momentum #short #megacap #signal_clean #intraday_resolution #stop_sizing
+- **thesis_wrong** (basket, —): Ritirata da challenger: 20 trade paper, meanR -0.05 (perdente). Il paper trading ha falsificato l'edge. #lifecycle #retire #paper
+- **execution_issue** (xyz:CL, $-105.74): I segnali tsmom calcolati su lookback multi-periodo richiedono stop calibrati sull'ATR del timeframe del segnale, non su quello intraday: un buffer di 2× ATR (1.26% su CL) è troppo stretto per assorbire il rumore delle prime barre e produce shake-out sistematici prima che la tesi abbia tempo di svilupparsi. Per tsmom, usare almeno 3–4× ATR oppure subordinare l'ingresso alla conferma della prima chiusura in direzione del segnale. #tsmom #stop_calibration #timeframe_mismatch #crude_oil #intraday_noise #shake_out
+- **execution_issue** (xyz:SNDK, $-102.34): I segnali tsmom hanno un orizzonte naturale multi-giorno (lookback settimanale/mensile); accoppiare quel segnale a uno stop < 2× ATR giornaliero espone a stop-out da rumore infragiornaliero prima che il trend si manifesti — lo stop va scalato sul timeframe implicito del segnale (es. 3–5× ATR daily per tsmom), non sul P&L massimo tollerato per trade. #tsmom #timeframe-mismatch #stop-sizing #intraday-noise #signal-horizon
+- **thesis_wrong** (xyz:SPCX, $-99.77): tsmom short su strumenti equity broad-based (indici/ETF S&P-like) è esposto a sharp reversal intraday da catalyst macro che annullano il segnale di momentum storico in poche ore; su questa asset class richiedere conferma da regime signal bearish (es. HMM regime ≠ bull, VIX sopra soglia) prima di entrare short, oppure escludere indici US long-biased dall'universo short di tsmom #tsmom #equity-index #false-signal #macro-reversal #regime-confirmation #universe-filter
+- **execution_issue** (xyz:MU, $-101.90): Le strategie tsmom catturano momentum su orizzonte settimane/mesi, ma uno stop a 1.8× ATR (~4.6%) viene abbattuto in 7 ore dal rumore intraday prima che l'edge possa materializzarsi. Per segnali tsmom serve o un buffer minimo di 3× ATR oppure un time-stop esplicito (es. ≥24h) che impedisca uscite da volatilità di breve su una tesi di lungo respiro. #tsmom #stop-sizing #time-horizon-mismatch #execution #atr-calibration
+- **thesis_wrong** (xyz:SKHX, $-101.85): Un segnale tsmom isolato (un solo segnale, nessun filtro di regime) è ad alto rischio di exhaustion-trap: il momentum può essersi già consumato al momento dell'ingresso, con il segnale che scatta vicino al picco del move. La regola operativa: esigere conferma multi-timeframe (es. tsmom daily + weekly concordi) o un regime-filter che escluda contesti bearish prima di aprire long tsmom — un singolo segnale senza contesto di regime ha win-rate insufficiente per il R:R 1.6:1 implicito in questo setup. #tsmom #single-signal #regime-filter #momentum-exhaustion #multi-timeframe
+- **thesis_right** (xyz:BRENTOIL, $176.59): Segnale tsmom -1 netto su commodity energetica ad alta liquidità tende a scaricarsi in 3-5 giorni nella fase accelerativa: con R:R ≥ 2:1 il target è raggiungibile prima di qualsiasi mean-reversion significativa. Non intervenire discrezionalmente sul target quando il segnale è univoco e il momentum è confermato dal prezzo. #tsmom #commodity #momentum #signal_confirmed #target_hit #no_discretionary_override
+
+## Eventi lifecycle
+
+- **retire** (2026-06-23): 
 
 [[lessons|Tutte le lezioni]] · [[timeline|Timeline]]

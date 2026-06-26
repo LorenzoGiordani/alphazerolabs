@@ -4,37 +4,36 @@
 
 ## Anagrafica
 
-- **status**: live (paper)
-- **creatore**: glm-5.2 (Z.ai Coding Plan)
-- _nessuno spec YAML: strategia script (`scripts/glm_strategy.py`), pagina da dati runtime_
+- **status**: challenger
+- **created**: 2026-06-24
 
 ## Tesi
 
-Edge = confluenza di due lenti momentum **ortogonali** che concordano:
-`tsmom` (trend assoluto, Moskowitz-Ooi-Pedersen) + `xsection_momentum`
-(forza relativa nel basket, market-neutral → netta il beta comune).
-Accordo assoluto+relativo = il move non è drift di mercato, è alpha
-relativo confermato. Diverso da `lux-confluence` (tsmom+liq+kronos) e
-da `claude-strategy` (tsmom+liq): qui due momentum indipendenti, non
-trend+flow.
+Strategia ibrida progettata da glm-5.2 su delega di Lorenzo, informata dalle lezioni accumulate del progetto (166 lezioni, 8 segnali falsificati). 1. GATE ORTOGONALE: due lenti momentum indipendenti concordano — tsmom (trend
+   assoluto, Moskowitz) + xsection_momentum (forza relativa nel basket, market-
+   neutral, netta il beta). Confluenza assoluto+relativo = il move non e' solo
+   drift di mercato, e' alpha relativo confermato. Ortogonali a lux-confluence
+   (tsmom+liq+kronos) e claude-strategy (tsmom+liq).
+2. VETO DI REGIME/EVENTO: news_event attivo (volatilita event-risk, il tono e
+   falsificato ma la vol no) O kronos_vol alta (regime imprevedibile) O
+   funding_percentile estremo CONTRO direzione (crowding headwind).
+3. VOTE DI CONVINZIONE: hmm_regime(trending) + taker_flow + smart_money_ratio +
+   oi_trend. Ogni allineamento +1 al conviction score (0-4).
+4. LLM AUDITOR DI PORTAFOGLIO: non oracolo, non predittore di prezzo (lezione
+   dura: forecast LLM = niente alpha). Giudica SOLO rischio di correlazione col
+   book aperto e freschezza. Una chiamata, solo se il gate ha candidati.
+5. EXIT ROBUSTA: stop ATR 2x (floor 1x), RR2, time_stop 96h.
+FIX 25/06 (rotta dalla nascita, 0 trade in 18 run): il gate AND a 2 gambe era SEMPRE chiuso perche' la cache xsection_momentum (data/xsection/) non era committata ne' rigenerata in CI (stesso bug di Kronos 20/06). Fix: (a) cache xsection versionata + workflow xsection-precompute.yml giornaliero; (b) gate allentato con via di fallback — tsmom + conviction>=2 dai vote accettato anche senza xsection allineato (filtro regime, non collo single-signal). Falsificata se: non batte in paper ne' tsmom puro ne' lux-flow-confluence (cioe' se l'auditor LLM e l'xsection non aggiungono valore sopra il trend semplice).
 
-Veto hard: `news_event` attivo (event-risk, il tono è falsificato ma la
-volatilità no) · `kronos_vol` alta (regime imprevedibile) ·
-`funding_percentile` estremo **contro** direzione (crowding headwind,
-lezione `altcoin-exhaustion`).
+## Note evoluzione
 
-Conviction vote (0-4): `hmm_regime`·`taker_flow`·`smart_money_ratio`·
-`oi_trend` allineati al core. `hmm` solo su BTC/ETH → score degrada
-0-3 sugli altri, gate resta valido.
+v1 — gate tsmom+xsection (ortogonali) + veto event/crowding + conviction vote + layer LLM auditor. Fix 25/06: cache xsection + gate allentato con fallback conviction. Mutazioni: TSMOM_SOLO_MIN_VOTES, larghezza veto, contesto auditor.
 
-LLM (glm-5.2) = **auditor di portafoglio**, non oracolo: giudica solo
-rischio di correlazione col book aperto. Una chiamata, solo se il gate
-ha candidati.
+## Performance (paper)
 
-Exit: stop 2×ATR (floor 1×ATR, lezione `altcoin_volatility`), target_r
-2.0 (crypto, RR2 batte RR3), time_stop 96h (tesi momentum 7d, lezione
-`SOL execution_issue`).
+- equity: $10,000.00
+- trade chiusi: 0 · win rate: 0%
+- PnL totale: $0.00
+- posizioni aperte ora: 0
 
-**Falsificata se**: su basket crypto liquido (BTC,ETH,SOL,SUI,NEAR,XRP,
-WLD,ZEC,CRV) non batte buy-and-hold risk-adjusted su 6 mesi paper, o se
-il filtro xsection non riduce il drawdown vs tsmom puro.
+[[lessons|Tutte le lezioni]] · [[timeline|Timeline]]

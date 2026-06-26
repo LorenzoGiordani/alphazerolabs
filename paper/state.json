@@ -30,7 +30,7 @@
     "_last_ts": "2026-06-26 06:00:00+00:00"
    }
   },
-  "last_decision_ts": "2026-06-26T07:23:59.912899+00:00"
+  "last_decision_ts": "2026-06-26T07:57:48.515202+00:00"
  },
  "tsmom-v1": {
   "equity": 10272.467328831875,
@@ -239,10 +239,17 @@
     "time_stop_h": 38,
     "thesis": "ZEC \u00e8 l'UNICO asset in regime bear puro isolato dall'intero set. tsmom=-1 attivo + vote lux -1 (direzione allineata) + funding pi\u00f9 alto del gruppo (longs pagano = carburante per cascade se cede supporto). I lesson del journal validano questo pattern: tsmom=-1 su ZEC ha colpito target 2:1 R:R meccanicamente in <30h. Vado contro l'assenza di lux_confluence aligned perch\u00e9 il setup ha convalida dal journal e il regime bear \u00e8 inequivocabile \u2014 non sto anticipando, sto seguendo momentum confermato su asset isolato. Risk-off macro (Hormuz, Asia crollata) \u00e8 tailwind per de-risking su altcoin alto-beta. Mezzo rischio per sizing disciplinato su asset ad ATR elevata (2.23%).",
     "invalidation": "Stop 2.5% sopra l'entry \u2014 fuori da 1 ATR, sopra struttura recente. Se ZEC chiude sopra lo swing high invalido il breakdown. Time-stop 30h: se nessun progresso sotto i livelli attuali entro 30h, la tesi \u00e8 stantia e esco \u2014 il pattern validated richiede follow-through rapido.",
-    "decision_ts": "2026-06-26T07:23:59.912899+00:00"
+    "decision_ts": "2026-06-26T07:23:59.912899+00:00",
+    "sign": -1,
+    "remaining": 1.0,
+    "partial_done": false,
+    "hi_water": 413.94719399999997,
+    "tp1_px": null,
+    "tp1_frac": 0.0,
+    "trail_dist": null
    }
   },
-  "last_decision_ts": "2026-06-26T07:23:59.912899+00:00"
+  "last_decision_ts": "2026-06-26T07:57:48.515202+00:00"
  },
  "claude-strategy-v1": {
   "equity": 10000.0,

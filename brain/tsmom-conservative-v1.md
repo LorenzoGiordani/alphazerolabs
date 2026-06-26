@@ -4,8 +4,9 @@
 
 ## Anagrafica
 
-- **status**: challenger
+- **status**: retired
 - **created**: 2026-06-13
+- **family**: tsmom-conservative
 
 ## Tesi
 
@@ -17,17 +18,10 @@ seed di ricerca
 
 ## Performance (paper)
 
-- equity: $10,112.56
-- trade chiusi: 2 · win rate: 50%
-- PnL totale: $116.89
-- posizioni aperte ora: 2
-
-### Posizioni aperte
-
-| symbol | dir | entry | stop | target | size |
-|---|---|---|---|---|---|
-| xyz_GOLD | short | 4348.6301 | 4457.3458525 | 4022.4828425000005 | $2,384.70 |
-| xyz_BRENTOIL | short | 81.85362874603271 | 83.89996946468352 | 75.71460659008027 | $2,427.28 |
+- equity: $10,020.07
+- trade chiusi: 27 · win rate: 37%
+- PnL totale: $55.60
+- posizioni aperte ora: 0
 
 ### Trade chiusi
 
@@ -35,11 +29,66 @@ seed di ricerca
 |---|---|---|---|
 | xyz_GOLD | stopped | 4337.697226394447 | $-61.57 |
 | xyz_CL | target | 77.97749970377586 | $178.46 |
+| WLD | stopped | 0.5964952261401899 | $-62.19 |
+| HYPE | stopped | 68.96564724137399 | $-62.23 |
+| xyz:CL | stopped | 79.32577182696899 | $-62.25 |
+| NEAR | stopped | 2.1805874127764997 | $-61.02 |
+| WLD | target | 0.64745097410196 | $179.15 |
+| xyz:BRENTOIL | stopped | 82.869196685232 | $-62.23 |
+| xyz:CL | stopped | 79.81674680732999 | $-60.66 |
+| xyz:SKHX | stopped | 1843.6274262549 | $-62.20 |
+| xyz_SILVER | stopped | 66.04279735828798 | $-60.60 |
+| HYPE | stopped | 65.96264736149399 | $-61.41 |
+| xyz_GOLD | manual_close | 4227.045435351562 | $65.60 |
+| xyz_BRENTOIL | manual_close | 79.32585955810546 | $73.87 |
+| xyz:XYZ100 | manual_close | 30385.9216 | $1.37 |
+| xyz:SP500 | manual_close | 7485.5026 | $-3.19 |
+| xyz_CL | manual_close | 75.36506847381591 | $84.09 |
+| xyz:BRENTOIL | manual_close | 78.8967762 | $105.26 |
+| xyz_SILVER | manual_close | 66.48829347381592 | $-22.30 |
+| ETH | stopped | 1759.924929603 | $-60.99 |
+| xyz_BRENTOIL | stopped | 80.57642534837144 | $-61.89 |
+| xyz_MU | stopped | 1157.0113822909714 | $-61.94 |
+| BTC | stopped | 65528.24737886999 | $-62.26 |
+| xyz_GOLD | target | 4141.49983434 | $103.74 |
+| xyz_SILVER | target | 63.898740301193136 | $106.33 |
+| HYPE | stopped | 63.799122448035 | $-59.81 |
+| xyz_CL | target | 72.32376853562056 | $106.47 |
 
 ## Lezioni
 
 - **thesis_right** (basket, —): Ricerca profili di rischio su TSMOM: il profilo CONSERVATIVO (leva 1x, stop 2.5%, 2 posizioni) domina il base e l'aggressivo: stesso Sharpe (1.70) ma drawdown dimezzato (-9.8% vs -15%+). L'aggressivo (leva 2x, stop 6%) FALSIFICATO: Sharpe 1.56 sotto buy-and-hold, piu' rischio senza reward. Lezione: su trend-following il controllo del rischio batte la ricerca di rendimento. tsmom-conservative -> challenger in paper. #research #tsmom #risk-profile #conferma
 - **execution_issue** (xyz_GOLD, $-61.57): Se close.logged_at precede open.logged_at sulla stessa barra-timestamp, il motore valuta lo stop prima della conferma dell'ingresso (look-ahead intra-barra): la perdita non riflette un movimento di mercato reale. Fix strutturale: aggiungere guard min_hold_bars>=1 nel loop di stop affinché la logica di uscita venga saltata sulla barra di apertura. In parallelo, il pattern GOLD (4204→4231→4348 in 3 giorni, tsmom=-1 persistente) evidenzia che segnali TSMOM short su safe-haven in regime di bid strutturale generano whipsaw sistematici: filtrare gli short su gold/xau con un proxy di risk-appetite (es. VIX regime o spread TY-bund) prima dell'ingresso. #execution-bug #look-ahead #same-bar-exit #min-hold-bars #tsmom #gold #safe-haven #regime-filter
 - **thesis_right** (xyz_CL, $178.46): Un segnale tsmom = -1 su futures energetici liquidi in trend ribassista porta il prezzo al target 3:1 entro 3-5 sessioni; non intervenire discrezionalmente sul target meccanico — l'edge della strategia si realizza lasciando girare il winner fino al livello stabilito. #tsmom #crude_oil #short #momentum #commodity #target_hit #3:1_rr
+- **execution_issue** (WLD, $-62.19): Su altcoin ad alta volatilità (WLD daily ATR tipicamente ≥3-4%), uno stop fisso al 2.5% rientra nel range di rumore intraday: il segnale tsmom=1 non ha avuto spazio per svilupparsi prima di essere spazzato via. I segnali tsmom su asset high-vol richiedono stop ATR-scaled (≥1.5× ATR giornaliero) anche a costo di ridurre il size, altrimenti si paga il bid-ask del rumore invece del trend. #tsmom #stop_calibration #atr_scaling #altcoin_noise #whipsaw
+- **execution_issue** (HYPE, $-62.23): Su asset ad alta volatilità come HYPE, uno stop fisso percentuale inferiore al noise intraday produce whipsaw sistematici anche quando la direzione è corretta: il prezzo ha raggiunto lo stop (66.79, -2.5%) per poi rimbalzare sopra l'entry (exit_px 68.97 > entry 68.50). Lo stop deve essere calibrato su almeno 1–1.5× ATR del periodo di holding previsto, non su una percentuale fissa; in alternativa, per segnali tsmom su asset crypto-beta elevato, usare un entry ritardato dopo conferma di pullback completato per ridurre il rischio di stop nel noise. #stop-too-tight #whipsaw #tsmom #high-volatility-asset #atr-calibration #execution
+- **execution_issue** (xyz:CL, $-62.25): Su futures energetici ad alta volatilità intraday (CL ATR tipico 1.5-2.5 USD), uno stop fisso al 2.5% sopra l'entry non distingue rumore da inversione: il tsmom segnale -1 era valido sul timeframe tattico ma il trade è stato stopped su un bounce intraday prima che il trend riprendesse. Per strategie tsmom su CL, calibrare lo stop su ATR(5d) × 1.5 e verificare coerenza timeframe segnale/esecuzione; notare anche anomalia dati: close_ts (11:00) precede open_ts (12:00), segnale di bug nel logging che può generare stop fantasma. #tsmom #crude_oil #stop_sizing #atr_calibration #intraday_noise #data_integrity #timestamp_anomaly
+- **execution_issue** (NEAR, $-61.02): Un segnale tsmom (orizzonte giorni/settimane) con uno stop al 2.5% non regge la volatilità intraday degli altcoin: il prezzo ha toccato lo stop in 60 minuti senza che il regime momentum fosse falsificato. Quando si entra su segnale tsmom, lo stop va ancorato all'ATR del timeframe del segnale (es. ATR-daily), oppure l'entry va ritardato a un pullback intraday per ridurre l'esposizione al rumore sub-segnale. #tsmom #stop_sizing #timeframe_mismatch #altcoin_volatility #entry_timing
+- **thesis_right** (WLD, $179.15): Quando tsmom produce un segnale binario pulito (=1) su asset ad alta volatilità, il momentum tende a esaurirsi entro la stessa sessione: considerare un trailing stop automatico dopo il 50% del percorso verso il target, per catturare extra-gain se il breakout accelera invece di chiudere meccanicamente al target fisso. #tsmom #trailing-stop #intraday-momentum #target-management #WLD
+- **execution_issue** (xyz:BRENTOIL, $-62.23): Su commodity energetiche (BRENTOIL ATR giornaliero ≈ 1-2%), uno stop fisso al 2.5% viene raggiunto dal rumore prima che il momentum tsmom si affermi: i parametri di stop per tsmom devono essere calibrati sull'ATR specifico del simbolo (es. stop ≥ 1.5× ATR), non su una % fissa del nozionale. #tsmom #stop_calibration #atr #energy_commodities #premature_exit
+- **execution_issue** (xyz:CL, $-60.66): Per tsmom su commodity energetiche (CL), uno stop del 2.5% è inferiore all'ATR intraday tipico di CL (~2-3%): il segnale momentum richiede giorni per esprimersi, ma uno stop stretto viene spazzato dal rumore di sessione. Calibrare lo stop a ≥2×ATR_14 giornaliero lascia respiro alla tesi senza ampliare il rischio nominale per trade. #tsmom #crude-oil #stop-calibration #atr #intraday-noise #energy
+- **thesis_wrong** (xyz:SKHX, $-62.20): Un segnale tsmom=1 su singolo asset senza filtro di regime cattura spesso momentum già esausto: il prezzo tocca il massimo della look-back window esattamente quando il segnale si attiva, rendendo l'entry strutturalmente tardiva. Inserire un requisito di conferma (es. basket-level momentum breadth > 0 oppure volatilità realizzata 24h < percentile 50 del proprio storico) prima di aprire il long riduce i falsi positivi in fasi di momentum in esaurimento. #tsmom #false_signal #momentum_exhaustion #regime_filter #entry_timing
+- **execution_issue** (xyz_SILVER, $-60.60): Quando un momentum-short viene chiuso con reason='stopped' ma exit_px è ben dentro il range entry→stop_px, e il close.ts precede l'opened_at, il sistema ha consumato una candela stale pre-apertura per il check dello stop. Regola difensiva: il ciclo di verifica stop deve assicurare candle.ts >= position.opened_at; in assenza di questa guardia, ogni posizione aperta in prossimità del cambio-ora rischia uno stop spurio su dati obsoleti. #execution_bug #stale_candle #timestamp_ordering #tsmom #false_stop
+- **execution_issue** (HYPE, $-61.41): Se un long risulta 'stopped' con exit_px > entry_px e PnL negativo, è un bug di sistema (race condition log o phantom stop), non un segnale di mercato — aggiungere assertion: per long, stop_exit richiede exit_px <= entry_px, altrimenti marcare come 'system_error' e non imputare la perdita alla strategia né trarre conclusioni sulla tesi. #paper-trading-bug #phantom-stop #log-race-condition #tsmom #HYPE #system-integrity
+- **thesis_wrong** (basket, —): Ritirata da challenger: 20 trade paper, meanR -0.014 (perdente). Il paper trading ha falsificato l'edge. #lifecycle #retire #paper
+- **execution_issue** (xyz_GOLD, $65.60): Nelle strategie tsmom la tesi era corretta (segnale -1, GOLD sceso da 4348 a 4227, ~2.8% a favore), ma la chiusura manuale ha catturato solo il 37% del percorso verso il target (4022), bruciando il risk/reward 3:1 originale. In un regime di momentum bearish, chiudere discrezionalmente un trade vincente prima del target distrugge l'expectancy sistemática: il vantaggio statistico del tsmom esiste solo se si lasciano girare i vincitori fino all'uscita sistematica (stop trail o target). Regola generale: in strategie trend-following, il 'manual_close' è ammissibile solo su deterioramento del segnale (tsmom cambia segno) o time-stop esplicito, mai su impazieza o profit-taking anticipato. #tsmom #early_exit #expectancy_destruction #systematic_override #momentum_bear
+- **execution_issue** (xyz_BRENTOIL, $73.87): In tsmom le chiusure manuali anticipate distruggono la skewness positiva della strategia: il momentum vive di rare run lunghe che compensano i molti piccoli stop. Chiudere al 41% del target (79.33 vs 75.71) con tesi ancora intatta (prezzo scendeva, segnale -1 non invertito) taglia esattamente il payoff che giustifica il risk. Regola: su tsmom il gestore umano non sovrascrive il target se la tesi non è falsificata — l'unica uscita legittima prima del target è un segnale che si inverte a 0/+1. #tsmom #early_exit #momentum_skew #manual_override #brent_oil #execution_discipline
+- **execution_issue** (xyz:XYZ100, $1.37): Chiudere manualmente un trade tsmom prima di stop o target distrugge il R:R atteso (1:3 → ~0.002R): la strategia genera alpha solo sull'intera distribuzione dei trade, non sui singoli. Se la convinzione sul segnale tsmom=1 era insufficiente al momento dell'apertura (momentum non confermato da regime, es. ADX crescente o prezzo sopra media di lungo), il trade non andava aperto. Una volta dentro, il manual_close è un'interferenza che trasforma un sistema positivo in rumore. #tsmom #execution_discipline #manual_override #rr_erosion #regime_confirmation
+- **execution_issue** (xyz:SP500, $-3.19): Le strategie tsmom hanno convessità asimmetrica: il costo atteso dei losers piccoli è già scontato nel sizing; una chiusura manuale dopo 44 ore su una posizione quasi flat (-0.13%) taglia i potenziali winner senza ridurre il rischio reale, distorcendo la distribuzione dei payoff e distruggendo l'edge sistematico. Regola: su segnali tsmom, l'unica uscita lecita prima del target/stop è un time-stop predefinito (es. N barre), mai un override discrezionale su posizioni neutre. #tsmom #manual_override #execution #trend_following #convexity #sp500
+- **execution_issue** (xyz_CL, $84.09): Le strategie tsmom sono costruite su R:R asimmetrico (qui 1:3): chiudere manualmente al 47% del target (75.37 vs 72.27) con segnale ancora bearish e stop intatto distrugge l'expectancy attesa del sistema. Il 'manual_close' non è gestione del rischio, è violazione di processo — l'uscita discrezionale prima del target o dell'inversione del segnale elimina esattamente i fat-tail che il momentum cattura. Regola generale: per strategie tsmom, l'unico trigger di uscita valido è stop hit, target hit, o flip del segnale; ogni uscita manuale richiede log esplicito della tesi alternativa che la giustifica. #tsmom #momentum #early_exit #manual_close #process_violation #rr_decay #crude_oil #expectancy
+- **execution_issue** (xyz:BRENTOIL, $105.26): In tsmom, il valore atteso dipende dalla simmetria stop/target (qui 3:1 teorico): chiudere manualmente al 60% del target move trasforma un setup da EV positivo in uno neutro. Ogni uscita discrezionale su un trade vincente esige una ragione esplicita (segnale invertito, break di struttura opposto) — in assenza, il framework originale va rispettato. Regola generale: manual_close su vincitore = override del sistema, ammissibile solo con trigger codificabile, mai per 'abbastanza'. #tsmom #manual_close #let_winners_run #early_exit #execution #brentoil
+- **execution_issue** (xyz_SILVER, $-22.30): Le strategie tsmom richiedono che il momentum si dispieghi nel tempo (tipicamente giorni, non ore): chiudere manualmente dopo 9h con prezzo ancora nel range valido (66.49 vs stop 67.54, mai toccato) distrugge l'edge statistico perché taglia il tempo di sviluppo prima che la tesi sia falsificabile. Il segnale -1 non era invalidato — la tesi era né giusta né sbagliata, era ancora aperta. Regola generale: su momentum-following, il manual_close prematuro è ammesso solo in presenza di regime-change confermato (es. inversione del segnale tsmom stesso o spike di volatilità fuori scala); altrimenti lasciare che stop o target svolgano la funzione per cui sono stati calibrati. #tsmom #silver #manual_close #holding_period_troppo_breve #momentum_execution #no_regime_change
+- **execution_issue** (ETH, $-60.99): I segnali tsmom calcolati a fine candela (22:00 UTC) riflettono momentum già prezzato: lo short viene aperto proprio quando l'Asia apre e il mercato tende a correggere il sell-off europeo con short-covering. Stop al 2.5% basato su ATR misurato in regime low-vol sottostima il rischio di spike intra-sessione (ATR 0.61% → stop ~4×ATR, ma la volatilità mean-reverte verso l'alto). Regola generale: per tsmom shorts su asset ad alta volatilità, usare un moltiplicatore ATR minimo 5-6× oppure inserire un ritardo di 2-4h sull'entry per filtrare i bounce di apertura asiatica. #tsmom #entry-timing #atr-underestimate #asian-session-bounce #stop-too-tight #eth #short
+- **execution_issue** (xyz_BRENTOIL, $-61.89): Su commodity energetiche (Brent/WTI) il segnale TSMOM short viene eliminato da spike di supply-news o flow istituzionale intraday prima che la direzionalita' si dispieghi: stop fisso al 2.5% copre ~1.6x ATR/day di Brent (ATR tipico ~1.5%), insufficiente per un trade multi-giorno. Il prezzo e' tornato sotto entry (80.57) dopo aver toccato lo stop (83.90), confermando che la tesi era corretta ma l'esecuzione non ha retto il rumore. Regola operativa cross-commodity: stop su energy futures >= 2x ATR(14-day) calibrato al timeframe del segnale; se il rischio risultante e' fuori budget, ridurre la size, non stringere lo stop. #execution_issue #stop_too_tight #brentoil #energy_commodity #atr_calibration #tsmom #whipsaw #commodity_noise
+- **execution_issue** (xyz_MU, $-61.94): Open vuoto su xyz_MU con gap di 4 giorni tra chiusura (Jun-18) e logging (Jun-22) rende impossibile valutare la tesi: il record di apertura è andato perso prima del review run. Indipendentemente dal bug di logging, TSMOM su equity cicliche con earnings programmati (MU riporta ogni ~90g, move tipico ±10-20%) invalida la calibrazione ATR dello stop: un evento binario consuma l'intero risk budget in una candela prima che la direzionalità si esprima. Regola generale: su TSMOM equity, bloccare nuove aperture entro ±5 sessioni dalla data earnings stimata; se già in posizione, chiudere o dimezzare la size prima dell'annuncio. #orphaned-close #tsmom #equity-cyclical #earnings-blackout #semiconductor #logging-delay #data-integrity
+- **execution_issue** (BTC, $-62.26): Su asset ad alta volatilità come BTC (ATR giornaliero tipico 2–4%), uno stop fisso al 2.5% sopra il prezzo di entrata viene colpito dal rumore intraday prima che il segnale momentum abbia tempo di maturare. Per strategie tsmom, il livello di stop deve essere calibrato a 1.5–2× ATR(14d) al momento dell'apertura: questo filtra i disturbi di breve e preserva il vantaggio atteso del segnale, al costo di una size ridotta per mantenere il rischio nominale costante. #tsmom #btc #stop_sizing #atr_calibration #volatility_scaling #short
+- **thesis_right** (xyz_GOLD, $103.74): Nei TSMOM short su asset safe-haven (gold), il segnale -1 produce trend sostenuti ma raramente lineari: l'uscita al primo target frazionato (T1 ~4.8% dal entry vs T2 ~7.5%) cattura l'alpha del momentum evitando la mean-reversion tipica dei safe-haven nei risk-off improvvisi — con R/R 3:1 impostato a priori, la logica 'ride to full target' aggiunge volatilità di equity senza migliorare l'EV aggiustata per Sharpe. #tsmom #gold #safe-haven #partial-target #momentum-short #conservative-exit #risk-reward
+- **thesis_right** (xyz_SILVER, $106.33): Segnali tsmom monofattore non conflittuali (un solo segnale, valore estremo -1) su commodity a bassa volatilità relativa come Silver tendono a esprimere il rendimento in 24-48h prima che subentrino mean-reversion e ricoperture: conviene dimensionare il target a ~4-5% anziché al massimo teorico, accettando un R/R 1:2 garantito invece di attendere un R/R 1:3 che spesso non si materializza. #tsmom #commodity #silver #target-calibration #single-signal-regime
+- **thesis_wrong** (HYPE, $-59.81): Un segnale tsmom=1 isolato su singolo asset crypto, senza conferma di regime (breadth momentum, volume breakout, macro trend), ha tasso di falso positivo elevato: il segnale cattura spesso l'ultima gamba di un impulso esaurito piuttosto che l'inizio di una continuazione. La condizione di ingresso per strategie tsmom in asset ad alta volatilità deve includere almeno un filtro di regime secondario (es. tsmom aggregato su basket > soglia, o conferma su timeframe superiore) prima di aprire posizione. #tsmom #false_breakout #regime_filter_missing #single_asset_signal #crypto_noise
+- **thesis_right** (xyz_CL, $106.47): tsmom con segnale pulito (-1) su commodity liquide (CL) mostra follow-through nel range 2.5-3× ATR entro 3 giorni; target fisso 3:1 cattura il trend senza sovra-gestione — nessun beneficio da uscite parziali quando il segnale è monodirezionale e non c'è rumore di regime. #tsmom #commodity #crude_oil #target_hit #no_partial_exit
+
+## Eventi lifecycle
+
+- **retire** (2026-06-22): 
 
 [[lessons|Tutte le lezioni]] · [[timeline|Timeline]]

@@ -4,6 +4,265 @@
 
 _Eventi lifecycle + open/close, più recenti in alto._
 
+- `2026-06-26T07:24:01` 🟢 open [[agents-rr2-v1]] ZEC short
+- `2026-06-26T07:16:12` 🔴 close [[agents-rr2-v1]] ETH — stopped $-81.25
+- `2026-06-26T07:16:11` 🔴 close [[agents-v1]] ETH — stopped $-84.37
+- `2026-06-26T06:16:00` 🟢 open [[lux-confluence-rr2-v1]] NEAR short
+- `2026-06-26T06:15:56` 🟢 open [[lux-confluence-rr2-v1]] ETH short
+- `2026-06-26T03:24:06` 🟢 open [[agents-rr2-v1]] ETH short
+- `2026-06-26T03:24:05` 🟢 open [[agents-v1]] ETH short
+- `2026-06-26T01:16:10` 🟢 open [[lux-flow-confluence-v1]] CRV short
+- `2026-06-26T01:16:10` 🟢 open [[lux-flow-confluence-v1]] SOL short
+- `2026-06-26T01:16:10` 🟢 open [[lux-flow-confluence-v1]] ETH short
+- `2026-06-26T01:16:03` 🟢 open [[lux-confluence-rr2-v1]] SOL short
+- `2026-06-25T16:16:06` 🟢 open [[lux-flow-confluence-v1]] ZEC short
+- `2026-06-25T16:16:06` 🟢 open [[lux-flow-confluence-v1]] XRP short
+- `2026-06-25T16:16:06` 🟢 open [[lux-flow-confluence-v1]] BTC short
+- `2026-06-25T15:44:41` 🔄 lifecycle **retire** [[xsmom-port-v1]] — manuale: engine portfolio, 0 trade chiusi in paper. Edge cross-sectional (IC +0.028, t+4.2) reale ma non catturato dal book in fase di tuning
+- `2026-06-25T15:44:41` 🔄 lifecycle **retire** [[claude-strategy-v1]] — manuale: 3 trade paper tutti flat (PnL 0), layer LLM non ha aggiunto valore sopra il gate sistematico puro (stesso gate di tsmom-liq, gia ritirata a sua volta)
+- `2026-06-24T13:04:00` 🔴 close [[tsmom-atr-v1]] cash:WTI — target $163.88
+- `2026-06-24T11:16:04` 🔴 close [[lux-confluence-rr2-v1]] NEAR — target $198.50
+- `2026-06-24T09:23:14` 🔴 close [[tsmom-atr-v1]] xyz:BRENTOIL — target $151.60
+- `2026-06-24T09:23:05` 🔴 close [[tsmom-v1]] xyz:BRENTOIL — target $176.59
+- `2026-06-24T06:15:43` 🟢 open [[lux-confluence-rr2-v1]] CRV short
+- `2026-06-24T05:19:46` 🟢 open [[agents-rr2-v1]] ZEC short
+- `2026-06-24T04:30:52` 🔴 close [[lux-confluence-rr2-v1]] CRV — target $197.56
+- `2026-06-24T04:30:43` 🔴 close [[lux-0.1-beta]] CRV — target $594.71
+- `2026-06-24T04:30:43` 🔴 close [[tsmom-v1]] xyz:SKHX — stopped $-101.85
+- `2026-06-24T03:25:19` 🔴 close [[agents-rr2-v1]] ZEC — target $74.52
+- `2026-06-24T03:25:09` 🔴 close [[tsmom-atr-v1]] xyz:SPCX — stopped $-85.90
+- `2026-06-24T03:25:08` 🔴 close [[tsmom-atr-v1]] xyz:GOLD — target $146.81
+- `2026-06-24T03:25:06` 🔴 close [[tsmom-atr-v1]] xyz:NATGAS — stopped $-89.65
+- `2026-06-24T03:25:01` 🔴 close [[lux-0.1-beta]] ZEC — target $517.58
+- `2026-06-24T03:24:56` 🔴 close [[tsmom-conservative-v1]] xyz_CL — target $106.47
+- `2026-06-24T03:24:55` 🔴 close [[tsmom-v1]] xyz:MU — stopped $-101.90
+- `2026-06-24T03:24:52` 🔴 close [[tsmom-v1]] xyz:SPCX — stopped $-99.77
+- `2026-06-24T03:18:50` 🟢 open [[agents-v1]] ZEC short
+- `2026-06-23T23:20:23` 🟢 open [[geopolitics-v1]] ETH short
+- `2026-06-23T21:50:20` 🔄 lifecycle **retire** [[lux-0.1-beta]] — drawdown_breach
+- `2026-06-23T21:23:31` 🟢 open [[geopolitics-v1]] xyz:NATGAS long
+- `2026-06-23T10:42:47` 🔴 close [[tsmom-atr-v1]] HYPE — stopped $-90.24
+- `2026-06-23T10:42:36` 🔴 close [[tsmom-v1]] xyz:SNDK — stopped $-102.34
+- `2026-06-23T10:42:34` 🔴 close [[tsmom-v1]] xyz:CL — stopped $-105.74
+- `2026-06-23T09:23:06` 🔄 lifecycle **retire** [[tsmom-atr-v1]] — 
+- `2026-06-23T09:15:53` 🟢 open [[tsmom-atr-v1]] BTC short
+- `2026-06-23T08:28:02` 🔴 close [[agents-rr2-v1]] SUI — stopped $-50.64
+- `2026-06-23T08:28:01` 🔴 close [[lux-confluence-rr2-v1]] ETH — target $192.77
+- `2026-06-23T08:27:47` 🔴 close [[tsmom-atr-v1]] BTC — target $176.76
+- `2026-06-23T08:15:47` 🟢 open [[tsmom-atr-v1]] ETH short
+- `2026-06-23T08:00:49` 🔴 close [[tsmom-atr-v1]] ETH — target $173.69
+- `2026-06-23T07:23:13` 🔄 lifecycle **retire** [[tsmom-v1]] — 
+- `2026-06-23T07:17:13` 🟢 open [[tsmom-atr-v1]] cash:WTI short
+- `2026-06-23T07:17:13` 🔴 close [[tsmom-atr-v1]] EIGEN — stopped $-92.93
+- `2026-06-23T07:17:13` 🟢 open [[tsmom-atr-v1]] xyz:SPCX short
+- `2026-06-23T07:15:50` 🟢 open [[tsmom-v1]] xyz:SNDK long
+- `2026-06-23T07:15:49` 🟢 open [[tsmom-v1]] xyz:MU long
+- `2026-06-23T07:15:48` 🟢 open [[tsmom-v1]] xyz:CL short
+- `2026-06-23T07:15:47` 🟢 open [[tsmom-v1]] xyz:SKHX long
+- `2026-06-23T06:30:36` 🔴 close [[lux-0.1-beta]] WLD — stopped $-170.81
+- `2026-06-23T06:28:38` 🔴 close [[tsmom-atr-v1]] WLD — stopped $-101.05
+- `2026-06-23T06:28:32` 🔴 close [[tsmom-conservative-v1]] HYPE — stopped $-59.81
+- `2026-06-23T06:28:31` 🔴 close [[tsmom-v1]] xyz:NVDA — target $155.36
+- `2026-06-23T06:28:23` 🔴 close [[tsmom-v1]] xyz:CL — target $176.70
+- `2026-06-23T06:09:54` 🔴 close [[lux-confluence-rr2-v1]] WLD — stopped $-100.95
+- `2026-06-23T06:09:25` 🔴 close [[tsmom-v1]] HYPE — stopped $-97.36
+- `2026-06-23T05:49:00` 🔴 close [[agents-rr2-v1]] SOL — stopped $-49.53
+- `2026-06-23T05:48:41` 🔴 close [[lux-0.1-beta]] WLD — stopped $-174.51
+- `2026-06-23T05:48:36` 🔴 close [[tsmom-conservative-v1]] xyz_SILVER — target $106.33
+- `2026-06-23T05:48:35` 🔴 close [[tsmom-conservative-v1]] xyz_GOLD — target $103.74
+- `2026-06-23T05:48:33` 🔴 close [[tsmom-v1]] xyz:INTC — stopped $-101.64
+- `2026-06-23T05:17:02` 🟢 open [[lux-confluence-rr2-v1]] ETH short
+- `2026-06-23T05:17:00` 🟢 open [[lux-0.1-beta]] ETH short
+- `2026-06-23T04:17:00` 🟢 open [[tsmom-atr-v1]] xyz:GOLD short
+- `2026-06-23T04:17:00` 🔴 close [[tsmom-atr-v1]] xyz:HOOD — stopped $-86.56
+- `2026-06-23T03:16:57` 🟢 open [[lux-0.1-beta]] WLD long
+- `2026-06-23T02:16:48` 🟢 open [[tsmom-atr-v1]] xyz:BRENTOIL short
+- `2026-06-23T02:16:48` 🔴 close [[tsmom-atr-v1]] xyz:SILVER — target $153.85
+- `2026-06-23T02:16:47` 🔴 close [[lux-0.1-beta]] WLD — stopped $-190.58
+- `2026-06-23T02:15:53` 🟢 open [[tsmom-v1]] xyz:INTC long
+- `2026-06-23T02:15:52` 🔴 close [[tsmom-v1]] xyz:MRVL — stopped $-102.34
+- `2026-06-23T02:15:52` 🟢 open [[tsmom-v1]] xyz:NVDA short
+- `2026-06-23T02:15:50` 🔴 close [[tsmom-v1]] xyz:SILVER — target $176.41
+- `2026-06-23T01:16:58` 🟢 open [[lux-confluence-rr2-v1]] ZEC short
+- `2026-06-23T01:16:57` 🟢 open [[lux-confluence-rr2-v1]] SOL short
+- `2026-06-23T01:16:57` 🟢 open [[lux-0.1-beta]] ZEC short
+- `2026-06-23T01:16:57` 🟢 open [[lux-0.1-beta]] SOL short
+- `2026-06-23T01:15:43` 🟢 open [[tsmom-v1]] SOL short
+- `2026-06-23T01:15:41` 🟢 open [[tsmom-v1]] xyz:SPCX short
+- `2026-06-23T01:15:40` 🟢 open [[tsmom-v1]] ETH short
+- `2026-06-23T00:38:03` 🔴 close [[tsmom-v1]] xyz:SNDK — stopped $-104.27
+- `2026-06-23T00:38:01` 🔴 close [[tsmom-v1]] xyz:DRAM — stopped $-101.87
+- `2026-06-23T00:37:58` 🔴 close [[tsmom-v1]] xyz:SKHX — stopped $-101.46
+- `2026-06-23T00:16:44` 🟢 open [[lux-0.1-beta]] NEAR short
+- `2026-06-22T23:17:02` 🟢 open [[tsmom-atr-v1]] xyz:HOOD long
+- `2026-06-22T23:17:02` 🔴 close [[tsmom-atr-v1]] NEAR — stopped $-99.82
+- `2026-06-22T23:17:00` 🔴 close [[lux-0.1-beta]] NEAR — stopped $-195.54
+- `2026-06-22T22:33:57` 🔴 close [[lux-confluence-rr2-v1]] ZEC — stopped $-101.55
+- `2026-06-22T22:33:56` 🔴 close [[lux-confluence-rr2-v1]] ETH — stopped $-102.74
+- `2026-06-22T22:33:40` 🔴 close [[lux-0.1-beta]] ETH — stopped $-190.58
+- `2026-06-22T22:33:34` 🔴 close [[tsmom-conservative-v1]] BTC — stopped $-62.26
+- `2026-06-22T21:17:58` 🔴 close [[agents-v1]] ZEC — time_stop $2.03
+- `2026-06-22T20:15:54` 🟢 open [[tsmom-v1]] xyz:SNDK long
+- `2026-06-22T20:15:51` 🔴 close [[tsmom-v1]] xyz:MU — target $156.35
+- `2026-06-22T19:53:00` 🟢 open [[tsmom-atr-v1]] xyz:NATGAS long
+- `2026-06-22T19:53:00` 🔴 close [[tsmom-atr-v1]] XPL — stopped $-100.71
+- `2026-06-22T19:22:53` 🔴 close [[claude-strategy-v1]] SOL — reset_backlog $0.00
+- `2026-06-22T19:22:53` 🔴 close [[claude-strategy-v1]] SUI — reset_backlog $0.00
+- `2026-06-22T19:22:53` 🔴 close [[claude-strategy-v1]] ZEC — reset_backlog $0.00
+- `2026-06-22T16:16:53` 🔴 close [[lux-0.1-beta]] ZEC — stopped $-190.52
+- `2026-06-22T15:16:57` 🟢 open [[lux-confluence-rr2-v1]] NEAR short
+- `2026-06-22T15:16:00` 🟢 open [[tsmom-v1]] xyz:MRVL long
+- `2026-06-22T15:15:59` 🔴 close [[tsmom-v1]] xyz:SNDK — target $154.44
+- `2026-06-22T14:43:01` 🟢 open [[tsmom-atr-v1]] xyz:SILVER short
+- `2026-06-22T14:43:01` 🔴 close [[tsmom-atr-v1]] ZEC — stopped $-99.03
+- `2026-06-22T14:41:55` 🟢 open [[tsmom-v1]] xyz:SNDK long
+- `2026-06-22T14:41:54` 🔴 close [[tsmom-v1]] xyz:MRVL — stopped $-102.54
+- `2026-06-22T13:17:13` 🟢 open [[tsmom-atr-v1]] ETH short
+- `2026-06-22T13:17:13` 🟢 open [[lux-confluence-rr2-v1]] ZEC long
+- `2026-06-22T13:17:13` 🟢 open [[lux-confluence-rr2-v1]] ETH long
+- `2026-06-22T13:17:12` 🟢 open [[lux-0.1-beta]] ZEC long
+- `2026-06-22T13:17:12` 🟢 open [[lux-0.1-beta]] ETH long
+- `2026-06-22T12:56:29` 🔴 close [[tsmom-atr-v1]] XRP — stopped $-95.33
+- `2026-06-22T12:54:38` 🔄 lifecycle **retire** [[tsmom-conservative-v1]] — 
+- `2026-06-22T11:36:42` 🔴 close [[tsmom-conservative-v1]] xyz_MU — stopped $-61.94
+- `2026-06-22T11:36:42` 🔴 close [[tsmom-conservative-v1]] xyz_BRENTOIL — stopped $-61.89
+- `2026-06-22T11:36:39` 🔴 close [[tsmom-conservative-v1]] ETH — stopped $-60.99
+- `2026-06-22T11:19:31` 🔴 close [[lux-0.1-beta]] SUI — stopped $-196.55
+- `2026-06-22T11:06:35` 🔴 close [[lux-0.1-beta]] ZEC — stopped $-195.55
+- `2026-06-22T10:18:35` 🔴 close [[tsmom-liq-v1]] ZEC — manual_close $-37.25
+- `2026-06-22T10:18:34` 🔴 close [[tsmom-liq-v1]] XRP — manual_close $27.02
+- `2026-06-22T10:18:33` 🔴 close [[tsmom-liq-v1]] CRV — manual_close $52.43
+- `2026-06-22T10:18:32` 🔴 close [[tsmom-liq-v1]] SUI — manual_close $25.46
+- `2026-06-22T10:18:31` 🔴 close [[tsmom-conservative-v1]] xyz_SILVER — manual_close $-22.30
+- `2026-06-22T10:18:30` 🔴 close [[tsmom-conservative-v1]] xyz:BRENTOIL — manual_close $105.26
+- `2026-06-22T10:18:29` 🔴 close [[tsmom-conservative-v1]] xyz_CL — manual_close $84.09
+- `2026-06-22T10:18:28` 🔴 close [[tsmom-conservative-v1]] xyz:SP500 — manual_close $-3.19
+- `2026-06-22T10:18:28` 🔴 close [[tsmom-conservative-v1]] xyz:XYZ100 — manual_close $1.37
+- `2026-06-22T10:18:27` 🔴 close [[tsmom-conservative-v1]] xyz_BRENTOIL — manual_close $73.87
+- `2026-06-22T10:18:26` 🔴 close [[tsmom-conservative-v1]] xyz_GOLD — manual_close $65.60
+- `2026-06-22T10:18:26` 🔴 close [[tsmom-v1]] xyz:SKHX — manual_close $27.49
+- `2026-06-22T10:18:25` 🔴 close [[tsmom-v1]] xyz:BRENTOIL — manual_close $56.86
+- `2026-06-22T10:18:24` 🔴 close [[tsmom-v1]] xyz:SP500 — manual_close $-3.19
+- `2026-06-22T10:18:23` 🔴 close [[tsmom-v1]] xyz:XYZ100 — manual_close $1.37
+- `2026-06-22T10:18:22` 🔴 close [[tsmom-v1]] xyz:CL — manual_close $60.89
+- `2026-06-22T10:18:21` 🔴 close [[tsmom-v1]] xyz_SILVER — manual_close $155.74
+- `2026-06-22T10:18:21` 🔴 close [[tsmom-v1]] xyz_BRENTOIL — manual_close $128.31
+- `2026-06-22T10:18:21` 🔴 close [[tsmom-v1]] xyz_CL — manual_close $163.41
+- `2026-06-22T09:22:22` 🔴 close [[lux-0.1-beta]] WLD — stopped $-202.86
+- `2026-06-22T08:17:07` 🟢 open [[lux-0.1-beta]] WLD long
+- `2026-06-22T07:21:49` 🔴 close [[lux-0.1-beta]] WLD — target $566.18
+- `2026-06-22T04:17:16` 🟢 open [[tsmom-conservative-v1]] HYPE long
+- `2026-06-22T04:16:54` 🟢 open [[tsmom-atr-v1]] HYPE long
+- `2026-06-22T03:48:51` 🔴 close [[tsmom-atr-v1]] HYPE — stopped $-101.89
+- `2026-06-22T03:48:45` 🔴 close [[tsmom-liq-v1]] WLD — stopped $-57.91
+- `2026-06-22T03:48:37` 🔴 close [[tsmom-conservative-v1]] HYPE — stopped $-61.41
+- `2026-06-22T02:23:34` 🔄 lifecycle **retire** [[tsmom-liq-v1]] — 
+- `2026-06-22T02:16:53` 🟢 open [[tsmom-liq-v1]] WLD long
+- `2026-06-22T02:16:52` 🟢 open [[tsmom-conservative-v1]] xyz_SILVER short
+- `2026-06-22T02:16:45` 🟢 open [[tsmom-atr-v1]] BTC short
+- `2026-06-22T02:15:47` 🟢 open [[tsmom-v1]] xyz:SKHX long
+- `2026-06-22T01:27:49` 🔴 close [[lux-0.1-beta]] ETH — stopped $-195.48
+- `2026-06-22T01:27:44` 🔴 close [[tsmom-liq-v1]] ETH — stopped $-58.67
+- `2026-06-22T01:27:32` 🔴 close [[tsmom-v1]] ZEC — stopped $-96.39
+- `2026-06-22T01:25:29` 🔴 close [[tsmom-atr-v1]] xyz:SILVER — stopped $-95.99
+- `2026-06-22T01:25:13` 🔴 close [[tsmom-liq-v1]] NEAR — stopped $-58.66
+- `2026-06-22T01:25:07` 🔴 close [[tsmom-conservative-v1]] xyz_SILVER — stopped $-60.60
+- `2026-06-22T00:17:37` 🟢 open [[tsmom-liq-v1]] NEAR short
+- `2026-06-22T00:17:37` 🟢 open [[tsmom-liq-v1]] ETH short
+- `2026-06-22T00:17:36` 🟢 open [[tsmom-conservative-v1]] xyz_SILVER short
+- `2026-06-22T00:17:00` 🟢 open [[tsmom-atr-v1]] xyz:SILVER short
+- `2026-06-22T00:17:00` 🔴 close [[tsmom-atr-v1]] xyz:SP500 — stopped $-112.78
+- `2026-06-22T00:16:59` 🟢 open [[lux-0.1-beta]] WLD long
+- `2026-06-22T00:16:59` 🟢 open [[lux-0.1-beta]] ETH short
+- `2026-06-22T00:15:45` 🟢 open [[tsmom-v1]] ZEC short
+- `2026-06-22T00:15:44` 🔴 close [[tsmom-v1]] xyz:SKHX — stopped $-98.37
+- `2026-06-21T23:17:00` 🔴 close [[tsmom-conservative-v1]] xyz:SKHX — stopped $-62.20
+- `2026-06-21T23:17:00` 🟢 open [[tsmom-conservative-v1]] ETH short
+- `2026-06-21T23:16:55` 🟢 open [[tsmom-atr-v1]] TAO short
+- `2026-06-21T23:16:55` 🟢 open [[tsmom-atr-v1]] EIGEN long
+- `2026-06-21T23:16:55` 🟢 open [[tsmom-atr-v1]] PUMP short
+- `2026-06-21T23:16:55` 🟢 open [[tsmom-atr-v1]] XRP short
+- `2026-06-21T23:16:55` 🔴 close [[tsmom-atr-v1]] xyz:MU — stopped $-104.10
+- `2026-06-21T23:16:55` 🔴 close [[tsmom-atr-v1]] xyz:DRAM — stopped $-102.93
+- `2026-06-21T23:16:55` 🔴 close [[tsmom-atr-v1]] xyz:SILVER — stopped $-105.85
+- `2026-06-21T23:16:55` 🔴 close [[tsmom-atr-v1]] xyz:SKHX — stopped $-103.45
+- `2026-06-21T22:16:58` 🟢 open [[tsmom-liq-v1]] ZEC short
+- `2026-06-21T22:16:58` 🔴 close [[tsmom-conservative-v1]] xyz:CL — stopped $-60.66
+- `2026-06-21T22:16:52` 🟢 open [[tsmom-atr-v1]] xyz:SILVER short
+- `2026-06-21T22:16:52` 🔴 close [[tsmom-atr-v1]] xyz:XYZ100 — stopped $-112.91
+- `2026-06-21T22:16:52` 🟢 open [[tsmom-atr-v1]] ZEC short
+- `2026-06-21T22:16:52` 🔴 close [[tsmom-atr-v1]] xyz:CL — stopped $-103.19
+- `2026-06-21T22:16:52` 🟢 open [[lux-0.1-beta]] ZEC short
+- `2026-06-21T21:16:55` 🟢 open [[lux-0.1-beta]] NEAR long
+- `2026-06-21T21:00:50` 🔴 close [[lux-0.1-beta]] WLD — stopped $-199.71
+- `2026-06-21T21:00:47` 🔴 close [[tsmom-liq-v1]] WLD — stopped $-59.02
+- `2026-06-21T20:19:03` 🟢 open [[tsmom-conservative-v1]] xyz:BRENTOIL short
+- `2026-06-21T19:16:50` 🔴 close [[tsmom-conservative-v1]] xyz:BRENTOIL — stopped $-62.23
+- `2026-06-21T19:16:46` 🟢 open [[tsmom-atr-v1]] NEAR long
+- `2026-06-21T19:16:46` 🔴 close [[tsmom-atr-v1]] xyz:BRENTOIL — stopped $-103.55
+- `2026-06-21T17:16:41` 🟢 open [[tsmom-liq-v1]] WLD long
+- `2026-06-21T17:16:37` 🟢 open [[lux-0.1-beta]] WLD long
+- `2026-06-21T16:39:42` 🔴 close [[lux-0.1-beta]] WLD — stopped $-208.09
+- `2026-06-21T16:39:39` 🔴 close [[tsmom-liq-v1]] WLD — stopped $-59.77
+- `2026-06-21T16:36:45` 🔴 close [[lux-0.1-beta]] NEAR — stopped $-196.61
+- `2026-06-21T16:36:40` 🔴 close [[tsmom-liq-v1]] NEAR — stopped $-60.15
+- `2026-06-21T16:16:58` 🟢 open [[tsmom-liq-v1]] WLD long
+- `2026-06-21T16:16:57` 🟢 open [[tsmom-conservative-v1]] xyz_CL short
+- `2026-06-21T16:16:50` 🟢 open [[lux-0.1-beta]] WLD long
+- `2026-06-21T15:39:45` 🔴 close [[lux-0.1-beta]] WLD — target $569.70
+- `2026-06-21T15:39:34` 🔴 close [[tsmom-conservative-v1]] WLD — target $179.15
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] xyz:DRAM long
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] xyz:MU long
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] XPL long
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] WLD long
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] xyz:SP500 long
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] xyz:SKHX long
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] xyz:XYZ100 long
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] xyz:BRENTOIL short
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] xyz:CL short
+- `2026-06-21T15:16:41` 🟢 open [[tsmom-atr-v1]] HYPE long
+- `2026-06-21T13:17:28` 🟢 open [[tsmom-conservative-v1]] xyz:CL short
+- `2026-06-21T12:24:34` 🔴 close [[tsmom-conservative-v1]] NEAR — stopped $-61.02
+- `2026-06-21T12:16:55` 🟢 open [[tsmom-conservative-v1]] NEAR long
+- `2026-06-21T12:16:55` 🔴 close [[tsmom-conservative-v1]] xyz:CL — stopped $-62.25
+- `2026-06-21T09:21:20` 🟢 open [[agents-v1]] ZEC short
+- `2026-06-21T09:21:19` 🔴 close [[agents-v1]] SOL — time_stop $11.67
+- `2026-06-21T09:17:00` 🟢 open [[tsmom-conservative-v1]] HYPE long
+- `2026-06-21T09:15:34` 🟢 open [[tsmom-v1]] HYPE long
+- `2026-06-21T08:22:01` 🔴 close [[tsmom-v1]] HYPE — stopped $-98.43
+- `2026-06-21T07:28:14` 🔴 close [[tsmom-conservative-v1]] HYPE — stopped $-62.23
+- `2026-06-21T06:16:59` 🟢 open [[lux-0.1-beta]] SUI short
+- `2026-06-21T05:18:41` 🔴 close [[agents-v1]] ZEC — time_stop $23.67
+- `2026-06-21T04:28:24` 🔴 close [[tsmom-liq-v1]] BTC — stopped $-60.57
+- `2026-06-21T03:16:54` 🟢 open [[tsmom-conservative-v1]] WLD long
+- `2026-06-21T02:22:23` 🔴 close [[tsmom-conservative-v1]] WLD — stopped $-62.19
+- `2026-06-21T01:18:04` 🟢 open [[tsmom-liq-v1]] XRP short
+- `2026-06-21T01:18:04` 🟢 open [[tsmom-liq-v1]] NEAR long
+- `2026-06-21T01:17:45` 🟢 open [[lux-0.1-beta]] WLD long
+- `2026-06-21T01:17:45` 🟢 open [[lux-0.1-beta]] NEAR long
+- `2026-06-20T18:18:55` 🔴 close [[tsmom-liq-v1]] WLD — stopped $-60.53
+- `2026-06-20T18:18:12` 🔴 close [[lux-0.1-beta]] WLD — stopped $-200.80
+- `2026-06-20T16:17:57` 🟢 open [[tsmom-liq-v1]] WLD long
+- `2026-06-20T16:17:05` 🟢 open [[lux-0.1-beta]] WLD long
+- `2026-06-20T15:19:02` 🟢 open [[tsmom-liq-v1]] CRV short
+- `2026-06-20T15:18:48` 🟢 open [[tsmom-conservative-v1]] WLD long
+- `2026-06-20T15:18:48` 🟢 open [[tsmom-conservative-v1]] xyz:SKHX long
+- `2026-06-20T15:18:48` 🟢 open [[tsmom-conservative-v1]] xyz:BRENTOIL short
+- `2026-06-20T15:18:48` 🟢 open [[tsmom-conservative-v1]] xyz:SP500 long
+- `2026-06-20T15:18:48` 🟢 open [[tsmom-conservative-v1]] xyz:XYZ100 long
+- `2026-06-20T15:18:48` 🟢 open [[tsmom-conservative-v1]] xyz:CL short
+- `2026-06-20T15:18:48` 🟢 open [[tsmom-conservative-v1]] HYPE long
+- `2026-06-20T15:18:48` 🟢 open [[tsmom-conservative-v1]] BTC short
+- `2026-06-20T15:15:37` 🟢 open [[tsmom-v1]] xyz:SKHX long
+- `2026-06-20T15:15:35` 🟢 open [[tsmom-v1]] xyz:BRENTOIL short
+- `2026-06-20T15:15:34` 🟢 open [[tsmom-v1]] xyz:SP500 long
+- `2026-06-20T15:15:33` 🟢 open [[tsmom-v1]] xyz:XYZ100 long
+- `2026-06-20T15:15:31` 🟢 open [[tsmom-v1]] xyz:CL short
+- `2026-06-20T15:15:28` 🟢 open [[tsmom-v1]] HYPE long
+- `2026-06-20T15:15:26` 🟢 open [[tsmom-v1]] BTC short
+- `2026-06-20T14:28:47` 🔴 close [[lux-0.1-beta]] NEAR — stopped $-205.16
+- `2026-06-20T10:15:42` 🟢 open [[lux-0.1-beta]] CRV short
+- `2026-06-20T10:15:39` 🟢 open [[lux-0.1-beta]] NEAR long
 - `2026-06-19T16:20:06` 🟢 open [[agents-v1]] ZEC long
 - `2026-06-18T22:35:01` 🟢 open [[tsmom-liq-v1]] BTC short
 - `2026-06-18T22:33:44` 🔄 lifecycle **retire** [[funding-squeeze-breakout-g2-g1-g2]] — manuale: triplo-gate non spara mai (96 heartbeat, 0 trade) + Sharpe negativo della famiglia

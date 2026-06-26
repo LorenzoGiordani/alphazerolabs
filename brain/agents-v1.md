@@ -9,17 +9,16 @@
 
 ## Performance (paper)
 
-- equity: $10,322.30
-- trade chiusi: 9 · win rate: 44%
-- PnL totale: $327.60
-- posizioni aperte ora: 2
+- equity: $10,273.86
+- trade chiusi: 13 · win rate: 54%
+- PnL totale: $280.60
+- posizioni aperte ora: 1
 
 ### Posizioni aperte
 
 | symbol | dir | entry | stop | target | size |
 |---|---|---|---|---|---|
-| SOL | long | 72.3214614 | 67.258959102 | 87.508968294 | $1,101.36 |
-| ZEC | long | 454.300842 | 438.40031252999995 | 494.05216567499997 | $884.80 |
+| ZEC | short | 412.857412 | 445.88600496000004 | 346.80022608 | $323.73 |
 
 ### Trade chiusi
 
@@ -34,6 +33,10 @@
 | SOL | time_stop | 73.5682834 | $-1.66 |
 | SUI | stopped | 0.7728724690851 | $-52.07 |
 | ZEC | target | 447.62373209505 | $95.91 |
+| ZEC | time_stop | 466.65665 | $23.67 |
+| SOL | time_stop | 73.120373 | $11.67 |
+| ZEC | time_stop | 452.780538 | $2.03 |
+| ETH | stopped | 1578.6414258543402 | $-84.37 |
 
 ## Lezioni
 
@@ -47,5 +50,9 @@
 - **execution_issue** (SOL, $-1.66): Un time-stop di 24h è strutturalmente incoerente con una tesi basata su rotazione di capitale a 7 giorni e catalizzatori macro (Iran/BOJ): il regime bull e il funding negativo non erano stati invalidati, il prezzo è uscito piatto (−0.16%) non perché la tesi fosse sbagliata ma perché la finestra di holding era troppo corta per far emergere l'edge. Regola generale: il time-stop deve essere ≥ metà del lookback usato per costruire la tesi — tesi su momentum 7d → time-stop minimo 72-96h; altrimenti si vende rumore intraday su una tesi strutturale. #time_stop_mismatch #structural_thesis #holding_period_calibration #momentum_long #SOL
 - **thesis_wrong** (SUI, $-52.07): Un vwap_zscore=1 (1σ) in altcoin ad alta beta è sotto la soglia minima di edge: il rapporto segnale/rumore è insufficiente a sopravvivere alla normale volatilità intraday senza un catalizzatore strutturale aggiuntivo (volume >1.5x media 4h o zscore ≥1.5). La relative strength intraday punto-in-tempo (+2.8%) non è una proxy affidabile di momentum sostenuto se non è confermata da espansione volumetrica nel tick successivo all'ingresso — senza follow-through misurato entro 2h, il segnale va trattato come rumore e il trade chiuso in pareggio. #signal_threshold #vwap_zscore #momentum #altcoin_high_beta #entry_filter #relative_strength_decay
 - **thesis_right** (ZEC, $95.91): Su asset illiquidi (ZEC-tier), la combinazione rally >15% senza catalizzatore fondamentale + primo pullback significativo con funding ancora positivo è un segnale di distribuzione ad alta fedeltà: i longs sono intrappolati e non capitolano, il che concentra la pressione sell sul successivo leg down. Il trade ha raggiunto il target (-12.5%) in 36h su 48h disponibili — conferma che il time-stop va calibrato sul tempo di esaurimento del crowding, non sulla volatilità asset. In regime bear o neutro, questo setup (funding positivo + price action negativa) è più affidabile che il fade di momentum puro perché incorpora informazione di positioning. #mean-reversion #funding-signal #crowding-exhaustion #illiquid-asset #distribution #short-setup #thesis-confirmed
+- **execution_issue** (ZEC, $23.67): Vol_compression + funding-squeeze plays hanno una finestra di risoluzione strutturalmente più lunga del time_stop standard: il prezzo si è mosso nella direzione corretta (+2.7%) ma il 36h time_stop ha chiuso prima che la compressione si risolvesse completamente. Per pattern squeeze (vol_compression=1 + funding negativo), il time_stop deve essere calibrato sulla durata attesa della compressione stessa (tipicamente 72-120h) oppure sostituito da un trigger oggettivo (vol_compression si azzera, funding torna positivo), non da una soglia arbitraria in ore. #vol_compression #time_stop_miscalibration #funding_squeeze #privacy_coins #thesis_correct_direction #execution_timing
+- **execution_issue** (SOL, $11.67): In un momentum-continuation trade con time-stop fisso, il target deve essere calibrato sulla velocità attesa del trend nel window scelto, non sull'estensione del trend precedente. SOL aveva fatto +13.8% in 7d (~2%/d); puntare a +21% in 96h implicava accelerazione, non continuazione. Un target coerente con 4d di momentum a velocità invariata sarebbe stato +8-10%, ottenibile. Regola generale: target_usd ≤ entry × (trend_velocity_daily × window_days × 0.8); altrimenti la struttura R:R è irrealizzabile nel window scelto e il trade è strutturalmente dipendente dall'azzardo. #momentum #target_calibration #time_stop #L1_beta #velocity_mismatch
+- **execution_issue** (ZEC, $2.03): Strutture di distribuzione (vol_surge + vol_compression + funding positivo) senza confluenza multi-segnale sono precondizionanti necessari ma non sufficienti: in regime chop richiedono un trigger di follow-through osservabile (volume breakdown intraday, accelerazione del funding oltre soglia, primo lower-high su timeframe H4) prima dell'entry — senza di esso il time_stop diventa il risk dominante e comprime sistematicamente l'R atteso portando il trade a flat anziché al target. #crowding_fade #chop_regime #time_stop_dominance #no_confluence #distribution_precondition_vs_confirmation #entry_trigger_missing
+- **thesis_wrong** (ETH, $-84.37): Un range-breakdown short confermato da volume_surge non distingue tra distribuzione reale e stop-run (liquidità che scatta sotto il range e attrae compratori). In ETH, se entro 4-6 ore dalla presunta rottura il prezzo non stampa un nuovo low, il breakdown è probabilmente un liquidity grab: aggiungere un micro time-stop (es. 4h senza follow-through → riduci 50%) prima di lasciar correre fino allo stop strutturale evita di assorbire l'intera inversione. Volume + range break in regime bear è condizione necessaria ma non sufficiente: serve conferma di continuation (nuovo low nella sessione successiva o BTC che perde il livello chiave) prima di conviction piena. #breakdown-failure #liquidity-grab-vs-distribution #volume-signal-limitations #micro-time-stop #ETH #bear-regime #confirmation-bias
 
 [[lessons|Tutte le lezioni]] · [[timeline|Timeline]]

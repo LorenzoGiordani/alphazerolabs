@@ -17,9 +17,16 @@ v1 — gate news_event(geopolitics) + desk LLM cross-asset. Prima strategia engi
 
 ## Performance (paper)
 
-- equity: $10,000.00
+- equity: $9,998.28
 - trade chiusi: 0 · win rate: 0%
 - PnL totale: $0.00
-- posizioni aperte ora: 0
+- posizioni aperte ora: 2
+
+### Posizioni aperte
+
+| symbol | dir | entry | stop | target | size |
+|---|---|---|---|---|---|
+| xyz:NATGAS | long | 3.19483884 | 3.1309420632 | 3.3865291704000002 | $3,000.00 |
+| ETH | short | 1663.46724 | 1763.2752744 | 1413.947154 | $833.22 |
 
 [[lessons|Tutte le lezioni]] · [[timeline|Timeline]]
