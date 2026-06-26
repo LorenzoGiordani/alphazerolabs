@@ -136,6 +136,12 @@ Il dollar-neutral e' cruciale (abbatte il DD del 46pp). Era stata ritirata il 25
 
 **Loop per-simbolo SVUOTATO (26/06)** — tutte le strategie per-simbolo erano rumore colorato (Sharpe 0.12-0.71 vs xsmom 2.11). Ritirate lux-flow-confluence, lux-nw-liq, lux-confluence-rr2. Il loop e' ora **tutto engine:portfolio**: xsmom-port (core) + xsmom-multihorizon (conservative). Le desk LLM (agents-v1: 54% win realizzato su 13 trade) restano per il track record live dimostrativo.
 
+**Espansione cross-asset FALSIFICATA (26/06)** — cercavo un secondo edge diversificando il basket (crypto corr 0.63 = troppo comuni). Due vie provate, entrambe fallite:
+- Book unico crypto+commodities: IC degrada (+0.089 → +0.023). Il cross-sectional richiede asset **correlati** (fattore da nettare); crypto+commodities corr~0 mischia dinamiche non comparabili.
+- Book commodities separato dollar-neutral: IC +0.057 sembrava un edge, MA a portafoglio **−33%** vs B&H long-only **+49%**. In un super-ciclo rialzista uniforme, il market-neutral fallisce (la gamba short perde sistematicamente).
+
+**Conclusione: xsmom crypto e' il nostro UNICO edge forte.** Cercare un secondo edge portfolio con questi dati/regime e' diminishing returns evidente (8 fattori + cross-asset testati, tutti falsificati). Il gate reale verso M5 (vault on-chain) e' ora il **track record paper nel tempo**, non altra ricerca.
+
 - **Segnale nuovo validato**: `nadaraya_watson` (envelope kernel-regression, firma DaviddTech). Edge study (`scripts/research_nw.py`): il breakout di banda è un segnale di **continuation** (IC +0.105, t +5 a 48h), non di mean-reversion (il fade ha IC negativo → falsificato, coerente col regime trend 2026-H1).
 - **Lezione chiave di falsificazione**: la confluence funziona solo fra gambe **ortogonali** per costruzione (prezzo-struttura NW × flusso liq → competitivo; prezzo-struttura NW × momentum tsmom → correlate, l'AND ammazza le entry). E un gate di regime come AND a 3 gambe soffoca l'edge; andrebbe usato come **veto** sui periodi chop, non come requisito di entry.
 

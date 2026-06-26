@@ -298,6 +298,30 @@ def test_funding_carry_factor_is_weak():
     assert (w > 0).any() and (w < 0).any()          # ha long e short
 
 
+def test_crossasset_expansion_degrades_edge():
+    """L'espansione cross-asset di xsmom e' FALSIFICATA (research_crossasset.py 26/06):
+    - crypto-only IC +0.089 t+21 (il nostro edge forte)
+    - cross-asset vol-normalizzato IC +0.023 t+5.6 (degradato)
+    - commodities-only portfolio -33% (market-neutral fallisce in trend up)
+    Regression gate: blocca se l'IC crypto degrada o se cross-asset supera crypto."""
+    from scripts.research_crossasset import panel, row_ic
+    px_all = panel(["BTC","ETH","SOL","XRP","SUI","NEAR","WLD","ZEC","CRV",
+                    "xyz_GOLD","xyz_SILVER","xyz_CL","xyz_BRENTOIL","xyz_NATGAS"], 12)
+    crypto = ["BTC","ETH","SOL","XRP","SUI","NEAR","WLD","ZEC","CRV"]
+    px_crypto = px_all[crypto]
+    raw_crypto = px_crypto.pct_change(168)
+    fwd_crypto = px_crypto.pct_change(168).shift(-168)
+    ic_c, _, t_c = row_ic(raw_crypto, fwd_crypto)
+    # l'edge crypto deve restare forte (regression guard sul nostro asset principale)
+    assert ic_c > 0.05 and t_c > 10, f"edge crypto degradato: IC {ic_c:.3f} t {t_c:.1f}"
+    # cross-asset vol-normalizzato deve restare PIU' DEBOLE di crypto-only
+    vol = px_all.pct_change().rolling(168, min_periods=84).std()
+    volnorm = (px_all.pct_change(168) / vol.replace(0, np.nan)).fillna(0)
+    fwd_all = px_all.pct_change(168).shift(-168)
+    ic_xa, _, t_xa = row_ic(volnorm, fwd_all)
+    assert t_xa < t_c, "cross-asset non dovrebbe superare crypto-only (falsificato 26/06)"
+
+
 # --- test delle modifiche 25/06 (lux-flow-confluence + GLM gate + geo time_stop) ---
 
 def test_lux_flow_confluence_active_and_valid():
