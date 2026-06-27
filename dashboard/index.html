@@ -914,7 +914,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-27 21:33",
+ "updated_utc": "2026-06-27 21:35",
  "accounts": [
   {
    "id": "agents-v1",
@@ -5604,6 +5604,17 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   }
  ],
  "decisions": [
+  {
+   "ts": "2026-06-27 21:27",
+   "symbol": "ETH",
+   "direction": "short",
+   "account": "geopolitics-v1",
+   "account_label": "Desk geopolitico",
+   "risk_verdict": "veto",
+   "risk_notes": "Bloccato dal risk gate: leva 3 > max 2.0; risk_pct 2 > max 1.0",
+   "thesis": "Burst geopolitico GDELT (Z=2.0, tone=-1.64) innesca risk-off → deleveraging meccanico su asset high-beta. ETH è il bersaglio ideale: regime bear già attivo (-8.7% 7d, tsmom=-1), beta più alto del comparto crypto, nessuna protezione da funding near-zero (vs BTC). Non richiede inversione di thesis — accelera un trend esistente. Canale causale diretto e immediato: shock → avversione al rischio → liquidazione posizioni leveraged sull'asset più fragile. Conviction alta per allineamento triplo (trend + catalyst + structural weakness).",
+   "invalidation": "ETH rimbalza e recupera il recent local high entro 48h, indicando che il burst è rumore senza follow-through e il deleveraging non si materializza. Anche: headline energetica postuma sposta il focus altrove (risk premium su commodities anziché deleveraging su crypto), o un bid safe-haven su Gold stabilizza il sentiment risk generale abbastanza da fermare la liquidazione. Stop al 6% posta fuori dal rumore ATR-tipico di ETH in questo regime."
+  },
   {
    "ts": "2026-06-27 20:24",
    "symbol": "NATGAS",
@@ -14201,7 +14212,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "esce": "stop ravvicinato, obiettivo raggiunto o troppo tempo senza risultato",
    "rischio": "nessuna leva (1x), massimo 0,6% del capitale a rischio per operazione, al più 2 posizioni insieme",
    "status": "retired",
-   "asset_class": "tutti i perp (168), crypto+stock/commodity",
+   "asset_class": "tutti i perp (167), crypto+stock/commodity",
    "risk_profile": "conservativo",
    "stats": {
     "n_closed": 159,
@@ -14219,7 +14230,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "esce": "stop 2.5%, target 3.0R, tempo max 240h",
    "rischio": "leva max 1x, 0.6% a rischio per operazione",
    "status": "retired",
-   "asset_class": "tutti i perp (170), crypto+stock/commodity",
+   "asset_class": "tutti i perp (169), crypto+stock/commodity",
    "risk_profile": "conservativo",
    "stats": {
     "n_closed": 142,
@@ -17271,7 +17282,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   "months": 6,
   "impact_k": 0.5,
   "funding_mode": "storico (dove disponibile)",
-  "generated_at": "2026-06-27T20:24 UTC",
+  "generated_at": "2026-06-27T21:27 UTC",
   "strategies": []
  },
  "llm_stats": {
