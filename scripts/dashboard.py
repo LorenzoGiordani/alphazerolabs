@@ -336,35 +336,68 @@ def build_data() -> dict:
         })
 
     dec_out = []
+    # posizioni REALMENTE aperte in state (solo TRADE, non le gambe notional del book).
+    # Verità usata per marcare "aperta" nel feed: una decisione è aperta solo se la
+    # posizione corrispondente è viva in state, non se "non esiste un close" (altrimenti
+    # proposte veto/superate risulterebbero posizioni aperte, slegandosi da Posizioni).
+    open_keys = {
+        (sid, clean_symbol(sym))
+        for sid, st in state.items()
+        for sym, p in st.get("positions", {}).items()
+        if "notional" not in p and p.get("entry_px", 0) > 0
+    }
+    TRADEABLE = {"approve", "reduce"}
     for d in decisions:
         if d.get("stage") != "final":
             continue
         p = d.get("proposal", {})
         if p.get("action") != "trade":
             continue
-        risk = d.get("risk", {})
         sym = clean_symbol(p.get("symbol", ""))
         acct = d.get("strategy", "agents-v1")   # desk reale: agents-v1 (untagged) o geopolitics-v1 ecc.
-        # esito: primo close dello STESSO desk sullo stesso simbolo dopo la decisione
-        outcome = {"closed": False}
+        # verdict + note: le decisioni hard_veto non hanno blocco risk, ma un verdict
+        # top-level + violations. Normalizziamo *veto → "veto" (filtro/stile esistenti).
+        if "risk" in d and isinstance(d["risk"], dict):
+            risk = d["risk"]
+            risk_verdict = risk.get("verdict", "approve")
+            risk_notes = (risk.get("notes", "") or "")[:400]
+            size_mult = risk.get("size_multiplier")
+        else:
+            top = d.get("verdict", "")
+            risk_verdict = "veto" if "veto" in str(top) else (top or "approve")
+            viol = d.get("violations") or []
+            risk_notes = (("Bloccato dal risk gate: " + "; ".join(map(str, viol)))[:400]
+                          if viol else "")
+            size_mult = None
+        # esito: primo close dello STESSO desk sullo stesso simbolo dopo la decisione;
+        # altrimenti "aperta" SOLO se la posizione è davvero viva in state e la decisione
+        # è tradeable. Le proposte veto/superate/non eseguite non prendono banner.
+        closed_match = None
         for e in journal:
             if (e.get("type") == "close" and e.get("strategy") == acct
                     and clean_symbol(e.get("symbol", "")) == sym
                     and e.get("logged_at", "") > d.get("logged_at", "")):
-                outcome = {"closed": True, "reason": e.get("reason"),
-                           "pnl_usd": round(e.get("pnl_usd", 0), 2)}
+                closed_match = e
                 break
+        if closed_match:
+            outcome = {"closed": True, "reason": closed_match.get("reason"),
+                       "pnl_usd": round(closed_match.get("pnl_usd", 0), 2)}
+        elif risk_verdict in TRADEABLE and (acct, sym) in open_keys:
+            outcome = {"closed": False}
+        else:
+            outcome = None
         rec = {
             "ts": ts_short(d.get("logged_at", "")), "symbol": sym,
             "direction": p.get("direction"), "account": acct,
             "account_label": ACCOUNT_META.get(acct, {}).get("label", acct),
-            "risk_verdict": risk.get("verdict", "approve"),
-            "risk_notes": (risk.get("notes", "") or "")[:400],
+            "risk_verdict": risk_verdict,
+            "risk_notes": risk_notes,
             "thesis": p.get("thesis", ""), "invalidation": p.get("invalidation", ""),
-            "outcome": outcome,
         }
-        if risk.get("size_multiplier") not in (None, 1, 1.0):
-            rec["size_multiplier"] = risk["size_multiplier"]
+        if outcome is not None:
+            rec["outcome"] = outcome
+        if size_mult not in (None, 1, 1.0):
+            rec["size_multiplier"] = size_mult
         dec_out.append(rec)
 
     # aperture sistematiche (challenger) nel feed, col perché in parole semplici
@@ -377,16 +410,23 @@ def build_data() -> dict:
         fired = [SIGNAL_IT.get(k, k) for k, v in e.get("signals_last", {}).items() if v]
         why = (f"Il sistema «{info.get('nome', sid)}» ha aperto {e['direction']} su "
                f"{clean_symbol(e['symbol'])}: {', '.join(fired) or 'condizioni della strategia soddisfatte'}.")
-        outcome = {"closed": False}
+        # stesso criterio del feed desk: "aperta" solo se la posizione è viva in state
+        closed_match = None
         for c in journal:
             if (c.get("type") == "close" and c.get("strategy") == sid
-                    and c.get("symbol") == e.get("symbol")
+                    and clean_symbol(c.get("symbol", "")) == clean_symbol(e.get("symbol", ""))
                     and c.get("logged_at", "") > e.get("logged_at", "")):
-                outcome = {"closed": True, "reason": c.get("reason"),
-                           "pnl_usd": round(c.get("pnl_usd", 0), 2)}
+                closed_match = c
                 break
+        if closed_match:
+            outcome = {"closed": True, "reason": closed_match.get("reason"),
+                       "pnl_usd": round(closed_match.get("pnl_usd", 0), 2)}
+        elif (sid, clean_symbol(e.get("symbol", ""))) in open_keys:
+            outcome = {"closed": False}
+        else:
+            outcome = None
         stop_d = abs(e["stop_px"] / e["entry_px"] - 1) * 100
-        dec_out.append({
+        rec = {
             "ts": ts_short(e.get("opened_at", e.get("logged_at", ""))),
             "symbol": clean_symbol(e["symbol"]), "direction": e["direction"],
             "account": sid, "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
@@ -394,10 +434,27 @@ def build_data() -> dict:
             "entry_px": round(e["entry_px"], 6), "size_usd": round(e["size_usd"], 2),
             "invalidation": (f"esce da sola se il prezzo va contro del {stop_d:.1f}% (stop), "
                              f"se raggiunge l'obiettivo (target) o se passa troppo tempo"),
-            "outcome": outcome,
-        })
+        }
+        if outcome is not None:
+            rec["outcome"] = outcome
+        dec_out.append(rec)
 
     dec_out.sort(key=lambda d: d["ts"], reverse=True)  # cronologico inverso
+
+    # dedup banner "aperta": per ogni (account, symbol) con posizione viva, solo la
+    # decisione PIÙ RECENTE resta "aperta". Le proposte precedenti sullo stesso
+    # simbolo (es. diverse reduce successive su ZEC) diventano "superata" da quella
+    # più recente — coerente con una sola card visibile in Posizioni per simbolo.
+    seen_open = set()
+    for d in dec_out:
+        o = d.get("outcome")
+        if not o or o.get("closed"):
+            continue
+        key = (d.get("account"), d.get("symbol"))
+        if key in seen_open:
+            o["superseded"] = True
+        else:
+            seen_open.add(key)
 
     les_out = [{
         "ts": ts_short(l.get("logged_at", "")), "scope": clean_symbol(l.get("symbol", "")),

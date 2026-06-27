@@ -306,6 +306,8 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .outcome.open .o-l{ color:var(--amber); }
 .open-flag{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--amber); }
 .open-flag .d{ width:6px; height:6px; border-radius:50%; background:var(--amber); }
+.open-flag.superseded{ color:var(--text-4); }
+.open-flag.superseded .d{ background:var(--text-4); }
 
 /* ---------- posizioni unificate (sintetica + espansa) ---------- */
 .live-stamp{ display:flex; align-items:center; gap:7px; margin-top:8px; font-family:var(--mono);
@@ -1504,7 +1506,8 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     if(!(decVerdict==='*'||d.risk_verdict===decVerdict)) return false;
     if(decState!=='*'){
       const closed = !!(d.outcome&&d.outcome.closed);
-      if(decState==='open' && closed) return false;
+      const open = !!(d.outcome && !d.outcome.closed && !d.outcome.superseded);
+      if(decState==='open' && !open) return false;
       if(decState==='closed' && !closed) return false;
     }
     return true;
@@ -1536,6 +1539,8 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
           out='<div class="outcome"><span class="o-l">Chiusa</span>'+
             '<span class="o-reason">'+(REASON_IT[d.outcome.reason]||d.outcome.reason||'')+'</span>'+
             '<span class="o-pnl '+chipOf(pnl)+'">'+signedUsd(pnl)+'</span></div>';
+        } else if(d.outcome.superseded) {
+          out='<div class="outcome superseded"><span class="open-flag superseded"><span class="d"></span>superata da una decisione più recente</span></div>';
         } else {
           out='<div class="outcome open"><span class="open-flag"><span class="d"></span>posizione aperta</span></div>';
         }
