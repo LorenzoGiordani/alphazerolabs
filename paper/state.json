@@ -15,7 +15,7 @@
     "stop_px": 1652.42584872,
     "target_px": 1408.6772082,
     "opened_at": "2026-06-27 11:00:00+00:00",
-    "checked_until": "2026-06-27 16:00:00+00:00",
+    "checked_until": "2026-06-27 17:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "ETH short tattico \u2014 trend ribassista ATTIVO e confermato (efficiency_ratio=1, unico major con trend direzionale non chop). Funding positivo = long intrappolati che pagano per mantenere posizioni perdenti = fuel per continuation, NON fuel per squeeze (vs ZEC). Rally di oggi \u00e8 debole \u2014 prezzo migliore per entrare short. ETH \u00e8 il peggior performer 7d (-8.3%), underperformance strutturale vs ogni peer. Nessun lux_confluence allineato \u2192 size ridotta (0.5x), trade disciplinato non conviction bet. Invalidation strutturale: close sopra $1.650.",
     "invalidation": "Close giornaliero sopra $1.650 \u2014 invaliderebbe la struttura ribassista e suggerirebbe che il rally non \u00e8 solo debole bounce ma reversal. In tal caso il fuel dei short squeeze su BTC/SOL/ZEC potrebbe trascinare ETH in un squeeze generale che il funding positivo non basterebbe a contenere.",
@@ -27,7 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-27 16:00:00+00:00"
+    "_last_ts": "2026-06-27 17:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-06-27T12:25:20.176829+00:00"
@@ -60,7 +60,7 @@
     "stop_px": 63567.93387,
     "target_px": 52973.278225,
     "opened_at": "2026-06-27 13:00:00+00:00",
-    "checked_until": "2026-06-27 16:00:00+00:00",
+    "checked_until": "2026-06-27 17:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "Burst geopolitico (z=2.0) innesca deleveraging meccanico e unidirezionale sulle criptovalute, che agiscono come spugne di liquidit\u00e0 ad alto beta. Il canale risk-off \u2192 margin call \u2192 svendita per fare cassa \u00e8 il pi\u00f9 pulito e certo in questo scenario, confermato dal momentum strutturale negativo (tsmom -1) e dal regime chop. A differenza delle commodity dove l'edge \u00e8 contaminato dalla debolezza della domanda fisica, sulle cripto la trasmissione causale \u00e8 diretta e immediata. Il brief stesso identifica questo come l'edge direzionale pi\u00f9 pulito. Short BTC come proxy per l'intero comparto crypto.",
     "invalidation": "Rimbalzo del 5% dal entry invalida la tesi del deleveraging sistematico: significherebbe che l'assorbimento della pressione di vendita \u00e8 in atto (possibile Fed Put, tregua geopolitica improvvisa, o iniezione di liquidit\u00e0 d'emergenza). In regime di illiquidit\u00e0 crypto, un rimbalzo di questa entit\u00e0 durante un evento risk-off segnala che lo short squeeze risk \u00e8 diventato dominante e la tesi non tiene.",
@@ -72,7 +72,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-27 16:00:00+00:00"
+    "_last_ts": "2026-06-27 17:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-06-27T14:29:28.239129+00:00"
@@ -96,23 +96,23 @@
   "last_decision_ts": "2026-06-22T19:22:53.570120+00:00"
  },
  "xsmom-port-v1": {
-  "equity": 9745.670279616317,
+  "equity": 9734.08946346535,
   "positions": {
    "XRP": {
-    "notional": 2329.8474945533794,
-    "px": 1.0694
+    "notional": 2309.5860566448832,
+    "px": 1.0601
    },
    "NEAR": {
-    "notional": -2222.5046210720902,
-    "px": 1.9238
+    "notional": -2206.5619223659905,
+    "px": 1.91
    },
    "WLD": {
-    "notional": 1878.7213664298831,
-    "px": 0.47077
+    "notional": 1839.8116370021553,
+    "px": 0.46102
    },
    "ZEC": {
-    "notional": -2254.8266783677063,
-    "px": 411.1
+    "notional": -2223.1790258885485,
+    "px": 405.33
    }
   },
   "last_rebalance_ts": "2026-06-22T12:53:58.749463+00:00",
@@ -196,6 +196,10 @@
    {
     "ts": "2026-06-27T17:16:01.154139+00:00",
     "eq": 9745.67
+   },
+   {
+    "ts": "2026-06-27T18:16:08.569969+00:00",
+    "eq": 9734.09
    }
   ]
  },
@@ -209,31 +213,31 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 9927.297151980316,
+  "equity": 9892.618931338398,
   "positions": {
    "BTC": {
-    "notional": -1701.031504832905,
-    "px": 60785.0
+    "notional": -1692.9999832093624,
+    "px": 60498.0
    },
    "ETH": {
-    "notional": -1716.5918323711778,
-    "px": 1605.7
+    "notional": -1700.342099636519,
+    "px": 1590.5
    },
    "XRP": {
-    "notional": -1720.2329247498637,
-    "px": 1.0694
+    "notional": -1705.272978798701,
+    "px": 1.0601
    },
    "WLD": {
-    "notional": 1692.4431981593332,
-    "px": 0.47077
+    "notional": 1657.3914293931552,
+    "px": 0.46102
    },
    "ZEC": {
-    "notional": 1692.4799710166412,
-    "px": 411.1
+    "notional": 1668.725143887558,
+    "px": 405.33
    },
    "CRV": {
-    "notional": 1686.7302447582817,
-    "px": 0.1942
+    "notional": 1671.61741970226,
+    "px": 0.19246
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:08.155546+00:00",
@@ -317,35 +321,39 @@
    {
     "ts": "2026-06-27T17:15:55.806753+00:00",
     "eq": 9927.3
+   },
+   {
+    "ts": "2026-06-27T18:16:04.733996+00:00",
+    "eq": 9892.62
    }
   ]
  },
  "xsmom-highvol-combo-v1": {
-  "equity": 9976.664764767733,
+  "equity": 9998.943440412668,
   "positions": {
    "BTC": {
-    "notional": 1701.031504832905,
-    "px": 60785.0
+    "notional": 1692.9999832093624,
+    "px": 60498.0
    },
    "SOL": {
-    "notional": 1717.982568208272,
-    "px": 72.615
+    "notional": 1703.8582744229614,
+    "px": 72.018
    },
    "SUI": {
-    "notional": 1735.4728872758492,
-    "px": 0.71153
+    "notional": 1716.8871587738297,
+    "px": 0.70391
    },
    "NEAR": {
-    "notional": -1792.1487526316764,
-    "px": 1.9238
+    "notional": -1779.2931268980674,
+    "px": 1.91
    },
    "WLD": {
-    "notional": -1692.4431981593332,
-    "px": 0.47077
+    "notional": -1657.3914293931552,
+    "px": 0.46102
    },
    "CRV": {
-    "notional": -1686.7302447582817,
-    "px": 0.1942
+    "notional": -1671.61741970226,
+    "px": 0.19246
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:19.266461+00:00",
@@ -429,35 +437,39 @@
    {
     "ts": "2026-06-27T17:16:08.133791+00:00",
     "eq": 9976.66
+   },
+   {
+    "ts": "2026-06-27T18:16:13.734547+00:00",
+    "eq": 9998.94
    }
   ]
  },
  "xsmom-highvol-voltarget-v1": {
-  "equity": 9951.740361009477,
+  "equity": 9974.046065892495,
   "positions": {
    "BTC": {
-    "notional": 1697.4119250273666,
-    "px": 60785.0
+    "notional": 1689.3974934655857,
+    "px": 60498.0
    },
    "SOL": {
-    "notional": 1677.5244299674264,
-    "px": 72.615
+    "notional": 1663.732760413057,
+    "px": 72.018
    },
    "SUI": {
-    "notional": 1699.5089187614053,
-    "px": 0.71153
+    "notional": 1681.3083397823575,
+    "px": 0.70391
    },
    "NEAR": {
-    "notional": -1770.86785227733,
-    "px": 1.9238
+    "notional": -1758.1648808866307,
+    "px": 1.91
    },
    "WLD": {
-    "notional": -1670.9970539168712,
-    "px": 0.47077
+    "notional": -1636.389450892699,
+    "px": 0.46102
    },
    "CRV": {
-    "notional": -1674.3400065525148,
-    "px": 0.1942
+    "notional": -1659.3381959891708,
+    "px": 0.19246
    }
   },
   "last_rebalance_ts": "2026-06-26T21:23:20.093714+00:00",
@@ -545,6 +557,10 @@
    {
     "ts": "2026-06-27T17:16:15.248305+00:00",
     "eq": 9951.74
+   },
+   {
+    "ts": "2026-06-27T18:16:19.243277+00:00",
+    "eq": 9974.05
    }
   ]
  }
