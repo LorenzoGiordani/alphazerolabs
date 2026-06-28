@@ -139,6 +139,44 @@ section:first-of-type{ border-top:0; }
 .pf .s{ font-family:var(--mono); font-size:11px; margin-top:6px; font-variant-numeric:tabular-nums; }
 @media(max-width:680px){ .portfolio{ grid-template-columns:repeat(2,1fr); } }
 
+/* ---------- portafogli live (engine:portfolio) ---------- */
+.pfl-card{ border:1px solid var(--line); border-radius:var(--r); background:var(--bg-2); overflow:hidden; margin-bottom:22px; }
+.pfl-card:hover{ background:var(--bg-3); }
+.pfl-head{ display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:16px 18px 10px; border-bottom:1px solid var(--line); }
+.pfl-head h3{ font-size:16px; }
+.pfl-head .pfl-meta{ font-family:var(--mono); font-size:11px; color:var(--text-3); }
+.pfl-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+@media(max-width:780px){ .pfl-grid{ grid-template-columns:1fr; } }
+.pfl-side{ padding:14px 18px; }
+.pfl-side:first-child{ border-right:1px solid var(--line); }
+.pfl-side h4{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); margin-bottom:10px; }
+.pfl-leg{ display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:12px; }
+.pfl-leg:last-child{ border-bottom:none; }
+.pfl-leg .s-tick{ min-width:54px; font-weight:600; }
+.pfl-leg .side{ font-size:10px; padding:1px 6px; border-radius:4px; }
+.pfl-leg .side.long{ background:var(--green-dim); color:var(--green); }
+.pfl-leg .side.short{ background:var(--red-dim); color:var(--red); }
+.pfl-leg .side.flat{ background:var(--line); color:var(--text-3); }
+.pfl-leg .pfl-not{ min-width:70px; text-align:right; color:var(--text-2); }
+.pfl-leg .pfl-pnl{ margin-left:auto; min-width:80px; text-align:right; }
+.pfl-leg .pfl-bar{ flex:1; height:4px; background:var(--bg-3); border-radius:2px; position:relative; overflow:hidden; }
+.pfl-leg .pfl-bar .fill{ position:absolute; top:0; bottom:0; }
+.pfl-leg .pfl-bar .fill.long{ left:0; background:var(--green); }
+.pfl-leg .pfl-bar .fill.short{ right:0; background:var(--red); }
+.pfl-rank{ display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:12px; }
+.pfl-rank:last-child{ border-bottom:none; }
+.pfl-rank .s-tick{ min-width:54px; font-weight:600; }
+.pfl-rank .side{ font-size:10px; padding:1px 6px; border-radius:4px; }
+.pfl-rank.muted{ opacity:.45; }
+.pfl-foot{ display:flex; gap:18px; flex-wrap:wrap; padding:12px 18px; background:var(--bg-2); border-top:1px solid var(--line);
+  font-family:var(--mono); font-size:11px; color:var(--text-3); }
+.pfl-foot b{ color:var(--text-1); font-weight:600; }
+.pfl-countdown{ display:inline-flex; align-items:center; gap:6px; }
+.pfl-countdown .d{ width:7px; height:7px; border-radius:50%; background:var(--amber); }
+.pfl-countdown.soon .d{ background:var(--green); animation:pulse 1.5s infinite; }
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.3} }
+.pfl-curve{ height:80px; margin:8px 0 4px; }
+
 /* ---------- hero accounts ---------- */
 .accounts{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .acct{
@@ -655,7 +693,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
 <nav class="secnav" id="secnav">
   <div class="wrap secnav-inner">
-    <a href="#stato">Stato</a><a href="#strategie">Strategie</a><a href="#backtest">Backtest</a><a href="#posizioni">Posizioni</a><a href="#rischio">Rischio</a><a href="#decisioni">Decisioni</a><a href="#book">Trading book</a><a href="#lezioni">Lezioni</a><a href="#evoluzione">Evoluzione</a><a href="#eventi">Eventi</a><a href="#llm">LLM</a>
+    <a href="#stato">Stato</a><a href="#strategie">Strategie</a><a href="#portafogli">Portafogli</a><a href="#backtest">Backtest</a><a href="#posizioni">Posizioni</a><a href="#rischio">Rischio</a><a href="#decisioni">Decisioni</a><a href="#book">Trading book</a><a href="#lezioni">Lezioni</a><a href="#evoluzione">Evoluzione</a><a href="#eventi">Eventi</a><a href="#llm">LLM</a>
   </div>
 </nav>
 
@@ -721,6 +759,16 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       <h2 id="sd-title">—</h2>
     </div>
     <div id="strat-detail"></div>
+  </section>
+
+  <!-- PORTAFOGLI LIVE (engine:portfolio) -->
+  <section id="portafogli">
+    <div class="sec-head">
+      <span class="kicker">03 · Portafogli live</span>
+      <h2>Cosa stanno facendo i book dollar-neutral</h2>
+      <p class="note">Strategie cross-section ribilanciate ogni 7 giorni: tengono long i forti e short i deboli del basket. Qui vedi le <b>gambe aperte</b> con P&amp;L in tempo reale, il <b>ranking corrente</b> (ciò che il sistema guarderebbe al prossimo ribilanciamento) e il conto alla rovescia. L'edge sta nello <b>spread</b> tra le gambe, non nel singolo trade.</p>
+    </div>
+    <div id="pf-live"></div>
   </section>
 
   <!-- BACKTEST -->
@@ -1823,7 +1871,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     NEAR:'NEARUSDT',WLD:'WLDUSDT',ZEC:'ZECUSDT',CRV:'CRVUSDT',BNB:'BNBUSDT',
     DOGE:'DOGEUSDT',AVAX:'AVAXUSDT',LINK:'LINKUSDT',ADA:'ADAUSDT',ARB:'ARBUSDT',OP:'OPUSDT'};
   function hms(){ return new Date().toTimeString().slice(0,8); }
-  function heldSymbols(){ return [...new Set(POS.map(r=>r.p.symbol))]; }
+  function heldSymbols(){ return [...new Set(POS.map(r=>r.p.symbol).concat((DATA.portfolio_live||[]).flatMap(p=>p.legs.map(l=>l.symbol))))]; }
   let wsAlive=false, dirty=false, lastSrc='';
 
   // aggiorna i prezzi live da una mappa simbolo->prezzo (HL ws o binance)
@@ -1846,6 +1894,43 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     fs.className='feed-status warn'; txt.textContent=wsAlive?'in attesa prezzi…':'riconnessione…';
   }
   // ridisegno campionato (ogni 2s): accumula tail + ridipinge posizioni e conti
+  // P&L live dei book dollar-neutral: ricalcola le gambe dai prezzi live senza rerender completo.
+  function updatePortfoliosLive(){
+    const list=DATA.portfolio_live||[]; if(!list.length) return;
+    list.forEach((p,idx)=>{
+      const card=host_pfl&&host_pfl.children[idx]; if(!card) return;
+      let eq=p.equity, gross=0, net=0, any=false;
+      const legs=card.querySelectorAll('.pfl-leg');
+      p.legs.forEach((l,i)=>{
+        const lv=LIVE[l.symbol]; if(!lv||!lv.ok) return;
+        any=true;
+        const pnl=l.notional_usd*(lv.px/l.entry_px-1);
+        eq+=pnl; net+=l.notional_usd*(lv.px/l.entry_px-1); gross+=Math.abs(l.notional_usd);
+        const node=legs[i]; if(node){
+          const pnlEl=node.querySelector('.pfl-pnl'); if(pnlEl){
+            pnlEl.className='pfl-pnl '+(pnl>0?'pos':pnl<0?'neg':'');
+            pnlEl.textContent=signedUsd(pnl)+' · '+(pnl>0?'+':'')+NF2.format((lv.px/l.entry_px-1)*100)+'%';
+          }
+        }
+      });
+      if(!any) return;
+      // equity + net/gross in header/footer
+      const wr=eq-10000;
+      const heads=card.querySelectorAll('.pfl-head .pfl-meta');
+      // ultimo .pfl-meta del head = equity+delta
+      const eqNode=heads[heads.length-1]; if(eqNode){
+        eqNode.innerHTML=NF2.format(eq)+' $<br><span class="'+clsOf(wr)+'">'+signedUsd(wr)+' ('+pctSigned(wr/10000*100)+')</span>';
+        eqNode.style.color='var(--text-1)';
+      }
+      const foot=card.querySelector('.pfl-foot'); if(foot){
+        const spans=foot.querySelectorAll('span');
+        // [gross][net][...]: aggiorna gross (0) e net (1)
+        if(spans[1]) spans[1].innerHTML='<b>Gross</b> '+NF0.format(gross)+' $';
+        if(spans[2]) spans[2].innerHTML='<b>Net</b> <span class="'+(net>0?'pos':net<0?'neg':'')+'">'+signedUsd(net)+' $</span>';
+      }
+    });
+  }
+  let host_pfl=null;
   function repaintLive(){
     setFeedStatus();
     if(!dirty) return; dirty=false;
@@ -1853,6 +1938,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     POS.forEach(rec=>{ if(LIVE[rec.p.symbol]) paintPos(rec); });
     updateAccountsLive();
     updatePosSummary();
+    updatePortfoliosLive();
     renderRiskPanel();
     const live=Object.values(LIVE).filter(v=>v.ok).length;
     const stamp=$('#pos-live');
@@ -2163,11 +2249,72 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     try{ localStorage.setItem('lux_seen', JSON.stringify(cur)); }catch(e){}
   }
 
+  /* ---------- render: portafogli live (engine:portfolio) ---------- */
+  function renderPortfoliosLive(){
+    const host=$('#pf-live'); if(!host) return; host.innerHTML=''; host_pfl=host;
+    const list=DATA.portfolio_live||[];
+    if(!list.length){ host.innerHTML=emptyBox('Nessun portafoglio attivo','Le strategie engine:portfolio (xsmom, highvol, combo) appaiono qui quando il cron le ribilancia. Sono book dollar-neutral ribilanciati ogni 7 giorni.', true); return; }
+    list.forEach(p=>{
+      const wr=p.equity-10000;
+      const card=el('div','pfl-card');
+      // gambe attuali (P&L live)
+      const legsMax=Math.max(...p.legs.map(l=>Math.abs(l.notional_usd)),1);
+      const legsHtml=p.legs.map(l=>{
+        const wPct=Math.abs(l.notional_usd)/legsMax*100;
+        const pnlCls=l.pnl_usd>0?'pos':l.pnl_usd<0?'neg':'';
+        const pnlTxt=l.pnl_usd!=null?signedUsd(l.pnl_usd)+(l.pnl_pct!=null?' · '+(l.pnl_pct>0?'+':'')+NF2.format(l.pnl_pct)+'%':''):'—';
+        return '<div class="pfl-leg"><span class="s-tick">'+l.symbol+'</span>'+
+          '<span class="side '+l.side+'">'+(l.side==='long'?'▲':'▼')+'</span>'+
+          '<span class="pfl-not '+clsOf(l.notional_usd)+'">'+signedUsd(l.notional_usd)+'</span>'+
+          '<div class="pfl-bar"><div class="fill '+l.side+'" style="width:'+wPct+'%"></div></div>'+
+          '<span class="pfl-pnl '+pnlCls+'">'+pnlTxt+'</span></div>';
+      }).join('');
+      // ranking corrente (cosa guarderebbe al prossimo rebalance)
+      const rankHtml=p.signal.map(r=>{
+        const cls=r.side==='long'?'long':r.side==='short'?'short':'flat';
+        const muted=r.side==='flat'?' muted':'';
+        const wTxt=r.weight!==0?(r.weight>0?'+':'')+NF1.format(r.weight*100)+'%':'—';
+        return '<div class="pfl-rank'+muted+'"><span class="s-tick">'+r.symbol+'</span>'+
+          '<span class="side '+cls+'">'+(r.side==='long'?'long':r.side==='short'?'short':'flat')+'</span>'+
+          '<span style="min-width:50px;color:var(--text-3)">'+wTxt+'</span>'+
+          '<span style="margin-left:auto;color:var(--text-3)">sig '+((r.signal>0?'+':'')+NF3.format(r.signal))+'</span></div>';
+      }).join('');
+      // countdown al prossimo rebalance
+      const now=new Date();
+      let cdTxt='—', cdSoon=false;
+      if(p.next_rebalance){
+        const diff=(new Date(p.next_rebalance.replace(' ','T')+'Z')-now)/3600000;
+        if(diff>0){
+          cdSoon=diff<12;
+          cdTxt=NF0.format(Math.floor(diff/24))+'g '+NF0.format(Math.round(diff%24))+'h';
+        } else cdTxt='in corso';
+      }
+      const netCls=p.net_usd>0?'pos':p.net_usd<0?'neg':'';
+      card.innerHTML=
+        '<div class="pfl-head"><div><h3>'+p.label+'</h3>'+
+        '<div class="pfl-meta">'+p.id+' · fattore: '+p.factor+'</div></div>'+
+        '<div style="text-align:right"><div class="pfl-meta" style="font-size:13px;color:var(--text-1)">'+NF2.format(p.equity)+' $</div>'+
+        '<div class="pfl-meta '+clsOf(wr)+'">'+signedUsd(wr)+' ('+pctSigned(wr/10000*100)+')</div></div></div>'+
+        '<div class="pfl-grid">'+
+          '<div class="pfl-side"><h4>Gambe aperte · P&L in tempo reale</h4>'+legsHtml+'</div>'+
+          '<div class="pfl-side"><h4>Ranking corrente · cosa guarderebbe al prossimo ribilanciamento</h4>'+rankHtml+'</div>'+
+        '</div>'+
+        '<div class="pfl-foot">'+
+          '<span><b>Gross</b> '+NF0.format(p.gross_usd)+' $</span>'+
+          '<span><b>Net</b> <span class="'+netCls+'">'+signedUsd(p.net_usd)+' $</span></span>'+
+          '<span><b>Ribilanciamento</b> ogni '+p.rebalance_h+'h</span>'+
+          '<span><b>Ultimo</b> '+fmtTs(p.last_rebalance)+'</span>'+
+          '<span class="pfl-countdown'+(cdSoon?' soon':'')+'"><span class="d"></span>proximo tra <b>'+cdTxt+'</b></span>'+
+        '</div>';
+      host.appendChild(card);
+    });
+  }
+
   function renderAll(){
     renderSummary(); renderAccounts(); renderPositions(); renderFeed(); renderLessons();
     renderTree(); renderLifecycle(); renderEvents(); renderStrats(); renderBook();
     renderPortfolioKpi(); renderPortfolioCurve(); renderRiskPanel(); renderSignalsMatrix();
-    renderBacktests();
+    renderBacktests(); renderPortfoliosLive();
     renderChangeBanner();
   }
   // ricarica i dati pipeline (eventi/decisioni/trade chiusi) senza reload pagina
@@ -2186,7 +2333,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
   /* ---------- boot ---------- */
   // router a pagine: una scheda = una vista.
-  const ROUTES=['stato','strategie','strategia','backtest','posizioni','rischio','decisioni','book','lezioni','evoluzione','eventi','llm'];
+  const ROUTES=['stato','strategie','portafogli','backtest','posizioni','rischio','decisioni','book','lezioni','evoluzione','eventi','llm'];
   function showRoute(){
     const raw=(location.hash||'#stato').replace('#','');
     let id=raw.split('?')[0];

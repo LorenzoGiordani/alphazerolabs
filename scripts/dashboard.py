@@ -336,6 +336,133 @@ def llm_stats() -> dict:
             "tot_tok": sum(d["tok_in"] + d["tok_out"] for d in by_role.values())}
 
 
+def portfolio_live_view(state: dict) -> list[dict]:
+    """Vista live delle strategie engine:portfolio: cosa tengono ora (gambe con
+    P&L non realizzato) e cosa guardano (ranking corrente per asset — il segnale
+    che decidera' le gambe al prossimo ribilanciamento). Riusa la STESSA logica
+    di portfolio_paper.py (xs_momentum_weights + stessi fattori) per coerenza.
+    Fetch cached: 9 asset × 1 fetch, poi i segnali si combinano per config."""
+    import yaml as _yaml
+    import pandas as _pd
+    pd = _pd
+    from backtest.portfolio import xs_momentum_weights
+    from pipeline.live import fetch_live_cached
+
+    pf_specs = []
+    for d in (ROOT / "strategies", ROOT / "strategies" / "generated"):
+        for f in sorted(d.glob("*.yaml")):
+            if "candidates" in f.name:
+                continue
+            try:
+                s = _yaml.safe_load(f.read_text())
+            except Exception:
+                continue
+            if s.get("engine") == "portfolio" and s.get("status") in ("champion", "challenger"):
+                pf_specs.append(s)
+    if not pf_specs:
+        return []
+
+    # basket comune (tutte le portfolio usano gli stessi 9 crypto qui): cache unica
+    symbols = sorted({s.strip() for spec in pf_specs
+                      for s in str(spec.get("paper_symbols", "")).split(",") if s.strip()})
+    # dati per asset: candele cached (lookback ampio per il segnale piu' lungo, 336h)
+    px_now, ret_168, vol_72, mh = {}, {}, {}, {}
+    for sym in symbols:
+        try:
+            c = fetch_live_cached(sym, lookback_h=400)["candles"]
+        except Exception:
+            continue
+        if len(c) < 340:
+            continue
+        px_now[sym] = float(c.close.iloc[-1])
+        if float(c.close.iloc[-1 - 168]) > 0:
+            ret_168[sym] = float(c.close.iloc[-1] / c.close.iloc[-1 - 168] - 1.0)
+        vol_72[sym] = float(c.close.pct_change().iloc[-72:].std())
+        # multihorizon: media normalizzata dei rank su 3 orizzonti
+        rs = []
+        for lb in (96, 168, 336):
+            if len(c) > lb:
+                rs.append(float(c.close.iloc[-1] / c.close.iloc[-1 - lb] - 1.0))
+        mh[sym] = float(sum(rs) / len(rs)) if rs else 0.0
+
+    out = []
+    for spec in pf_specs:
+        sid = spec["id"]
+        st = state.get(sid) or {}
+        pf = spec.get("portfolio", {}) or {}
+        factors = pf.get("factors")
+        # vettore segnale secondo la config della strategia (come portfolio_paper)
+        if factors:  # combo: z-score pesato xsmom+highvol
+            w = pf.get("weights", [0.5, 0.5])
+            sig = {s: ret_168.get(s, 0.0) * w[0] + vol_72.get(s, 0.0) * w[1] for s in symbols}
+            s_ser = pd.Series(sig)
+            if len(s_ser) >= 3 and s_ser.std() > 0:
+                s_ser = (s_ser - s_ser.mean()) / s_ser.std()
+            sig_series = s_ser
+            factor_label = " + ".join(factors) + f" ({'/'.join(str(x) for x in w)})"
+        elif pf.get("factor") == "highvol":
+            sig_series = pd.Series({s: vol_72.get(s, 0.0) for s in symbols})
+            factor_label = "high-vol (72h)"
+        elif pf.get("lookbacks_h"):  # multihorizon
+            sig_series = pd.Series({s: mh.get(s, 0.0) for s in symbols})
+            factor_label = "momentum multi-H " + str(pf.get("lookbacks_h"))
+        else:  # xsmom puro
+            sig_series = pd.Series({s: ret_168.get(s, 0.0) for s in symbols})
+            factor_label = f"momentum ({pf.get('lookback_h', 168)}h)"
+        # pesi target = cosa farebbe al prossimo rebalance (coerente col live)
+        w_target = xs_momentum_weights(
+            sig_series, long_q=float(pf.get("long_q", 0.66)),
+            short_q=float(pf.get("short_q", 0.33)), gross=float(pf.get("gross", 1.0)),
+            dollar_neutral=bool(pf.get("dollar_neutral", True)))
+        # ranking per asset: side + peso target + valore segnale (forza)
+        rank = []
+        for s in symbols:
+            wt = float(w_target.get(s, 0.0))
+            rank.append({"symbol": s, "side": "long" if wt > 1e-9 else ("short" if wt < -1e-9 else "flat"),
+                        "weight": round(wt, 4), "signal": round(float(sig_series.get(s, 0.0)), 4)})
+        rank.sort(key=lambda r: -abs(r["signal"]))
+
+        # gambe attuali arricchite con prezzo live + P&L non realizzato per gamba
+        legs = []
+        for s, p in (st.get("positions") or {}).items():
+            if "notional" not in p:
+                continue
+            cs = clean_symbol(s)
+            entry = float(p.get("px", 0.0))
+            now = px_now.get(cs)
+            notional = float(p.get("notional", 0.0))
+            # P&L: notional deriva col prezzo; pnl = notional * (now/entry - 1)
+            pnl_usd = round(notional * (now / entry - 1.0), 2) if (entry > 0 and now) else None
+            pnl_pct = round((now / entry - 1.0) * 100, 2) if (entry > 0 and now) else None
+            legs.append({"symbol": cs, "side": "long" if notional >= 0 else "short",
+                         "notional_usd": round(notional, 2), "entry_px": round(entry, 6),
+                         "px_now": round(now, 6) if now else None,
+                         "pnl_usd": pnl_usd, "pnl_pct": pnl_pct})
+        legs.sort(key=lambda l: -abs(l["notional_usd"]))
+
+        # prossimo ribilanciamento (countdown)
+        last_reb = st.get("last_rebalance_ts", "")
+        reb_h = int(pf.get("rebalance_h", 168))
+        import pandas as _pd
+        try:
+            nxt = (_pd.Timestamp(last_reb) + _pd.Timedelta(hours=reb_h)).isoformat() if last_reb else ""
+        except Exception:
+            nxt = ""
+        gross_now = sum(abs(l["notional_usd"]) for l in legs)
+        net_now = round(sum(l["notional_usd"] for l in legs), 0)
+        out.append({
+            "id": sid, "label": ACCOUNT_META.get(sid, {}).get("label", sid),
+            "factor": factor_label, "equity": round(st.get("equity", 10000.0), 2),
+            "last_rebalance": ts_short(last_reb), "next_rebalance": ts_short(nxt),
+            "rebalance_h": reb_h, "gross_usd": round(gross_now, 0), "net_usd": net_now,
+            "legs": legs, "signal": rank,
+            "equity_curve": [[ts_short(h["ts"]), round(h["eq"], 2)]
+                             for h in (st.get("equity_history") or [])],
+        })
+    out.sort(key=lambda p: p["id"])
+    return out
+
+
 def build_data() -> dict:
     state = json.loads((ROOT / "paper/state.json").read_text()) if (ROOT / "paper/state.json").exists() else {}
     journal = jsonl(ROOT / "paper/journal.jsonl")
@@ -372,8 +499,10 @@ def build_data() -> dict:
             # gambe del book a portafoglio (dollar-neutral): niente stop/target per posizione
             # → fuori dalle card (entry/stop/target=0 davano NaN nel risk/reward JS). Si
             # leggono dalla equity curve; esposte a parte per direzione e notional reali.
+            # entry_px = px al ribilanciamento (per P&L non realizzato nel layer live).
             "book": [{"symbol": clean_symbol(s), "side": "long" if p.get("notional", 0) >= 0 else "short",
-                      "notional_usd": round(p.get("notional", 0), 2)}
+                      "notional_usd": round(p.get("notional", 0), 2),
+                      "entry_px": round(p.get("px", 0), 6)}
                      for s, p in st.get("positions", {}).items() if "notional" in p],
         })
 
@@ -624,6 +753,7 @@ def build_data() -> dict:
         "news_events": events, "strategies": strategies, "tradebook": book,
         "backtests": backtests,
         "llm_stats": llm_stats(),
+        "portfolio_live": portfolio_live_view(state),
     }
 
 

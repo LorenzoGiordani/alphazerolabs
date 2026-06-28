@@ -139,6 +139,44 @@ section:first-of-type{ border-top:0; }
 .pf .s{ font-family:var(--mono); font-size:11px; margin-top:6px; font-variant-numeric:tabular-nums; }
 @media(max-width:680px){ .portfolio{ grid-template-columns:repeat(2,1fr); } }
 
+/* ---------- portafogli live (engine:portfolio) ---------- */
+.pfl-card{ border:1px solid var(--line); border-radius:var(--r); background:var(--bg-2); overflow:hidden; margin-bottom:22px; }
+.pfl-card:hover{ background:var(--bg-3); }
+.pfl-head{ display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:16px 18px 10px; border-bottom:1px solid var(--line); }
+.pfl-head h3{ font-size:16px; }
+.pfl-head .pfl-meta{ font-family:var(--mono); font-size:11px; color:var(--text-3); }
+.pfl-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+@media(max-width:780px){ .pfl-grid{ grid-template-columns:1fr; } }
+.pfl-side{ padding:14px 18px; }
+.pfl-side:first-child{ border-right:1px solid var(--line); }
+.pfl-side h4{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); margin-bottom:10px; }
+.pfl-leg{ display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:12px; }
+.pfl-leg:last-child{ border-bottom:none; }
+.pfl-leg .s-tick{ min-width:54px; font-weight:600; }
+.pfl-leg .side{ font-size:10px; padding:1px 6px; border-radius:4px; }
+.pfl-leg .side.long{ background:var(--green-dim); color:var(--green); }
+.pfl-leg .side.short{ background:var(--red-dim); color:var(--red); }
+.pfl-leg .side.flat{ background:var(--line); color:var(--text-3); }
+.pfl-leg .pfl-not{ min-width:70px; text-align:right; color:var(--text-2); }
+.pfl-leg .pfl-pnl{ margin-left:auto; min-width:80px; text-align:right; }
+.pfl-leg .pfl-bar{ flex:1; height:4px; background:var(--bg-3); border-radius:2px; position:relative; overflow:hidden; }
+.pfl-leg .pfl-bar .fill{ position:absolute; top:0; bottom:0; }
+.pfl-leg .pfl-bar .fill.long{ left:0; background:var(--green); }
+.pfl-leg .pfl-bar .fill.short{ right:0; background:var(--red); }
+.pfl-rank{ display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:12px; }
+.pfl-rank:last-child{ border-bottom:none; }
+.pfl-rank .s-tick{ min-width:54px; font-weight:600; }
+.pfl-rank .side{ font-size:10px; padding:1px 6px; border-radius:4px; }
+.pfl-rank.muted{ opacity:.45; }
+.pfl-foot{ display:flex; gap:18px; flex-wrap:wrap; padding:12px 18px; background:var(--bg-2); border-top:1px solid var(--line);
+  font-family:var(--mono); font-size:11px; color:var(--text-3); }
+.pfl-foot b{ color:var(--text-1); font-weight:600; }
+.pfl-countdown{ display:inline-flex; align-items:center; gap:6px; }
+.pfl-countdown .d{ width:7px; height:7px; border-radius:50%; background:var(--amber); }
+.pfl-countdown.soon .d{ background:var(--green); animation:pulse 1.5s infinite; }
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.3} }
+.pfl-curve{ height:80px; margin:8px 0 4px; }
+
 /* ---------- hero accounts ---------- */
 .accounts{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .acct{
@@ -655,7 +693,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
 <nav class="secnav" id="secnav">
   <div class="wrap secnav-inner">
-    <a href="#stato">Stato</a><a href="#strategie">Strategie</a><a href="#backtest">Backtest</a><a href="#posizioni">Posizioni</a><a href="#rischio">Rischio</a><a href="#decisioni">Decisioni</a><a href="#book">Trading book</a><a href="#lezioni">Lezioni</a><a href="#evoluzione">Evoluzione</a><a href="#eventi">Eventi</a><a href="#llm">LLM</a>
+    <a href="#stato">Stato</a><a href="#strategie">Strategie</a><a href="#portafogli">Portafogli</a><a href="#backtest">Backtest</a><a href="#posizioni">Posizioni</a><a href="#rischio">Rischio</a><a href="#decisioni">Decisioni</a><a href="#book">Trading book</a><a href="#lezioni">Lezioni</a><a href="#evoluzione">Evoluzione</a><a href="#eventi">Eventi</a><a href="#llm">LLM</a>
   </div>
 </nav>
 
@@ -721,6 +759,16 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       <h2 id="sd-title">—</h2>
     </div>
     <div id="strat-detail"></div>
+  </section>
+
+  <!-- PORTAFOGLI LIVE (engine:portfolio) -->
+  <section id="portafogli">
+    <div class="sec-head">
+      <span class="kicker">03 · Portafogli live</span>
+      <h2>Cosa stanno facendo i book dollar-neutral</h2>
+      <p class="note">Strategie cross-section ribilanciate ogni 7 giorni: tengono long i forti e short i deboli del basket. Qui vedi le <b>gambe aperte</b> con P&amp;L in tempo reale, il <b>ranking corrente</b> (ciò che il sistema guarderebbe al prossimo ribilanciamento) e il conto alla rovescia. L'edge sta nello <b>spread</b> tra le gambe, non nel singolo trade.</p>
+    </div>
+    <div id="pf-live"></div>
   </section>
 
   <!-- BACKTEST -->
@@ -917,7 +965,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
      ========================================================= -->
 <script id="data" type="application/json">
 {
- "updated_utc": "2026-06-28 12:24",
+ "updated_utc": "2026-06-28 13:06",
  "accounts": [
   {
    "id": "agents-v1",
@@ -3562,6 +3610,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       [
        "2026-06-28 11:00",
        1582.0
+      ],
+      [
+       "2026-06-28 12:00",
+       1582.6
       ]
      ]
     },
@@ -3917,6 +3969,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       [
        "2026-06-28 11:00",
        71.884
+      ],
+      [
+       "2026-06-28 12:00",
+       71.859
       ]
      ]
     },
@@ -4644,6 +4700,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       [
        "2026-06-28 11:00",
        60310.0
+      ],
+      [
+       "2026-06-28 12:00",
+       60268.0
       ]
      ]
     },
@@ -5083,6 +5143,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       [
        "2026-06-28 11:00",
        71.474
+      ],
+      [
+       "2026-06-28 12:00",
+       71.413
       ]
      ]
     },
@@ -5446,6 +5510,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       [
        "2026-06-28 11:00",
        3.31
+      ],
+      [
+       "2026-06-28 12:00",
+       3.3026
       ]
      ]
     },
@@ -5853,6 +5921,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       [
        "2026-06-28 11:00",
        1582.0
+      ],
+      [
+       "2026-06-28 12:00",
+       1582.6
       ]
      ]
     },
@@ -6228,6 +6300,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       [
        "2026-06-28 11:00",
        4081.9
+      ],
+      [
+       "2026-06-28 12:00",
+       4083.1
       ]
      ]
     }
@@ -6569,22 +6645,26 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     {
      "symbol": "XRP",
      "side": "long",
-     "notional_usd": 2291.5
+     "notional_usd": 2291.5,
+     "entry_px": 1.0518
     },
     {
      "symbol": "NEAR",
      "side": "short",
-     "notional_usd": -2160.58
+     "notional_usd": -2160.58,
+     "entry_px": 1.8702
     },
     {
      "symbol": "WLD",
      "side": "long",
-     "notional_usd": 1799.78
+     "notional_usd": 1799.78,
+     "entry_px": 0.45099
     },
     {
      "symbol": "ZEC",
      "side": "short",
-     "notional_usd": -2123.41
+     "notional_usd": -2123.41,
+     "entry_px": 387.14
     }
    ]
   },
@@ -6743,32 +6823,38 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     {
      "symbol": "BTC",
      "side": "short",
-     "notional_usd": -1687.74
+     "notional_usd": -1687.74,
+     "entry_px": 60310.0
     },
     {
      "symbol": "ETH",
      "side": "short",
-     "notional_usd": -1691.26
+     "notional_usd": -1691.26,
+     "entry_px": 1582.0
     },
     {
      "symbol": "XRP",
      "side": "short",
-     "notional_usd": -1691.92
+     "notional_usd": -1691.92,
+     "entry_px": 1.0518
     },
     {
      "symbol": "WLD",
      "side": "long",
-     "notional_usd": 1621.33
+     "notional_usd": 1621.33,
+     "entry_px": 0.45099
     },
     {
      "symbol": "ZEC",
      "side": "long",
-     "notional_usd": 1593.84
+     "notional_usd": 1593.84,
+     "entry_px": 387.14
     },
     {
      "symbol": "CRV",
      "side": "long",
-     "notional_usd": 1671.1
+     "notional_usd": 1671.1,
+     "entry_px": 0.1924
     }
    ]
   },
@@ -6927,32 +7013,38 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     {
      "symbol": "BTC",
      "side": "long",
-     "notional_usd": 1687.74
+     "notional_usd": 1687.74,
+     "entry_px": 60310.0
     },
     {
      "symbol": "SOL",
      "side": "long",
-     "notional_usd": 1700.69
+     "notional_usd": 1700.69,
+     "entry_px": 71.884
     },
     {
      "symbol": "SUI",
      "side": "long",
-     "notional_usd": 1678.64
+     "notional_usd": 1678.64,
+     "entry_px": 0.68823
     },
     {
      "symbol": "NEAR",
      "side": "short",
-     "notional_usd": -1742.22
+     "notional_usd": -1742.22,
+     "entry_px": 1.8702
     },
     {
      "symbol": "WLD",
      "side": "short",
-     "notional_usd": -1621.33
+     "notional_usd": -1621.33,
+     "entry_px": 0.45099
     },
     {
      "symbol": "CRV",
      "side": "short",
-     "notional_usd": -1671.1
+     "notional_usd": -1671.1,
+     "entry_px": 0.1924
     }
    ]
   },
@@ -7087,32 +7179,38 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     {
      "symbol": "BTC",
      "side": "long",
-     "notional_usd": 1684.15
+     "notional_usd": 1684.15,
+     "entry_px": 60310.0
     },
     {
      "symbol": "SOL",
      "side": "long",
-     "notional_usd": 1660.64
+     "notional_usd": 1660.64,
+     "entry_px": 71.884
     },
     {
      "symbol": "SUI",
      "side": "long",
-     "notional_usd": 1643.86
+     "notional_usd": 1643.86,
+     "entry_px": 0.68823
     },
     {
      "symbol": "NEAR",
      "side": "short",
-     "notional_usd": -1721.53
+     "notional_usd": -1721.53,
+     "entry_px": 1.8702
     },
     {
      "symbol": "WLD",
      "side": "short",
-     "notional_usd": -1600.79
+     "notional_usd": -1600.79,
+     "entry_px": 0.45099
     },
     {
      "symbol": "CRV",
      "side": "short",
-     "notional_usd": -1658.82
+     "notional_usd": -1658.82,
+     "entry_px": 0.1924
     }
    ]
   },
@@ -7147,32 +7245,38 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     {
      "symbol": "BTC",
      "side": "long",
-     "notional_usd": 1665.92
+     "notional_usd": 1665.92,
+     "entry_px": 60310.0
     },
     {
      "symbol": "SOL",
      "side": "long",
-     "notional_usd": 1666.71
+     "notional_usd": 1666.71,
+     "entry_px": 71.884
     },
     {
      "symbol": "SUI",
      "side": "long",
-     "notional_usd": 1670.21
+     "notional_usd": 1670.21,
+     "entry_px": 0.68823
     },
     {
      "symbol": "NEAR",
      "side": "short",
-     "notional_usd": -1659.04
+     "notional_usd": -1659.04,
+     "entry_px": 1.8702
     },
     {
      "symbol": "WLD",
      "side": "short",
-     "notional_usd": -1654.45
+     "notional_usd": -1654.45,
+     "entry_px": 0.45099
     },
     {
      "symbol": "CRV",
      "side": "short",
-     "notional_usd": -1668.49
+     "notional_usd": -1668.49,
+     "entry_px": 0.1924
     }
    ]
   }
@@ -15979,7 +16083,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     "liq_imbalance": 0,
     "kronos_forecast": -1,
     "smart_money_ratio": 0,
-    "oi_trend": 0
+    "oi_trend": -1
    },
    "aligned": false,
    "direction": "—"
@@ -16015,7 +16119,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     "liq_imbalance": 0,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
-    "oi_trend": -1
+    "oi_trend": 0
    },
    "aligned": false,
    "direction": "—"
@@ -16027,7 +16131,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     "liq_imbalance": 0,
     "kronos_forecast": 0,
     "smart_money_ratio": 0,
-    "oi_trend": 0
+    "oi_trend": -1
    },
    "aligned": false,
    "direction": "—"
@@ -16036,7 +16140,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "symbol": "NEAR",
    "signals": {
     "tsmom": -1,
-    "liq_imbalance": 1,
+    "liq_imbalance": 0,
     "kronos_forecast": -1,
     "smart_money_ratio": 0,
     "oi_trend": -1
@@ -16048,6 +16152,30 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
    "symbol": "WLD",
    "signals": {
     "tsmom": 0,
+    "liq_imbalance": 0,
+    "kronos_forecast": -1,
+    "smart_money_ratio": 0,
+    "oi_trend": 0
+   },
+   "aligned": false,
+   "direction": "—"
+  },
+  {
+   "symbol": "ZEC",
+   "signals": {
+    "tsmom": -1,
+    "liq_imbalance": 0,
+    "kronos_forecast": 1,
+    "smart_money_ratio": 0,
+    "oi_trend": -1
+   },
+   "aligned": false,
+   "direction": "—"
+  },
+  {
+   "symbol": "CRV",
+   "signals": {
+    "tsmom": -1,
     "liq_imbalance": 0,
     "kronos_forecast": -1,
     "smart_money_ratio": 0,
@@ -19662,59 +19790,1153 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   ]
  },
  "llm_stats": {
-  "total": 12,
+  "total": 19,
   "roles": [
    {
     "role": "strategist",
+    "n": 6,
+    "avg_lat": 58.9,
+    "tok_in": 7539,
+    "tok_out": 13389
+   },
+   {
+    "role": "smoke",
     "n": 4,
-    "avg_lat": 55.0,
-    "tok_in": 7162,
-    "tok_out": 5728
+    "avg_lat": 2.2,
+    "tok_in": 46,
+    "tok_out": 289
    },
    {
-    "role": "bull",
+    "role": "smoke_struct",
     "n": 2,
-    "avg_lat": 21.8,
-    "tok_in": 1514,
-    "tok_out": 1501
-   },
-   {
-    "role": "bear",
-    "n": 2,
-    "avg_lat": 6.1,
-    "tok_in": 1514,
-    "tok_out": 1809
+    "avg_lat": 6.9,
+    "tok_in": 355,
+    "tok_out": 78
    },
    {
     "role": "risk",
     "n": 2,
-    "avg_lat": 37.3,
-    "tok_in": 2489,
-    "tok_out": 2857
+    "avg_lat": 45.2,
+    "tok_in": 1639,
+    "tok_out": 3455
+   },
+   {
+    "role": "evolve",
+    "n": 1,
+    "avg_lat": 29.4,
+    "tok_in": 361,
+    "tok_out": 1008
    },
    {
     "role": "analyst",
     "n": 1,
-    "avg_lat": 32.3,
-    "tok_in": 5964,
-    "tok_out": 863
+    "avg_lat": 54.8,
+    "tok_in": 5414,
+    "tok_out": 1439
+   },
+   {
+    "role": "bull",
+    "n": 1,
+    "avg_lat": 95.9,
+    "tok_in": 778,
+    "tok_out": 2221
+   },
+   {
+    "role": "bear",
+    "n": 1,
+    "avg_lat": 20.0,
+    "tok_in": 778,
+    "tok_out": 449
    },
    {
     "role": "geo_analyst",
     "n": 1,
-    "avg_lat": 42.1,
-    "tok_in": 6194,
-    "tok_out": 1817
+    "avg_lat": 13.0,
+    "tok_in": 6067,
+    "tok_out": 1772
    }
   ],
   "by_effort": {
-   "max": 6,
-   "low": 4,
-   "medium": 2
+   "max": 15,
+   "medium": 2,
+   "low": 2
   },
   "cached": 0,
-  "tot_tok": 39412
- }
+  "tot_tok": 47077
+ },
+ "portfolio_live": [
+  {
+   "id": "highvol-port-v1",
+   "label": "highvol-port-v1",
+   "factor": "high-vol (72h)",
+   "equity": 9808.85,
+   "last_rebalance": "2026-06-26 15:16",
+   "next_rebalance": "2026-07-03 15:16",
+   "rebalance_h": 168,
+   "gross_usd": 9957.0,
+   "net_usd": -185.0,
+   "legs": [
+    {
+     "symbol": "XRP",
+     "side": "short",
+     "notional_usd": -1691.92,
+     "entry_px": 1.0518,
+     "px_now": 1.0514,
+     "pnl_usd": 0.64,
+     "pnl_pct": -0.04
+    },
+    {
+     "symbol": "ETH",
+     "side": "short",
+     "notional_usd": -1691.26,
+     "entry_px": 1582.0,
+     "px_now": 1582.6,
+     "pnl_usd": -0.64,
+     "pnl_pct": 0.04
+    },
+    {
+     "symbol": "BTC",
+     "side": "short",
+     "notional_usd": -1687.74,
+     "entry_px": 60310.0,
+     "px_now": 60268.0,
+     "pnl_usd": 1.18,
+     "pnl_pct": -0.07
+    },
+    {
+     "symbol": "CRV",
+     "side": "long",
+     "notional_usd": 1671.1,
+     "entry_px": 0.1924,
+     "px_now": 0.19155,
+     "pnl_usd": -7.38,
+     "pnl_pct": -0.44
+    },
+    {
+     "symbol": "WLD",
+     "side": "long",
+     "notional_usd": 1621.33,
+     "entry_px": 0.45099,
+     "px_now": 0.4471,
+     "pnl_usd": -13.98,
+     "pnl_pct": -0.86
+    },
+    {
+     "symbol": "ZEC",
+     "side": "long",
+     "notional_usd": 1593.84,
+     "entry_px": 387.14,
+     "px_now": 386.92,
+     "pnl_usd": -0.91,
+     "pnl_pct": -0.06
+    }
+   ],
+   "signal": [
+    {
+     "symbol": "WLD",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 0.0149
+    },
+    {
+     "symbol": "ZEC",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 0.0135
+    },
+    {
+     "symbol": "NEAR",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 0.013
+    },
+    {
+     "symbol": "SOL",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": 0.012
+    },
+    {
+     "symbol": "CRV",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": 0.0115
+    },
+    {
+     "symbol": "SUI",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": 0.0109
+    },
+    {
+     "symbol": "ETH",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": 0.0099
+    },
+    {
+     "symbol": "XRP",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": 0.0094
+    },
+    {
+     "symbol": "BTC",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": 0.0084
+    }
+   ],
+   "equity_curve": [
+    [
+     "2026-06-26 22:16",
+     10058.97
+    ],
+    [
+     "2026-06-26 23:15",
+     10036.58
+    ],
+    [
+     "2026-06-27 00:15",
+     10025.34
+    ],
+    [
+     "2026-06-27 01:16",
+     10035.43
+    ],
+    [
+     "2026-06-27 02:15",
+     10012.96
+    ],
+    [
+     "2026-06-27 03:15",
+     10027.31
+    ],
+    [
+     "2026-06-27 04:15",
+     9989.21
+    ],
+    [
+     "2026-06-27 05:16",
+     9977.24
+    ],
+    [
+     "2026-06-27 06:15",
+     9986.85
+    ],
+    [
+     "2026-06-27 07:15",
+     9955.03
+    ],
+    [
+     "2026-06-27 08:15",
+     9940.45
+    ],
+    [
+     "2026-06-27 09:17",
+     9921.15
+    ],
+    [
+     "2026-06-27 10:15",
+     9928.62
+    ],
+    [
+     "2026-06-27 11:15",
+     9929.69
+    ],
+    [
+     "2026-06-27 12:15",
+     9934.71
+    ],
+    [
+     "2026-06-27 13:16",
+     9918.77
+    ],
+    [
+     "2026-06-27 14:19",
+     9929.13
+    ],
+    [
+     "2026-06-27 15:15",
+     9913.31
+    ],
+    [
+     "2026-06-27 16:15",
+     9914.42
+    ],
+    [
+     "2026-06-27 17:15",
+     9927.3
+    ],
+    [
+     "2026-06-27 18:16",
+     9892.62
+    ],
+    [
+     "2026-06-27 19:15",
+     9897.77
+    ],
+    [
+     "2026-06-27 20:15",
+     9854.34
+    ],
+    [
+     "2026-06-28 09:34",
+     9823.61
+    ],
+    [
+     "2026-06-28 10:15",
+     9815.71
+    ],
+    [
+     "2026-06-28 11:16",
+     9814.62
+    ],
+    [
+     "2026-06-28 12:15",
+     9808.85
+    ]
+   ]
+  },
+  {
+   "id": "xsmom-highvol-combo-v1",
+   "label": "xsmom-highvol-combo-v1",
+   "factor": "xsmom + highvol (0.7/0.3)",
+   "equity": 10025.92,
+   "last_rebalance": "2026-06-26 15:16",
+   "next_rebalance": "2026-07-03 15:16",
+   "rebalance_h": 168,
+   "gross_usd": 10102.0,
+   "net_usd": 32.0,
+   "legs": [
+    {
+     "symbol": "NEAR",
+     "side": "short",
+     "notional_usd": -1742.22,
+     "entry_px": 1.8702,
+     "px_now": 1.8621,
+     "pnl_usd": 7.55,
+     "pnl_pct": -0.43
+    },
+    {
+     "symbol": "SOL",
+     "side": "long",
+     "notional_usd": 1700.69,
+     "entry_px": 71.884,
+     "px_now": 71.859,
+     "pnl_usd": -0.59,
+     "pnl_pct": -0.03
+    },
+    {
+     "symbol": "BTC",
+     "side": "long",
+     "notional_usd": 1687.74,
+     "entry_px": 60310.0,
+     "px_now": 60268.0,
+     "pnl_usd": -1.18,
+     "pnl_pct": -0.07
+    },
+    {
+     "symbol": "SUI",
+     "side": "long",
+     "notional_usd": 1678.64,
+     "entry_px": 0.68823,
+     "px_now": 0.68807,
+     "pnl_usd": -0.39,
+     "pnl_pct": -0.02
+    },
+    {
+     "symbol": "CRV",
+     "side": "short",
+     "notional_usd": -1671.1,
+     "entry_px": 0.1924,
+     "px_now": 0.19155,
+     "pnl_usd": 7.38,
+     "pnl_pct": -0.44
+    },
+    {
+     "symbol": "WLD",
+     "side": "short",
+     "notional_usd": -1621.33,
+     "entry_px": 0.45099,
+     "px_now": 0.4471,
+     "pnl_usd": 13.98,
+     "pnl_pct": -0.86
+    }
+   ],
+   "signal": [
+    {
+     "symbol": "WLD",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -2.1461
+    },
+    {
+     "symbol": "SOL",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 1.1079
+    },
+    {
+     "symbol": "SUI",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 1.0228
+    },
+    {
+     "symbol": "NEAR",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.5759
+    },
+    {
+     "symbol": "BTC",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 0.5751
+    },
+    {
+     "symbol": "ZEC",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.5377
+    },
+    {
+     "symbol": "XRP",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": 0.3004
+    },
+    {
+     "symbol": "ETH",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": 0.2798
+    },
+    {
+     "symbol": "CRV",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": -0.0263
+    }
+   ],
+   "equity_curve": [
+    [
+     "2026-06-26 22:16",
+     10031.82
+    ],
+    [
+     "2026-06-26 23:16",
+     10043.25
+    ],
+    [
+     "2026-06-27 00:16",
+     10040.13
+    ],
+    [
+     "2026-06-27 01:16",
+     10037.05
+    ],
+    [
+     "2026-06-27 02:16",
+     10043.91
+    ],
+    [
+     "2026-06-27 03:16",
+     10013.21
+    ],
+    [
+     "2026-06-27 04:16",
+     10060.72
+    ],
+    [
+     "2026-06-27 05:16",
+     10076.57
+    ],
+    [
+     "2026-06-27 06:16",
+     10074.44
+    ],
+    [
+     "2026-06-27 07:16",
+     10086.42
+    ],
+    [
+     "2026-06-27 08:16",
+     10095.79
+    ],
+    [
+     "2026-06-27 09:17",
+     10106.14
+    ],
+    [
+     "2026-06-27 10:16",
+     10076.55
+    ],
+    [
+     "2026-06-27 11:16",
+     10076.66
+    ],
+    [
+     "2026-06-27 12:16",
+     10047.38
+    ],
+    [
+     "2026-06-27 13:16",
+     10082.76
+    ],
+    [
+     "2026-06-27 14:20",
+     10039.35
+    ],
+    [
+     "2026-06-27 15:16",
+     10024.54
+    ],
+    [
+     "2026-06-27 16:16",
+     10014.37
+    ],
+    [
+     "2026-06-27 17:16",
+     9976.66
+    ],
+    [
+     "2026-06-27 18:16",
+     9998.94
+    ],
+    [
+     "2026-06-27 19:16",
+     10009.1
+    ],
+    [
+     "2026-06-27 20:16",
+     10022.25
+    ],
+    [
+     "2026-06-27 23:24",
+     10005.4
+    ],
+    [
+     "2026-06-28 09:35",
+     10004.91
+    ],
+    [
+     "2026-06-28 10:16",
+     10002.25
+    ],
+    [
+     "2026-06-28 11:16",
+     10015.8
+    ],
+    [
+     "2026-06-28 12:16",
+     10025.92
+    ]
+   ]
+  },
+  {
+   "id": "xsmom-highvol-voltarget-v1",
+   "label": "xsmom-highvol-voltarget-v1",
+   "factor": "xsmom + highvol (0.5/0.5)",
+   "equity": 10001.0,
+   "last_rebalance": "2026-06-26 21:23",
+   "next_rebalance": "2026-07-03 21:23",
+   "rebalance_h": 168,
+   "gross_usd": 9970.0,
+   "net_usd": 8.0,
+   "legs": [
+    {
+     "symbol": "NEAR",
+     "side": "short",
+     "notional_usd": -1721.53,
+     "entry_px": 1.8702,
+     "px_now": 1.8621,
+     "pnl_usd": 7.46,
+     "pnl_pct": -0.43
+    },
+    {
+     "symbol": "BTC",
+     "side": "long",
+     "notional_usd": 1684.15,
+     "entry_px": 60310.0,
+     "px_now": 60268.0,
+     "pnl_usd": -1.17,
+     "pnl_pct": -0.07
+    },
+    {
+     "symbol": "SOL",
+     "side": "long",
+     "notional_usd": 1660.64,
+     "entry_px": 71.884,
+     "px_now": 71.859,
+     "pnl_usd": -0.58,
+     "pnl_pct": -0.03
+    },
+    {
+     "symbol": "CRV",
+     "side": "short",
+     "notional_usd": -1658.82,
+     "entry_px": 0.1924,
+     "px_now": 0.19155,
+     "pnl_usd": 7.33,
+     "pnl_pct": -0.44
+    },
+    {
+     "symbol": "SUI",
+     "side": "long",
+     "notional_usd": 1643.86,
+     "entry_px": 0.68823,
+     "px_now": 0.68807,
+     "pnl_usd": -0.38,
+     "pnl_pct": -0.02
+    },
+    {
+     "symbol": "WLD",
+     "side": "short",
+     "notional_usd": -1600.79,
+     "entry_px": 0.45099,
+     "px_now": 0.4471,
+     "pnl_usd": 13.81,
+     "pnl_pct": -0.86
+    }
+   ],
+   "signal": [
+    {
+     "symbol": "WLD",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -2.1447
+    },
+    {
+     "symbol": "SOL",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 1.1255
+    },
+    {
+     "symbol": "SUI",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 1.0304
+    },
+    {
+     "symbol": "NEAR",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.5706
+    },
+    {
+     "symbol": "BTC",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 0.5573
+    },
+    {
+     "symbol": "ZEC",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.5286
+    },
+    {
+     "symbol": "XRP",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": 0.2871
+    },
+    {
+     "symbol": "ETH",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": 0.2701
+    },
+    {
+     "symbol": "CRV",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": -0.0267
+    }
+   ],
+   "equity_curve": [
+    [
+     "2026-06-26 21:23",
+     9993.5
+    ],
+    [
+     "2026-06-26 22:16",
+     10006.56
+    ],
+    [
+     "2026-06-26 23:16",
+     10017.86
+    ],
+    [
+     "2026-06-27 00:16",
+     10014.78
+    ],
+    [
+     "2026-06-27 01:16",
+     10011.72
+    ],
+    [
+     "2026-06-27 02:16",
+     10018.57
+    ],
+    [
+     "2026-06-27 03:16",
+     9987.94
+    ],
+    [
+     "2026-06-27 04:16",
+     10034.89
+    ],
+    [
+     "2026-06-27 05:16",
+     10050.6
+    ],
+    [
+     "2026-06-27 06:16",
+     10048.36
+    ],
+    [
+     "2026-06-27 07:16",
+     10060.27
+    ],
+    [
+     "2026-06-27 08:16",
+     10069.54
+    ],
+    [
+     "2026-06-27 09:17",
+     10079.91
+    ],
+    [
+     "2026-06-27 10:16",
+     10050.82
+    ],
+    [
+     "2026-06-27 11:16",
+     10050.88
+    ],
+    [
+     "2026-06-27 12:16",
+     10022.06
+    ],
+    [
+     "2026-06-27 13:16",
+     10056.8
+    ],
+    [
+     "2026-06-27 14:20",
+     10013.92
+    ],
+    [
+     "2026-06-27 15:16",
+     9999.16
+    ],
+    [
+     "2026-06-27 16:16",
+     9988.97
+    ],
+    [
+     "2026-06-27 17:16",
+     9951.74
+    ],
+    [
+     "2026-06-27 18:16",
+     9974.05
+    ],
+    [
+     "2026-06-27 19:16",
+     9984.21
+    ],
+    [
+     "2026-06-27 20:16",
+     9997.66
+    ],
+    [
+     "2026-06-28 09:35",
+     9980.3
+    ],
+    [
+     "2026-06-28 10:16",
+     9977.83
+    ],
+    [
+     "2026-06-28 11:16",
+     9991.18
+    ],
+    [
+     "2026-06-28 12:16",
+     10001.0
+    ]
+   ]
+  },
+  {
+   "id": "xsmom-multihorizon-v1",
+   "label": "xsmom-multihorizon-v1",
+   "factor": "momentum multi-H [96, 168, 336]",
+   "equity": 10014.37,
+   "last_rebalance": "2026-06-28 09:35",
+   "next_rebalance": "2026-07-05 09:35",
+   "rebalance_h": 168,
+   "gross_usd": 9985.0,
+   "net_usd": 21.0,
+   "legs": [
+    {
+     "symbol": "SUI",
+     "side": "long",
+     "notional_usd": 1670.21,
+     "entry_px": 0.68823,
+     "px_now": 0.68807,
+     "pnl_usd": -0.39,
+     "pnl_pct": -0.02
+    },
+    {
+     "symbol": "CRV",
+     "side": "short",
+     "notional_usd": -1668.49,
+     "entry_px": 0.1924,
+     "px_now": 0.19155,
+     "pnl_usd": 7.37,
+     "pnl_pct": -0.44
+    },
+    {
+     "symbol": "SOL",
+     "side": "long",
+     "notional_usd": 1666.71,
+     "entry_px": 71.884,
+     "px_now": 71.859,
+     "pnl_usd": -0.58,
+     "pnl_pct": -0.03
+    },
+    {
+     "symbol": "BTC",
+     "side": "long",
+     "notional_usd": 1665.92,
+     "entry_px": 60310.0,
+     "px_now": 60268.0,
+     "pnl_usd": -1.16,
+     "pnl_pct": -0.07
+    },
+    {
+     "symbol": "NEAR",
+     "side": "short",
+     "notional_usd": -1659.04,
+     "entry_px": 1.8702,
+     "px_now": 1.8621,
+     "pnl_usd": 7.19,
+     "pnl_pct": -0.43
+    },
+    {
+     "symbol": "WLD",
+     "side": "short",
+     "notional_usd": -1654.45,
+     "entry_px": 0.45099,
+     "px_now": 0.4471,
+     "pnl_usd": 14.27,
+     "pnl_pct": -0.86
+    }
+   ],
+   "signal": [
+    {
+     "symbol": "WLD",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.1779
+    },
+    {
+     "symbol": "CRV",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.1076
+    },
+    {
+     "symbol": "NEAR",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.1023
+    },
+    {
+     "symbol": "ZEC",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": -0.0955
+    },
+    {
+     "symbol": "XRP",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": -0.0637
+    },
+    {
+     "symbol": "ETH",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": -0.0619
+    },
+    {
+     "symbol": "BTC",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": -0.0535
+    },
+    {
+     "symbol": "SUI",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": -0.044
+    },
+    {
+     "symbol": "SOL",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": 0.024
+    }
+   ],
+   "equity_curve": [
+    [
+     "2026-06-28 09:35",
+     9993.5
+    ],
+    [
+     "2026-06-28 10:16",
+     9990.93
+    ],
+    [
+     "2026-06-28 11:16",
+     10003.83
+    ],
+    [
+     "2026-06-28 12:16",
+     10014.37
+    ]
+   ]
+  },
+  {
+   "id": "xsmom-port-v1",
+   "label": "Cross-section momentum",
+   "factor": "momentum (168h)",
+   "equity": 9821.73,
+   "last_rebalance": "2026-06-22 12:53",
+   "next_rebalance": "2026-06-29 12:53",
+   "rebalance_h": 168,
+   "gross_usd": 8375.0,
+   "net_usd": -193.0,
+   "legs": [
+    {
+     "symbol": "XRP",
+     "side": "long",
+     "notional_usd": 2291.5,
+     "entry_px": 1.0518,
+     "px_now": 1.0514,
+     "pnl_usd": -0.87,
+     "pnl_pct": -0.04
+    },
+    {
+     "symbol": "NEAR",
+     "side": "short",
+     "notional_usd": -2160.58,
+     "entry_px": 1.8702,
+     "px_now": 1.8621,
+     "pnl_usd": 9.36,
+     "pnl_pct": -0.43
+    },
+    {
+     "symbol": "ZEC",
+     "side": "short",
+     "notional_usd": -2123.41,
+     "entry_px": 387.14,
+     "px_now": 386.92,
+     "pnl_usd": 1.21,
+     "pnl_pct": -0.06
+    },
+    {
+     "symbol": "WLD",
+     "side": "long",
+     "notional_usd": 1799.78,
+     "entry_px": 0.45099,
+     "px_now": 0.4471,
+     "pnl_usd": -15.52,
+     "pnl_pct": -0.86
+    }
+   ],
+   "signal": [
+    {
+     "symbol": "WLD",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.2594
+    },
+    {
+     "symbol": "NEAR",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.1455
+    },
+    {
+     "symbol": "ZEC",
+     "side": "short",
+     "weight": -0.1667,
+     "signal": -0.1429
+    },
+    {
+     "symbol": "CRV",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": -0.1053
+    },
+    {
+     "symbol": "ETH",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": -0.0826
+    },
+    {
+     "symbol": "XRP",
+     "side": "flat",
+     "weight": 0.0,
+     "signal": -0.0809
+    },
+    {
+     "symbol": "BTC",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": -0.0607
+    },
+    {
+     "symbol": "SUI",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": -0.0295
+    },
+    {
+     "symbol": "SOL",
+     "side": "long",
+     "weight": 0.1667,
+     "signal": -0.0239
+    }
+   ],
+   "equity_curve": [
+    [
+     "2026-06-26 22:16",
+     9767.09
+    ],
+    [
+     "2026-06-26 23:16",
+     9784.06
+    ],
+    [
+     "2026-06-27 00:15",
+     9778.33
+    ],
+    [
+     "2026-06-27 01:16",
+     9762.33
+    ],
+    [
+     "2026-06-27 02:16",
+     9804.68
+    ],
+    [
+     "2026-06-27 03:16",
+     9830.08
+    ],
+    [
+     "2026-06-27 04:16",
+     9839.23
+    ],
+    [
+     "2026-06-27 05:16",
+     9833.86
+    ],
+    [
+     "2026-06-27 06:16",
+     9820.96
+    ],
+    [
+     "2026-06-27 07:16",
+     9861.54
+    ],
+    [
+     "2026-06-27 08:15",
+     9826.01
+    ],
+    [
+     "2026-06-27 09:17",
+     9836.39
+    ],
+    [
+     "2026-06-27 10:16",
+     9848.79
+    ],
+    [
+     "2026-06-27 11:16",
+     9844.1
+    ],
+    [
+     "2026-06-27 12:15",
+     9836.21
+    ],
+    [
+     "2026-06-27 13:16",
+     9832.62
+    ],
+    [
+     "2026-06-27 14:19",
+     9808.59
+    ],
+    [
+     "2026-06-27 15:16",
+     9789.06
+    ],
+    [
+     "2026-06-27 16:16",
+     9779.13
+    ],
+    [
+     "2026-06-27 17:16",
+     9745.67
+    ],
+    [
+     "2026-06-27 18:16",
+     9734.09
+    ],
+    [
+     "2026-06-27 19:16",
+     9777.55
+    ],
+    [
+     "2026-06-27 20:16",
+     9748.02
+    ],
+    [
+     "2026-06-27 23:24",
+     9772.5
+    ],
+    [
+     "2026-06-28 09:23",
+     9820.16
+    ],
+    [
+     "2026-06-28 09:35",
+     9820.16
+    ],
+    [
+     "2026-06-28 10:16",
+     9823.39
+    ],
+    [
+     "2026-06-28 11:16",
+     9849.82
+    ],
+    [
+     "2026-06-28 12:16",
+     9821.73
+    ]
+   ]
+  }
+ ]
 }
 </script>
 
@@ -20471,7 +21693,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     NEAR:'NEARUSDT',WLD:'WLDUSDT',ZEC:'ZECUSDT',CRV:'CRVUSDT',BNB:'BNBUSDT',
     DOGE:'DOGEUSDT',AVAX:'AVAXUSDT',LINK:'LINKUSDT',ADA:'ADAUSDT',ARB:'ARBUSDT',OP:'OPUSDT'};
   function hms(){ return new Date().toTimeString().slice(0,8); }
-  function heldSymbols(){ return [...new Set(POS.map(r=>r.p.symbol))]; }
+  function heldSymbols(){ return [...new Set(POS.map(r=>r.p.symbol).concat((DATA.portfolio_live||[]).flatMap(p=>p.legs.map(l=>l.symbol))))]; }
   let wsAlive=false, dirty=false, lastSrc='';
 
   // aggiorna i prezzi live da una mappa simbolo->prezzo (HL ws o binance)
@@ -20494,6 +21716,43 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     fs.className='feed-status warn'; txt.textContent=wsAlive?'in attesa prezzi…':'riconnessione…';
   }
   // ridisegno campionato (ogni 2s): accumula tail + ridipinge posizioni e conti
+  // P&L live dei book dollar-neutral: ricalcola le gambe dai prezzi live senza rerender completo.
+  function updatePortfoliosLive(){
+    const list=DATA.portfolio_live||[]; if(!list.length) return;
+    list.forEach((p,idx)=>{
+      const card=host_pfl&&host_pfl.children[idx]; if(!card) return;
+      let eq=p.equity, gross=0, net=0, any=false;
+      const legs=card.querySelectorAll('.pfl-leg');
+      p.legs.forEach((l,i)=>{
+        const lv=LIVE[l.symbol]; if(!lv||!lv.ok) return;
+        any=true;
+        const pnl=l.notional_usd*(lv.px/l.entry_px-1);
+        eq+=pnl; net+=l.notional_usd*(lv.px/l.entry_px-1); gross+=Math.abs(l.notional_usd);
+        const node=legs[i]; if(node){
+          const pnlEl=node.querySelector('.pfl-pnl'); if(pnlEl){
+            pnlEl.className='pfl-pnl '+(pnl>0?'pos':pnl<0?'neg':'');
+            pnlEl.textContent=signedUsd(pnl)+' · '+(pnl>0?'+':'')+NF2.format((lv.px/l.entry_px-1)*100)+'%';
+          }
+        }
+      });
+      if(!any) return;
+      // equity + net/gross in header/footer
+      const wr=eq-10000;
+      const heads=card.querySelectorAll('.pfl-head .pfl-meta');
+      // ultimo .pfl-meta del head = equity+delta
+      const eqNode=heads[heads.length-1]; if(eqNode){
+        eqNode.innerHTML=NF2.format(eq)+' $<br><span class="'+clsOf(wr)+'">'+signedUsd(wr)+' ('+pctSigned(wr/10000*100)+')</span>';
+        eqNode.style.color='var(--text-1)';
+      }
+      const foot=card.querySelector('.pfl-foot'); if(foot){
+        const spans=foot.querySelectorAll('span');
+        // [gross][net][...]: aggiorna gross (0) e net (1)
+        if(spans[1]) spans[1].innerHTML='<b>Gross</b> '+NF0.format(gross)+' $';
+        if(spans[2]) spans[2].innerHTML='<b>Net</b> <span class="'+(net>0?'pos':net<0?'neg':'')+'">'+signedUsd(net)+' $</span>';
+      }
+    });
+  }
+  let host_pfl=null;
   function repaintLive(){
     setFeedStatus();
     if(!dirty) return; dirty=false;
@@ -20501,6 +21760,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     POS.forEach(rec=>{ if(LIVE[rec.p.symbol]) paintPos(rec); });
     updateAccountsLive();
     updatePosSummary();
+    updatePortfoliosLive();
     renderRiskPanel();
     const live=Object.values(LIVE).filter(v=>v.ok).length;
     const stamp=$('#pos-live');
@@ -20811,11 +22071,72 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     try{ localStorage.setItem('lux_seen', JSON.stringify(cur)); }catch(e){}
   }
 
+  /* ---------- render: portafogli live (engine:portfolio) ---------- */
+  function renderPortfoliosLive(){
+    const host=$('#pf-live'); if(!host) return; host.innerHTML=''; host_pfl=host;
+    const list=DATA.portfolio_live||[];
+    if(!list.length){ host.innerHTML=emptyBox('Nessun portafoglio attivo','Le strategie engine:portfolio (xsmom, highvol, combo) appaiono qui quando il cron le ribilancia. Sono book dollar-neutral ribilanciati ogni 7 giorni.', true); return; }
+    list.forEach(p=>{
+      const wr=p.equity-10000;
+      const card=el('div','pfl-card');
+      // gambe attuali (P&L live)
+      const legsMax=Math.max(...p.legs.map(l=>Math.abs(l.notional_usd)),1);
+      const legsHtml=p.legs.map(l=>{
+        const wPct=Math.abs(l.notional_usd)/legsMax*100;
+        const pnlCls=l.pnl_usd>0?'pos':l.pnl_usd<0?'neg':'';
+        const pnlTxt=l.pnl_usd!=null?signedUsd(l.pnl_usd)+(l.pnl_pct!=null?' · '+(l.pnl_pct>0?'+':'')+NF2.format(l.pnl_pct)+'%':''):'—';
+        return '<div class="pfl-leg"><span class="s-tick">'+l.symbol+'</span>'+
+          '<span class="side '+l.side+'">'+(l.side==='long'?'▲':'▼')+'</span>'+
+          '<span class="pfl-not '+clsOf(l.notional_usd)+'">'+signedUsd(l.notional_usd)+'</span>'+
+          '<div class="pfl-bar"><div class="fill '+l.side+'" style="width:'+wPct+'%"></div></div>'+
+          '<span class="pfl-pnl '+pnlCls+'">'+pnlTxt+'</span></div>';
+      }).join('');
+      // ranking corrente (cosa guarderebbe al prossimo rebalance)
+      const rankHtml=p.signal.map(r=>{
+        const cls=r.side==='long'?'long':r.side==='short'?'short':'flat';
+        const muted=r.side==='flat'?' muted':'';
+        const wTxt=r.weight!==0?(r.weight>0?'+':'')+NF1.format(r.weight*100)+'%':'—';
+        return '<div class="pfl-rank'+muted+'"><span class="s-tick">'+r.symbol+'</span>'+
+          '<span class="side '+cls+'">'+(r.side==='long'?'long':r.side==='short'?'short':'flat')+'</span>'+
+          '<span style="min-width:50px;color:var(--text-3)">'+wTxt+'</span>'+
+          '<span style="margin-left:auto;color:var(--text-3)">sig '+((r.signal>0?'+':'')+NF3.format(r.signal))+'</span></div>';
+      }).join('');
+      // countdown al prossimo rebalance
+      const now=new Date();
+      let cdTxt='—', cdSoon=false;
+      if(p.next_rebalance){
+        const diff=(new Date(p.next_rebalance.replace(' ','T')+'Z')-now)/3600000;
+        if(diff>0){
+          cdSoon=diff<12;
+          cdTxt=NF0.format(Math.floor(diff/24))+'g '+NF0.format(Math.round(diff%24))+'h';
+        } else cdTxt='in corso';
+      }
+      const netCls=p.net_usd>0?'pos':p.net_usd<0?'neg':'';
+      card.innerHTML=
+        '<div class="pfl-head"><div><h3>'+p.label+'</h3>'+
+        '<div class="pfl-meta">'+p.id+' · fattore: '+p.factor+'</div></div>'+
+        '<div style="text-align:right"><div class="pfl-meta" style="font-size:13px;color:var(--text-1)">'+NF2.format(p.equity)+' $</div>'+
+        '<div class="pfl-meta '+clsOf(wr)+'">'+signedUsd(wr)+' ('+pctSigned(wr/10000*100)+')</div></div></div>'+
+        '<div class="pfl-grid">'+
+          '<div class="pfl-side"><h4>Gambe aperte · P&L in tempo reale</h4>'+legsHtml+'</div>'+
+          '<div class="pfl-side"><h4>Ranking corrente · cosa guarderebbe al prossimo ribilanciamento</h4>'+rankHtml+'</div>'+
+        '</div>'+
+        '<div class="pfl-foot">'+
+          '<span><b>Gross</b> '+NF0.format(p.gross_usd)+' $</span>'+
+          '<span><b>Net</b> <span class="'+netCls+'">'+signedUsd(p.net_usd)+' $</span></span>'+
+          '<span><b>Ribilanciamento</b> ogni '+p.rebalance_h+'h</span>'+
+          '<span><b>Ultimo</b> '+fmtTs(p.last_rebalance)+'</span>'+
+          '<span class="pfl-countdown'+(cdSoon?' soon':'')+'"><span class="d"></span>proximo tra <b>'+cdTxt+'</b></span>'+
+        '</div>';
+      host.appendChild(card);
+    });
+  }
+
   function renderAll(){
     renderSummary(); renderAccounts(); renderPositions(); renderFeed(); renderLessons();
     renderTree(); renderLifecycle(); renderEvents(); renderStrats(); renderBook();
     renderPortfolioKpi(); renderPortfolioCurve(); renderRiskPanel(); renderSignalsMatrix();
-    renderBacktests();
+    renderBacktests(); renderPortfoliosLive();
     renderChangeBanner();
   }
   // ricarica i dati pipeline (eventi/decisioni/trade chiusi) senza reload pagina
@@ -20834,7 +22155,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
   /* ---------- boot ---------- */
   // router a pagine: una scheda = una vista.
-  const ROUTES=['stato','strategie','strategia','backtest','posizioni','rischio','decisioni','book','lezioni','evoluzione','eventi','llm'];
+  const ROUTES=['stato','strategie','portafogli','backtest','posizioni','rischio','decisioni','book','lezioni','evoluzione','eventi','llm'];
   function showRoute(){
     const raw=(location.hash||'#stato').replace('#','');
     let id=raw.split('?')[0];
