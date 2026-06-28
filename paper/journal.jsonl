@@ -2372,3 +2372,11 @@
 {"type": "close", "strategy": "agents-rr2-v1", "symbol": "ETH", "reason": "retired", "exit_px": 1572.9, "frac": 1.0, "remaining": 0.0, "pnl_usd": -0.67, "equity": 9986.79, "ts": "2026-06-27 23:00:00+00:00", "logged_at": "2026-06-28T00:23:11.321025+00:00"}
 {"type": "close", "strategy": "agents-rr2-v1", "symbol": "SOL", "reason": "retired", "exit_px": 70.452, "frac": 1.0, "remaining": 0.0, "pnl_usd": -1.27, "equity": 9985.52, "ts": "2026-06-27 23:00:00+00:00", "logged_at": "2026-06-28T00:23:12.469145+00:00"}
 {"type": "close", "strategy": "agents-rr2-v1", "symbol": "SUI", "reason": "retired", "exit_px": 0.6843, "frac": 1.0, "remaining": 0.0, "pnl_usd": -0.81, "equity": 9984.71, "ts": "2026-06-27 23:00:00+00:00", "logged_at": "2026-06-28T00:23:13.311374+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-28T01:16:02.885066+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9984.71, "open_positions": 0, "logged_at": "2026-06-28T01:16:03.377664+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9871.91, "open_positions": 6, "logged_at": "2026-06-28T01:16:06.928742+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9704.95, "open_positions": 4, "logged_at": "2026-06-28T01:16:11.562610+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 9956.27, "open_positions": 6, "logged_at": "2026-06-28T01:16:16.760756+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 9932.53, "open_positions": 6, "logged_at": "2026-06-28T01:16:21.929930+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-28T01:21:09.287827+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9984.71, "open_positions": 0, "logged_at": "2026-06-28T01:21:09.797233+00:00"}
