@@ -128,8 +128,10 @@ def main():
         tl = pd.read_parquet(tl_path)  # riprendi da run interrotto
         print(f"timeline esistente: {len(tl)} righe (riuso)", flush=True)
     else:
-        frames = [fetch_timeline(t, q, windows) for t, q in TOPICS.items()]
-        fresh = pd.concat([f for f in frames if not f.empty], ignore_index=True)
+        frames = [f for f in (fetch_timeline(t, q, windows) for t, q in TOPICS.items()) if not f.empty]
+        # GDELT giù (es. cert scaduto) → tutti vuoti: non concatenare lista vuota,
+        # lascia che la gestione fresh.empty qui sotto riusi lo storico.
+        fresh = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
         if args.refresh and tl_path.exists():
             # cron: rinfresca solo le finestre recenti, preserva lo storico più vecchio.
             # fetch vuoto (429 totali) → tieni lo storico, non azzerare.
