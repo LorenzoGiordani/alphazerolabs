@@ -30,7 +30,7 @@ def test_atr_rule_skipped_without_context():
 
 def test_absolute_range_still_enforced():
     errs = hard_check({**BASE, "stop_pct": 0.04}, atr_by_symbol={"WLD": 0.01})
-    assert any("range" in e for e in errs)
+    assert any("stop_pct" in e and ("min" in e or "max" in e) for e in errs)
 
 
 def test_no_trade_passes():
