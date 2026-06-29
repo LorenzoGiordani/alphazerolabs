@@ -2769,3 +2769,12 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9979.83, "open_positions": 0, "logged_at": "2026-06-29T20:20:11.914116+00:00"}
 {"type": "skip", "strategy": "geopolitics-v1", "symbol": "NATGAS", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-29T20:22:34.158802+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 10126.02, "open_positions": 5, "logged_at": "2026-06-29T20:22:34.160769+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-29T21:16:01.746886+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9979.83, "open_positions": 0, "logged_at": "2026-06-29T21:16:02.258595+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9750.44, "open_positions": 6, "logged_at": "2026-06-29T21:16:06.498887+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10227.4, "open_positions": 6, "logged_at": "2026-06-29T21:16:11.757239+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10198.68, "open_positions": 6, "logged_at": "2026-06-29T21:16:15.785905+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10215.94, "open_positions": 6, "logged_at": "2026-06-29T21:16:21.528625+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9748.61, "open_positions": 6, "logged_at": "2026-06-29T21:16:26.721259+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-29T21:16:32.960259+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9979.83, "open_positions": 0, "logged_at": "2026-06-29T21:16:33.456845+00:00"}
