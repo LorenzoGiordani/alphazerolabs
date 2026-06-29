@@ -2544,3 +2544,14 @@
 {"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9878.57, "open_positions": 4, "logged_at": "2026-06-29T00:16:32.360815+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-29T00:19:00.246301+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9983.79, "open_positions": 0, "logged_at": "2026-06-29T00:19:00.866960+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-29T01:15:56.601761+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9983.79, "open_positions": 0, "logged_at": "2026-06-29T01:15:57.139652+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9755.21, "open_positions": 6, "logged_at": "2026-06-29T01:16:02.416637+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10062.38, "open_positions": 6, "logged_at": "2026-06-29T01:16:09.834515+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10037.08, "open_positions": 6, "logged_at": "2026-06-29T01:16:16.197262+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10050.55, "open_positions": 6, "logged_at": "2026-06-29T01:16:23.966742+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9867.88, "open_positions": 4, "logged_at": "2026-06-29T01:16:29.624402+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-29T01:19:37.892430+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9983.79, "open_positions": 0, "logged_at": "2026-06-29T01:19:38.424304+00:00"}
+{"type": "skip", "strategy": "geopolitics-v1", "symbol": "BRENTOIL", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-29T01:22:01.435250+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 10126.02, "open_positions": 5, "logged_at": "2026-06-29T01:22:01.436706+00:00"}
