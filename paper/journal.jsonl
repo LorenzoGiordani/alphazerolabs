@@ -2789,3 +2789,14 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9979.83, "open_positions": 0, "logged_at": "2026-06-29T22:20:41.169805+00:00"}
 {"type": "skip", "strategy": "geopolitics-v1", "symbol": "GOLD", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-29T22:22:40.413841+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 10126.02, "open_positions": 5, "logged_at": "2026-06-29T22:22:40.415599+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-29T23:15:58.170020+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9979.83, "open_positions": 0, "logged_at": "2026-06-29T23:15:58.664079+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9744.09, "open_positions": 6, "logged_at": "2026-06-29T23:16:03.701270+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10255.3, "open_positions": 6, "logged_at": "2026-06-29T23:16:09.498048+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10226.33, "open_positions": 6, "logged_at": "2026-06-29T23:16:15.245662+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10243.58, "open_positions": 6, "logged_at": "2026-06-29T23:16:23.351435+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9766.25, "open_positions": 6, "logged_at": "2026-06-29T23:16:29.560162+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-29T23:19:26.934058+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9979.83, "open_positions": 0, "logged_at": "2026-06-29T23:19:27.433304+00:00"}
+{"type": "skip", "strategy": "geopolitics-v1", "symbol": "CL", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-29T23:22:18.239220+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 10126.02, "open_positions": 5, "logged_at": "2026-06-29T23:22:18.240997+00:00"}
