@@ -2996,3 +2996,14 @@
 {"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9732.5, "open_positions": 6, "logged_at": "2026-06-30T22:16:42.340412+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10269.3, "open_positions": 2, "logged_at": "2026-06-30T22:16:51.619052+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T22:16:52.103218+00:00"}
+{"type": "close", "strategy": "agents-v1", "symbol": "SOL", "reason": "time_stop", "exit_px": 73.4063158, "frac": 1.0, "remaining": 0.0, "pnl_usd": 65.76, "equity": 10335.06, "ts": "2026-06-30 22:00:00+00:00", "logged_at": "2026-06-30T23:16:02.221494+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10335.06, "open_positions": 1, "logged_at": "2026-06-30T23:16:02.422705+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T23:16:02.934406+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9719.71, "open_positions": 6, "logged_at": "2026-06-30T23:16:42.873571+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10233.88, "open_positions": 6, "logged_at": "2026-06-30T23:16:46.817542+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10229.71, "open_positions": 6, "logged_at": "2026-06-30T23:16:49.932194+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10275.64, "open_positions": 6, "logged_at": "2026-06-30T23:16:52.943244+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9764.79, "open_positions": 6, "logged_at": "2026-06-30T23:16:55.248445+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10335.06, "open_positions": 1, "logged_at": "2026-06-30T23:19:17.957702+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T23:19:18.481251+00:00"}
+{"type": "close", "strategy": "geopolitics-v1", "symbol": "xyz:NATGAS", "reason": "time_stop", "exit_px": 3.25724842, "frac": 1.0, "remaining": 0.0, "pnl_usd": -1.98, "equity": 9999.64, "ts": "2026-06-30 20:00:00+00:00", "logged_at": "2026-06-30T23:19:23.101293+00:00"}
