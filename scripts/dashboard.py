@@ -954,7 +954,7 @@ PAGES = [
     ("lezioni.html",      "Lezioni",      ["lezioni"]),
     ("evoluzione.html",   "Evoluzione",   ["evoluzione"]),
     ("eventi.html",       "Eventi",       ["eventi"]),
-    ("notizie.html",      "Notizie",      ["notizie"]),
+    ("news.html",         "News",         ["news"]),
     ("llm.html",          "LLM",          ["llm"]),
 ]
 
