@@ -2920,3 +2920,9 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T10:16:58.611933+00:00"}
 {"type": "close", "strategy": "geopolitics-v1", "symbol": "ETH", "reason": "time_stop", "exit_px": 1585.01694, "frac": 1.0, "remaining": 0.0, "pnl_usd": -4.53, "equity": 9965.68, "ts": "2026-06-30 09:00:00+00:00", "logged_at": "2026-06-30T10:17:01.193234+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9965.68, "open_positions": 3, "logged_at": "2026-06-30T10:21:33.264043+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-30T11:16:04.311969+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T11:16:04.825429+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9725.95, "open_positions": 6, "logged_at": "2026-06-30T11:16:48.687536+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-30T11:20:10.918430+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T11:20:11.435936+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9965.68, "open_positions": 3, "logged_at": "2026-06-30T11:22:54.320152+00:00"}
