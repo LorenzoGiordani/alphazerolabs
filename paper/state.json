@@ -15,7 +15,7 @@
     "stop_px": 1652.42584872,
     "target_px": 1408.6772082,
     "opened_at": "2026-06-27 11:00:00+00:00",
-    "checked_until": "2026-06-30 03:00:00+00:00",
+    "checked_until": "2026-06-30 04:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "ETH short tattico \u2014 trend ribassista ATTIVO e confermato (efficiency_ratio=1, unico major con trend direzionale non chop). Funding positivo = long intrappolati che pagano per mantenere posizioni perdenti = fuel per continuation, NON fuel per squeeze (vs ZEC). Rally di oggi \u00e8 debole \u2014 prezzo migliore per entrare short. ETH \u00e8 il peggior performer 7d (-8.3%), underperformance strutturale vs ogni peer. Nessun lux_confluence allineato \u2192 size ridotta (0.5x), trade disciplinato non conviction bet. Invalidation strutturale: close sopra $1.650.",
     "invalidation": "Close giornaliero sopra $1.650 \u2014 invaliderebbe la struttura ribassista e suggerirebbe che il rally non \u00e8 solo debole bounce ma reversal. In tal caso il fuel dei short squeeze su BTC/SOL/ZEC potrebbe trascinare ETH in un squeeze generale che il funding positivo non basterebbe a contenere.",
@@ -27,7 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-30 03:00:00+00:00"
+    "_last_ts": "2026-06-30 04:00:00+00:00"
    },
    "SOL": {
     "strategy": "agents-v1",
@@ -38,7 +38,7 @@
     "stop_px": 66.808760300244,
     "target_px": 79.24305688402835,
     "opened_at": "2026-06-27 22:00:00+00:00",
-    "checked_until": "2026-06-30 03:00:00+00:00",
+    "checked_until": "2026-06-30 04:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "SOL \u00e8 l'unica major positiva su 7d (+1.6%) in un mercato dove ETH -7.3% e BTC -4.4%. Forza relativa = assorbimento reale, non rumore. Funding negativo (-0.4% APR): shorts pagano per stare corti su un asset che rifiuta di scendere \u2014 polvere da sparo per squeeze. BTC flat 24h a $60.5k con funding neutro suggerisce stabilizzazione, che \u00e8 il trigger per short covering su SOL. Nessun lux_confluence allineato su alcun asset \u2192 size ridotta e disciplina rigorosa. Asimmetria: downside protetto dalla forza relativa gi\u00e0 dimostrata, upside esplosivo se i shorts sono costretti al cover. Stop a $68 (sotto il supporto recente, fuori dal rumore a ~6.5 ATR). Target $80 (~1.8R).",
     "invalidation": "1) SOL perde $68 \u2192 la forza relativa era finta, il setup squeeze decade. 2) BTC rompe $58k \u2192 beta trascina tutto gi\u00f9, SOL non fa eccezione anche con forza relativa. Uscita immediata senza esitazione in entrambi i casi.",
@@ -50,7 +50,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-30 03:00:00+00:00"
+    "_last_ts": "2026-06-30 04:00:00+00:00"
    },
    "ETH/USDT": {
     "strategy": "agents-v1",
@@ -68,7 +68,7 @@
     "decision_ts": "2026-06-27T23:17:52.250888+00:00"
    }
   },
-  "last_decision_ts": "2026-06-30T01:20:13.400802+00:00"
+  "last_decision_ts": "2026-06-30T05:20:14.258207+00:00"
  },
  "tsmom-v1": {
   "equity": 10272.467328831875,
@@ -98,7 +98,7 @@
     "stop_px": 63567.93387,
     "target_px": 52973.278225,
     "opened_at": "2026-06-27 13:00:00+00:00",
-    "checked_until": "2026-06-30 03:00:00+00:00",
+    "checked_until": "2026-06-30 04:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "Burst geopolitico (z=2.0) innesca deleveraging meccanico e unidirezionale sulle criptovalute, che agiscono come spugne di liquidit\u00e0 ad alto beta. Il canale risk-off \u2192 margin call \u2192 svendita per fare cassa \u00e8 il pi\u00f9 pulito e certo in questo scenario, confermato dal momentum strutturale negativo (tsmom -1) e dal regime chop. A differenza delle commodity dove l'edge \u00e8 contaminato dalla debolezza della domanda fisica, sulle cripto la trasmissione causale \u00e8 diretta e immediata. Il brief stesso identifica questo come l'edge direzionale pi\u00f9 pulito. Short BTC come proxy per l'intero comparto crypto.",
     "invalidation": "Rimbalzo del 5% dal entry invalida la tesi del deleveraging sistematico: significherebbe che l'assorbimento della pressione di vendita \u00e8 in atto (possibile Fed Put, tregua geopolitica improvvisa, o iniezione di liquidit\u00e0 d'emergenza). In regime di illiquidit\u00e0 crypto, un rimbalzo di questa entit\u00e0 durante un evento risk-off segnala che lo short squeeze risk \u00e8 diventato dominante e la tesi non tiene.",
@@ -110,7 +110,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-30 03:00:00+00:00"
+    "_last_ts": "2026-06-30 04:00:00+00:00"
    },
    "xyz:CL": {
     "strategy": "geopolitics-v1",
@@ -121,7 +121,7 @@
     "stop_px": 68.187175,
     "target_px": 76.622701,
     "opened_at": "2026-06-27 01:00:00+00:00",
-    "checked_until": "2026-06-30 03:00:00+00:00",
+    "checked_until": "2026-06-30 04:00:00+00:00",
     "time_stop_h": 96,
     "thesis": "LONG WTI Crude Oil su escalation cinetica USA-Iran. Edge causale diretto: il conflitto nel Golfo minaccia fisicamente lo Stretto di Hormuz (~20% del flusso greggio globale), facendo esplodere i premi war-risk sulle assicurazioni marittime. Il posizionamento crea un'asimmetria spietata: CL \u00e8 in regime bear con tsmom -1 e vol_compression (ATR 1.04% compresso). Questo shock esogeno rompe la compressione verso l'ALTO, intrappolando i trend-follower bearish in un violento short-squeeze. Il brief identifica questo come l'edge direzionale pi\u00f9 pulito cross-asset. Si va contro tsmom -1 \u2014 esplicitamente giustificato: un catalyst geopolitico cinetico \u00e8 un evento esogeno che sovrascrive i segnali di momentum basati sui dati storici. I modelli trend-following non possono prezzare un conflitto in corso. Leva moderata (2x) e risk 1% riflettono la natura binaria dell'evento.",
     "invalidation": "1) De-escalazione diplomatica rapida (cessate il fuoco / negoziato emergenza) \u2014 il risk premium geopolitico collassa e subiamo un vol-crush. 2) Annuncio di rilascio massivo dalle Riserve Strategiche (SPR) da parte della Casa Bianca per inondare il mercato e sopprimere i prezzi. In entrambi i casi, la tesi di supply disruption viene invalidata e il trade va chiuso immediatamente, anche prima dello stop meccanico.",
@@ -133,7 +133,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-30 03:00:00+00:00"
+    "_last_ts": "2026-06-30 04:00:00+00:00"
    },
    "xyz:NATGAS": {
     "strategy": "geopolitics-v1",
@@ -144,7 +144,7 @@
     "stop_px": 3.067645,
     "target_px": 3.655067,
     "opened_at": "2026-06-27 20:00:00+00:00",
-    "checked_until": "2026-06-30 03:00:00+00:00",
+    "checked_until": "2026-06-30 04:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "LONG NG su LUX confluence aligned (+1) e tsmom +1 \u2014 unico asset con momentum positivo in tape risk-off. La tesi NON \u00e8 un play geopolitico (il brief avverte che il burst GDELT \u00e8 non-attribuibile a NG); \u00e8 un trade sul segnale LUX validato, con optionality gratuita su escalation supply-side EU/Russia. La divergenza di NG contro tutto il resto (crypto/oro in liquidazione) \u00e8 essa stessa informazione: il capitale sta cercando forza, e NG \u00e8 l'unica direzione che funziona. ETH short scartato: canale narrativo pulito ma niente allineamento LUX + funding negativo erode P&L in chop regime + rischio short-squeeze se il burst \u00e8 rumore.",
     "invalidation": "Stop al -6% (fuori ATR noise, sotto struttura di momentum). Chiusura anche se: (1) LUX signal reverte nei prossimi tick di confluenza, o (2) se entro 72h il burst GDELT si rivela chiaramente non-energy-related E il momentum NG perde +1 tsmom, il trade perde sia la tesi geopolitica opzionale sia il fondamentale momentum.",
@@ -156,7 +156,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-30 03:00:00+00:00"
+    "_last_ts": "2026-06-30 04:00:00+00:00"
    },
    "ETH": {
     "strategy": "geopolitics-v1",
@@ -167,7 +167,7 @@
     "stop_px": 1676.372658,
     "target_px": 1344.261094,
     "opened_at": "2026-06-27 09:00:00+00:00",
-    "checked_until": "2026-06-30 03:00:00+00:00",
+    "checked_until": "2026-06-30 04:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "L'escalation USA-Iran innesca deleveraging risk-off sistemico. ETH, gi\u00e0 in regime bear (tsmom -1) con debolezza strutturale endogena, agisce da puro proxy di liquidit\u00e0: il capitale istituzionale svende per finanziare margini sull'energia e rifugiarsi in safe-haven. Il catalizzatore geopolitico accelera una dinamica gi\u00e0 in atto \u2014 non \u00e8 un reversal forzato come nel petrolio, ma un amplificatore di trend. Edge direzionale pi\u00f9 pulito e privo di rumore mean-reverting rispetto a un Oil long contro-trend. Stop a 6% (~1.5 ATR in regime di volatilit\u00e0 espansa) copre sia short-squeeze tecnici sia eventuali mini-rally di liquidazione. Target 2.5R sulla continuazione del deleveraging. Time stop 72h: se il risk-off non si materializza entro 3 giorni, la tesi del catalizzatore-acceleratore \u00e8 invalidata.",
     "invalidation": "1) ETH rally >6% dal entry (short-squeeze violento che invalida il canale deleveraging, o iniezione di liquidit\u00e0 d'emergenza FED che ribalta il regime risk-off). 2) De-escalation diplomatica rapida USA-Iran entro 48h che rimuove il catalizzatore. 3) Funding rate che impatta nettamente positivo (positivo = posizionamento gi\u00e0 crowded short, squeeze risk elevato).",
@@ -179,10 +179,10 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-06-30 03:00:00+00:00"
+    "_last_ts": "2026-06-30 04:00:00+00:00"
    }
   },
-  "last_decision_ts": "2026-06-30T04:28:02.708895+00:00"
+  "last_decision_ts": "2026-06-30T05:22:39.285267+00:00"
  },
  "tsmom-atr-v1": {
   "equity": 9324.897124664369,
@@ -193,9 +193,9 @@
   "positions": {}
  },
  "agents-rr2-v1": {
-  "equity": 9978.987789133227,
+  "equity": 9976.792488949264,
   "positions": {},
-  "last_decision_ts": "2026-06-30T01:20:13.400802+00:00"
+  "last_decision_ts": "2026-06-30T05:20:14.258207+00:00"
  },
  "claude-strategy-v1": {
   "equity": 10000.0,
@@ -203,31 +203,31 @@
   "last_decision_ts": "2026-06-22T19:22:53.570120+00:00"
  },
  "xsmom-port-v1": {
-  "equity": 9773.465559132308,
+  "equity": 9745.367863579537,
   "positions": {
    "BTC": {
-    "notional": 1621.151200492321,
-    "px": 59589.0
+    "notional": 1618.1041794908756,
+    "px": 59477.0
    },
    "SOL": {
-    "notional": 1646.4512962292072,
-    "px": 74.209
+    "notional": 1643.0789209509142,
+    "px": 74.057
    },
    "SUI": {
-    "notional": 1639.1907705734502,
-    "px": 0.69546
+    "notional": 1637.0459116294107,
+    "px": 0.69455
    },
    "NEAR": {
-    "notional": -1633.4742435477858,
-    "px": 1.8519
+    "notional": -1643.0886229714429,
+    "px": 1.8628
    },
    "WLD": {
-    "notional": -1579.11068451271,
-    "px": 0.41471
+    "notional": -1583.3372834850259,
+    "px": 0.41582
    },
    "ZEC": {
-    "notional": -1694.5269704939637,
-    "px": 398.89
+    "notional": -1700.2194324269826,
+    "px": 400.23
    }
   },
   "last_rebalance_ts": "2026-06-29T13:16:29.709935+00:00",
@@ -507,6 +507,10 @@
    {
     "ts": "2026-06-30T04:16:25.953121+00:00",
     "eq": 9773.47
+   },
+   {
+    "ts": "2026-06-30T05:16:23.898736+00:00",
+    "eq": 9745.37
    }
   ]
  },
@@ -520,31 +524,31 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 9727.859569617758,
+  "equity": 9742.495077176736,
   "positions": {
    "BTC": {
-    "notional": -1667.5621673354933,
-    "px": 59589.0
+    "notional": -1664.4279149945987,
+    "px": 59477.0
    },
    "ETH": {
-    "notional": -1695.9589480436177,
-    "px": 1586.4
+    "notional": -1696.9211032713276,
+    "px": 1587.3
    },
    "XRP": {
-    "notional": -1681.1440337161796,
-    "px": 1.0451
+    "notional": -1682.2700511533642,
+    "px": 1.0458
    },
    "WLD": {
-    "notional": 1490.904515386829,
-    "px": 0.41471
+    "notional": 1494.895024446363,
+    "px": 0.41582
    },
    "ZEC": {
-    "notional": 1642.2119572824806,
-    "px": 398.89
+    "notional": 1647.7286762344688,
+    "px": 400.23
    },
    "CRV": {
-    "notional": 1645.9082460437405,
-    "px": 0.1895
+    "notional": 1649.9904459151944,
+    "px": 0.18997
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:08.155546+00:00",
@@ -816,35 +820,39 @@
    {
     "ts": "2026-06-30T04:16:04.846069+00:00",
     "eq": 9727.86
+   },
+   {
+    "ts": "2026-06-30T05:15:59.463901+00:00",
+    "eq": 9742.5
    }
   ]
  },
  "xsmom-highvol-combo-v1": {
-  "equity": 10251.05199620923,
+  "equity": 10223.875263137319,
   "positions": {
    "BTC": {
-    "notional": 1667.5621673354933,
-    "px": 59589.0
+    "notional": 1664.4279149945987,
+    "px": 59477.0
    },
    "SOL": {
-    "notional": 1755.6946692028866,
-    "px": 74.209
+    "notional": 1752.098534101769,
+    "px": 74.057
    },
    "SUI": {
-    "notional": 1696.27700052684,
-    "px": 0.69546
+    "notional": 1694.0574450233182,
+    "px": 0.69455
    },
    "NEAR": {
-    "notional": -1725.1690794254089,
-    "px": 1.8519
+    "notional": -1735.3231606207958,
+    "px": 1.8628
    },
    "WLD": {
-    "notional": -1490.904515386829,
-    "px": 0.41471
+    "notional": -1494.895024446363,
+    "px": 0.41582
    },
    "CRV": {
-    "notional": -1645.9082460437403,
-    "px": 0.1895
+    "notional": -1649.9904459151942,
+    "px": 0.18997
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:19.266461+00:00",
@@ -1120,35 +1128,39 @@
    {
     "ts": "2026-06-30T04:16:08.481256+00:00",
     "eq": 10251.05
+   },
+   {
+    "ts": "2026-06-30T05:16:04.100265+00:00",
+    "eq": 10223.88
    }
   ]
  },
  "xsmom-highvol-voltarget-v1": {
-  "equity": 10222.473892614751,
+  "equity": 10195.635640670134,
   "positions": {
    "BTC": {
-    "notional": 1664.0138060451713,
-    "px": 59589.0
+    "notional": 1660.8862229966714,
+    "px": 59477.0
    },
    "SOL": {
-    "notional": 1714.3484186938347,
-    "px": 74.209
+    "notional": 1710.8369718391207,
+    "px": 74.057
    },
    "SUI": {
-    "notional": 1661.1252830405006,
-    "px": 0.69546
+    "notional": 1658.9517230836852,
+    "px": 0.69455
    },
    "NEAR": {
-    "notional": -1704.6835303214411,
-    "px": 1.8519
+    "notional": -1714.717036709747,
+    "px": 1.8628
    },
    "WLD": {
-    "notional": -1472.0122102722476,
-    "px": 0.41471
+    "notional": -1475.9521527703841,
+    "px": 0.41582
    },
    "CRV": {
-    "notional": -1633.8178745710704,
-    "px": 0.1895
+    "notional": -1637.870087769215,
+    "px": 0.18997
    }
   },
   "last_rebalance_ts": "2026-06-26T21:23:20.093714+00:00",
@@ -1424,35 +1436,39 @@
    {
     "ts": "2026-06-30T04:16:14.254865+00:00",
     "eq": 10222.47
+   },
+   {
+    "ts": "2026-06-30T05:16:10.583662+00:00",
+    "eq": 10195.64
    }
   ]
  },
  "xsmom-multihorizon-v1": {
-  "equity": 10240.380596201101,
+  "equity": 10213.73702167159,
   "positions": {
    "BTC": {
-    "notional": 1646.0049389263631,
-    "px": 59589.0
+    "notional": 1642.9112042914514,
+    "px": 59477.0
    },
    "SOL": {
-    "notional": 1720.6208322899565,
-    "px": 74.209
+    "notional": 1717.09653784443,
+    "px": 74.057
    },
    "SUI": {
-    "notional": 1687.755726080056,
-    "px": 0.69546
+    "notional": 1685.5473205488497,
+    "px": 0.69455
    },
    "NEAR": {
-    "notional": -1642.8039173940817,
-    "px": 1.8519
+    "notional": -1652.4732098502593,
+    "px": 1.8628
    },
    "WLD": {
-    "notional": -1521.357926865059,
-    "px": 0.41471
+    "notional": -1525.4299465868412,
+    "px": 0.41582
    },
    "CRV": {
-    "notional": -1643.3390568361172,
-    "px": 0.1895
+    "notional": -1647.4148845760271,
+    "px": 0.18997
    }
   },
   "last_rebalance_ts": "2026-06-28T09:35:29.457654+00:00",
@@ -1632,6 +1648,10 @@
    {
     "ts": "2026-06-30T04:16:19.299829+00:00",
     "eq": 10240.38
+   },
+   {
+    "ts": "2026-06-30T05:16:15.841885+00:00",
+    "eq": 10213.74
    }
   ]
  }
