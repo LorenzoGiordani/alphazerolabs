@@ -2882,3 +2882,14 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T06:18:51.963619+00:00"}
 {"type": "skip", "strategy": "geopolitics-v1", "symbol": "CL", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-30T06:21:24.257864+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9970.21, "open_positions": 4, "logged_at": "2026-06-30T06:21:24.259916+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-30T07:16:05.744875+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T07:16:06.248244+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9770.27, "open_positions": 6, "logged_at": "2026-06-30T07:16:10.570678+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10196.39, "open_positions": 6, "logged_at": "2026-06-30T07:16:15.512935+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10168.35, "open_positions": 6, "logged_at": "2026-06-30T07:16:20.579565+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10185.36, "open_positions": 6, "logged_at": "2026-06-30T07:16:26.289964+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9737.03, "open_positions": 6, "logged_at": "2026-06-30T07:16:31.831334+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10267.73, "open_positions": 3, "logged_at": "2026-06-30T07:21:48.780252+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T07:21:49.273783+00:00"}
+{"type": "skip", "strategy": "geopolitics-v1", "symbol": "CL", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-06-30T07:24:24.770154+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9970.21, "open_positions": 4, "logged_at": "2026-06-30T07:24:24.772052+00:00"}
