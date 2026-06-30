@@ -363,6 +363,84 @@ def chart_series(symbol: str, opened_at: str, pre_h: int = 72) -> list | None:
     return pts[::step]
 
 
+# --- sezione Notizie: la notizia in dettaglio + impatto potenziale sul mercato ---
+# Fonte = data/news/live_archive.jsonl (notizie point-in-time gia' raccolte). Niente
+# desk, niente grafici: solo la notizia, classificata per tema, con gli asset che
+# potrebbe muovere e in che modo. La mappa impatto e' euristica per TEMA — un'ipotesi
+# di canale di trasmissione, non una previsione (il tono non predice la direzione).
+_NEWS_SOURCE_TOPIC = {
+    "coindesk": "crypto", "decrypt": "crypto",
+    "oilprice": "commodities", "forexlive": "fed_macro",
+    "cnbc_markets": "equities", "marketwatch": "equities",
+}
+_GEO_KW = ("war", "sanction", "conflict", "military", "missile", "invasion",
+           "iran", "russia", "ukraine", "gaza", "israel", "nato", "airstrike", "strikes")
+_TOPIC_KW = {
+    "crypto": ("bitcoin", "ethereum", "crypto", " btc", " eth", "altcoin", "blockchain", "stablecoin"),
+    "commodities": ("oil", "brent", "crude", "gold", "natural gas", "opec", "barrel", "silver"),
+    "fed_macro": ("federal reserve", "fed ", "interest rate", "inflation", "cpi", "fomc", "yields", "dollar"),
+    "equities": ("stock", "s&p", "nasdaq", "wall street", "dow ", "shares", "earnings"),
+}
+_NEWS_LABEL = {"crypto": "Crypto", "commodities": "Commodities", "fed_macro": "Fed / Macro",
+               "equities": "Azionario", "geopolitics": "Geopolitica", "mercati": "Mercati"}
+# dir: up | down | watch (sensibile, direzione dipende dalla notizia specifica)
+_NEWS_IMPACT = {
+    "geopolitics": [{"asset": "Oro", "dir": "up", "why": "bene rifugio nelle crisi"},
+                    {"asset": "Petrolio / Gas", "dir": "up", "why": "rischio sull'offerta"},
+                    {"asset": "Crypto", "dir": "down", "why": "risk-off, deleveraging"},
+                    {"asset": "Azionario", "dir": "down", "why": "avversione al rischio"}],
+    "commodities": [{"asset": "Petrolio", "dir": "watch", "why": "scorte, OPEC, domanda"},
+                    {"asset": "Oro / Argento", "dir": "watch", "why": "tassi reali e rifugio"},
+                    {"asset": "Gas naturale", "dir": "watch", "why": "domanda/offerta stagionale"}],
+    "fed_macro": [{"asset": "Crypto", "dir": "watch", "why": "liquidità e tassi"},
+                  {"asset": "Azionario", "dir": "watch", "why": "costo del capitale"},
+                  {"asset": "Oro", "dir": "watch", "why": "tassi reali e dollaro"}],
+    "crypto": [{"asset": "Bitcoin / Ethereum", "dir": "watch", "why": "driver del comparto"},
+               {"asset": "Altcoin", "dir": "watch", "why": "beta alto sul movimento"}],
+    "equities": [{"asset": "Azionario", "dir": "watch", "why": "S&P 500, Nasdaq"},
+                 {"asset": "Crypto", "dir": "watch", "why": "correlazione risk-on"}],
+    "mercati": [{"asset": "Mercati", "dir": "watch", "why": "impatto trasversale"}],
+}
+
+
+def _classify_news(title: str, source: str) -> str:
+    t = (title or "").lower()
+    if any(k in t for k in _GEO_KW):
+        return "geopolitics"           # la geopolitica ha priorità: è il canale più netto
+    if source in _NEWS_SOURCE_TOPIC:
+        return _NEWS_SOURCE_TOPIC[source]
+    for tp, kws in _TOPIC_KW.items():
+        if any(k in t for k in kws):
+            return tp
+    return "mercati"
+
+
+def build_news(limit: int = 60) -> list[dict]:
+    """Notizie recenti da live_archive.jsonl: title, fonte, data, tema, impatto."""
+    arch = ROOT / "data/news/live_archive.jsonl"
+    if not arch.exists():
+        return []
+    rows = [json.loads(l) for l in arch.read_text().splitlines() if l.strip()]
+    rows.sort(key=lambda r: r.get("ts", ""), reverse=True)
+    out, seen = [], set()
+    for r in rows:
+        title = (r.get("title") or "").strip()
+        key = title.lower()[:80]
+        if not title or key in seen:
+            continue
+        seen.add(key)
+        topic = _classify_news(title, r.get("source", ""))
+        out.append({
+            "ts": ts_short(r.get("ts", "")), "title": title,
+            "source": r.get("source", ""), "topic": topic,
+            "topic_label": _NEWS_LABEL.get(topic, topic),
+            "impact": _NEWS_IMPACT.get(topic, _NEWS_IMPACT["mercati"]),
+        })
+        if len(out) >= limit:
+            break
+    return out
+
+
 def llm_stats() -> dict:
     """Aggrega il tracing del layer LLM (paper/llm_calls.jsonl): chiamate per ruolo,
     latenza media, token, ripartizione per effort, hit di cache. Osservabilità del
@@ -829,53 +907,7 @@ def build_data() -> dict:
         })
     book.sort(key=lambda t: t["opened_at"], reverse=True)
 
-    # --- sezione geopolitica: news(burst) + grafico asset coinvolto + risposta mercato ---
-    # una card per operazione del desk geopolitico, con la notizia che l'ha innescata
-    # (bursts della decisione), la serie prezzo attorno all'evento e l'esito.
-    geo_final = [d for d in decisions
-                 if d.get("strategy") == "geopolitics-v1" and d.get("stage") == "final"
-                 and d.get("proposal", {}).get("action") == "trade"]
-
-    def _geo_decision(sym, opened):
-        cand = [d for d in geo_final if clean_symbol(d.get("proposal", {}).get("symbol", "")) == sym]
-        before = [d for d in cand if ts_short(d.get("logged_at", "")) <= opened]
-        return max(before or cand, key=lambda d: d.get("logged_at", ""), default=None)
-
-    geo_pending, geo_pairs = {}, []
-    for e in journal:
-        if e.get("strategy") != "geopolitics-v1":
-            continue
-        if e.get("type") == "open":
-            geo_pending[e["symbol"]] = e
-        elif e.get("type") == "close":
-            o = geo_pending.pop(e["symbol"], None)
-            if o:
-                geo_pairs.append((o, e))
-    geo_pairs += [(o, None) for o in geo_pending.values()]
-
-    geo_out = []
-    for o, c in geo_pairs:
-        sym = clean_symbol(o["symbol"])
-        opened = ts_short(o["opened_at"])
-        dec = _geo_decision(sym, opened)
-        p = dec.get("proposal", {}) if dec else {}
-        sign = 1 if o["direction"] == "long" else -1
-        geo_out.append({
-            "symbol": sym, "direction": o["direction"],
-            "status": "closed" if c else "open",
-            "thesis": p.get("thesis", ""), "invalidation": p.get("invalidation", ""),
-            "bursts": (dec.get("bursts") if dec else []) or [],
-            "entry_px": round(o["entry_px"], 6),
-            "exit_px": round(c["exit_px"], 6) if c else None,
-            "pnl_usd": round(c.get("pnl_usd", 0), 2) if c else None,
-            "pnl_pct": round(sign * (c["exit_px"] / o["entry_px"] - 1) * 100, 2) if c else None,
-            "reason": c.get("reason", "") if c else "",
-            "opened_at": opened,
-            "closed_at": ts_short(c.get("ts", c.get("logged_at", ""))) if c else None,
-            "stop_px": round(o.get("stop_px", 0), 6), "target_px": round(o.get("target_px", 0), 6),
-            "chart": chart_series(o["symbol"], o["opened_at"]),
-        })
-    geo_out.sort(key=lambda g: g["opened_at"], reverse=True)
+    news_out = build_news()
 
     strategies = build_strategies(state)
 
@@ -897,7 +929,7 @@ def build_data() -> dict:
         "lifecycle": lifecycle,
         "signals_matrix": signals_matrix("BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV".split(",")),
         "news_events": events, "strategies": strategies, "tradebook": book,
-        "geopolitics": geo_out,
+        "news": news_out,
         "backtests": backtests,
         "llm_stats": llm_stats(),
         "portfolio_live": portfolio_live_view(state),
@@ -922,7 +954,7 @@ PAGES = [
     ("lezioni.html",      "Lezioni",      ["lezioni"]),
     ("evoluzione.html",   "Evoluzione",   ["evoluzione"]),
     ("eventi.html",       "Eventi",       ["eventi"]),
-    ("geopolitica.html",  "Geopolitica",  ["geopolitica"]),
+    ("notizie.html",      "Notizie",      ["notizie"]),
     ("llm.html",          "LLM",          ["llm"]),
 ]
 

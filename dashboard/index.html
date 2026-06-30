@@ -250,24 +250,22 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .ev-desc{ font-family:var(--serif); font-size:13.5px; color:var(--text-2); line-height:1.5; max-width:440px; }
 .bar-mini{ display:inline-block; vertical-align:middle; }
 
-/* ---------- geopolitica ---------- */
-.geo-grid{ display:flex; flex-direction:column; gap:16px; margin-top:18px; }
-.geo-card{ border:1px solid var(--line); border-radius:var(--r); padding:16px 18px; }
-.geo-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
-.geo-top .tk{ font-family:var(--mono); font-size:13px; letter-spacing:.06em; }
-.geo-top .dcard-ts{ margin-left:auto; color:var(--text-4); }
-.geo-burst{ display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; font-family:var(--mono); font-size:10.5px;
-  background:rgba(224,162,62,.07); border:1px solid var(--amber-dim); border-radius:8px; padding:7px 11px; margin-bottom:11px; }
-.geo-burst .gb-k{ color:var(--amber); letter-spacing:.12em; text-transform:uppercase; }
-.geo-burst .gb-meta{ color:var(--text-3); }
-.geo-thesis{ font-size:13.5px; color:var(--text-2); line-height:1.5; margin-bottom:6px; }
-.geo-chart{ margin:6px 0 12px; }
-.geo-chart svg{ width:100%; height:auto; display:block; }
-.geo-resp{ display:flex; gap:16px; flex-wrap:wrap; align-items:baseline; font-family:var(--mono); font-size:11px;
-  padding-top:11px; border-top:1px solid var(--line); color:var(--text-3); }
-.geo-resp .geo-reason{ color:var(--text-4); }
-.geo-resp .geo-open{ color:var(--amber); }
-.geo-resp .pos{ color:var(--green); } .geo-resp .neg{ color:var(--red); }
+/* ---------- notizie ---------- */
+.news-filters{ display:flex; gap:8px; flex-wrap:wrap; margin:16px 0 4px; }
+.news-grid{ display:flex; flex-direction:column; gap:14px; margin-top:14px; }
+.news-card{ border:1px solid var(--line); border-radius:var(--r); padding:15px 18px; }
+.news-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:9px; font-family:var(--mono); font-size:10.5px; }
+.news-head .n-src{ color:var(--text-3); text-transform:uppercase; letter-spacing:.08em; }
+.news-head .n-ts{ color:var(--text-4); margin-left:auto; }
+.news-title{ font-size:16px; line-height:1.42; color:var(--text-1); margin:2px 0 12px; }
+.news-impact{ border-top:1px solid var(--line); padding-top:11px; }
+.news-impact .ni-k{ font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-4); display:block; margin-bottom:7px; }
+.news-impact ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:5px; }
+.news-impact li{ display:flex; align-items:baseline; gap:9px; font-size:12.5px; color:var(--text-3); }
+.news-impact .ni-asset{ font-weight:600; color:var(--text-2); min-width:120px; }
+.news-impact .ni-dir{ font-family:var(--mono); font-size:11px; }
+.news-impact .ni-dir.up{ color:var(--green); } .news-impact .ni-dir.down{ color:var(--red); } .news-impact .ni-dir.watch{ color:var(--amber); }
+.news-impact .ni-why{ color:var(--text-4); }
 
 /* ---------- decisions feed ---------- */
 .feed{ display:flex; flex-direction:column; gap:16px; }
@@ -712,7 +710,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
 <nav class="secnav" id="secnav">
   <div class="wrap secnav-inner">
-    <a href="index.html" class="active">Stato</a><a href="strategie.html">Strategie</a><a href="portafogli.html">Portafogli</a><a href="backtest.html">Backtest</a><a href="posizioni.html">Posizioni</a><a href="rischio.html">Rischio</a><a href="decisioni.html">Decisioni</a><a href="trading-book.html">Trading book</a><a href="lezioni.html">Lezioni</a><a href="evoluzione.html">Evoluzione</a><a href="eventi.html">Eventi</a><a href="geopolitica.html">Geopolitica</a><a href="llm.html">LLM</a>
+    <a href="index.html" class="active">Stato</a><a href="strategie.html">Strategie</a><a href="portafogli.html">Portafogli</a><a href="backtest.html">Backtest</a><a href="posizioni.html">Posizioni</a><a href="rischio.html">Rischio</a><a href="decisioni.html">Decisioni</a><a href="trading-book.html">Trading book</a><a href="lezioni.html">Lezioni</a><a href="evoluzione.html">Evoluzione</a><a href="eventi.html">Eventi</a><a href="notizie.html">Notizie</a><a href="llm.html">LLM</a>
   </div>
 </nav>
 
@@ -1771,32 +1769,35 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     });
   }
 
-  /* ---------- render: geopolitica (news + grafico asset + risposta mercato) ---------- */
-  function renderGeopolitics(){
-    const host=$('#geo-cards'); if(!host) return; host.innerHTML='';
-    const list=(DATA.geopolitics||[]);
-    if(!list.length){ host.innerHTML=emptyBox('Nessuna operazione geopolitica','Il desk geopolitico opera solo durante un burst di news rilevante. Alla prima posizione comparirà qui la notizia, il grafico dell\'asset coinvolto e la risposta del mercato.', false); return; }
-    list.forEach(g=>{
-      const card=el('div','geo-card');
-      const b=(g.bursts&&g.bursts[0])||null;
-      const burstHtml=b?('<div class="geo-burst"><span class="gb-k">Burst geopolitico</span>'+
-        '<span class="gb-meta">'+fmtTs(b.ts)+' · intensità z '+NF2.format(b.z)+
-        (b.tone!=null?' · tono '+(b.tone>0?'+':'')+NF2.format(b.tone):'')+'</span></div>'):'';
-      const dir='<span class="dir '+g.direction+'">'+(g.direction==='long'?'▲ long':'▼ short')+'</span>';
-      const chart=posChartSVG(g)||'<span class="muted">grafico non disponibile</span>';
-      const resp=(g.status==='closed')
-        ? ('<div class="geo-resp"><span>entrata '+px(g.entry_px)+'</span><span>uscita '+px(g.exit_px)+'</span>'+
-           '<span class="'+clsOf(g.pnl_usd||0)+'">'+signedUsd(g.pnl_usd||0)+' · '+(g.pnl_pct>0?'+':'')+NF2.format(g.pnl_pct||0)+'%</span>'+
-           '<span class="geo-reason">chiusa: '+(REASON_IT[g.reason]||g.reason||'—')+'</span></div>')
-        : ('<div class="geo-resp"><span>entrata '+px(g.entry_px)+'</span><span class="geo-open">posizione aperta</span></div>');
+  /* ---------- render: notizie (la notizia + impatto potenziale) ---------- */
+  let newsFilter='*';
+  const NEWS_DIR={up:'▲ rialzo', down:'▼ ribasso', watch:'~ sensibile'};
+  function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function renderNews(){
+    const list=(DATA.news||[]);
+    const fhost=$('#news-filters');
+    if(fhost){
+      fhost.innerHTML='';
+      const lab={'*':'Tutte'}; list.forEach(n=>lab[n.topic]=n.topic_label);
+      ['*',...new Set(list.map(n=>n.topic))].forEach(tp=>{
+        const b=el('button','bchip'+(newsFilter===tp?' active':''));
+        b.textContent=lab[tp]||tp; b.onclick=()=>{ newsFilter=tp; renderNews(); }; fhost.appendChild(b);
+      });
+    }
+    const host=$('#news-cards'); if(!host) return; host.innerHTML='';
+    const rows=list.filter(n=>newsFilter==='*'||n.topic===newsFilter);
+    if(!rows.length){ host.innerHTML=emptyBox('Nessuna notizia','Le notizie raccolte dal sistema (crypto, commodities, macro, azionario, geopolitica) compariranno qui con il loro possibile impatto sugli asset.', false); return; }
+    rows.forEach(n=>{
+      const card=el('div','news-card');
+      const impact=(n.impact||[]).map(i=>'<li><span class="ni-asset">'+escHtml(i.asset)+'</span>'+
+        '<span class="ni-dir '+i.dir+'">'+(NEWS_DIR[i.dir]||i.dir)+'</span>'+
+        '<span class="ni-why">'+escHtml(i.why)+'</span></li>').join('');
       card.innerHTML=
-        '<div class="geo-top"><span class="tk">'+g.symbol+'</span>'+dir+
-          '<span class="acct-pill">Desk geopolitico</span>'+
-          '<span class="dcard-ts num">'+fmtTs(g.opened_at)+'</span></div>'+
-        burstHtml+
-        (g.thesis?('<div class="geo-thesis">'+g.thesis+'</div>'):'')+
-        '<div class="geo-chart">'+chart+'</div>'+
-        resp;
+        '<div class="news-head"><span class="acct-pill">'+escHtml(n.topic_label)+'</span>'+
+          '<span class="n-src">'+escHtml(n.source)+'</span>'+
+          '<span class="n-ts num">'+fmtTs(n.ts)+'</span></div>'+
+        '<div class="news-title">'+escHtml(n.title)+'</div>'+
+        (impact?('<div class="news-impact"><span class="ni-k">Impatto potenziale sul mercato</span><ul>'+impact+'</ul></div>'):'');
       host.appendChild(card);
     });
   }
@@ -2025,7 +2026,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     // devono no-op. Le poche non auto-protette (Accounts/Positions/Lessons/Tree)
     // throwerebbero su DOM mancante: try/catch per-funzione le isola.
     [renderSummary,renderAccounts,renderPositions,renderFeed,renderLessons,
-     renderTree,renderLifecycle,renderEvents,renderGeopolitics,renderStrats,renderBook,
+     renderTree,renderLifecycle,renderEvents,renderNews,renderStrats,renderBook,
      renderPortfolioKpi,renderPortfolioCurve,renderRiskPanel,renderSignalsMatrix,
      renderBacktests,renderPortfoliosLive,renderChangeBanner
     ].forEach(function(fn){ try{ fn(); }catch(e){ console.warn('render', fn.name, e); } });
