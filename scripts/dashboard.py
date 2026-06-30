@@ -30,6 +30,10 @@ ACCOUNT_META = {
     "agents-rr2-v1": {"label": "Agenti RR2", "tag": "A/B agenti · RR2"},
     "claude-strategy-v1": {"label": "Claude strategy", "tag": "trend + flow"},
     "xsmom-port-v1": {"label": "Cross-section momentum", "tag": "book market-neutral"},
+    "highvol-port-v1": {"label": "High-vol anomaly", "tag": "book market-neutral"},
+    "xsmom-multihorizon-v1": {"label": "Momentum multi-orizzonte", "tag": "book market-neutral"},
+    "xsmom-highvol-combo-v1": {"label": "Combo momentum + vol", "tag": "book market-neutral"},
+    "xsmom-highvol-voltarget-v1": {"label": "Combo + vol-target", "tag": "book market-neutral"},
     "glm-regime-confluence-v1": {"label": "GLM regime confluence", "tag": "2 momentum ortogonali"},
 }
 
@@ -99,6 +103,57 @@ STRATEGY_INFO = {
         "entra": "tsmom + xsection_momentum allineati, veto superato, conviction vote 0-4 sufficiente",
         "esce": "stop 2×ATR, target 2R, time-stop 96h",
         "rischio": "leva max 2x, max 1% a rischio per operazione",
+    },
+    "xsmom-port-v1": {
+        "nome": "Cross-section momentum (book)",
+        "cosa": "Non scommette su un singolo asset, ma sulla CLASSIFICA dell'intero paniere: "
+                "ogni settimana compra il terzo più forte delle ultime settimane e vende allo "
+                "scoperto il terzo più debole, in pari misura. Così guadagna dalla differenza "
+                "fra vincitori e perdenti anche se il mercato intero sale o scende: è neutrale "
+                "alla direzione generale.",
+        "entra": "ribilanciamento settimanale: long il terzile più forte, short il più debole del paniere",
+        "esce": "non chiude i singoli trade: ricostruisce il book a ogni ribilanciamento (ogni 168h)",
+        "rischio": "dollar-neutral (long = short), esposizione lorda 1x, nessuno stop per-trade",
+    },
+    "highvol-port-v1": {
+        "nome": "Anomalia high-vol (book)",
+        "cosa": "Nelle crypto gli asset più AGITATI delle ultime 72h tendono a rendere più dei "
+                "più tranquilli su orizzonti medi — l'inverso della classica «low-vol anomaly» "
+                "dei mercati tradizionali. Ogni settimana compra il terzo più volatile e vende "
+                "il terzo più calmo. È un premio al rischio ortogonale al momentum.",
+        "entra": "ribilanciamento settimanale: long il terzile più volatile, short il meno volatile",
+        "esce": "ricostruisce il book a ogni ribilanciamento (ogni 168h)",
+        "rischio": "dollar-neutral, esposizione lorda 1x, nessuno stop per-trade",
+    },
+    "xsmom-multihorizon-v1": {
+        "nome": "Momentum multi-orizzonte (book)",
+        "cosa": "Stesso motore del «cross-section momentum», ma per decidere la classifica "
+                "guarda tre finestre temporali insieme (4, 7 e 14 giorni) e ne fa la media. "
+                "Un asset deve essere forte su più orizzonti per finire fra i long: meno "
+                "sensibile al rumore di una singola settimana.",
+        "entra": "ribilanciamento settimanale sul rank medio di 3 orizzonti (96/168/336h)",
+        "esce": "ricostruisce il book a ogni ribilanciamento (ogni 168h)",
+        "rischio": "dollar-neutral, esposizione lorda 1x, nessuno stop per-trade",
+    },
+    "xsmom-highvol-combo-v1": {
+        "nome": "Combo momentum + volatilità (book)",
+        "cosa": "Fonde i due segnali più solidi e poco correlati del progetto: il momentum "
+                "relativo (chi è più forte nel paniere) e l'anomalia high-vol (chi è più "
+                "agitato). Pesati 70/30, danno una diversificazione genuina — non due nomi "
+                "diversi per lo stesso rischio.",
+        "entra": "ribilanciamento settimanale sul punteggio combinato dei due fattori (70% momentum, 30% vol)",
+        "esce": "ricostruisce il book a ogni ribilanciamento (ogni 168h)",
+        "rischio": "dollar-neutral, esposizione lorda 1x, nessuno stop per-trade",
+    },
+    "xsmom-highvol-voltarget-v1": {
+        "nome": "Combo + freno alla volatilità (book)",
+        "cosa": "La stessa combo momentum + high-vol (qui 50/50), con in più un «freno» "
+                "automatico: quando il book diventa troppo turbolento riduce l'esposizione, "
+                "quando si calma la rialza (vol-target, Moreira-Muir 2017). Obiettivo: "
+                "rendimento più costante e cali più contenuti.",
+        "entra": "ribilanciamento settimanale sul punteggio combinato 50/50, esposizione modulata sulla volatilità",
+        "esce": "ricostruisce il book a ogni ribilanciamento (ogni 168h)",
+        "rischio": "dollar-neutral, esposizione lorda variabile 0,3x–1,5x (target 20% annuo), nessuno stop per-trade",
     },
 }
 
@@ -523,6 +578,7 @@ def build_data() -> dict:
         if "notional" in p or p.get("entry_px", 0) > 0
     }
     TRADEABLE = {"approve", "reduce"}
+    matched_close_ids = set()   # close già rappresentati da una decisione/apertura → no card orfana doppia
     for d in decisions:
         if d.get("stage") != "final":
             continue
@@ -556,6 +612,7 @@ def build_data() -> dict:
                 closed_match = e
                 break
         if closed_match:
+            matched_close_ids.add(id(closed_match))
             outcome = {"closed": True, "reason": closed_match.get("reason"),
                        "pnl_usd": round(closed_match.get("pnl_usd", 0), 2)}
         elif risk_verdict in TRADEABLE and (acct, sym) in open_keys:
@@ -595,6 +652,7 @@ def build_data() -> dict:
                 closed_match = c
                 break
         if closed_match:
+            matched_close_ids.add(id(closed_match))
             outcome = {"closed": True, "reason": closed_match.get("reason"),
                        "pnl_usd": round(closed_match.get("pnl_usd", 0), 2)}
         elif (sid, clean_symbol(e.get("symbol", ""))) in open_keys:
@@ -614,6 +672,46 @@ def build_data() -> dict:
         if outcome is not None:
             rec["outcome"] = outcome
         dec_out.append(rec)
+
+    # ribilanciamenti dei book portfolio (engine:portfolio): non aprono/chiudono trade
+    # singoli, ma il ribilanciamento È la loro decisione → una card per evento rebalance.
+    for e in journal:
+        if e.get("type") != "rebalance":
+            continue
+        sid = e.get("strategy", "")
+        info = STRATEGY_INFO.get(sid, {})
+        w = e.get("weights", {}) or {}
+        longs = [clean_symbol(s) for s, v in w.items() if v and v > 0]
+        shorts = [clean_symbol(s) for s, v in w.items() if v and v < 0]
+        why = (f"Il book «{info.get('nome', sid)}» si è ribilanciato (dollar-neutral): "
+               f"LONG {', '.join(longs) or '—'}; SHORT {', '.join(shorts) or '—'}.")
+        dec_out.append({
+            "ts": ts_short(e.get("logged_at", "")),
+            "symbol": f"book · {len(longs) + len(shorts)} asset",
+            "direction": None, "account": sid,
+            "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
+            "risk_verdict": "sistema", "thesis": why,
+            "invalidation": info.get("esce", "ricostruisce il book al prossimo ribilanciamento"),
+        })
+
+    # chiusure orfane: close senza apertura nel journal (es. backfill) e non già
+    # rappresentate da una decisione/apertura sopra → altrimenti scomparirebbero.
+    for e in journal:
+        if e.get("type") != "close" or id(e) in matched_close_ids:
+            continue
+        sid = e.get("strategy", "")
+        sym = clean_symbol(e.get("symbol", ""))
+        info = STRATEGY_INFO.get(sid, {})
+        dec_out.append({
+            "ts": ts_short(e.get("logged_at", "")), "symbol": sym, "direction": None,
+            "account": sid, "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
+            "risk_verdict": "sistema",
+            "thesis": f"Operazione chiusa su {sym} dal sistema «{info.get('nome', sid)}» "
+                      f"(apertura precedente allo storico disponibile).",
+            "invalidation": "chiusura registrata; l'apertura non è nello storico del journal",
+            "outcome": {"closed": True, "reason": e.get("reason"),
+                        "pnl_usd": round(e.get("pnl_usd", 0), 2)},
+        })
 
     dec_out.sort(key=lambda d: d["ts"], reverse=True)  # cronologico inverso
 
@@ -731,6 +829,54 @@ def build_data() -> dict:
         })
     book.sort(key=lambda t: t["opened_at"], reverse=True)
 
+    # --- sezione geopolitica: news(burst) + grafico asset coinvolto + risposta mercato ---
+    # una card per operazione del desk geopolitico, con la notizia che l'ha innescata
+    # (bursts della decisione), la serie prezzo attorno all'evento e l'esito.
+    geo_final = [d for d in decisions
+                 if d.get("strategy") == "geopolitics-v1" and d.get("stage") == "final"
+                 and d.get("proposal", {}).get("action") == "trade"]
+
+    def _geo_decision(sym, opened):
+        cand = [d for d in geo_final if clean_symbol(d.get("proposal", {}).get("symbol", "")) == sym]
+        before = [d for d in cand if ts_short(d.get("logged_at", "")) <= opened]
+        return max(before or cand, key=lambda d: d.get("logged_at", ""), default=None)
+
+    geo_pending, geo_pairs = {}, []
+    for e in journal:
+        if e.get("strategy") != "geopolitics-v1":
+            continue
+        if e.get("type") == "open":
+            geo_pending[e["symbol"]] = e
+        elif e.get("type") == "close":
+            o = geo_pending.pop(e["symbol"], None)
+            if o:
+                geo_pairs.append((o, e))
+    geo_pairs += [(o, None) for o in geo_pending.values()]
+
+    geo_out = []
+    for o, c in geo_pairs:
+        sym = clean_symbol(o["symbol"])
+        opened = ts_short(o["opened_at"])
+        dec = _geo_decision(sym, opened)
+        p = dec.get("proposal", {}) if dec else {}
+        sign = 1 if o["direction"] == "long" else -1
+        geo_out.append({
+            "symbol": sym, "direction": o["direction"],
+            "status": "closed" if c else "open",
+            "thesis": p.get("thesis", ""), "invalidation": p.get("invalidation", ""),
+            "bursts": (dec.get("bursts") if dec else []) or [],
+            "entry_px": round(o["entry_px"], 6),
+            "exit_px": round(c["exit_px"], 6) if c else None,
+            "pnl_usd": round(c.get("pnl_usd", 0), 2) if c else None,
+            "pnl_pct": round(sign * (c["exit_px"] / o["entry_px"] - 1) * 100, 2) if c else None,
+            "reason": c.get("reason", "") if c else "",
+            "opened_at": opened,
+            "closed_at": ts_short(c.get("ts", c.get("logged_at", ""))) if c else None,
+            "stop_px": round(o.get("stop_px", 0), 6), "target_px": round(o.get("target_px", 0), 6),
+            "chart": chart_series(o["symbol"], o["opened_at"]),
+        })
+    geo_out.sort(key=lambda g: g["opened_at"], reverse=True)
+
     strategies = build_strategies(state)
 
     backtests = {}
@@ -751,6 +897,7 @@ def build_data() -> dict:
         "lifecycle": lifecycle,
         "signals_matrix": signals_matrix("BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV".split(",")),
         "news_events": events, "strategies": strategies, "tradebook": book,
+        "geopolitics": geo_out,
         "backtests": backtests,
         "llm_stats": llm_stats(),
         "portfolio_live": portfolio_live_view(state),
@@ -775,6 +922,7 @@ PAGES = [
     ("lezioni.html",      "Lezioni",      ["lezioni"]),
     ("evoluzione.html",   "Evoluzione",   ["evoluzione"]),
     ("eventi.html",       "Eventi",       ["eventi"]),
+    ("geopolitica.html",  "Geopolitica",  ["geopolitica"]),
     ("llm.html",          "LLM",          ["llm"]),
 ]
 

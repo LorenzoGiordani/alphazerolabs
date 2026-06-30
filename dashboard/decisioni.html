@@ -250,6 +250,25 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .ev-desc{ font-family:var(--serif); font-size:13.5px; color:var(--text-2); line-height:1.5; max-width:440px; }
 .bar-mini{ display:inline-block; vertical-align:middle; }
 
+/* ---------- geopolitica ---------- */
+.geo-grid{ display:flex; flex-direction:column; gap:16px; margin-top:18px; }
+.geo-card{ border:1px solid var(--line); border-radius:var(--r); padding:16px 18px; }
+.geo-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.geo-top .tk{ font-family:var(--mono); font-size:13px; letter-spacing:.06em; }
+.geo-top .dcard-ts{ margin-left:auto; color:var(--text-4); }
+.geo-burst{ display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; font-family:var(--mono); font-size:10.5px;
+  background:rgba(224,162,62,.07); border:1px solid var(--amber-dim); border-radius:8px; padding:7px 11px; margin-bottom:11px; }
+.geo-burst .gb-k{ color:var(--amber); letter-spacing:.12em; text-transform:uppercase; }
+.geo-burst .gb-meta{ color:var(--text-3); }
+.geo-thesis{ font-size:13.5px; color:var(--text-2); line-height:1.5; margin-bottom:6px; }
+.geo-chart{ margin:6px 0 12px; }
+.geo-chart svg{ width:100%; height:auto; display:block; }
+.geo-resp{ display:flex; gap:16px; flex-wrap:wrap; align-items:baseline; font-family:var(--mono); font-size:11px;
+  padding-top:11px; border-top:1px solid var(--line); color:var(--text-3); }
+.geo-resp .geo-reason{ color:var(--text-4); }
+.geo-resp .geo-open{ color:var(--amber); }
+.geo-resp .pos{ color:var(--green); } .geo-resp .neg{ color:var(--red); }
+
 /* ---------- decisions feed ---------- */
 .feed{ display:flex; flex-direction:column; gap:16px; }
 .dcard{
@@ -693,7 +712,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
 <nav class="secnav" id="secnav">
   <div class="wrap secnav-inner">
-    <a href="index.html">Stato</a><a href="strategie.html">Strategie</a><a href="portafogli.html">Portafogli</a><a href="backtest.html">Backtest</a><a href="posizioni.html">Posizioni</a><a href="rischio.html">Rischio</a><a href="decisioni.html" class="active">Decisioni</a><a href="trading-book.html">Trading book</a><a href="lezioni.html">Lezioni</a><a href="evoluzione.html">Evoluzione</a><a href="eventi.html">Eventi</a><a href="llm.html">LLM</a>
+    <a href="index.html">Stato</a><a href="strategie.html">Strategie</a><a href="portafogli.html">Portafogli</a><a href="backtest.html">Backtest</a><a href="posizioni.html">Posizioni</a><a href="rischio.html">Rischio</a><a href="decisioni.html" class="active">Decisioni</a><a href="trading-book.html">Trading book</a><a href="lezioni.html">Lezioni</a><a href="evoluzione.html">Evoluzione</a><a href="eventi.html">Eventi</a><a href="geopolitica.html">Geopolitica</a><a href="llm.html">LLM</a>
   </div>
 </nav>
 
@@ -817,6 +836,27 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   const CHARTS = [];
   function registerChart(wrap, curve){ CHARTS.push({wrap, curve}); drawChart(wrap, curve); }
 
+  // asse X temporale condiviso: ms -> "11 giu · 21:46" via fmtTs
+  function fmtTms(ms){ const x=new Date(ms), p=n=>String(n).padStart(2,'0');
+    return fmtTs(x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate())+' '+p(x.getHours())+':'+p(x.getMinutes())); }
+  function xTimeAxis(svg, Xfn, minT, maxT, yTop, yBottom, xL, xR, nticks, grid){
+    const ns='http://www.w3.org/2000/svg';
+    for(let i=0;i<=nticks;i++){
+      const t=minT+(maxT-minT)*i/nticks, x=Xfn(t);
+      if(grid){ const g=document.createElementNS(ns,'line');
+        g.setAttribute('x1',x);g.setAttribute('x2',x);g.setAttribute('y1',yTop);g.setAttribute('y2',yBottom);
+        g.setAttribute('stroke','var(--line)');g.setAttribute('stroke-width','1');g.setAttribute('opacity','0.18');
+        svg.appendChild(g); }
+      const tx=document.createElementNS(ns,'text');
+      tx.setAttribute('x', i===0?xL : i===nticks?xR : x);
+      tx.setAttribute('y',yBottom+13);
+      tx.setAttribute('text-anchor', i===0?'start' : i===nticks?'end' : 'middle');
+      tx.setAttribute('fill','var(--text-4)');tx.setAttribute('font-size','9');tx.setAttribute('font-family','var(--mono)');
+      tx.textContent=fmtTms(t); svg.appendChild(tx);
+    }
+  }
+  window.xTimeAxis=xTimeAxis;   // serve anche all'altro <script> (renderAggregate)
+
   function drawChart(wrap, curve, animate){
     if(animate===undefined) animate=true;
     const tip = wrap.querySelector('.chart-tip');
@@ -904,14 +944,8 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     dot.setAttribute('cx',ex); dot.setAttribute('cy',ey); dot.setAttribute('r','3'); dot.setAttribute('fill',col);
     svg.appendChild(dot);
 
-    // axis time labels
-    function tlabel(t,anchor,x){
-      const tx=document.createElementNS(svgNS,'text');
-      tx.setAttribute('x',x); tx.setAttribute('y',H-6); tx.setAttribute('text-anchor',anchor);
-      tx.setAttribute('fill','var(--text-4)'); tx.setAttribute('font-size','9'); tx.setAttribute('font-family','var(--mono)');
-      tx.textContent=fmtTs(curve[t][0]); svg.appendChild(tx);
-    }
-    tlabel(0,'start',padL); tlabel(curve.length-1,'end',W-padR);
+    // asse X temporale (più tick, non solo gli estremi)
+    xTimeAxis(svg, X, minT, maxT, padT, padT+ih, padL, W-padR, 3, false);
 
     // hover layer
     const hv=document.createElementNS(svgNS,'line');
@@ -1256,7 +1290,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
         '<div class="dcard-top">'+
           '<span class="dcard-ts num">'+fmtTs(d.ts)+'</span>'+
           '<span class="dcard-asset"><span class="tk">'+d.symbol+'</span>'+
-            '<span class="dir '+d.direction+'">'+(d.direction==='long'?'▲ long':'▼ short')+'</span></span>'+
+            (d.direction?('<span class="dir '+d.direction+'">'+(d.direction==='long'?'▲ long':'▼ short')+'</span>'):'')+'</span>'+
           '<span class="acct-pill">'+acct+'</span>'+
           (d.entry_px!=null?'<span class="dcard-ts num">@ '+px(d.entry_px)+' · '+NF0.format(d.size_usd)+' $</span>':'')+
           '<span class="verdict '+d.risk_verdict+'">'+(VERDICT_IT[d.risk_verdict]||d.risk_verdict)+' '+mult+'</span>'+
@@ -1713,6 +1747,36 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     });
   }
 
+  /* ---------- render: geopolitica (news + grafico asset + risposta mercato) ---------- */
+  function renderGeopolitics(){
+    const host=$('#geo-cards'); if(!host) return; host.innerHTML='';
+    const list=(DATA.geopolitics||[]);
+    if(!list.length){ host.innerHTML=emptyBox('Nessuna operazione geopolitica','Il desk geopolitico opera solo durante un burst di news rilevante. Alla prima posizione comparirà qui la notizia, il grafico dell\'asset coinvolto e la risposta del mercato.', false); return; }
+    list.forEach(g=>{
+      const card=el('div','geo-card');
+      const b=(g.bursts&&g.bursts[0])||null;
+      const burstHtml=b?('<div class="geo-burst"><span class="gb-k">Burst geopolitico</span>'+
+        '<span class="gb-meta">'+fmtTs(b.ts)+' · intensità z '+NF2.format(b.z)+
+        (b.tone!=null?' · tono '+(b.tone>0?'+':'')+NF2.format(b.tone):'')+'</span></div>'):'';
+      const dir='<span class="dir '+g.direction+'">'+(g.direction==='long'?'▲ long':'▼ short')+'</span>';
+      const chart=posChartSVG(g)||'<span class="muted">grafico non disponibile</span>';
+      const resp=(g.status==='closed')
+        ? ('<div class="geo-resp"><span>entrata '+px(g.entry_px)+'</span><span>uscita '+px(g.exit_px)+'</span>'+
+           '<span class="'+clsOf(g.pnl_usd||0)+'">'+signedUsd(g.pnl_usd||0)+' · '+(g.pnl_pct>0?'+':'')+NF2.format(g.pnl_pct||0)+'%</span>'+
+           '<span class="geo-reason">chiusa: '+(REASON_IT[g.reason]||g.reason||'—')+'</span></div>')
+        : ('<div class="geo-resp"><span>entrata '+px(g.entry_px)+'</span><span class="geo-open">posizione aperta</span></div>');
+      card.innerHTML=
+        '<div class="geo-top"><span class="tk">'+g.symbol+'</span>'+dir+
+          '<span class="acct-pill">Desk geopolitico</span>'+
+          '<span class="dcard-ts num">'+fmtTs(g.opened_at)+'</span></div>'+
+        burstHtml+
+        (g.thesis?('<div class="geo-thesis">'+g.thesis+'</div>'):'')+
+        '<div class="geo-chart">'+chart+'</div>'+
+        resp;
+      host.appendChild(card);
+    });
+  }
+
   /* ---------- render: lineage tree ---------- */
   function renderTree(){
     const host=$('#tree'); if(!host) return; host.innerHTML='';
@@ -1937,7 +2001,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     // devono no-op. Le poche non auto-protette (Accounts/Positions/Lessons/Tree)
     // throwerebbero su DOM mancante: try/catch per-funzione le isola.
     [renderSummary,renderAccounts,renderPositions,renderFeed,renderLessons,
-     renderTree,renderLifecycle,renderEvents,renderStrats,renderBook,
+     renderTree,renderLifecycle,renderEvents,renderGeopolitics,renderStrats,renderBook,
      renderPortfolioKpi,renderPortfolioCurve,renderRiskPanel,renderSignalsMatrix,
      renderBacktests,renderPortfoliosLive,renderChangeBanner
     ].forEach(function(fn){ try{ fn(); }catch(e){ console.warn('render', fn.name, e); } });
@@ -2129,6 +2193,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       t.setAttribute('font-size','9.5'); t.setAttribute('font-family','var(--mono)'); t.textContent=NFa(v);
       svg.appendChild(t);
     }
+    if(window.xTimeAxis) window.xTimeAxis(svg, X, minT, maxT, T, H-B, L, W-R, 5, true);   // asse X temporale
     var by=Y(10000);
     var bl=document.createElementNS(svgNS,'line');
     bl.setAttribute('x1',L);bl.setAttribute('x2',W-R);bl.setAttribute('y1',by);bl.setAttribute('y2',by);
