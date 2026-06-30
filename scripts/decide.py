@@ -25,7 +25,9 @@ import numpy as np
 # MAI per sizing (leva/risk/stop). Restituisce le violazioni in `bypassed` invece
 # di `errs`, cosi' il trade passa ma resta tracciato. Da rimuovere dopo il test;
 # il design corretto (clamp, non bypass) e' in docs/TODO-sizing-clamp.md.
-_HARD_BYPASS = bool(os.environ.get("HARD_LIMITS_BYPASS"))
+def _hard_bypass() -> bool:
+    # valutato a runtime (non a import): il runner puo' settarlo da spec.bypass_limits
+    return bool(os.environ.get("HARD_LIMITS_BYPASS"))
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -189,7 +191,7 @@ def hard_check(p: dict, open_positions: int = 0, atr_by_symbol: dict | None = No
 
     def _sizing_violation(msg: str):
         """Registra una violazione di sizing: veto normale, bypass se attivo."""
-        if _HARD_BYPASS:
+        if _hard_bypass():
             bypassed.append(msg)
         else:
             errs.append(msg)

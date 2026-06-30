@@ -15,6 +15,7 @@ isolate dal desk agents-v1. Uso:
 """
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,7 +25,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
-from backtest.lifecycle import all_specs
+from backtest.lifecycle import all_specs, paper_symbols
 from pipeline.live import atomic_write_text, canonical_symbol, fetch_live
 from scripts.decide import ROLES, _ask_role, build_context, hard_check, log_decision
 from scripts.paper_trade import STATE_FILE, log_event, update_position
@@ -91,8 +92,36 @@ def active_bursts(params: dict) -> list[dict]:
             for r in ev.itertuples()]
 
 
+# Leva A: il desk geopolitico ragiona su macro (prezzo/vol/funding/regime), non sui
+# 20 segnali TA meccanici. Compattare a questi scalari taglia ~70% del contesto/asset.
+_DESK_FIELDS = ("price", "atr_pct", "chg_24h", "chg_7d", "funding_8h",
+                "regime_7d", "taker_buy_ratio_24h")
+
+
+def desk_universe(spec: dict) -> list[str]:
+    """Leva B: dall'universo risolto (all_perps, ordinato per liquidita') tieni le
+    classi sempre-rilevanti per la geopolitica (keep_classes: commodity = energy/metals)
+    + i top_crypto piu liquidi. Scarta la coda di alt che la geopolitica non muove."""
+    syms = [s for s in paper_symbols(spec).split(",") if s]
+    uni = spec.get("universe", {})
+    keep = set(uni.get("keep_classes", ["commodity"]))
+    top_crypto = int(uni.get("top_crypto", 10))
+    from backtest.risk import asset_class_of
+    out, ncrypto = [], 0
+    for s in syms:
+        cls = asset_class_of(s)
+        if cls in keep:
+            out.append(s)
+        elif cls == "crypto" and ncrypto < top_crypto:
+            out.append(s)
+            ncrypto += 1
+    return out
+
+
 def run_desk(symbols: list[str], bursts: list[dict], pack: bool) -> dict | None:
     ctx = build_context(symbols)
+    ctx["assets"] = {s: {k: a[k] for k in _DESK_FIELDS if k in a}   # Leva A: compatta
+                     for s, a in ctx["assets"].items()}
     ctx["geopolitical_bursts"] = bursts
     analyst = ANALYST_GEO.format(bursts=json.dumps(bursts, ensure_ascii=False))
     if pack:
@@ -121,8 +150,9 @@ def run_desk(symbols: list[str], bursts: list[dict], pack: bool) -> dict | None:
     return {"proposal": proposal, "risk": risk}
 
 
-def pending_decisions(after_ts: str) -> list[dict]:
-    """Solo le decisioni final di QUESTO account, approvate dal Risk."""
+def pending_decisions(after_ts: str, bypass: bool = False) -> list[dict]:
+    """Decisioni final di QUESTO account approvate dal Risk. Con bypass=True il
+    veto del Risk role e' ignorato: passa ogni proposta di trade (esperimento)."""
     if not DECISIONS.exists():
         return []
     out = []
@@ -133,7 +163,7 @@ def pending_decisions(after_ts: str) -> list[dict]:
         if d.get("logged_at", "") <= after_ts:
             continue
         p, risk = d.get("proposal", {}), d.get("risk", {})
-        if p.get("action") == "trade" and risk.get("verdict") in ("approve", "reduce"):
+        if p.get("action") == "trade" and (bypass or risk.get("verdict") in ("approve", "reduce")):
             out.append(d)
     return out
 
@@ -171,9 +201,15 @@ def open_from_decision(d: dict, equity: float) -> dict | None:
 def main() -> None:
     pack = "--pack" in sys.argv
     spec = load_spec()
-    symbols = spec["paper_symbols"].split(",")
+    # bypass_limits (sperimentale): nessun cap su posizioni/rischio, voglio vedere
+    # il comportamento grezzo del desk. Tiene i check STRUTTURALI di hard_check
+    # (campi mancanti, stop nel rumore) per non far crashare il runner.
+    bypass = bool(spec.get("risk", {}).get("bypass_limits"))
+    if bypass:
+        os.environ["HARD_LIMITS_BYPASS"] = "1"   # → decide.hard_check salta i veto di sizing
+    symbols = desk_universe(spec)   # all_perps → commodity + top_crypto (Leva B)
     gate = next((s["params"] for s in spec.get("signals", []) if s["name"] == "news_event"), {})
-    max_conc = int(spec["risk"]["max_concurrent_positions"])
+    max_conc = 10**9 if bypass else int(spec["risk"]["max_concurrent_positions"])
 
     state = json.loads(STATE_FILE.read_text()) if STATE_FILE.exists() else {}
     st = state.setdefault(ACCOUNT, {"equity": 10_000.0, "positions": {}, "last_decision_ts": ""})
@@ -206,7 +242,7 @@ def main() -> None:
         run_desk(symbols, bursts, pack=False)
 
     # 3. esegui le decisioni nuove di questo account
-    for d in pending_decisions(st["last_decision_ts"]):
+    for d in pending_decisions(st["last_decision_ts"], bypass):
         st["last_decision_ts"] = max(st["last_decision_ts"], d["logged_at"])
         # ponytail: normalizza PRIMA del check (vedi agents_paper.py): "ETH/USD"
         # deve vedere la posizione "ETH" già aperta, altrimenti riapre come duplicato.

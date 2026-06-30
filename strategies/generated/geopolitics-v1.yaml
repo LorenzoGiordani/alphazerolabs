@@ -15,11 +15,11 @@ thesis: 'Layer LLM cross-asset gated sugli eventi geopolitici. news_event(geopol
 
   '
 universe:
-  selection: explicit
-  max_assets: 6
-  kinds:
-  - mixed
-paper_symbols: xyz_CL,xyz_BRENTOIL,xyz_GOLD,xyz_NATGAS,BTC,ETH
+  selection: all_perps          # parte da tutti i perp HL >= volume...
+  min_day_volume_usd: 1000000    # >= 1M$/24h
+  keep_classes: [commodity]      # ...poi tieni energy/metals (canale geopolitico)...
+  top_crypto: 10                 # ...+ i 10 crypto piu liquidi. Resto scartato (token)
+paper_symbols: xyz_CL,xyz_BRENTOIL,xyz_GOLD,xyz_NATGAS,BTC,ETH   # fallback se API HL muta
 timeframe: 1h
 decision_every_h: 4
 signals:
@@ -39,6 +39,7 @@ risk:
   max_leverage: 2
   risk_per_trade_pct: 1.0
   max_concurrent_positions: 2
+  bypass_limits: true   # SPERIMENTALE: nessun cap posizioni + nessun veto rischio/sizing
 evolution:
   mutable:
   - signals

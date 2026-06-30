@@ -20,6 +20,8 @@ thesis: >
   la volatilita'. Falsificata se: in walk-forward non mantiene Sharpe > 1.5, o se
   la correlazione con xsmom sale sopra 0.5 (allora e' momentum mascherato).
 
+universe:
+  selection: all_perps   # tutti i perp HL >= 1M$/24h, risolti live (ex 9 ticker)
 paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
 portfolio:
   vol_lookback_h: 72           # finestra vol (IC sweep: 72 e' il picco)

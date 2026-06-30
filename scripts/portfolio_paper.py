@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
 from backtest.portfolio import xs_momentum_weights
+from backtest.lifecycle import paper_symbols
 from backtest.strategy import load
 from pipeline.live import atomic_write_text, fetch_live
 from scripts.paper_trade import STATE_FILE, log_event
@@ -153,8 +154,7 @@ def main() -> None:
         return
     acct = spec["id"]
     pf = spec["portfolio"]
-    symbols = [s.strip() for s in spec["paper_symbols"].split(",")] if isinstance(spec["paper_symbols"], str) \
-        else list(spec["paper_symbols"])
+    symbols = [s for s in paper_symbols(spec).split(",") if s]   # resolver: rispetta selection:all_perps + exclude
     lookback_h = int(pf["lookback_h"]) if "lookback_h" in pf else int(pf.get("lookbacks_h", [168])[0])
     rebalance_h = int(pf["rebalance_h"])
     gross = float(pf.get("gross", 1.0))

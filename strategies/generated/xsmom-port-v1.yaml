@@ -17,6 +17,8 @@ thesis: 'Cross-sectional momentum a PORTAFOGLIO: long il top-terzile del basket 
   sparisce coi costi reali di ribilanciamento.
 
   '
+universe:
+  selection: all_perps   # tutti i perp HL >= 1M$/24h, risolti live (ex 9 ticker)
 paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
 portfolio:
   lookback_h: 168

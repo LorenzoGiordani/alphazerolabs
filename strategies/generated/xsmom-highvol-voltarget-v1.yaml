@@ -31,6 +31,8 @@ thesis: >
   Falsificata se: in paper l'overlay non abbassa il DD vs la combo senza overlay, o
   se il de-risk e' cosi' aggressivo da uccidere il ritorno (Sharpe < 1.5).
 
+universe:
+  selection: all_perps   # tutti i perp HL >= 1M$/24h, risolti live (ex 9 ticker)
 paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
 portfolio:
   factors: [xsmom, highvol]
