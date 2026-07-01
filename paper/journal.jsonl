@@ -3007,3 +3007,10 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10335.06, "open_positions": 1, "logged_at": "2026-06-30T23:19:17.957702+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-06-30T23:19:18.481251+00:00"}
 {"type": "close", "strategy": "geopolitics-v1", "symbol": "xyz:NATGAS", "reason": "time_stop", "exit_px": 3.25724842, "frac": 1.0, "remaining": 0.0, "pnl_usd": -1.98, "equity": 9999.64, "ts": "2026-06-30 20:00:00+00:00", "logged_at": "2026-06-30T23:19:23.101293+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10335.06, "open_positions": 1, "logged_at": "2026-07-01T00:15:57.944857+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-07-01T00:15:58.479086+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9747.92, "open_positions": 6, "logged_at": "2026-07-01T00:16:48.159375+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10335.06, "open_positions": 1, "logged_at": "2026-07-01T00:23:57.019709+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9976.79, "open_positions": 0, "logged_at": "2026-07-01T00:23:57.532003+00:00"}
+{"type": "close", "strategy": "geopolitics-v1", "symbol": "xyz:NATGAS", "reason": "time_stop", "exit_px": 3.25724842, "frac": 1.0, "remaining": 0.0, "pnl_usd": -1.98, "equity": 9999.64, "ts": "2026-06-30 20:00:00+00:00", "logged_at": "2026-07-01T00:24:03.376799+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9999.64, "open_positions": 1, "logged_at": "2026-07-01T00:26:55.446068+00:00"}
