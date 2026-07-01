@@ -41,32 +41,8 @@
   "positions": {}
  },
  "geopolitics-v1": {
-  "equity": 9999.642716839704,
-  "positions": {
-   "xyz:CL": {
-    "strategy": "geopolitics-v1",
-    "symbol": "xyz:CL",
-    "direction": "long",
-    "entry_px": 70.296056,
-    "size_usd": 2193.97,
-    "stop_px": 68.187175,
-    "target_px": 76.622701,
-    "opened_at": "2026-06-27 01:00:00+00:00",
-    "checked_until": "2026-06-30 23:00:00+00:00",
-    "time_stop_h": 96,
-    "thesis": "LONG WTI Crude Oil su escalation cinetica USA-Iran. Edge causale diretto: il conflitto nel Golfo minaccia fisicamente lo Stretto di Hormuz (~20% del flusso greggio globale), facendo esplodere i premi war-risk sulle assicurazioni marittime. Il posizionamento crea un'asimmetria spietata: CL \u00e8 in regime bear con tsmom -1 e vol_compression (ATR 1.04% compresso). Questo shock esogeno rompe la compressione verso l'ALTO, intrappolando i trend-follower bearish in un violento short-squeeze. Il brief identifica questo come l'edge direzionale pi\u00f9 pulito cross-asset. Si va contro tsmom -1 \u2014 esplicitamente giustificato: un catalyst geopolitico cinetico \u00e8 un evento esogeno che sovrascrive i segnali di momentum basati sui dati storici. I modelli trend-following non possono prezzare un conflitto in corso. Leva moderata (2x) e risk 1% riflettono la natura binaria dell'evento.",
-    "invalidation": "1) De-escalazione diplomatica rapida (cessate il fuoco / negoziato emergenza) \u2014 il risk premium geopolitico collassa e subiamo un vol-crush. 2) Annuncio di rilascio massivo dalle Riserve Strategiche (SPR) da parte della Casa Bianca per inondare il mercato e sopprimere i prezzi. In entrambi i casi, la tesi di supply disruption viene invalidata e il trade va chiuso immediatamente, anche prima dello stop meccanico.",
-    "decision_ts": "2026-06-27T01:24:26.315861+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 70.296056,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-06-30 23:00:00+00:00"
-   }
-  },
+  "equity": 9983.361696372609,
+  "positions": {},
   "last_decision_ts": "2026-07-01T00:26:54.822905+00:00"
  },
  "tsmom-atr-v1": {
@@ -437,31 +413,31 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 9732.941969734416,
+  "equity": 9720.451955110284,
   "positions": {
    "BTC": {
-    "notional": -1652.8423750916493,
-    "px": 59063.0
+    "notional": -1655.8646898489408,
+    "px": 59171.0
    },
    "ETH": {
-    "notional": -1695.1036989523207,
-    "px": 1585.6
+    "notional": -1704.1907205473601,
+    "px": 1594.1
    },
    "XRP": {
-    "notional": -1681.948331885597,
-    "px": 1.0456
+    "notional": -1689.6695943120037,
+    "px": 1.0504
    },
    "WLD": {
-    "notional": 1479.3643945930407,
-    "px": 0.4115
+    "notional": 1488.8912855910276,
+    "px": 0.41415
    },
    "ZEC": {
-    "notional": 1649.6224752776884,
-    "px": 400.69
+    "notional": 1654.6451596966626,
+    "px": 401.91
    },
    "CRV": {
-    "notional": 1640.3495057932494,
-    "px": 0.18886
+    "notional": 1633.1405145308943,
+    "px": 0.18803
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:08.155546+00:00",
@@ -825,15 +801,19 @@
    {
     "ts": "2026-07-01T03:16:02.412461+00:00",
     "eq": 9732.94
+   },
+   {
+    "ts": "2026-07-01T04:16:34.302864+00:00",
+    "eq": 9720.45
    }
   ]
  },
  "xsmom-highvol-combo-v1": {
-  "equity": 10233.883488227677,
+  "equity": 10219.512774762872,
   "positions": {
    "BTC": {
-    "notional": 1639.353896267441,
-    "px": 58581.0
+    "notional": 1655.86468984894,
+    "px": 59171.0
    },
    "SOL": {
     "notional": 1737.051547757619,
@@ -848,8 +828,8 @@
     "px": 1.8477
    },
    "WLD": {
-    "notional": -1458.0097785447233,
-    "px": 0.40556
+    "notional": -1488.8912855910276,
+    "px": 0.41415
    },
    "CRV": {
     "notional": -1640.3495057932491,
@@ -1153,31 +1133,35 @@
    {
     "ts": "2026-06-30T23:16:43.722636+00:00",
     "eq": 10233.88
+   },
+   {
+    "ts": "2026-07-01T04:17:32.723835+00:00",
+    "eq": 10219.51
    }
   ]
  },
  "xsmom-highvol-voltarget-v1": {
-  "equity": 10229.70786194083,
+  "equity": 10249.251971374877,
   "positions": {
    "BTC": {
-    "notional": 1635.8655586086727,
-    "px": 58581.0
+    "notional": 1652.341219310592,
+    "px": 59171.0
    },
    "SOL": {
-    "notional": 1697.3225217732806,
-    "px": 73.472
+    "notional": 1743.4102617414007,
+    "px": 75.467
    },
    "SUI": {
     "notional": 1648.7049404301272,
     "px": 0.69026
    },
    "NEAR": {
-    "notional": -1656.3570087263897,
-    "px": 1.7994
+    "notional": -1695.2943775544022,
+    "px": 1.8417
    },
    "WLD": {
-    "notional": -1465.9425691264694,
-    "px": 0.413
+    "notional": -1470.0244915344488,
+    "px": 0.41415
    },
    "CRV": {
     "notional": -1623.3855810184,
@@ -1485,31 +1469,35 @@
    {
     "ts": "2026-06-30T23:16:47.734098+00:00",
     "eq": 10229.71
+   },
+   {
+    "ts": "2026-07-01T04:18:12.331056+00:00",
+    "eq": 10249.25
    }
   ]
  },
  "xsmom-multihorizon-v1": {
-  "equity": 10275.64309050867,
+  "equity": 10271.978067304814,
   "positions": {
    "BTC": {
-    "notional": 1615.3438188839348,
-    "px": 58479.0
+    "notional": 1634.458679306782,
+    "px": 59171.0
    },
    "SOL": {
-    "notional": 1703.5326414586864,
-    "px": 73.472
+    "notional": 1749.7890060562215,
+    "px": 75.467
    },
    "SUI": {
     "notional": 1680.1355135877618,
     "px": 0.69232
    },
    "NEAR": {
-    "notional": -1596.231637215244,
-    "px": 1.7994
+    "notional": -1633.7555886736216,
+    "px": 1.8417
    },
    "WLD": {
-    "notional": -1487.7912778071263,
-    "px": 0.40556
+    "notional": -1519.303574572989,
+    "px": 0.41415
    },
    "CRV": {
     "notional": -1632.845968399327,
@@ -1721,6 +1709,10 @@
    {
     "ts": "2026-06-30T23:16:50.585900+00:00",
     "eq": 10275.64
+   },
+   {
+    "ts": "2026-07-01T04:19:02.717114+00:00",
+    "eq": 10271.98
    }
   ]
  }
