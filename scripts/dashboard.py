@@ -1002,7 +1002,7 @@ def main() -> None:
         page = page_head + "".join(sections[i] for i in ids) + tail
         atomic_write_text(out_dir / fn, page)
 
-    print(f"dashboard LUX AI → {len(PAGES)} pagine + data.js in {out_dir}")
+    print(f"dashboard AlphaZero Labs → {len(PAGES)} pagine + data.js in {out_dir}")
 
 
 if __name__ == "__main__":

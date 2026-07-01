@@ -3,46 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>LUX AI — desk di ricerca autonomo, in pubblico</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2048%2048'%3E%3Crect%20width='48'%20height='48'%20rx='10'%20fill='%2315120e'/%3E%3Cg%20fill='none'%20stroke='%23e0a23e'%20stroke-width='2.4'%20stroke-linejoin='round'%20stroke-linecap='round'%3E%3Cpolygon%20points='24,8%2037.5,16%2037.5,32%2024,40%2010.5,32%2010.5,16'/%3E%3Cpath%20d='M24,8%20L24,18'/%3E%3Cpath%20d='M37.5,16%20L29,21'/%3E%3Cpath%20d='M37.5,32%20L29,27'/%3E%3Cpath%20d='M24,40%20L24,30'/%3E%3Cpath%20d='M10.5,32%20L19,27'/%3E%3Cpath%20d='M10.5,16%20L19,21'/%3E%3C/g%3E%3C/svg%3E">
+<title>AlphaZero Labs — desk di ricerca autonomo, in pubblico</title>
+<link rel="icon" href="assets/az-mark.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   LUX AI — desk di ricerca autonomo · ricerca in pubblico
-   Single-file static dashboard. Palette: warm financial terminal.
-   Type: Iowan/Palatino serif (titoli, journal) + system mono (numeri).
+   AlphaZero Labs — desk di ricerca autonomo · ricerca in pubblico
+   Single-file static dashboard. Brand System v1.0: monocromatico,
+   il nero è la superficie, il bianco è il segnale.
+   Type: Jost Light (display) + IBM Plex Sans (testo) + IBM Plex Mono (dati).
    ============================================================ */
 
 :root{
-  /* warm near-black terminal */
-  --bg:        #15120e;
-  --bg-2:      #1c1813;
-  --bg-3:      #241f18;
-  --bg-raise:  #2b251d;
-  --line:      #342c22;
-  --line-2:    #463a2c;
+  /* AlphaZero Labs — monochrome ink */
+  --bg:        #000000;   /* Ink — superficie base */
+  --bg-2:      #0B0B0C;   /* Surface — pannelli */
+  --bg-3:      #111114;
+  --bg-raise:  #16161A;
+  --line:      #16161A;   /* Border — hairline */
+  --line-2:    #2A2A2E;
 
-  --text-1:    #f8f2e6;   /* brightest — emphasis */
-  --text:      #ede4d4;
-  --text-2:    #b7ab95;
-  --text-3:    #a3957c;
-  --text-4:    #8a7d66;   /* micro-labels: lifted to meet WCAG AA (≥4.5:1) at 9.5px */
+  --text-1:    #FFFFFF;   /* White — segnale, titoli */
+  --text:      #F2F2F5;
+  --text-2:    #C8C8D0;
+  --text-3:    #9C9CA6;
+  --text-4:    #84848E;   /* micro-labels: AA a 9.5px */
 
-  /* accents — shared chroma family, raffinati */
-  --amber:     #e0a23e;   /* warm signal / reduce / champion */
-  --amber-dim: #8a6a2c;
-  --green:     #6cc086;   /* long / positive / approve */
-  --green-dim: #3c6b50;
-  --red:       #df6a52;   /* short / negative / veto */
-  --red-dim:   #7d4035;
-  --blue:      #7aa6c2;   /* neutral data accent */
+  /* base monocromatica + accento elettrico; semantica P&L viva */
+  --amber:     #4E9EFF;   /* accent — segnale, champion, elementi grafici */
+  --amber-dim: #2B5586;
+  --green:     #3FD68F;   /* long / positivo */
+  --green-dim: #1F6B4A;
+  --red:       #FF7A70;   /* short / negativo */
+  --red-dim:   #8A3B34;
+  --blue:      #5CD6E0;
 
-  --green-wash: rgba(108,192,134,.10);
-  --red-wash:   rgba(223,106,82,.10);
-  --amber-wash: rgba(224,162,62,.10);
+  --green-wash: rgba(63,214,143,.10);
+  --red-wash:   rgba(255,122,112,.10);
+  --amber-wash: rgba(78,158,255,.10);
 
-  --serif: 'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,'Times New Roman',serif;
-  --mono: ui-monospace,'SF Mono',SFMono-Regular,'Menlo','Cascadia Code','Roboto Mono','Liberation Mono',monospace;
-  --sans: ui-sans-serif,system-ui,-apple-system,'Helvetica Neue','Segoe UI',Helvetica,Arial,sans-serif;
+  --serif: 'Jost',ui-sans-serif,system-ui,sans-serif;
+  --mono: 'IBM Plex Mono',ui-monospace,'SF Mono',SFMono-Regular,'Menlo',monospace;
+  --sans: 'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
 
   --maxw: 1180px;
   --r: 4px;
@@ -61,7 +65,7 @@ body{
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
   background-image:
-    radial-gradient(120% 60% at 50% -10%, rgba(224,162,62,.05), transparent 60%);
+    radial-gradient(120% 60% at 50% -10%, rgba(78,158,255,.05), transparent 60%);
   background-attachment:fixed;
 }
 
@@ -73,7 +77,7 @@ body{
 /* ---------- header ---------- */
 header.top{
   position:sticky; top:0; z-index:50;
-  background:rgba(21,18,14,.82);
+  background:rgba(0,0,0,.72);
   backdrop-filter:saturate(140%) blur(12px);
   -webkit-backdrop-filter:saturate(140%) blur(12px);
   border-bottom:1px solid var(--line);
@@ -83,9 +87,8 @@ header.top{
   min-height:62px; padding:9px 22px; max-width:var(--maxw); margin:0 auto;
   flex-wrap:wrap;
 }
-.brand{ display:flex; align-items:baseline; gap:10px; margin-right:auto; }
-.brand-mark{ width:31px; height:31px; flex:none; display:block; align-self:center; }
-.brand-mark .blade{ opacity:.9; }
+.brand{ display:flex; align-items:center; gap:12px; margin-right:auto; }
+.brand-mark{ height:30px; width:auto; flex:none; display:block; align-self:center; }
 .brand .mark{
   font-family:var(--serif); font-weight:700; font-size:23px; letter-spacing:.01em;
   color:var(--text);
@@ -556,7 +559,7 @@ footer .foot-mark b{ color:var(--amber); }
 }
 
 /* ============================================================
-   LUX AI · nof1-inspired redesign layer
+   AlphaZero Labs · nof1-inspired redesign layer
    Manifesto hero · live ticker · aggregate equity · leaderboard
    (preserves all existing classes/IDs; pure visual overlay)
    ============================================================ */
@@ -565,9 +568,9 @@ footer .foot-mark b{ color:var(--amber); }
 .top-inner{ min-height:68px; }
 .brand .mark{ font-size:26px; letter-spacing:.02em; }
 .brand .sub{ font-size:11px; }
-header.top{ background:linear-gradient(180deg,rgba(21,18,14,.93),rgba(21,18,14,.82)); }
+header.top{ background:linear-gradient(180deg,rgba(0,0,0,.86),rgba(0,0,0,.72)); }
 header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; height:1px;
-  background:linear-gradient(90deg,transparent,var(--amber) 16%,var(--amber) 84%,transparent); opacity:.4; }
+  background:linear-gradient(90deg,transparent,var(--amber) 16%,var(--amber) 84%,transparent); opacity:.35; }
 
 /* bolder section headings */
 .sec-head h2{ font-size:25px; letter-spacing:.005em; }
@@ -587,14 +590,14 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   color:var(--amber); }
 .nof-mh{ font-family:var(--serif); font-weight:700; font-size:clamp(28px,4.6vw,48px); line-height:1.07;
   letter-spacing:-.012em; margin:13px 0 16px; color:var(--text-1); max-width:19ch; text-wrap:balance; }
-.nof-mh-d{ color:var(--text-2); font-weight:600; font-style:italic; }
+.nof-mh-d{ color:var(--amber); font-weight:300; }
 .nof-mb{ font-family:var(--serif); font-size:17px; line-height:1.62; color:var(--text-2);
   max-width:66ch; margin:0; text-wrap:pretty; }
 .nof-mrow{ display:flex; flex-wrap:wrap; gap:30px; margin-top:26px; }
 .nof-mc{ font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
   color:var(--text-3); }
-.nof-mc b{ display:block; font-family:var(--mono); font-size:27px; font-weight:600; color:var(--text-1);
-  letter-spacing:-.01em; margin-bottom:3px; font-variant-numeric:tabular-nums; }
+.nof-mc b{ display:block; font-family:var(--serif); font-size:34px; font-weight:300; color:var(--text-1);
+  letter-spacing:.01em; margin-bottom:3px; font-variant-numeric:tabular-nums; line-height:1; }
 @media(max-width:560px){ .nof-mh{ font-size:31px; } .nof-mb{ font-size:15.5px; }
   .nof-mc b{ font-size:22px; } .nof-mrow{ gap:20px 22px; } }
 
@@ -687,6 +690,15 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 .bt-bar .fill{ position:absolute; top:0; bottom:0; left:50%; background:var(--amber); }
 .bt-bar .fill.neg{ background:var(--red,#c96); }
 .bt-th{ font-family:var(--sans); font-size:10.5px; color:var(--text-4); text-transform:uppercase; letter-spacing:.05em; margin:4px 0 8px; }
+
+/* ============================================================
+   AlphaZero Brand System v1.0 — display override:
+   i titoli usano Jost Light 300, mai bold (il peso lo dà il contrasto)
+   ============================================================ */
+h1,h2,h3,h4,
+.brand .mark, .nof-mh, .acct .acct-name, .strat-archive-head h3,
+.strat-card::before, footer .foot-mark{ font-weight:300 !important; }
+.brand .mark b, .foot-mark b{ font-weight:400 !important; }
 </style>
 </head>
 <body>
@@ -694,12 +706,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 <header class="top">
   <div class="top-inner">
     <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 48 48" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
-        <polygon points="24,7 38.7,15.5 38.7,32.5 24,41 9.3,32.5 9.3,15.5"/>
-        <path class="blade" d="M24,7 L24,18"/><path class="blade" d="M38.7,15.5 L29,21"/><path class="blade" d="M38.7,32.5 L29,27"/>
-        <path class="blade" d="M24,41 L24,30"/><path class="blade" d="M9.3,32.5 L19,27"/><path class="blade" d="M9.3,15.5 L19,21"/>
-      </svg>
-      <span class="mark">LUX <b>AI</b></span>
+      <img class="brand-mark" src="assets/az-mark.png" alt="AlphaZero Labs">
       <span class="sub">desk di ricerca autonomo</span>
     </div>
     <span class="badge-paper"><span class="dot"></span>Paper trading — nessun fondo reale</span>
@@ -743,9 +750,9 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
 <footer>
   <div class="wrap">
-    <div class="foot-mark"><svg viewBox="0 0 48 48" width="18" height="18" style="vertical-align:-3px;margin-right:7px" fill="none" stroke="var(--amber)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><polygon points="24,7 38.7,15.5 38.7,32.5 24,41 9.3,32.5 9.3,15.5"/><path d="M24,7 L24,18"/><path d="M38.7,15.5 L29,21"/><path d="M38.7,32.5 L29,27"/><path d="M24,41 L24,30"/><path d="M9.3,32.5 L19,27"/><path d="M9.3,15.5 L19,21"/></svg>LUX <b>AI</b> — ricerca, non consulenza.</div>
+    <div class="foot-mark"><img src="assets/az-mark.png" alt="AlphaZero Labs" style="height:18px;width:auto;vertical-align:-4px;margin-right:10px;opacity:.85"> — ricerca, non consulenza.</div>
     <p class="disc">
-      <b>Disclaimer.</b> LUX AI è un progetto di ricerca sperimentale. Le informazioni qui pubblicate
+      <b>Disclaimer.</b> AlphaZero Labs è un progetto di ricerca sperimentale. Le informazioni qui pubblicate
       hanno finalità esclusivamente illustrative e didattiche e <b>non costituiscono consulenza finanziaria,
       sollecitazione all'investimento o raccomandazione</b> all'acquisto o alla vendita di strumenti finanziari.
       Tutta l'operatività mostrata è <b>paper trading</b>: i saldi sono fittizi (10.000&nbsp;$ iniziali per conto),
@@ -893,8 +900,8 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     // gradient
     const defs=document.createElementNS(svgNS,'defs');
     defs.innerHTML='<linearGradient id="'+fillId+'" x1="0" x2="0" y1="0" y2="1">'+
-      '<stop offset="0" stop-color="'+(up?'#6cc086':'#df6a52')+'" stop-opacity="0.20"/>'+
-      '<stop offset="1" stop-color="'+(up?'#6cc086':'#df6a52')+'" stop-opacity="0"/></linearGradient>';
+      '<stop offset="0" stop-color="'+(up?'#3FD68F':'#FF7A70')+'" stop-opacity="0.18"/>'+
+      '<stop offset="1" stop-color="'+(up?'#3FD68F':'#FF7A70')+'" stop-opacity="0"/></linearGradient>';
     svg.appendChild(defs);
 
     // horizontal gridlines + right-side value axis
@@ -2182,7 +2189,9 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
     var spanT=(maxT-minT)||1, spanV=(maxV-minV)||1;
     var X=function(t){ return L+(t-minT)/spanT*(W-L-R); };
     var Y=function(v){ return T+(1-(v-minV)/spanV)*(H-T-B); };
-    var COL=['var(--amber)','var(--green)','var(--blue)','#c98a5e','#9fb0c4'];
+    /* base mono + accenti: colore riservato agli elementi grafici */
+    var COL=['#4E9EFF','#3FD68F','#B18CFF','#FFB86B','#FF7A70','#5CD6E0','#E6E6EA'];
+    var DASH=[null,null,null,null,null,null,null];
     var NFa=function(v){ return Math.abs(v)>=1000?NF0.format(v):NF2.format(v); };
     var svgNS='http://www.w3.org/2000/svg';
     var svg=document.createElementNS(svgNS,'svg');
@@ -2217,6 +2226,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
       var path=document.createElementNS(svgNS,'path');
       path.setAttribute('d',d); path.setAttribute('fill','none'); path.setAttribute('stroke',col);
       path.setAttribute('stroke-width','2'); path.setAttribute('stroke-linejoin','round'); path.setAttribute('stroke-linecap','round');
+      if(DASH[idx%DASH.length]) path.setAttribute('stroke-dasharray',DASH[idx%DASH.length]);
       svg.appendChild(path);
       var last=c[c.length-1];
       var ex=X(new Date(String(last[0]).replace(' ','T')).getTime()), ey=Y(last[1]);

@@ -34,7 +34,7 @@ jobs:
       - name: deploy dashboard pubblica (lux-ai.pages.dev)
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: |
-          mkdir -p /tmp/lux-deploy && cp dashboard/index.html /tmp/lux-deploy/
+          mkdir -p /tmp/lux-deploy && cp dashboard/index.html /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
           npx -y wrangler@4 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
 
       - name: publish
