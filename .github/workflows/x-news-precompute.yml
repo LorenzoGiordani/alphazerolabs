@@ -1,0 +1,44 @@
+name: x-news-precompute
+
+# Rigenera la cache burst X/Twitter (data/news/x_live.parquet) letta dal desk
+# geopolitics-v1 come fonte di news parallela a GDELT. Fuori dall'hourly paper-run
+# come gli altri precompute: l'API X ha rate-limit/credito da non bruciare sul
+# percorso caldo. Richiede il secret X_BEARER_TOKEN (app-only bearer, tier che
+# abilita /2/tweets/counts/recent). Senza secret il fetch degrada a vuoto: il gate
+# geo resta su GDELT, nessun blocco.
+# Trigger via Cloudflare Worker (lux-paper-cron) come gli altri precompute.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: x-news-precompute
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  precompute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
+
+      - name: refresh burst X
+        env:
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+        run: uv run pipeline/xnews.py --refresh
+
+      - name: publish cache
+        run: |
+          git config user.name "lux-ai-cron"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/news/x_live.parquet
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: x-news precompute $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+            for i in 1 2 3; do
+              git pull --rebase -X theirs origin main && git push origin main && break
+              sleep 5
+            done
+          fi

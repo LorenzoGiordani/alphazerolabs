@@ -82,13 +82,24 @@ def active_bursts(params: dict) -> list[dict]:
             ev = pd.concat([ev, live]).drop_duplicates(subset=["ts", "topic"]) if ev is not None else live
     except Exception as e:
         print(f"  gdelt live fallita ({e}), uso solo parquet precompute", file=sys.stderr)
+    # fonte X (Twitter): burst di chiacchiericcio, stesso schema (ts, topic, z, tone).
+    # Si fonde con GDELT: il gate scatta se ALMENO una fonte segnala un burst sul topic.
+    try:
+        from pipeline.xnews import x_events_cached
+        xev = x_events_cached()
+        if xev is not None and not xev.empty:
+            xev["ts"] = pd.to_datetime(xev["ts"], utc=True)
+            ev = pd.concat([ev, xev]).drop_duplicates(subset=["ts", "topic"]) if ev is not None else xev
+    except Exception as e:
+        print(f"  x news fallita ({e}), uso solo GDELT", file=sys.stderr)
     if ev is None or ev.empty:
         return []
     ev = ev[(ev["topic"] == topic) & (ev["z"] >= min_z)].copy()
     if ev.empty:
         return []
     ev = ev[(now - ev["ts"]) <= pd.Timedelta(hours=max_age_h)]
-    return [{"ts": str(r.ts)[:16], "z": round(float(r.z), 2), "tone": round(float(r.tone), 2)}
+    return [{"ts": str(r.ts)[:16], "z": round(float(r.z), 2),
+             "tone": None if pd.isna(r.tone) else round(float(r.tone), 2)}
             for r in ev.itertuples()]
 
 
