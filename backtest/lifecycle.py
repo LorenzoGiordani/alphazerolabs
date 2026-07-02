@@ -110,8 +110,9 @@ def _journal() -> list[dict]:
 def paper_stats(strategy_id: str) -> dict:
     """Performance paper realizzata di una strategia, da open↔close del journal.
     R-multiple = pnl / capitale a rischio all'apertura — robusto con pochi trade.
-    equity_dd_pct = drawdown corrente vs baseline $10k (da state.json): gate
-    precoce per ritirare strategie in perdita grave anche con pochi trade chiusi.
+    equity_dd_pct = drawdown corrente dal peak storico (equity da state.json,
+    peak dai heartbeat del journal, floor $10k): gate precoce per ritirare
+    strategie in perdita grave anche con pochi trade chiusi.
     basket_sharpe_r / basket_mean_r = mean Sharpe/mean R **per-symbol** poi
     mediato sul basket (regola 5): una strategia che vince su 1 asset e perde
     sugli altri non passa — il pooled stat maschererebbe la concentrazione.
@@ -123,8 +124,16 @@ def paper_stats(strategy_id: str) -> dict:
     nei chiamanti (dashboard/promote)."""
     j = _journal()
     # --- engine:portfolio: equity curve da eventi rebalance/heartbeat ---
-    is_portfolio = any(e.get("type") in ("rebalance", "heartbeat")
-                       and e.get("strategy") == strategy_id for e in j)
+    # Deciso dallo spec (engine == "portfolio"), NON dalla presenza di heartbeat:
+    # tutti gli executor loggano heartbeat, quindi il check sugli eventi
+    # classificava portfolio OGNI strategia e il ramo per-trade (regola 5)
+    # era irraggiungibile. Fallback per spec mancante: solo eventi rebalance.
+    engines = {s.get("id"): s.get("engine") for _, s in all_specs()}
+    if strategy_id in engines:
+        is_portfolio = engines[strategy_id] == "portfolio"
+    else:
+        is_portfolio = any(e.get("type") == "rebalance"
+                           and e.get("strategy") == strategy_id for e in j)
     if is_portfolio:
         eq_pts = [(e.get("logged_at") or e.get("ts"), e.get("equity"))
                   for e in j if e.get("strategy") == strategy_id
@@ -149,7 +158,10 @@ def paper_stats(strategy_id: str) -> dict:
                            "r": e.get("pnl_usd", 0.0) / risk if risk > 0 else 0.0,
                            "symbol": e.get("symbol", "")})
     n = len(closed)
-    # drawdown corrente da state.json (equity unrealized incluse posizioni aperte)
+    # drawdown corrente da state.json (equity unrealized incluse posizioni aperte),
+    # misurato dal PEAK storico (equity nei heartbeat del journal, floor $10k) —
+    # non dal baseline: (eq-10000)/10000 è un ritorno, e una strategia a +50%
+    # che crolla a +20% mostrerebbe "+20%" senza mai far scattare il gate -15%.
     state_path = ROOT / "paper" / "state.json"
     equity_dd_pct = 0.0
     if state_path.exists():
@@ -157,7 +169,11 @@ def paper_stats(strategy_id: str) -> dict:
             st = json.loads(state_path.read_text())
             eq = st.get(strategy_id, {}).get("equity")
             if eq is not None:
-                equity_dd_pct = round((eq - 10000.0) / 10000.0 * 100, 2)
+                peak = max([10000.0, float(eq)] +
+                           [float(e["equity"]) for e in j
+                            if e.get("strategy") == strategy_id
+                            and e.get("equity") is not None])
+                equity_dd_pct = round((float(eq) - peak) / peak * 100, 2)
         except Exception:
             pass
     # per-symbol R-multiples → basket Sharpe/mean R (regola 5: mean per-asset, non pooled)
@@ -226,7 +242,8 @@ def _portfolio_stats(equities: list[float]) -> dict:
         "mean_r": round(float(ret.mean()), 5),      # ritorno per-rebalance (proxy R)
         "sharpe_r": round(sharpe, 3),
         "open_now": 0,                              # il book e' continuo, niente 'open'
-        "equity_dd_pct": round((float(eq[-1]) - base) / base * 100, 2),
+        "equity_dd_pct": round((float(eq[-1]) - max(float(eq.max()), base))
+                               / max(float(eq.max()), base) * 100, 2),  # DD dal peak, non ritorno vs base
         "basket_mean_r": round(float(ret.mean()), 5),
         "basket_sharpe_r": round(sharpe, 3),
         "symbols_traded": 0,

@@ -7,7 +7,7 @@ Per ogni ceppo attivo (champion, o miglior challenger se non c'è champion):
      (il paper trading la prende in carico al prossimo run)
   4. le altre → `candidate` (archiviate, visibili nell'albero)
 
-Pensato per il cron settimanale. Richiede `claude` CLI (piano Pro).
+Pensato per il cron settimanale. LLM via ask_glm (vedi scripts/evolve.py).
 Uso: .venv/bin/python scripts/evolve_auto.py [--n 4] [--months 6] [--dsr 0.90]
 """
 
@@ -20,7 +20,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backtest.lifecycle import active_specs, family, paper_stats, paper_symbols
 from backtest.stats import deflated_sharpe, sharpe_moments
-from scripts.evolve import (OUT_DIR, REGISTRY_DOC, ask_claude, eval_basket,
+from scripts.evolve import (OUT_DIR, REGISTRY_DOC, ask_glm, eval_basket,
                             load_data, validate)
 
 
@@ -59,7 +59,7 @@ Proponi {n} mutazioni in YAML (schema identico al parent). Obiettivo: robustezza
 sul basket, non picchi su singolo asset. Puoi usare `entry.veto` (segnali-gate
 che sospendono entrate, es. news_event come filtro di volatilità)."""
     try:
-        specs = [yaml.safe_load(c["yaml"]) for c in ask_claude(prompt)["candidates"]]
+        specs = [yaml.safe_load(c["yaml"]) for c in ask_glm(prompt)["candidates"]]
     except Exception as e:
         print(f"  generazione LLM fallita: {e}", file=sys.stderr)
         return 0

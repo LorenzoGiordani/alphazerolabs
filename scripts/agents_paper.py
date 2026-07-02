@@ -108,6 +108,15 @@ def main() -> None:
     st = state.setdefault(ACCOUNT, {"equity": 10_000.0, "positions": {}, "last_decision_ts": ""})
     print(f"agents paper run {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC — equity {st['equity']:.2f}$")
 
+    # 0. migra chiavi legacy non canoniche (es. "ETH/USDT" scritte prima del fix
+    # canonical_symbol): fetch_live sulla chiave raw fallirebbe a ogni run e il
+    # time-stop non verrebbe mai valutato (posizione zombie).
+    for k in list(st["positions"]):
+        ck = canonical_symbol(k)
+        if ck and ck != k and ck not in st["positions"]:
+            print(f"  migro chiave posizione {k!r} → {ck!r}")
+            st["positions"][ck] = st["positions"].pop(k)
+
     # 1. aggiorna posizioni aperte
     for symbol in list(st["positions"]):
         pos = st["positions"][symbol]

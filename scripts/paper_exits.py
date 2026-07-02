@@ -32,6 +32,8 @@ def main() -> None:
     state = json.loads(STATE_FILE.read_text())
     retired_ids = {s["id"] for _, s in all_specs() if s.get("status") == "retired"}
     closed = 0
+    dirty = 0  # fill bookati nel journal (anche partial): lo state DEVE seguire,
+               # altrimenti al run dopo la stessa candela viene riprocessata → PnL doppio
     for sid, st in state.items():
         is_retired = sid in retired_ids
         for sym in list(st.get("positions", {})):
@@ -53,18 +55,23 @@ def main() -> None:
                 st["equity"] = _book_fill(pos, pos.get("remaining", 1.0), px, "retired", st["equity"])
                 del st["positions"][sym]
                 closed += 1
+                dirty += 1
                 continue
+            prev_eq, prev_rem = st["equity"], pos.get("remaining", 1.0)
             newpos, st["equity"] = update_position(pos, data["candles"], NO_TIME_STOP,
                                                    st["equity"], data.get("forming"))
             if newpos is None:
                 del st["positions"][sym]
                 closed += 1
+                dirty += 1
             else:
-                st["positions"][sym] = newpos  # checked_until in-memory, persistito solo se c'è una chiusura
+                st["positions"][sym] = newpos  # checked_until in-memory: persistito solo se c'è un fill
+                if st["equity"] != prev_eq or newpos.get("remaining", 1.0) != prev_rem:
+                    dirty += 1   # partial fill bookato nel journal
 
-    if closed:
+    if dirty:
         atomic_write_text(STATE_FILE, json.dumps(state, indent=1, default=str))
-        print(f"exit-check: {closed} posizioni chiuse")
+        print(f"exit-check: {closed} posizioni chiuse, {dirty} fill persistiti")
     else:
         print("exit-check: nessuna uscita")
 
