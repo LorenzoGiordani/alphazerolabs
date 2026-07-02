@@ -115,7 +115,11 @@ jobs:
         run: |
           git config user.name "lux-ai-cron"
           git config user.email "actions@users.noreply.github.com"
-          git add paper/ dashboard/*.html dashboard/data.js data/news/ strategies/
+          # SOLO i file news di cui questo run è owner: gdelt_events/timeline e
+          # x_live appartengono ai workflow precompute (concurrency group diversi);
+          # committare tutta data/news/ + rebase -X theirs scartava i loro dati freschi
+          git add paper/ dashboard/*.html dashboard/data.js strategies/ \
+                  data/news/gdelt_live.parquet data/news/live_archive.jsonl
           if ! git diff --cached --quiet; then
             git commit -m "chore: paper run $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
             for i in 1 2 3; do
