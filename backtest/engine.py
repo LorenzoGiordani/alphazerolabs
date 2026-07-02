@@ -105,6 +105,14 @@ class Backtest:
         unica fonte condivisa col paper engine."""
         df = self.candles.reset_index(drop=True)
         fund_rate = _funding_rate_lookup(df, self.funding_hist, self.funding_hourly)
+        # il callback puo' accettare (history, engine_exp): l'esposizione corrente
+        # dell'engine gli dice se uno stop/target/liquidazione ha chiuso la posizione
+        # (senza feedback riaprirebbe alla barra dopo sullo stesso segnale persistente)
+        import inspect
+        try:
+            takes_exp = len(inspect.signature(strategy).parameters) >= 2
+        except (TypeError, ValueError):
+            takes_exp = False
         if self.impact_k:
             self._adv_usd, self._sigma_h = _liquidity_arrays(df, self.impact_window_h)
         else:
@@ -168,11 +176,12 @@ class Backtest:
             # 3. decisione della strategia su dati ≤ t, fill all'open di t+1
             if i + 1 >= len(df):
                 break
-            out = strategy(df.iloc[: i + 1])
+            cur_exp = pos["exposure"] if pos is not None else 0.0
+            out = (strategy(df.iloc[: i + 1], cur_exp) if takes_exp
+                   else strategy(df.iloc[: i + 1]))
             stop_pct, atrp, exit_cfg = out.get("stop_pct"), out.get("atr_pct"), out.get("exit_cfg", {})
             lev_cap = float(exit_cfg.get("max_leverage", self.max_leverage))
             target = float(np.clip(out["exposure"], -lev_cap, lev_cap))
-            cur_exp = pos["exposure"] if pos is not None else 0.0
             if target != cur_exp:
                 next_open = df.iloc[i + 1].open
                 # chiudi posizione esistente (residuo)

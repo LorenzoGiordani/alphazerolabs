@@ -31,8 +31,8 @@ jobs:
       # dopo il test; design corretto definitivo: docs/TODO-sizing-clamp.md (clamp).
       HARD_LIMITS_BYPASS: "1"
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
 
       - name: dati COT CFTC (settimanali)
         run: uv run scripts/fetch_cot.py || true
@@ -91,7 +91,10 @@ jobs:
 
       - name: sync journal → Supabase (idempotente, gated su credenziali)
         if: env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
-        run: uv run scripts/sync_supabase.py || true
+        # continue-on-error invece di `|| true`: il run prosegue ma lo step
+        # diventa rosso in Actions se righe non sincronizzano (prima: exit 0 muto)
+        continue-on-error: true
+        run: uv run scripts/sync_supabase.py
 
       - name: backtest report (basket multi-asset, honest engine)
         run: uv run scripts/backtest_report.py
@@ -106,7 +109,7 @@ jobs:
         run: |
           mkdir -p /tmp/lux-deploy && cp dashboard/*.html dashboard/data.js /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
           rm -f /tmp/lux-deploy/template.html   # sorgente, non si pubblica
-          npx -y wrangler@4 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
+          npx -y wrangler@4.107.0 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
 
       - name: publish
         run: |

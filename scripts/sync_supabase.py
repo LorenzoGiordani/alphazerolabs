@@ -175,17 +175,36 @@ def map_lessons(records: list[dict]) -> list[dict]:
 
 # ─── trasporto PostgREST ──────────────────────────────────────────────────────
 
-def _upsert(url: str, headers: dict, table: str, rows: list[dict]) -> tuple[int, str]:
-    """POST /rest/v1/<table>?on_conflict=source_key con merge-duplicates.
-    Ritorna (righe inviate, messaggio)."""
-    if not rows:
-        return 0, "vuoto"
-    h = {**headers, "Prefer": "resolution=merge-duplicates,return=minimal"}
-    resp = requests.post(f"{url}/rest/v1/{table}?on_conflict=source_key",
+CHUNK = 500   # righe per POST: un payload unico col journal intero è fragile
+              # (una riga che viola un CHECK faceva fallire TUTTA la tabella)
+
+
+def _post(url: str, h: dict, table: str, rows: list[dict]):
+    return requests.post(f"{url}/rest/v1/{table}?on_conflict=source_key",
                          headers=h, json=rows, timeout=60)
-    if resp.status_code not in (200, 201):
-        return len(rows), f"ERRORE {resp.status_code}: {resp.text[:300]}"
-    return len(rows), "ok"
+
+
+def _upsert(url: str, headers: dict, table: str, rows: list[dict]) -> tuple[int, int, str]:
+    """Upsert a chunk; il chunk che fallisce viene ritentato riga-per-riga così
+    una sola riga marcia non blocca le altre. Ritorna (ok, falliti, messaggio)."""
+    if not rows:
+        return 0, 0, "vuoto"
+    h = {**headers, "Prefer": "resolution=merge-duplicates,return=minimal"}
+    ok, failed, last_err = 0, 0, ""
+    for i in range(0, len(rows), CHUNK):
+        chunk = rows[i:i + CHUNK]
+        resp = _post(url, h, table, chunk)
+        if resp.status_code in (200, 201):
+            ok += len(chunk)
+            continue
+        for row in chunk:   # isola le righe marce
+            r = _post(url, h, table, [row])
+            if r.status_code in (200, 201):
+                ok += 1
+            else:
+                failed += 1
+                last_err = f"{r.status_code}: {r.text[:200]} (source_key={row.get('source_key')})"
+    return ok, failed, (f"ERRORE ultime {failed} righe → {last_err}" if failed else "ok")
 
 
 def main() -> int:
@@ -213,10 +232,14 @@ def main() -> int:
 
     headers = {"apikey": key, "Authorization": f"Bearer {key}",
                "Content-Type": "application/json"}
+    tot_failed = 0
     for table in ("trades", "decisions", "equity_snapshots", "lessons"):
-        n, msg = _upsert(url, headers, table, all_rows.get(table, []))
-        print(f"  {table:<16} {n:>4} righe  {msg}")
-    return 0
+        ok, failed, msg = _upsert(url, headers, table, all_rows.get(table, []))
+        tot_failed += failed
+        print(f"  {table:<16} {ok:>4} ok, {failed} falliti  {msg}")
+    if tot_failed:
+        print(f"[sync] {tot_failed} righe NON sincronizzate", file=sys.stderr)
+    return 1 if tot_failed else 0
 
 
 if __name__ == "__main__":

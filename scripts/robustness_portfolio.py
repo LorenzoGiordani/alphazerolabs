@@ -29,9 +29,15 @@ from backtest.stats import deflated_sharpe
 
 CRYPTO = "BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV"
 PPY = 24 * 365
+# Costi di VALIDAZIONE, passati esplicitamente a PortfolioBacktest: slippage 5 bps,
+# più conservativo dei 2 bps di default dell'engine. (Prima erano costanti locali
+# morte: i backtest giravano coi default = costi -32% di quanto dichiarato.)
 HL_TAKER_FEE = 0.00045
-DEFAULT_SLIPPAGE = 0.0005
-COST = HL_TAKER_FEE + DEFAULT_SLIPPAGE
+VALIDATION_SLIPPAGE = 0.0005
+
+
+def _bt(px):
+    return PortfolioBacktest(px, fee=HL_TAKER_FEE, slippage=VALIDATION_SLIPPAGE)
 
 
 def grid_panel(symbols, months, col="close", kind="candles"):
@@ -107,6 +113,11 @@ SIGNALS = {
                     lb_grid=[24, 48, 72, 96, 168],
                     reb_grid=[48, 72, 168, 336]),
 }
+
+
+# trials REALI del multiple-testing: l'intera griglia lb×reb esplorata da questo
+# studio (28 xsmom + 20 highvol = 48), non un 8 arbitrario che gonfiava il DSR
+N_TRIALS = sum(len(c["lb_grid"]) * len(c["reb_grid"]) for c in SIGNALS.values())
 
 
 def _dsr(ret, n_trials):
@@ -197,7 +208,7 @@ def test_bootstrap(name, px, bt_full, cfg):
 def test_oos(name, px, train_end, cfg):
     b = cfg["builder"]
     px_tr, px_te = px.loc[:train_end], px.loc[train_end:]
-    bt_tr, bt_te = PortfolioBacktest(px_tr), PortfolioBacktest(px_te)
+    bt_tr, bt_te = _bt(px_tr), _bt(px_te)
     print(f"\n[3] TRUE OOS SPLIT — {name}  (train fino al {train_end:%Y-%m-%d}, "
           f"test {len(px_te)}h)")
     # calibra su train: meglio Sharpe (ma penalizza config DD enorme? Sharpe e' risk-adj)
@@ -285,7 +296,7 @@ def test_combo(px, bt_full, train_end, xcfg, hcfg):
 
     # (c) OOS del blend (config origine di entrambe le gambe, mai ricalibrati)
     px_te = px.loc[train_end:]
-    bt_te = PortfolioBacktest(px_te)
+    bt_te = _bt(px_te)
     ret_xs_te = run_book(xcfg["builder"](px_te, xcfg["chosen_lb"]), bt_te,
                          terzile_weights, xcfg["chosen_reb"])[1]
     ret_hv_te = run_book(hcfg["builder"](px_te, hcfg["chosen_lb"]), bt_te,
@@ -308,7 +319,7 @@ def main():
     syms = a.symbols.split(",")
 
     px = grid_panel(syms, a.months)
-    bt_full = PortfolioBacktest(px)
+    bt_full = _bt(px)
     split_idx = int(len(px) * a.train_frac)
     train_end = px.index[split_idx]
     print(f"basket {list(px.columns)} | {len(px)}h "
@@ -326,7 +337,7 @@ def main():
         eq, ret, nreb = run_book(cfg["builder"](px, cfg["chosen_lb"]), bt_full,
                                  terzile_weights, cfg["chosen_reb"])
         r, sh, dd = stats(eq, ret)
-        dsr = _dsr(ret, n_trials=8)
+        dsr = _dsr(ret, n_trials=N_TRIALS)
         print(f"  full-period (riferimento): ret {r:+.1%} Sharpe {sh:.2f} "
               f"maxDD {dd:+.1%} DSR {dsr:.2f} ({nreb} rebal)")
         rf = test_stability(name, px, bt_full, cfg)

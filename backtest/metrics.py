@@ -6,6 +6,18 @@ import pandas as pd
 HOURS_PER_YEAR = 24 * 365
 
 
+def bars_per_year(ts) -> float:
+    """Frequenza annua osservata delle barre dalla serie timestamp.
+    Crypto 24/7 ≈ 8760; asset HIP-3 a sessione ≈ 1600: annualizzare con √8760
+    fisso gonfierebbe lo Sharpe fino a 2.3× sulle commodities."""
+    t = pd.to_datetime(pd.Series(list(ts)), utc=True)
+    n = len(t) - 1
+    if n < 1:
+        return float(HOURS_PER_YEAR)
+    span_y = (t.iloc[-1] - t.iloc[0]).total_seconds() / (365.0 * 24 * 3600)
+    return n / span_y if span_y > 0 else float(HOURS_PER_YEAR)
+
+
 def compute(equity: pd.DataFrame, trades: list) -> dict:
     eq = equity.equity
     rets = eq.pct_change().dropna()
@@ -13,7 +25,7 @@ def compute(equity: pd.DataFrame, trades: list) -> dict:
 
     sharpe = 0.0
     if len(rets) > 1 and rets.std() > 0:
-        sharpe = float(rets.mean() / rets.std() * np.sqrt(HOURS_PER_YEAR))
+        sharpe = float(rets.mean() / rets.std() * np.sqrt(bars_per_year(equity.ts)))
 
     peak = eq.cummax()
     max_dd = float(((eq - peak) / peak).min())

@@ -131,3 +131,39 @@ def test_lessons_mapping():
     assert rows[0]["lesson"] == "fade crowding senza conferma"
     assert rows[0]["tags"] == ["funding", "squeeze"]
     assert rows[0]["verdict"] == "thesis_wrong"
+
+
+def test_upsert_isolates_bad_rows(monkeypatch):
+    """Chunk che fallisce → retry riga-per-riga: la riga marcia non blocca le altre."""
+    import scripts.sync_supabase as ss
+
+    class R:
+        def __init__(self, code, text=""):
+            self.status_code, self.text = code, text
+
+    def fake_post(url, h, table, rows):
+        if any(r["source_key"] == "bad" for r in rows):
+            return R(400, "violates check constraint")
+        return R(201)
+
+    monkeypatch.setattr(ss, "_post", fake_post)
+    rows = [{"source_key": f"r{i}"} for i in range(5)] + [{"source_key": "bad"}]
+    ok, failed, msg = ss._upsert("http://x", {}, "trades", rows)
+    assert ok == 5 and failed == 1
+    assert "bad" in msg
+
+
+def test_upsert_all_good_single_chunk(monkeypatch):
+    import scripts.sync_supabase as ss
+    calls = []
+
+    def fake_post(url, h, table, rows):
+        calls.append(len(rows))
+        class R: status_code, text = 201, ""
+        return R()
+
+    monkeypatch.setattr(ss, "_post", fake_post)
+    rows = [{"source_key": f"r{i}"} for i in range(1200)]
+    ok, failed, msg = ss._upsert("http://x", {}, "trades", rows)
+    assert ok == 1200 and failed == 0 and msg == "ok"
+    assert calls == [500, 500, 200]     # chunking rispettato

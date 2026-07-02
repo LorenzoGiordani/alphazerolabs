@@ -19,6 +19,9 @@ import pandas as pd
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from pipeline.live import atomic_write_parquet  # noqa: E402
+
 OUT_DIR = ROOT / "data/hl_oi"
 HL_INFO = "https://api.hyperliquid.xyz/info"
 
@@ -56,7 +59,7 @@ def main() -> None:
         df = pd.concat([old, df], ignore_index=True)
     # dedup: tieni l'ultima riga per (ts, coin) — rilanci nella stessa ora sovrascrivono
     df = df.drop_duplicates(subset=["ts", "coin"], keep="last").sort_values(["ts", "coin"])
-    df.to_parquet(path, index=False)
+    atomic_write_parquet(df, path)   # storico non rigenerabile: mai troncato a metà scrittura
     hours = df["ts"].nunique()
     print(f"snapshot HL: {df['coin'].nunique()} coin, {hours} ore in {path.name} ({len(df)} righe)")
 

@@ -11,7 +11,7 @@ Regimi (rolling 7g sul sottostante): bull (>+8%), bear (<-8%), chop.
 import numpy as np
 import pandas as pd
 
-from backtest.metrics import HOURS_PER_YEAR
+from backtest.metrics import bars_per_year
 
 
 def regimes(candles: pd.DataFrame, window_h: int = 168, thr: float = 0.08) -> pd.Series:
@@ -22,7 +22,9 @@ def regimes(candles: pd.DataFrame, window_h: int = 168, thr: float = 0.08) -> pd
 
 def _slice_metrics(eq: pd.Series) -> dict:
     rets = eq.pct_change().dropna()
-    sharpe = float(rets.mean() / rets.std() * np.sqrt(HOURS_PER_YEAR)) if len(rets) > 1 and rets.std() > 0 else 0.0
+    # annualizza con la frequenza osservata (index = ts): 24/7 vs sessione HIP-3
+    sharpe = (float(rets.mean() / rets.std() * np.sqrt(bars_per_year(eq.index)))
+              if len(rets) > 1 and rets.std() > 0 else 0.0)
     peak = eq.cummax()
     return {"ret": float(eq.iloc[-1] / eq.iloc[0] - 1), "sharpe": sharpe,
             "maxdd": float(((eq - peak) / peak).min()), "hours": len(eq)}
@@ -41,9 +43,10 @@ def evaluate(equity: pd.DataFrame, candles: pd.DataFrame, n_folds: int = 6) -> d
     reg.index = candles.ts
     reg = reg.reindex(eq.index, method="ffill")
     rets = eq.pct_change().dropna()
+    bpy = bars_per_year(eq.index)   # frequenza nativa della serie, anche per i regimi
     for name, grp in rets.groupby(reg.reindex(rets.index)):
         if len(grp) > 1:
-            sharpe = float(grp.mean() / grp.std() * np.sqrt(HOURS_PER_YEAR)) if grp.std() > 0 else 0.0
+            sharpe = float(grp.mean() / grp.std() * np.sqrt(bpy)) if grp.std() > 0 else 0.0
             out["regimes"][name] = {"ret": float((1 + grp).prod() - 1), "sharpe": sharpe, "hours": len(grp)}
 
     folds_pos = sum(1 for f in out["folds"] if f["ret"] > 0)

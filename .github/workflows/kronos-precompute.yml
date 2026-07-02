@@ -24,12 +24,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
 
-      # repo del modello Kronos (gitignorato qui) — clonato per l'import del predictor
-      - name: clona Kronos
-        run: git clone --depth 1 https://github.com/shiyu-coder/Kronos .kronos
+      # repo del modello Kronos (gitignorato qui) — clonato per l'import del predictor.
+      # PINNATO a SHA: il codice viene ESEGUITO in un job col token contents:write
+      # persistito nel checkout → HEAD flottante di un repo terzo = supply chain.
+      # Per aggiornare: verifica il diff upstream, poi cambia KRONOS_SHA.
+      - name: clona Kronos (pinnato)
+        env:
+          KRONOS_SHA: 67b630e67f6a18c9e9be918d9b4337c960db1e9a   # HEAD verificato 2026-04-13
+        run: |
+          git clone https://github.com/shiyu-coder/Kronos .kronos
+          git -C .kronos checkout --detach "$KRONOS_SHA"
 
       # candele 1h fresche per il contesto del forecast (data/candles/ non e versionata)
       - name: candele basket Lux

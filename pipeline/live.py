@@ -214,6 +214,29 @@ def atomic_write_text(path, text: str) -> None:
         raise
 
 
+def atomic_write_parquet(df, path) -> None:
+    """to_parquet atomico (temp nello stesso dir + os.replace), come
+    atomic_write_text: per gli storici accumulati non rigenerabili
+    (data/hl_snapshot, data/coinalyze_1h) un crash a metà scrittura
+    corromperebbe l'intera storia forward-only."""
+    import os as _os
+    import tempfile as _tf
+    from pathlib import Path as _Path
+    p = _Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = _tf.mkstemp(dir=p.parent, prefix=p.name + ".", suffix=".tmp")
+    _os.close(fd)
+    try:
+        df.to_parquet(tmp, index=False)
+        _os.replace(tmp, p)
+    except BaseException:
+        try:
+            _os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
 def _fetch_hl(symbol: str, lookback_h: int) -> dict:
     """Hyperliquid public info API: candele + funding. Niente taker flow
     (il segnale taker_flow resta neutro — degradazione esplicita, non errore)."""

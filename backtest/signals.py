@@ -315,7 +315,10 @@ def liq_imbalance(data, lookback_d: int = 21, extreme_pct: float = 80,
     d["sig"] = np.where(pct >= extreme_pct, 1, np.where(pct <= 100 - extreme_pct, -1, 0))
     norm = lambda s: pd.to_datetime(s, utc=True).astype("datetime64[ns, UTC]")
     left = pd.DataFrame({"ts": norm(c["ts"])})
-    right = pd.DataFrame({"ts": norm(d["ts"]), "sig": d["sig"]}).sort_values("ts")
+    # ts Coinalyze = INIZIO giornata ma i valori coprono l'intera giornata:
+    # +1g = il daily è usabile solo a giornata chiusa (altrimenti lookahead 24h)
+    right = pd.DataFrame({"ts": norm(d["ts"]) + pd.Timedelta(days=1),
+                          "sig": d["sig"]}).sort_values("ts")
     sig = pd.merge_asof(left, right, on="ts", direction="backward")["sig"]
     out = pd.Series(sig.fillna(0).to_numpy(), index=c.index)
     if edge_only:
@@ -339,7 +342,9 @@ def oi_trend(data, lookback_d: int = 3, price_lb_h: int = 72, min_oi_chg_pct: fl
     d["oi_up"] = (d["oi"].pct_change(lookback_d) > min_oi_chg_pct / 100).astype(int)
     norm = lambda s: pd.to_datetime(s, utc=True).astype("datetime64[ns, UTC]")
     left = pd.DataFrame({"ts": norm(c["ts"])})
-    right = pd.DataFrame({"ts": norm(d["ts"]), "oi_up": d["oi_up"]}).sort_values("ts")
+    # +1g come liq_imbalance: il daily copre l'intera giornata, usabile solo a chiusura
+    right = pd.DataFrame({"ts": norm(d["ts"]) + pd.Timedelta(days=1),
+                          "oi_up": d["oi_up"]}).sort_values("ts")
     oi_up = pd.merge_asof(left, right, on="ts", direction="backward")["oi_up"].fillna(0).to_numpy()
     price_dir = np.sign(c["close"].pct_change(price_lb_h).to_numpy())
     return pd.Series(np.where(oi_up == 1, price_dir, 0), index=c.index).fillna(0)

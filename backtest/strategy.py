@@ -57,13 +57,21 @@ def compile_strategy(spec: dict, data: dict):
     # exposure/stop/ATR CONGELATI all'entry: ricalcolarli ad ogni barra (ATR varia)
     # farebbe driftare l'esposizione target → l'engine chiuderebbe/riaprirebbe ogni
     # barra (churn da fee). Si rivalutano solo alla prossima apertura.
-    state = {"dir": 0.0, "opened_i": None, "exp": 0.0, "stop_pct": None, "atr": None}
+    state = {"dir": 0.0, "opened_i": None, "exp": 0.0, "stop_pct": None, "atr": None,
+             "await_refire": False}
 
-    def strat(history: pd.DataFrame):
+    def strat(history: pd.DataFrame, engine_exp: float | None = None):
         i = len(history) - 1
+        if engine_exp == 0.0 and state["dir"] != 0.0:
+            # l'engine ha chiuso (stop/target/liquidazione): flat + cooldown.
+            # Senza cooldown si riaprirebbe alla barra dopo sullo stesso segnale
+            # persistente (always-in): serve un NUOVO evento (fire spento→riacceso).
+            state.update(dir=0.0, opened_i=None, exp=0.0, await_refire=True)
         if state["dir"] != 0.0 and i - state["opened_i"] >= time_stop:
             state.update(dir=0.0, opened_i=None, exp=0.0)
-        if state["dir"] == 0.0 and fire[i]:
+        if state["await_refire"] and not fire[i]:
+            state["await_refire"] = False
+        if state["dir"] == 0.0 and fire[i] and not state["await_refire"]:
             sp = effective_stop_pct(merged, float(atrp[i]))
             state.update(dir=float(dir_arr[i]), opened_i=i, stop_pct=sp, atr=float(atrp[i]),
                          exp=float(dir_arr[i]) * exposure_for(merged, risk_pct, sp))

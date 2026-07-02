@@ -21,6 +21,7 @@ import requests
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from pipeline.live import atomic_write_parquet  # noqa: E402
 from scripts.fetch_coinalyze import api_key, perp_symbols, aggregate, get  # noqa: E402
 
 OUT_DIR = ROOT / "data/coinalyze_1h"
@@ -53,7 +54,7 @@ def main() -> None:
         if path.exists():
             df = pd.concat([pd.read_parquet(path), df], ignore_index=True)
         df = df.drop_duplicates(subset=["ts"], keep="last").sort_values("ts")
-        df.to_parquet(path, index=False)
+        atomic_write_parquet(df, path)   # storico non rigenerabile: mai troncato a metà scrittura
         span = f"{df.ts.min():%Y-%m-%d}→{df.ts.max():%Y-%m-%d}"
         print(f"  {coin}: {len(df)} ore accumulate ({span}) → data/coinalyze_1h/{coin}.parquet")
 
