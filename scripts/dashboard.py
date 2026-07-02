@@ -339,7 +339,10 @@ def signals_matrix(symbols: list[str]) -> list[dict]:
 
 def chart_series(symbol: str, opened_at: str, pre_h: int = 72) -> list | None:
     """Chiusure orarie da poco prima dell'apertura a ora — per il mini-chart.
-    Prova il feed live; fallback sul parquet storico. None se entrambi falliscono."""
+    Prova il feed live; fallback sul parquet storico. None se entrambi falliscono.
+    Difensivo su opened_at mancante: un record marcio non blocca la build."""
+    if not opened_at:
+        return None
     candles = None
     try:
         sys.path.insert(0, str(ROOT))
@@ -719,8 +722,8 @@ def build_data() -> dict:
         sid = e.get("strategy", "")
         info = STRATEGY_INFO.get(sid, {})
         fired = [SIGNAL_IT.get(k, k) for k, v in e.get("signals_last", {}).items() if v]
-        why = (f"Il sistema «{info.get('nome', sid)}» ha aperto {e['direction']} su "
-               f"{clean_symbol(e['symbol'])}: {', '.join(fired) or 'condizioni della strategia soddisfatte'}.")
+        why = (f"Il sistema «{info.get('nome', sid)}» ha aperto {e.get('direction', '')} su "
+               f"{clean_symbol(e.get('symbol', ''))}: {', '.join(fired) or 'condizioni della strategia soddisfatte'}.")
         # stesso criterio del feed desk: "aperta" solo se la posizione è viva in state
         closed_match = None
         for c in journal:
@@ -737,15 +740,21 @@ def build_data() -> dict:
             outcome = {"closed": False}
         else:
             outcome = None
-        stop_d = abs(e["stop_px"] / e["entry_px"] - 1) * 100
+        # difensivo: un record senza stop_px/entry_px non deve bloccare la build
+        entry = e.get("entry_px") or 0
+        stop = e.get("stop_px")
+        stop_d = abs(stop / entry - 1) * 100 if (stop and entry) else None
         rec = {
             "ts": ts_short(e.get("opened_at", e.get("logged_at", ""))),
-            "symbol": clean_symbol(e["symbol"]), "direction": e["direction"],
+            "symbol": clean_symbol(e.get("symbol", "")), "direction": e.get("direction", ""),
             "account": sid, "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
             "risk_verdict": "sistema", "thesis": why,
-            "entry_px": round(e["entry_px"], 6), "size_usd": round(e["size_usd"], 2),
-            "invalidation": (f"esce da sola se il prezzo va contro del {stop_d:.1f}% (stop), "
-                             f"se raggiunge l'obiettivo (target) o se passa troppo tempo"),
+            "entry_px": round(entry, 6) if entry else None,
+            "size_usd": round(e.get("size_usd", 0) or 0, 2),
+            "invalidation": ((f"esce da sola se il prezzo va contro del {stop_d:.1f}% (stop), "
+                              f"se raggiunge l'obiettivo (target) o se passa troppo tempo")
+                             if stop_d is not None else
+                             "esce da sola per stop, target o time-stop"),
         }
         if outcome is not None:
             rec["outcome"] = outcome
@@ -844,6 +853,7 @@ def build_data() -> dict:
             st = e.get("stats", {}) or {}
             lifecycle.append({"event": e.get("event"), "strategy": e.get("strategy"),
                               "family": e.get("family"), "by": e.get("by"),
+                              "reason": e.get("reason"),   # motivo REALE del retire (non euristica)
                               "sharpe_r": st.get("sharpe_r"), "n_closed": st.get("n_closed"),
                               "ts": ts_short(e.get("logged_at", ""))})
         lifecycle = lifecycle[::-1]

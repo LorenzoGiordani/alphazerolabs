@@ -24,6 +24,8 @@
   --bg-raise:  #16161A;
   --line:      #16161A;   /* Border — hairline */
   --line-2:    #2A2A2E;
+  --rule:      var(--line);   /* alias: le card backtest le usano ma non erano definite */
+  --panel:     var(--bg-2);   /* → il fallback del browser le rendeva fuori brand */
 
   --text-1:    #FFFFFF;   /* White — segnale, titoli */
   --text:      #F2F2F5;
@@ -134,7 +136,7 @@ section:first-of-type{ border-top:0; }
 /* ---------- portfolio summary strip ---------- */
 .portfolio{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-bottom:18px;
   background:var(--line); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; }
-.pf{ background:linear-gradient(180deg,var(--bg-2),#1a160f); padding:15px 18px; }
+.pf{ background:linear-gradient(180deg,var(--bg-2),var(--bg-3)); padding:15px 18px; }
 .pf .l{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); }
 .pf .v{ font-family:var(--mono); font-size:23px; font-weight:600; margin-top:5px; letter-spacing:-.01em;
   font-variant-numeric:tabular-nums; color:var(--text-1); line-height:1; }
@@ -183,7 +185,7 @@ section:first-of-type{ border-top:0; }
 /* ---------- hero accounts ---------- */
 .accounts{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .acct{
-  background:linear-gradient(180deg,var(--bg-2),var(--bg-2) 60%, #1a160f);
+  background:linear-gradient(180deg,var(--bg-2),var(--bg-2) 60%, var(--bg-3));
   border:1px solid var(--line); border-radius:var(--r);
   padding:18px 20px 14px; position:relative; overflow:hidden;
   transition:border-color .16s ease;
@@ -420,6 +422,10 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .pcard.open .pcard-sub{ display:flex; }
 .pcard.open .pcard-chart{ display:block; }
 .pcard.open .pcard-strip{ display:grid; }
+/* le card book-leg non hanno il bottone Dettaglio: gambe e gross/net sempre visibili
+   (prima restavano display:none → book dollar-neutral invisibili in posizioni) */
+.pcard.book-leg .pcard-sub{ display:flex; }
+.pcard.book-leg .pcard-strip{ display:grid; }
 .pcard-legend{ display:flex; flex-wrap:wrap; gap:14px; padding:10px 0 4px; font-family:var(--mono);
   font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-4); }
 .pcard-legend .sw{ display:inline-block; width:10px; height:2px; vertical-align:middle; margin-right:5px; }
@@ -603,11 +609,11 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
 /* ---------- live ticker ---------- */
 .nof-ticker{ margin:0 0 28px; border:1px solid var(--line); border-radius:var(--r);
-  background:linear-gradient(180deg,var(--bg-2),#17130d); overflow:hidden; position:relative; }
+  background:linear-gradient(180deg,var(--bg-2),var(--bg-3)); overflow:hidden; position:relative; }
 .nof-ticker::before, .nof-ticker::after{ content:""; position:absolute; top:0; bottom:0; width:46px;
   z-index:2; pointer-events:none; }
-.nof-ticker::before{ left:0; background:linear-gradient(90deg,#17130d,transparent); }
-.nof-ticker::after{ right:0; background:linear-gradient(270deg,#17130d,transparent); }
+.nof-ticker::before{ left:0; background:linear-gradient(90deg,var(--bg-3),transparent); }
+.nof-ticker::after{ right:0; background:linear-gradient(270deg,var(--bg-3),transparent); }
 .tk-track{ display:flex; gap:34px; padding:12px 20px; white-space:nowrap; width:max-content;
   animation:tkScroll 42s linear infinite; }
 .tk-item{ display:inline-flex; align-items:baseline; gap:7px; flex:none; }
@@ -620,7 +626,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
 /* ---------- aggregate equity ---------- */
 .nof-agg{ margin:0 0 24px; border:1px solid var(--line); border-radius:var(--r);
-  background:linear-gradient(180deg,var(--bg-2),#17130d); padding:16px 18px 14px; }
+  background:linear-gradient(180deg,var(--bg-2),var(--bg-3)); padding:16px 18px 14px; }
 .nof-agg-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:6px; flex-wrap:wrap; }
 .nof-agg-head .kicker{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
   color:var(--amber); }
@@ -807,15 +813,18 @@ h1,h2,h3,h4,
   const LVERD_IT   = { thesis_wrong:'tesi errata', execution_issue:'problema esecuzione', thesis_right:'tesi corretta' };
   const ACCT_SHORT = {};
 
-  function fmtTs(s){ // "2026-06-11 21:46" -> "11 giu · 21:46"
+  function fmtTs(s){ // "2026-06-11 21:46" (UTC) -> "11 giu · 23:46" in ora LOCALE
+    // i ts del journal sono UTC naive: mostrarli com'erano li sfasava di 1-2h per
+    // gli utenti CET. Parse esplicito come UTC (+Z) e display nel fuso del browser.
     if(!s) return '';
     const m = String(s).replace('T',' ').match(/(\d{4})-(\d{2})-(\d{2})[ ]?(\d{2})?:?(\d{2})?/);
     if(!m) return s;
     const months=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
-    const d = parseInt(m[3],10), mo = months[parseInt(m[2],10)-1];
-    let out = d+' '+mo;
-    if(m[4]) out += ' · '+m[4]+':'+m[5];
-    return out;
+    if(!m[4]) return parseInt(m[3],10)+' '+months[parseInt(m[2],10)-1];
+    const d = new Date(m[1]+'-'+m[2]+'-'+m[3]+'T'+m[4]+':'+m[5]+':00Z');
+    if(isNaN(d)) return s;
+    return d.getDate()+' '+months[d.getMonth()]+' · '+
+      String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   }
   function sinceFrom(s){ // "aperta da"
     const t = new Date(String(s).replace(' ','T')+'Z').getTime();
@@ -1250,6 +1259,7 @@ h1,h2,h3,h4,
     return h;
   }
   let decFilter='*', decVerdict='*', decState='*';
+  let decShown=60;   // paginazione: 400+ card in DOM rendevano la pagina pesante
   const VERDICT_PICKS=[['*','Tutti'],['approve','Approva'],['reduce','Riduci'],['veto','Veto'],['sistema','Automatica']];
   const STATE_PICKS=[['*','Tutte'],['open','Aperta'],['closed','Chiusa']];
   function feedRow(d){
@@ -1269,7 +1279,7 @@ h1,h2,h3,h4,
       fhost.innerHTML='';
       const seen=new Map();
       (DATA.decisions||[]).forEach(d=>{ if(d.account&&!seen.has(d.account)) seen.set(d.account, d.account_label||d.account); });
-      const mk=(host,id,label,cur,setter)=>{ const b=el('button','bchip'+(cur===id?' active':'')); b.textContent=label; b.onclick=()=>{ setter(id); renderFeed(); }; host.appendChild(b); };
+      const mk=(host,id,label,cur,setter)=>{ const b=el('button','bchip'+(cur===id?' active':'')); b.textContent=label; b.onclick=()=>{ setter(id); decShown=60; renderFeed(); }; host.appendChild(b); };
       mk(fhost,'*','Tutte',decFilter,v=>decFilter=v);
       seen.forEach((label,id)=>mk(fhost,id,label,decFilter,v=>decFilter=v));
       if(vhost){ vhost.innerHTML=''; VERDICT_PICKS.forEach(([id,l])=>mk(vhost,id,l,decVerdict,v=>decVerdict=v)); }
@@ -1281,7 +1291,7 @@ h1,h2,h3,h4,
       host.innerHTML=emptyBox('Nessuna decisione corrisponde ai filtri',(DATA.decisions||[]).length?'Nessuna decisione corrisponde ai filtri attivi. Modifica conto, verdetto o stato, oppure torna a \"Tutte\".':'Il desk LLM e le strategie sistematiche emettono decisioni ogni 4h con tesi falsificabili e veto del Risk Manager. Saranno pubblicate qui man mano.', false);
       return;
     }
-    rows.forEach(d=>{
+    rows.slice(0, decShown).forEach(d=>{
       const card=el('div','dcard v-'+d.risk_verdict);
       let out='';
       if(d.outcome){
@@ -1313,6 +1323,13 @@ h1,h2,h3,h4,
         out;
       host.appendChild(card);
     });
+    if(rows.length>decShown){
+      const more=el('button','bchip');
+      more.style.cssText='display:block;margin:14px auto;padding:8px 22px';
+      more.textContent='Mostra altre '+Math.min(60, rows.length-decShown)+' (di '+(rows.length-decShown)+' rimanenti)';
+      more.onclick=()=>{ decShown+=60; renderFeed(); };
+      host.appendChild(more);
+    }
   }
 
   /* ---------- render: lessons ---------- */
@@ -1341,7 +1358,10 @@ h1,h2,h3,h4,
     const host=$('#strats'); if(!host) return; host.innerHTML='';
     const ST_IT={champion:'campione',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata'};
     const all=DATA.strategies||[];
-    const active=all.filter(s=>s.status!=='retired');
+    // il badge #1/#2/#3 è un counter CSS: senza sort mostrava l'ordine dei FILE.
+    // Ordina per PnL paper realizzato (il numero visibile sulla card).
+    const active=all.filter(s=>s.status!=='retired')
+      .sort((a,b)=>(((b.stats||{}).total_pnl)||0)-(((a.stats||{}).total_pnl)||0));
     const retired=all.filter(s=>s.status==='retired');
     const renderCard=(s,archived)=>{
       const card=el('div','strat-card');
@@ -1350,11 +1370,16 @@ h1,h2,h3,h4,
       const stat=s.status?'<span class="s-stat '+escHtml(s.status)+'">'+escHtml(ST_IT[s.status]||s.status)+'</span>':'';
       const paper=((s.stats&&s.stats.n_closed)?'<div class="s-row" style="margin-top:6px"><span class="s-k">Paper</span><span class="num">'+
         s.stats.n_closed+'t · WR '+Math.round((s.stats.win_rate||0)*100)+'% · <span class="'+clsOf(s.stats.total_pnl||0)+'">'+signedUsd(s.stats.total_pnl||0)+'</span></span></div>':'');
+      // motivo dal lifecycle.jsonl (evento retire reale); euristica solo come fallback
+      const lcRetire=(DATA.lifecycle||[]).find(e=>e.event==='retire'&&e.strategy===s.id);
+      const REASON_LC={drawdown_breach:'drawdown oltre soglia', losing:'perdente su basket'};
+      const motivo=(lcRetire&&lcRetire.reason)?(REASON_LC[lcRetire.reason]||lcRetire.reason)
+        :(s.stats?(s.stats.mean_r<0?'perdente su basket':(s.stats.sharpe_r<-1?'Sharpe critico':'drawdown')):'');
       const reason=(archived&&s.stats)?'<div class="strat-retire-reason">'+
         (s.stats.sharpe_r!=null?'<span><b>Sharpe</b> '+NF2.format(s.stats.sharpe_r)+'</span>':'')+
         (s.stats.mean_r!=null?'<span><b>R medio</b> '+NF2.format(s.stats.mean_r)+'</span>':'')+
         (s.stats.n_closed?'<span><b>Trade</b> '+s.stats.n_closed+'</span>':'')+
-        '<span><b>Motivo</b> '+(s.stats.mean_r<0?'perdente su basket':(s.stats.sharpe_r<-1?'Sharpe critico':'drawdown'))+'</span></div>':'';
+        '<span><b>Motivo</b> '+escHtml(motivo)+'</span></div>':'';
       card.innerHTML =
         '<div class="s-head"><h3>'+escHtml(s.nome)+'</h3>'+stat+'</div>'+
         (tags?'<div class="s-tags">'+tags+'</div>':'')+
@@ -1582,19 +1607,19 @@ h1,h2,h3,h4,
         }
       });
       if(!any) return;
-      // equity + net/gross in header/footer
+      // equity + net/gross in header/footer. Nodi presi per POSIZIONE nel div
+      // destro del head: [0]=equity, [1]=delta (prima: heads[last] = delta →
+      // l'equity live finiva nel nodo sbagliato e l'equity restava stantia).
       const wr=eq-10000;
-      const heads=card.querySelectorAll('.pfl-head .pfl-meta');
-      // ultimo .pfl-meta del head = equity+delta
-      const eqNode=heads[heads.length-1]; if(eqNode){
-        eqNode.innerHTML=NF2.format(eq)+' $<br><span class="'+clsOf(wr)+'">'+signedUsd(wr)+' ('+pctSigned(wr/10000*100)+')</span>';
-        eqNode.style.color='var(--text-1)';
-      }
+      const metas=card.querySelectorAll('.pfl-head > div:last-child .pfl-meta');
+      if(metas[0]) metas[0].textContent=NF2.format(eq)+' $';
+      if(metas[1]){ metas[1].className='pfl-meta '+clsOf(wr); metas[1].textContent=signedUsd(wr)+' ('+pctSigned(wr/10000*100)+')'; }
       const foot=card.querySelector('.pfl-foot'); if(foot){
-        const spans=foot.querySelectorAll('span');
-        // [gross][net][...]: aggiorna gross (0) e net (1)
-        if(spans[1]) spans[1].innerHTML='<b>Gross</b> '+NF0.format(gross)+' $';
-        if(spans[2]) spans[2].innerHTML='<b>Net</b> <span class="'+(net>0?'pos':net<0?'neg':'')+'">'+signedUsd(net)+' $</span>';
+        // solo gli span FIGLI diretti: querySelectorAll('span') contava anche lo
+        // span annidato dentro Net → il Gross veniva scritto sul Net (doppio Gross)
+        const spans=foot.querySelectorAll(':scope > span');
+        if(spans[0]) spans[0].innerHTML='<b>Gross</b> '+NF0.format(gross)+' $';
+        if(spans[1]) spans[1].innerHTML='<b>Net</b> <span class="'+(net>0?'pos':net<0?'neg':'')+'">'+signedUsd(net)+' $</span>';
       }
     });
   }
@@ -2024,7 +2049,10 @@ h1,h2,h3,h4,
   // ricarica i dati pipeline (eventi/decisioni/trade chiusi) senza reload pagina
   async function refreshData(){
     try{
-      const r=await fetch('data.js?_='+Date.now(),{cache:'no-store'});
+      // no-cache (NON no-store + cache-bust): revalidation con ETag → 304 quasi
+      // gratis quando data.js non è cambiato. Prima: 810KB riscaricati e riparsati
+      // a ogni giro, e col secondo poller del ticker ~50MB/h per tab.
+      const r=await fetch('data.js',{cache:'no-cache'});
       if(!r.ok) return;
       const txt=await r.text();
       const m=txt.match(/window\.__DATA__\s*=\s*([\s\S]*?);\s*$/);
@@ -2032,6 +2060,7 @@ h1,h2,h3,h4,
       const fresh=JSON.parse(m[1]);
       if(!fresh.updated_utc || fresh.updated_utc===DATA.updated_utc) return;  // niente di nuovo
       DATA=fresh; setHeaderTs(); renderAll(); loadChartBases(); updateAccountsLive();
+      window.dispatchEvent(new CustomEvent('lux:data',{detail:fresh}));  // notifica il ticker (poller unico)
     }catch(e){ /* riprova al giro dopo */ }
   }
 
@@ -2110,7 +2139,9 @@ h1,h2,h3,h4,
   function getHeld(){
     var held=[];
     (D.accounts||[]).forEach(function(a){ (a.positions||[]).forEach(function(p){ if(held.indexOf(p.symbol)<0) held.push(p.symbol); }); });
-    ['BTC','ETH','SOL','XAU','WTI','SPX','NVDA','XAG'].forEach(function(s){ if(held.indexOf(s)<0) held.push(s); });
+    // fallback SOLO simboli con fonte prezzo reale (Binance): XAU/WTI/SPX/NVDA/XAG
+    // erano voci demo permanentemente a "—"
+    ['BTC','ETH','SOL'].forEach(function(s){ if(held.indexOf(s)<0) held.push(s); });
     return held;
   }
   function lastPx(sym){
@@ -2123,7 +2154,8 @@ h1,h2,h3,h4,
     map=map||{};
     var items=getHeld().map(function(s){
       var v=map[s]; var live=isFinite(v)&&v>0; var p=live?v:lastPx(s);
-      return '<span class="tk-item"><span class="tk-s">'+escHtml(s)+'</span><span class="tk-p'+(live?' live':'')+'">'+(p!=null?px(p):'—')+'</span></span>';
+      if(p==null) return '';   // niente prezzo da nessuna fonte → niente voce "—"
+      return '<span class="tk-item"><span class="tk-s">'+escHtml(s)+'</span><span class="tk-p'+(live?' live':'')+'">'+px(p)+'</span></span>';
     }).join('');
     if(ticker) ticker.innerHTML='<div class="tk-track">'+items+items+'</div>'; /* duplicate for seamless scroll */
   }
@@ -2259,18 +2291,10 @@ h1,h2,h3,h4,
   // re-render aggregate ogni 2s usando i prezzi live WS HL (window.LUX_LIVE) — l'IIFE li aggiorna
   setInterval(renderAggregate, 2000);
 
-  /* ---------- keep in sync with IIFE refresh (re-fetch page data) ---------- */
-  function refresh(){
-    fetch('data.js?_='+Date.now(),{cache:'no-store'})
-      .then(function(r){ return r.text(); })
-      .then(function(txt){
-        var m=txt.match(/window\.__DATA__\s*=\s*([\s\S]*?);\s*$/);
-        if(!m) return; var nd; try{ nd=JSON.parse(m[1]); }catch(e){ return; }
-        if(!nd.updated_utc || nd.updated_utc===D.updated_utc) return;
-        D=nd; fillCounts(); renderAggregate(); if(ticker) renderTicker();
-      }).catch(function(){});
-  }
-  setInterval(refresh, 60000);
+  /* ---------- sync col poller unico (refreshData): niente secondo fetch ---------- */
+  window.addEventListener('lux:data', function(ev){
+    D=ev.detail; fillCounts(); renderAggregate(); if(ticker) renderTicker();
+  });
 })();
 </script>
 </body>
