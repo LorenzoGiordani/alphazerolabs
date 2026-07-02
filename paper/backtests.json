@@ -2,7 +2,7 @@
  "months": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-02T12:20 UTC",
+ "generated_at": "2026-07-02T14:30 UTC",
  "strategies": [
   {
    "id": "highvol-port-v1",
@@ -14,8 +14,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.56,
-    "mean_return": 0.2863,
+    "mean_sharpe": 1.08,
+    "mean_return": 0.1799,
     "worst_drawdown": -0.1414,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
@@ -32,9 +32,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.55,
-    "mean_return": 0.066,
-    "worst_drawdown": -0.1441,
+    "mean_sharpe": 0.89,
+    "mean_return": 0.1252,
+    "worst_drawdown": -0.1405,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -50,11 +50,11 @@
    "basket_size": 9,
    "vol_target": "on (m medio 0.85)",
    "aggregate": {
-    "mean_sharpe": 0.53,
-    "mean_return": 0.0524,
-    "worst_drawdown": -0.1343,
+    "mean_sharpe": 1.06,
+    "mean_return": 0.1216,
+    "worst_drawdown": -0.1122,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -68,11 +68,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.31,
-    "mean_return": 0.207,
-    "worst_drawdown": -0.1456,
+    "mean_sharpe": 1.07,
+    "mean_return": 0.1606,
+    "worst_drawdown": -0.1623,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -86,9 +86,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.49,
-    "mean_return": 0.057,
-    "worst_drawdown": -0.1441,
+    "mean_sharpe": 0.88,
+    "mean_return": 0.1249,
+    "worst_drawdown": -0.1497,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
