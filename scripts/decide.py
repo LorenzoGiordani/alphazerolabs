@@ -70,8 +70,12 @@ def aggregate_proposals(votes: list[dict]) -> dict:
     """Self-consistency: majority vote fra N proposte dello Strategist.
 
     - maggioranza (>=) di no_trade → no_trade (la prudenza domina)
-    - altrimenti plurality su (symbol, direction); i campi numerici sono la media
-      delle proposte allineate (riduce la varianza di un singolo sample LLM)
+    - trade vince solo con maggioranza STRETTA dei voti validi su
+      (symbol canonico, direction) — una plurality 1/3 non è consenso, è il
+      flip-di-moneta che la self-consistency doveva eliminare → no_trade
+    - symbol canonicalizzato PRIMA del raggruppamento ("SOL/USDT" e "SOL"
+      sono lo stesso voto, non due fazioni)
+    - i campi numerici sono la media delle proposte allineate
     Ritorna la proposta + metadati sc_votes/sc_consensus per il tracing."""
     from collections import Counter
     valid = [v for v in votes if isinstance(v, dict)]
@@ -83,9 +87,13 @@ def aggregate_proposals(votes: list[dict]) -> dict:
     trades = [v for v in valid if v.get("action") == "trade"]
     if not trades:
         return {"action": "no_trade", "sc_votes": len(votes), "sc_consensus": 0}
-    key = Counter((v.get("symbol"), v.get("direction")) for v in trades).most_common(1)[0][0]
-    aligned = [v for v in trades if (v.get("symbol"), v.get("direction")) == key]
+    _key = lambda v: (canonical_symbol(v.get("symbol")), v.get("direction"))
+    key = Counter(_key(v) for v in trades).most_common(1)[0][0]
+    aligned = [v for v in trades if _key(v) == key]
+    if len(aligned) * 2 <= len(valid):  # niente maggioranza → prudenza
+        return {"action": "no_trade", "sc_votes": len(votes), "sc_consensus": len(aligned)}
     rep = dict(aligned[0])
+    rep["symbol"] = key[0]              # forma canonica, non quella del primo voto
     for f in ("leverage", "risk_pct", "stop_pct", "target_r", "time_stop_h"):
         nums = [v[f] for v in aligned if isinstance(v.get(f), (int, float))]
         if nums:
@@ -210,7 +218,10 @@ def hard_check(p: dict, open_positions: int = 0, atr_by_symbol: dict | None = No
         errs.append(f"stop_pct {p.get('stop_pct')} < min {lo} (stop obbligatorio)")
     # stop dentro il rumore (< 1 ATR) = noise-stop: causa #1 degli execution_issue.
     # Veto strutturale SEMPRE (non e' sizing, e' qualita' del trade).
-    atrp = (atr_by_symbol or {}).get(p.get("symbol"))
+    # lookup su symbol canonico: le chiavi di ctx["assets"] sono canoniche, la
+    # proposta LLM spesso no ("SOL/USDT") → senza normalizzare il check ATR
+    # veniva saltato in silenzio proprio sui trade da vetoare
+    atrp = (atr_by_symbol or {}).get(canonical_symbol(p.get("symbol")))
     if atrp and atrp > 0:
         floor = HARD_LIMITS["min_stop_atr_mult"] * atrp
         if stop < floor:

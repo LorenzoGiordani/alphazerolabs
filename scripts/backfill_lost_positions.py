@@ -129,7 +129,8 @@ def backfill_position(decision: dict, state: dict) -> str:
 
     sign = 1 if p["direction"] == "long" else -1
     stop_pct = float(p["stop_pct"]) / 100
-    mult = float(risk.get("size_multiplier", 1.0))
+    # clamp [0,1], stesso guard degli executor live
+    mult = max(0.0, min(1.0, float(risk.get("size_multiplier", 1.0))))
     equity = float(state[ACCOUNT]["equity"])
     exposure = min(float(p["leverage"]), float(p["risk_pct"]) * mult / float(p["stop_pct"]))
     px = float(last["close"]) * (1 + sign * DEFAULT_SLIPPAGE)   # stesso slippage del desk

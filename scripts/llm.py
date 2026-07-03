@@ -56,11 +56,12 @@ EFFORT_MAX_TOKENS = {"max": 48000, "medium": 16000, "low": 8000, "none": OUTPUT_
 
 # Pattern di errore LLM NON transiente (quota/auth/credit): un retry non li
 # risolve. Derivati da errori reali OpenRouter + residui generici. Testabili
-# senza rete.
+# senza rete. NB: "rate_limit_error" NON è qui — un 429 da burst passa col
+# backoff, e il ramo status-code in _post lo ritenta già.
 NON_TRANSIENT_ERRORS = (
     "usage limit reached", "weekly usage limit", "resets in",
     "insufficient balance", "insufficient credit", "insufficient credits",
-    "insufficient_quota", "rate_limit_error",
+    "insufficient_quota",
     "unauthorized", "invalid api key", "invalid_api_key",
     "authentication failed", "authentication_failed", "permission_denied",
     "not_entitled", "no credit", "payment required",

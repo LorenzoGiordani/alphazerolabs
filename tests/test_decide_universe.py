@@ -22,6 +22,14 @@ def test_stop_above_atr_ok():
     assert errs == []
 
 
+def test_stop_below_atr_vetoed_with_noncanonical_symbol():
+    # proposta LLM "WLD/USDT" vs chiave canonica "WLD": il check ATR deve
+    # scattare lo stesso (prima veniva saltato in silenzio)
+    errs = hard_check({**BASE, "symbol": "WLD/USDT", "stop_pct": 3.0},
+                      atr_by_symbol={"WLD": 4.0})
+    assert any("ATR" in e for e in errs)
+
+
 def test_atr_rule_skipped_without_context():
     # senza atr_by_symbol (es. --check) la regola ATR non si applica
     errs = hard_check({**BASE, "stop_pct": 3.0})

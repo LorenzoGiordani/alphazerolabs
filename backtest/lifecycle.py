@@ -188,7 +188,10 @@ def paper_stats(strategy_id: str) -> dict:
             continue   # Sharpe richiede ≥2 trade per stimare la deviazione
         m = sum(rs) / len(rs)
         sd = (sum((r - m) ** 2 for r in rs) / (len(rs) - 1)) ** 0.5
-        per_symbol_sharpe.append(m / sd * (len(rs) ** 0.5) if sd > 0 else 0.0)
+        # sd≈0 (R quasi identici, es. due target uguali con rounding float) fa
+        # esplodere la t-stat che poi domina la media del basket: epsilon + clamp
+        t = m / sd * (len(rs) ** 0.5) if sd > 1e-9 else 0.0
+        per_symbol_sharpe.append(max(-20.0, min(20.0, t)))
     basket_sharpe_r = round(sum(per_symbol_sharpe) / len(per_symbol_sharpe), 3) if per_symbol_sharpe else 0.0
     if n == 0:
         return {"n_closed": 0, "total_pnl": 0.0, "win_rate": 0.0,

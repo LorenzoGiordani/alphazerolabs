@@ -79,6 +79,22 @@ def test_paper_stats_basket_concentration_penalty(tmp_path, monkeypatch):
     assert st["symbols_traded"] == 2
 
 
+def test_paper_stats_basket_sharpe_sd_near_zero(tmp_path, monkeypatch):
+    """R quasi identici (sd≈0 ma non 0 per rounding float): la t-stat per-symbol
+    non deve esplodere e dominare la media del basket (epsilon + clamp ±20)."""
+    rows = []
+    rows += _trade("test-strat", "BTC", 50.0)
+    rows += _trade("test-strat", "BTC", 50.0 + 1e-7)   # sd ~ 1e-12
+    # secondo simbolo con sd sana, per verificare che la media resti sensata
+    rows += _trade("test-strat", "ETH", 40.0)
+    rows += _trade("test-strat", "ETH", 60.0)
+    _write_journal(tmp_path, rows)
+    monkeypatch.setattr("backtest.lifecycle.JOURNAL", tmp_path / "journal.jsonl")
+    monkeypatch.setattr("backtest.lifecycle.ROOT", tmp_path)
+    st = paper_stats("test-strat")
+    assert abs(st["basket_sharpe_r"]) <= 20.0
+
+
 def test_paper_stats_equity_dd_pct(tmp_path, monkeypatch):
     """equity_dd_pct legge da state.json (regola P1-b)."""
     rows = []

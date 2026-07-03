@@ -109,6 +109,20 @@ def test_funding_erosion_triggers_mtm_liquidation():
     assert not any(t["reason"] == "liquidated" for t in bt_legacy.trades)
 
 
+# --- MMR attivo disattiva la soglia legacy 1/lev (liquidazioni spurie) ---
+def test_mmr_disables_legacy_threshold():
+    """Long leva 2 che INCASSA funding: al flush a 50 (soglia legacy 1/lev)
+    l'account equity resta ampiamente sopra MMR -> col MTM attivo NESSUNA
+    liquidazione. Prima del fix il check legacy girava comunque (ignorando il
+    collaterale accumulato) e liquidava in modo spurio."""
+    px = [100.0] * 6 + [50.0] * 4
+    c = _candles(px)
+    bt = Backtest(c, max_leverage=2.0, funding_hourly=-0.05,
+                  maintenance_margin_frac=0.01)
+    bt.run(_strat(2.0, 80, 2.0))
+    assert not any(t["reason"] == "liquidated" for t in bt.trades)
+
+
 # --- MMR piu' alto = liquida prima -> lascia piu' equity residua ---
 def test_higher_mmr_leaves_more_residual():
     px = [100.0] * 3 + [50.0] * 4   # flush -50%, leva 3

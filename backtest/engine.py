@@ -144,7 +144,10 @@ class Backtest:
                         self._log_trade(pos, worst_px, remaining, row.ts, "liquidated",
                                         pnl_override=equity - equity_before)
                         pos = None
-                if pos is not None:
+                # legacy 1/leva SOLO senza MMR: la soglia fissa sull'entry ignora
+                # P&L realizzato da partial e funding gia' scontati dall'equity →
+                # con MMR attivo produrrebbe liquidazioni spurie post-partial
+                if pos is not None and not self.maintenance_margin_frac:
                     lev = abs(pos["exposure"])
                     liq_px = pos["entry_px"] * (1 - sign / lev)
                     if (row.low <= liq_px) if sign > 0 else (row.high >= liq_px):

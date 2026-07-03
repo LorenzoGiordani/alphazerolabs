@@ -1,5 +1,6 @@
 """Dati live per pipeline e paper trading (Binance fapi + RSS news, gratis)."""
 
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -294,6 +295,20 @@ def open_interest_24h(symbol: str) -> dict | None:
         return None
 
 
+_CTRL_CHARS = re.compile(r"[\x00-\x1f\x7f\u2028\u2029]")
+
+
+def sanitize_headline(text, max_len: int = 240) -> str:
+    """Neutralizza un titolo RSS prima che finisca in un prompt decisionale.
+
+    Fonte esterna NON fidata (prompt injection): collassa newline/caratteri di
+    controllo (un '\\n' nel titolo permette di fingere nuove sezioni o ruoli del
+    prompt) e tronca. Il titolo resta testo su UNA riga dentro il suo bullet."""
+    t = _CTRL_CHARS.sub(" ", str(text or ""))
+    t = " ".join(t.split())
+    return t[:max_len].strip()
+
+
 def news_headlines(max_age_h: int = 36) -> list[dict]:
     """Titoli RSS recenti, timestampati. Fonti gratuite e affidabili."""
     cutoff = datetime.now(timezone.utc) - timedelta(hours=max_age_h)
@@ -303,7 +318,7 @@ def news_headlines(max_age_h: int = 36) -> list[dict]:
             r = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
             root = ElementTree.fromstring(r.content)
             for item in root.iter("item"):
-                title = item.findtext("title", "").strip()
+                title = sanitize_headline(item.findtext("title", ""))
                 pub = item.findtext("pubDate", "")
                 try:
                     ts = pd.to_datetime(pub, utc=True)

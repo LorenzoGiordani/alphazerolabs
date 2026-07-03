@@ -190,7 +190,8 @@ def open_from_decision(d: dict, equity: float) -> dict | None:
     last = data["candles"].iloc[-1]
     sign = 1 if p["direction"] == "long" else -1
     stop_pct = float(p["stop_pct"]) / 100
-    mult = float(d["risk"].get("size_multiplier", 1.0))
+    # clamp [0,1]: multiplier emesso via LLM — un "reduce" con 3.0 aumenterebbe la size
+    mult = max(0.0, min(1.0, float(d["risk"].get("size_multiplier", 1.0))))
     exposure = min(float(p["leverage"]), float(p["risk_pct"]) * mult / float(p["stop_pct"]))
     px = float(last.close) * (1 + sign * DEFAULT_SLIPPAGE)
     pos = {
