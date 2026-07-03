@@ -15,7 +15,7 @@
     "stop_px": 77.0414052,
     "target_px": 91.9103964036,
     "opened_at": "2026-07-02 18:00:00+00:00",
-    "checked_until": "2026-07-02 22:00:00+00:00",
+    "checked_until": "2026-07-02 23:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "SOL long: funding negativo (-0.69% APR) in regime bull con prezzo +22.6% 7d = divergenza rara di posizionamento. I long sono sottoposizionati mentre il trend accelera \u2014 struttura compressa pronta per short squeeze. Le lessons del journal indicavano funding negativo + RS come 'polvere da sparo' in cerca di un fiammifero: la news Securitize tokenizza $295M su Solana \u00e8 il trigger fondamentale reale che mancava nei tentativi precedenti. Tsmom=1 (lux component attivo) + vwap_z=1 confermano momentum qualitativo, non solo drift. Catalizzatori near-term: squeeze residuo dal funding negativo + esecuzione flussi istituzionali Securitize + rotazione alt verso il leader cross-section. Nota: lux_confluence non completo \u2014 il desk non ha edge sistem\u00e1tico confermato, quindi rischio conservativo (1% portfolio, 3x lev). Vado comunque perch\u00e9 la combinazione funding negativo + catalizzatore reale + tsmom attivo \u00e8 un setup asimmetrico che le lessons identificano come ad alta potenzialit\u00e0 quando il fiammifero arriva. Stop 5% (>= ATR contestuale di SOL in regime di elevated vol post +22% 7d, fuori dal rumore), sotto VWAP daily come da bull thesis.",
     "invalidation": "Funding flip a positivo senza espansione di volume + perdita del VWAP daily con chiusura 4h sotto. Se il prezzo fa lower-low sul timeframe 4h dopo l'entry, la struttura di momentum della tesi \u00e8 rotta.",
@@ -27,7 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-02 22:00:00+00:00"
+    "_last_ts": "2026-07-02 23:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-07-02T19:22:07.696649+00:00"
@@ -473,31 +473,31 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 9720.450418377948,
+  "equity": 9729.45674979549,
   "positions": {
    "BTC": {
-    "notional": -1720.4246911921916,
-    "px": 61478.0
+    "notional": -1723.4749903453837,
+    "px": 61587.0
    },
    "ETH": {
-    "notional": -1814.4109471883694,
-    "px": 1697.2
+    "notional": -1818.7940987812708,
+    "px": 1701.3
    },
    "XRP": {
-    "notional": -1742.7532734935498,
-    "px": 1.0834
+    "notional": -1749.0267992150052,
+    "px": 1.0873
    },
    "WLD": {
-    "notional": 1435.9721023871155,
-    "px": 0.39943
+    "notional": 1453.6957146965774,
+    "px": 0.40436
    },
    "ZEC": {
-    "notional": 1779.3477097382429,
-    "px": 432.2
+    "notional": 1789.7224349315343,
+    "px": 434.72
    },
    "CRV": {
-    "notional": 1789.219518126704,
-    "px": 0.206
+    "notional": 1783.8344885090414,
+    "px": 0.20538
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:08.155546+00:00",
@@ -1037,6 +1037,10 @@
    {
     "ts": "2026-07-02T23:15:37.331282+00:00",
     "eq": 9720.45
+   },
+   {
+    "ts": "2026-07-03T00:15:33.523719+00:00",
+    "eq": 9729.46
    }
   ]
  },
@@ -1489,27 +1493,31 @@
    {
     "ts": "2026-07-02T23:16:26.887960+00:00",
     "eq": 10504.3
+   },
+   {
+    "ts": "2026-07-03T00:16:38.339868+00:00",
+    "eq": 10504.3
    }
   ]
  },
  "xsmom-highvol-voltarget-v1": {
-  "equity": 10380.11223810095,
+  "equity": 10371.982958289373,
   "positions": {
    "BTC": {
     "notional": 1720.5057748587012,
     "px": 61612.0
    },
    "SOL": {
-    "notional": 1872.9872710051516,
-    "px": 81.076
+    "notional": 1865.5023448148404,
+    "px": 80.752
    },
    "SUI": {
     "notional": 1758.959366371446,
     "px": 0.73642
    },
    "NEAR": {
-    "notional": -1789.0938547074643,
-    "px": 1.9436
+    "notional": -1789.7382083287314,
+    "px": 1.9443
    },
    "WLD": {
     "notional": -1414.7233166506946,
@@ -1921,6 +1929,10 @@
    {
     "ts": "2026-07-02T22:16:45.166920+00:00",
     "eq": 10380.11
+   },
+   {
+    "ts": "2026-07-03T00:16:40.990793+00:00",
+    "eq": 10371.98
    }
   ]
  },
@@ -2240,6 +2252,10 @@
    },
    {
     "ts": "2026-07-02T23:16:31.484306+00:00",
+    "eq": 10409.28
+   },
+   {
+    "ts": "2026-07-03T00:16:43.979676+00:00",
     "eq": 10409.28
    }
   ]
