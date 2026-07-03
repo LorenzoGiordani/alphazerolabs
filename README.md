@@ -229,6 +229,15 @@ Suite di test verde (**98 pass**). Sessione di audit + bugfix:
 - **Cleanup lint**: import inutilizzati, variabili morte, `NameError` latente (`notional` non definito in `test_impact.py`) risolti. `ruff --select F` pulito.
 - `.gitignore`: tooling temporaneo di live-render/screenshot del design skill (`scripts/_render_*.js`, `scripts/_shot_*.png`).
 
+### Audit a 4 assi & remediation (02–03/07)
+Code review completa (motore backtest · layer decisionale/evolutivo · pipeline/infra/security · dashboard) → **79 finding**. Tutti i tecnici chiusi, **148 test verdi**.
+
+- **7 CRITICAL** (commit `24d1811`/`4b556ea`): `is_portfolio` dallo spec engine, non dagli heartbeat (root cause del doppio win-rate e delle ritirazioni su numeri gonfiati); `equity_dd_pct` dal peak, non vs capitale iniziale; `ask_glm` al posto di `ask_claude` (loop evolutivo morto da settimane per ImportError mascherato); XSS escaping su tutti i campi LLM/journal nella dashboard; deploy `*.html` completo (non solo index); self-heal chiavi posizione non canoniche; persist state su ogni fill (niente PnL doppio sui partial).
+- **HIGH/MEDIUM** (commit `25b297a`/`10ff58e`/`a4fb921`/`6ccc5a9`/`3ec0218`): lookahead 24h su segnali daily Coinalyze rimosso; niente riapertura post-stop sullo stesso segnale persistente; `bars_per_year` osservata (Sharpe non piú gonfiato 2.3× su commodities); costi validazione e DSR `N_TRIALS` dal grid reale; upsert chunked+retry per Supabase; scritture atomiche degli storici; **majority vote** con maggioranza vera + symbol canonicalizzato; liquidazione legacy 1/leva disattivata con MMR; `size_multiplier` clampato [0,1]; 429 ritentato; `sanitize_headline` anti prompt-injection sui titoli RSS; `basket_sharpe_r` con epsilon+clamp; self-consistency N=3 sul desk geopolitics; pairing reviewer close→open cronologico.
+- **Security/infra**: rotazione dei due token esposti (**GH_PAT** + **CLOUDFLARE_API_TOKEN**); GitHub Actions e clone Kronos pinnati a SHA, wrangler a versione esatta; **RLS abilitato** sulle 4 tabelle Supabase del vault (erano in `public` senza RLS); rimossi i bypass sperimentali (`HARD_LIMITS_BYPASS`, `bypass_limits`) → limiti hard di nuovo attivi su tutti i desk.
+
+Rapporto integrale + log operativo nel vault dedicato (`AlphaZero Labs Vault/`).
+
 ## Riferimenti
 
 [TradingAgents](https://github.com/TauricResearch/TradingAgents) (pattern, non i numeri) · [Kronos](https://github.com/shiyu-coder/Kronos) · [FINSABER](https://arxiv.org/abs/2505.07078) · [Profit Mirage](https://arxiv.org/abs/2510.07920) · [TSMOM](https://quantpedia.com/strategies/time-series-momentum-effect) · [nof1 Alpha Arena](https://nof1.ai/)
