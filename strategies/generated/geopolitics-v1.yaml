@@ -39,7 +39,6 @@ risk:
   max_leverage: 2
   risk_per_trade_pct: 1.0
   max_concurrent_positions: 2
-  bypass_limits: true   # SPERIMENTALE: nessun cap posizioni + nessun veto rischio/sizing
 evolution:
   mutable:
   - signals

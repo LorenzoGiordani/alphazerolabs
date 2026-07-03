@@ -25,11 +25,6 @@ jobs:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      # BYPASS TEMPORANEO: l'hard_check (tier 1) non vetoa per sizing (leva/risk/
-      # stop-alto) — decide tutto il risk manager LLM (tier 2). Le veto strutturali
-      # (stop nel rumore, max posizioni, tesi mancanti) restano attive. Da rimuovere
-      # dopo il test; design corretto definitivo: docs/TODO-sizing-clamp.md (clamp).
-      HARD_LIMITS_BYPASS: "1"
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
