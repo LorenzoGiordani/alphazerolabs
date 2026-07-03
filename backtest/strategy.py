@@ -91,11 +91,20 @@ def _eval_rule(rule: str, sigs: pd.DataFrame) -> pd.Series:
     return pd.Series(np.logical_or.reduce(or_parts), index=sigs.index)
 
 
+# gate 0/+1 mai negativi (vedi docstring in signals.py): votarli sposterebbe
+# sistematicamente la somma verso long — dal voto direzionale restano fuori
+NON_DIRECTIONAL = {"vol_compression", "volume_surge", "news_event", "kronos_vol",
+                   "hmm_regime", "oi_buildup", "efficiency_ratio"}
+
+
 def _direction(spec_dir: str, sigs: pd.DataFrame) -> pd.Series:
     aliases = {"with_breakout": "follow:range_breakout", "contrarian_funding": "contrarian:funding_percentile"}
     d = aliases.get(spec_dir, spec_dir)
     if d == "signal_vote":
-        return np.sign(sigs.sum(axis=1))
+        dir_cols = [c for c in sigs.columns if c not in NON_DIRECTIONAL]
+        if not dir_cols:
+            return pd.Series(0.0, index=sigs.index)
+        return np.sign(sigs[dir_cols].sum(axis=1))
     mode, name = d.split(":")
     base = sigs[name]
     return base if mode == "follow" else -base

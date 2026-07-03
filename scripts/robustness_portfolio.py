@@ -207,7 +207,9 @@ def test_bootstrap(name, px, bt_full, cfg):
 # ════════════════════════════════════════════════════════════════════════════
 def test_oos(name, px, train_end, cfg):
     b = cfg["builder"]
-    px_tr, px_te = px.loc[:train_end], px.loc[train_end:]
+    # test strettamente DOPO train_end: .loc[train_end:] includeva la barra
+    # di confine in entrambi i set (overlap di 1 barra train/test)
+    px_tr, px_te = px.loc[:train_end], px.loc[px.index > train_end]
     bt_tr, bt_te = _bt(px_tr), _bt(px_te)
     print(f"\n[3] TRUE OOS SPLIT — {name}  (train fino al {train_end:%Y-%m-%d}, "
           f"test {len(px_te)}h)")

@@ -155,15 +155,18 @@ class Backtest:
                         self._log_trade(pos, liq_px, pos["remaining"], row.ts, "liquidated")
                         pos = None
                 if pos is not None:
+                    # funding sul nozionale a inizio barra (long paga se rate>0):
+                    # addebitato PRIMA delle uscite — prima pagava solo se la
+                    # posizione sopravviveva, quindi la barra d'uscita era gratis
+                    equity -= pos["size_usd"] * pos["remaining"] * fund_rate[i] * sign
                     slip = self._effective_slippage(i, pos["size_usd"] * pos["remaining"])
                     for frac, px, reason in step_exit(pos, row.high, row.low, slip):
                         equity += pos["size_usd"] * frac * (px / pos["entry_px"] - 1) * sign
-                        equity -= pos["size_usd"] * frac * self.fee
+                        # fee sul nozionale d'USCITA (qty × prezzo di exit), non d'entrata
+                        equity -= pos["size_usd"] * frac * (px / pos["entry_px"]) * self.fee
                         self._log_trade(pos, px, frac, row.ts, reason)
                     if pos["remaining"] <= 1e-9:
                         pos = None
-                    else:  # funding sul nozionale residuo (long paga se rate>0)
-                        equity -= pos["size_usd"] * pos["remaining"] * fund_rate[i] * sign
 
             if equity <= 0:
                 equity = 0.0
@@ -192,7 +195,7 @@ class Backtest:
                     slip = self._effective_slippage(i, pos["size_usd"] * pos["remaining"])
                     px = next_open * (1 - slip if pos["sign"] > 0 else 1 + slip)
                     equity += pos["size_usd"] * pos["remaining"] * (px / pos["entry_px"] - 1) * pos["sign"]
-                    equity -= pos["size_usd"] * pos["remaining"] * self.fee
+                    equity -= pos["size_usd"] * pos["remaining"] * (px / pos["entry_px"]) * self.fee
                     self._log_trade(pos, px, pos["remaining"], df.iloc[i + 1].ts, "closed")
                     pos = None
                 # apri nuova

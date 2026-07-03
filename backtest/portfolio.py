@@ -64,8 +64,10 @@ class PortfolioBacktest:
         # pesi decisi a t, applicati dal bar successivo (no lookahead)
         port_ret = (W.shift(1) * self.ret).sum(axis=1) - turnover * self.cost
         equity = (1.0 + port_ret).cumprod()
+        # NaN è truthy: `mean() or 0.0` con selezione vuota restava NaN
+        tv = turnover[turnover > 0]
         meta = {"rebalances": int((turnover > 0).sum()),
-                "turnover_mean": float(turnover[turnover > 0].mean() or 0.0),
+                "turnover_mean": float(tv.mean()) if len(tv) else 0.0,
                 "avg_gross": float(W.abs().sum(axis=1).replace(0, np.nan).mean())}
         return equity, port_ret, meta
 
