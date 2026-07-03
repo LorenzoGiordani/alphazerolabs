@@ -15,7 +15,7 @@
     "stop_px": 77.0414052,
     "target_px": 91.9103964036,
     "opened_at": "2026-07-02 18:00:00+00:00",
-    "checked_until": "2026-07-03 04:00:00+00:00",
+    "checked_until": "2026-07-03 05:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "SOL long: funding negativo (-0.69% APR) in regime bull con prezzo +22.6% 7d = divergenza rara di posizionamento. I long sono sottoposizionati mentre il trend accelera \u2014 struttura compressa pronta per short squeeze. Le lessons del journal indicavano funding negativo + RS come 'polvere da sparo' in cerca di un fiammifero: la news Securitize tokenizza $295M su Solana \u00e8 il trigger fondamentale reale che mancava nei tentativi precedenti. Tsmom=1 (lux component attivo) + vwap_z=1 confermano momentum qualitativo, non solo drift. Catalizzatori near-term: squeeze residuo dal funding negativo + esecuzione flussi istituzionali Securitize + rotazione alt verso il leader cross-section. Nota: lux_confluence non completo \u2014 il desk non ha edge sistem\u00e1tico confermato, quindi rischio conservativo (1% portfolio, 3x lev). Vado comunque perch\u00e9 la combinazione funding negativo + catalizzatore reale + tsmom attivo \u00e8 un setup asimmetrico che le lessons identificano come ad alta potenzialit\u00e0 quando il fiammifero arriva. Stop 5% (>= ATR contestuale di SOL in regime di elevated vol post +22% 7d, fuori dal rumore), sotto VWAP daily come da bull thesis.",
     "invalidation": "Funding flip a positivo senza espansione di volume + perdita del VWAP daily con chiusura 4h sotto. Se il prezzo fa lower-low sul timeframe 4h dopo l'entry, la struttura di momentum della tesi \u00e8 rotta.",
@@ -27,7 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-03 04:00:00+00:00"
+    "_last_ts": "2026-07-03 05:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-07-03T03:20:59.269435+00:00"
@@ -489,31 +489,31 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 9810.376222798965,
+  "equity": 9758.401150092885,
   "positions": {
    "BTC": {
-    "notional": -1720.1728316290842,
-    "px": 61469.0
+    "notional": -1727.448774563304,
+    "px": 61729.0
    },
    "ETH": {
-    "notional": -1821.1460337823396,
-    "px": 1703.5
+    "notional": -1833.9747701518072,
+    "px": 1715.5
    },
    "XRP": {
-    "notional": -1753.6917285976265,
-    "px": 1.0902
+    "notional": -1768.6516745487893,
+    "px": 1.0995
    },
    "WLD": {
-    "notional": 1540.2645959160193,
-    "px": 0.42844
+    "notional": 1503.8826574633304,
+    "px": 0.41832
    },
    "ZEC": {
-    "notional": 1760.8625842946412,
-    "px": 427.71
+    "notional": 1791.4515557970826,
+    "px": 435.14
    },
    "CRV": {
-    "notional": 1810.7596365973561,
-    "px": 0.20848
+    "notional": 1799.6421560963747,
+    "px": 0.2072
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:08.155546+00:00",
@@ -1077,6 +1077,10 @@
    {
     "ts": "2026-07-03T05:15:35.842536+00:00",
     "eq": 9810.38
+   },
+   {
+    "ts": "2026-07-03T06:15:30.967945+00:00",
+    "eq": 9758.4
    }
   ]
  },
@@ -1557,7 +1561,7 @@
   ]
  },
  "xsmom-highvol-voltarget-v1": {
-  "equity": 10371.982958289373,
+  "equity": 10366.73607880191,
   "positions": {
    "BTC": {
     "notional": 1720.5057748587012,
@@ -1572,8 +1576,8 @@
     "px": 0.73642
    },
    "NEAR": {
-    "notional": -1789.7382083287314,
-    "px": 1.9443
+    "notional": -1794.985087816194,
+    "px": 1.95
    },
    "WLD": {
     "notional": -1414.7233166506946,
@@ -1997,6 +2001,10 @@
    {
     "ts": "2026-07-03T05:16:44.722144+00:00",
     "eq": 10371.98
+   },
+   {
+    "ts": "2026-07-03T06:16:41.902290+00:00",
+    "eq": 10366.74
    }
   ]
  },
