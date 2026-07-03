@@ -108,10 +108,17 @@ async function monitor(env) {
 
 export default {
   async scheduled(event, env, ctx) {
-    if (event.cron === HOURLY_CRON) ctx.waitUntil(dispatch(env, "paper-run.yml"));
-    else if (event.cron === KRONOS_CRON) ctx.waitUntil(dispatch(env, "kronos-precompute.yml"));
-    else if (event.cron === GDELT_CRON) ctx.waitUntil(dispatch(env, "gdelt-precompute.yml"));
-    else ctx.waitUntil(monitor(env));
+    // hl-snapshot e coinalyze-1h raccolgono dati forward-only non rigenerabili:
+    // lo scheduler nativo GitHub li throttlava a ~3.5h invece che orari → buchi
+    // negli storici. Piggyback sui cron già attivi (il clock affidabile è questo).
+    if (event.cron === HOURLY_CRON) {
+      ctx.waitUntil(dispatch(env, "paper-run.yml"));
+      ctx.waitUntil(dispatch(env, "hl-snapshot.yml"));
+    } else if (event.cron === KRONOS_CRON) ctx.waitUntil(dispatch(env, "kronos-precompute.yml"));
+    else if (event.cron === GDELT_CRON) {
+      ctx.waitUntil(dispatch(env, "gdelt-precompute.yml"));
+      ctx.waitUntil(dispatch(env, "coinalyze-1h.yml"));
+    } else ctx.waitUntil(monitor(env));
   },
   // GET manuale: ?run forza il paper-run, default = esegue il monitor (utile per test)
   async fetch(request, env) {
