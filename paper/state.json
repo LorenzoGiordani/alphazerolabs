@@ -15,7 +15,7 @@
     "stop_px": 77.0414052,
     "target_px": 91.9103964036,
     "opened_at": "2026-07-02 18:00:00+00:00",
-    "checked_until": "2026-07-03 02:00:00+00:00",
+    "checked_until": "2026-07-03 03:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "SOL long: funding negativo (-0.69% APR) in regime bull con prezzo +22.6% 7d = divergenza rara di posizionamento. I long sono sottoposizionati mentre il trend accelera \u2014 struttura compressa pronta per short squeeze. Le lessons del journal indicavano funding negativo + RS come 'polvere da sparo' in cerca di un fiammifero: la news Securitize tokenizza $295M su Solana \u00e8 il trigger fondamentale reale che mancava nei tentativi precedenti. Tsmom=1 (lux component attivo) + vwap_z=1 confermano momentum qualitativo, non solo drift. Catalizzatori near-term: squeeze residuo dal funding negativo + esecuzione flussi istituzionali Securitize + rotazione alt verso il leader cross-section. Nota: lux_confluence non completo \u2014 il desk non ha edge sistem\u00e1tico confermato, quindi rischio conservativo (1% portfolio, 3x lev). Vado comunque perch\u00e9 la combinazione funding negativo + catalizzatore reale + tsmom attivo \u00e8 un setup asimmetrico che le lessons identificano come ad alta potenzialit\u00e0 quando il fiammifero arriva. Stop 5% (>= ATR contestuale di SOL in regime di elevated vol post +22% 7d, fuori dal rumore), sotto VWAP daily come da bull thesis.",
     "invalidation": "Funding flip a positivo senza espansione di volume + perdita del VWAP daily con chiusura 4h sotto. Se il prezzo fa lower-low sul timeframe 4h dopo l'entry, la struttura di momentum della tesi \u00e8 rotta.",
@@ -27,7 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-03 02:00:00+00:00"
+    "_last_ts": "2026-07-03 03:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-07-03T03:20:59.269435+00:00"
@@ -485,31 +485,31 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 9800.977397759172,
+  "equity": 9806.025976056098,
   "positions": {
    "BTC": {
-    "notional": -1719.9209720659765,
-    "px": 61460.0
+    "notional": -1719.669112502869,
+    "px": 61451.0
    },
    "ETH": {
-    "notional": -1822.642719692111,
-    "px": 1704.9
+    "notional": -1824.3532178747066,
+    "px": 1706.5
    },
    "XRP": {
-    "notional": -1754.4960267670438,
-    "px": 1.0907
+    "notional": -1753.6917285976265,
+    "px": 1.0902
    },
    "WLD": {
-    "notional": 1519.8806442335344,
-    "px": 0.42277
+    "notional": 1540.2645959160193,
+    "px": 0.42844
    },
    "ZEC": {
-    "notional": 1776.5893502622491,
-    "px": 431.53
+    "notional": 1759.2158025179285,
+    "px": 427.31
    },
    "CRV": {
-    "notional": 1808.0671217885244,
-    "px": 0.20817
+    "notional": 1810.7596365973561,
+    "px": 0.20848
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:08.155546+00:00",
@@ -1065,11 +1065,15 @@
    {
     "ts": "2026-07-03T03:15:32.149984+00:00",
     "eq": 9800.98
+   },
+   {
+    "ts": "2026-07-03T04:17:12.255354+00:00",
+    "eq": 9806.03
    }
   ]
  },
  "xsmom-highvol-combo-v1": {
-  "equity": 10285.107656603703,
+  "equity": 10263.567538133051,
   "positions": {
    "BTC": {
     "notional": 1719.9209720659762,
@@ -1092,8 +1096,8 @@
     "px": 0.42277
    },
    "CRV": {
-    "notional": -1789.2195181267036,
-    "px": 0.206
+    "notional": -1810.7596365973554,
+    "px": 0.20848
    }
   },
   "last_rebalance_ts": "2026-06-26T15:16:19.266461+00:00",
@@ -1533,6 +1537,10 @@
    {
     "ts": "2026-07-03T03:16:22.474636+00:00",
     "eq": 10285.11
+   },
+   {
+    "ts": "2026-07-03T04:17:47.039100+00:00",
+    "eq": 10263.57
    }
   ]
  },
@@ -1969,19 +1977,23 @@
    {
     "ts": "2026-07-03T00:16:40.990793+00:00",
     "eq": 10371.98
+   },
+   {
+    "ts": "2026-07-03T04:17:49.978027+00:00",
+    "eq": 10371.98
    }
   ]
  },
  "xsmom-multihorizon-v1": {
-  "equity": 10247.11460066185,
+  "equity": 10229.052591628526,
   "positions": {
    "BTC": {
     "notional": 1705.8631795857707,
     "px": 61756.0
    },
    "SOL": {
-    "notional": 1889.9724548565705,
-    "px": 81.513
+    "notional": 1871.910445823247,
+    "px": 80.734
    },
    "SUI": {
     "notional": 1796.0646698797761,
@@ -2297,6 +2309,10 @@
    {
     "ts": "2026-07-03T02:17:35.906832+00:00",
     "eq": 10247.11
+   },
+   {
+    "ts": "2026-07-03T04:17:52.244986+00:00",
+    "eq": 10229.05
    }
   ]
  }
