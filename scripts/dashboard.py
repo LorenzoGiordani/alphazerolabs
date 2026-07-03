@@ -881,14 +881,22 @@ def build_data() -> dict:
         except Exception:
             return None
 
+    # round-trip: i partial (remaining>0) accumulano PnL sull'open in pending;
+    # il trade entra nel book 1 sola volta, alla chiusura totale (stessa regola
+    # di lifecycle.paper_stats: prima il partial consumava l'open e la chiusura
+    # finale restava orfana → righe monche e win-rate su fill).
     book, pending = [], {}
     for e in journal:
         if e.get("type") == "open":
-            pending[(e["strategy"], e["symbol"])] = e
+            pending[(e["strategy"], e["symbol"])] = {"o": e, "pnl": 0.0}
         elif e.get("type") == "close":
-            o = pending.pop((e["strategy"], e["symbol"]), None)
-            if o is None:
+            oc = pending.get((e["strategy"], e["symbol"]))
+            if oc is None:
                 continue
+            oc["pnl"] += e.get("pnl_usd", 0)
+            if e.get("remaining", 0.0) > 1e-9:
+                continue   # partial: round-trip ancora aperto
+            o = pending.pop((e["strategy"], e["symbol"]))["o"]
             sign = 1 if o["direction"] == "long" else -1
             closed_at = e.get("ts", e["logged_at"])
             risk = risk_usd(o)
@@ -897,15 +905,16 @@ def build_data() -> dict:
                 "account_label": ACCOUNT_META.get(e["strategy"], {}).get("label", e["strategy"]),
                 "symbol": clean_symbol(e["symbol"]), "direction": o["direction"],
                 "entry_px": round(o["entry_px"], 6), "exit_px": round(e["exit_px"], 6),
-                "size_usd": round(o["size_usd"], 2), "pnl_usd": round(e.get("pnl_usd", 0), 2),
+                "size_usd": round(o["size_usd"], 2), "pnl_usd": round(oc["pnl"], 2),
                 "pnl_pct": round(sign * (e["exit_px"] / o["entry_px"] - 1) * 100, 2),
                 "risk_usd": round(risk, 2),
-                "r_mult": round(e.get("pnl_usd", 0) / risk, 2) if risk > 0 else None,
+                "r_mult": round(oc["pnl"] / risk, 2) if risk > 0 else None,
                 "opened_at": ts_short(o["opened_at"]), "closed_at": ts_short(closed_at),
                 "duration_h": hours_between(o["opened_at"], closed_at),
                 "reason": e.get("reason", ""), "status": "closed",
             })
-    for (sid, sym), o in pending.items():  # ancora aperte
+    for (sid, sym), oc in pending.items():  # ancora aperte (anche con partial già bookati)
+        o = oc["o"]
         book.append({
             "strategy": sid, "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
             "symbol": clean_symbol(sym), "direction": o["direction"],
@@ -1003,12 +1012,17 @@ def main() -> None:
     sections = {m.group(1): p for p in parts
                 if (m := re.match(r'<section id="([^"]+)"', p))}
 
-    for fn, _label, ids in PAGES:
+    for fn, label, ids in PAGES:
         missing = [i for i in ids if i not in sections]
         if missing:
             sys.exit(f"ERRORE: sezioni {missing} non trovate nel template")
         page_head = re.sub(r'<div class="wrap secnav-inner">.*?</div>',
                            lambda _: _nav_inner(fn), head, count=1, flags=re.DOTALL)
+        # <title> per pagina (prima tutte e 13 condividevano il titolo della home)
+        if fn != "index.html":
+            page_head = re.sub(r"<title>.*?</title>",
+                               f"<title>{label} · AlphaZero Labs</title>",
+                               page_head, count=1, flags=re.DOTALL)
         page = page_head + "".join(sections[i] for i in ids) + tail
         atomic_write_text(out_dir / fn, page)
 

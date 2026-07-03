@@ -19,8 +19,8 @@ TSMOM canonico adattato: orizzonti 7g/30g, exit posizionali (10 giorni).
 ## Performance (paper)
 
 - equity: $10,272.47
-- trade chiusi: 32 · win rate: 41%
-- PnL totale: $-234.43
+- trade chiusi: 25 · win rate: 36%
+- PnL totale: $-614.61
 - posizioni aperte ora: 0
 
 ### Trade chiusi

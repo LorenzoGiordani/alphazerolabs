@@ -19,7 +19,7 @@ v1 — gate confluenza tsmom+liq_imbalance + layer LLM (Claude PM avverso). Muta
 ## Performance (paper)
 
 - equity: $10,000.00
-- trade chiusi: 3 · win rate: 0%
+- trade chiusi: 0 · win rate: 0%
 - PnL totale: $0.00
 - posizioni aperte ora: 0
 

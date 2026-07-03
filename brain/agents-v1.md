@@ -9,16 +9,16 @@
 
 ## Performance (paper)
 
-- equity: $10,273.86
-- trade chiusi: 13 · win rate: 54%
-- PnL totale: $280.60
+- equity: $10,294.62
+- trade chiusi: 16 · win rate: 56%
+- PnL totale: $344.17
 - posizioni aperte ora: 1
 
 ### Posizioni aperte
 
 | symbol | dir | entry | stop | target | size |
 |---|---|---|---|---|---|
-| ZEC | short | 412.857412 | 445.88600496000004 | 346.80022608 | $323.73 |
+| SOL | long | 81.096216 | 77.0414052 | 91.9103964036 | $1,441.75 |
 
 ### Trade chiusi
 
@@ -37,6 +37,10 @@
 | SOL | time_stop | 73.120373 | $11.67 |
 | ZEC | time_stop | 452.780538 | $2.03 |
 | ETH | stopped | 1578.6414258543402 | $-84.37 |
+| ZEC | time_stop | 417.463476 | $-3.76 |
+| ETH | time_stop | 1578.01554 | $1.57 |
+| SOL | time_stop | 73.4063158 | $65.76 |
+| ETH | time_stop | 1600.8201 | $-39.80 |
 
 ## Lezioni
 
@@ -54,5 +58,9 @@
 - **execution_issue** (SOL, $11.67): In un momentum-continuation trade con time-stop fisso, il target deve essere calibrato sulla velocità attesa del trend nel window scelto, non sull'estensione del trend precedente. SOL aveva fatto +13.8% in 7d (~2%/d); puntare a +21% in 96h implicava accelerazione, non continuazione. Un target coerente con 4d di momentum a velocità invariata sarebbe stato +8-10%, ottenibile. Regola generale: target_usd ≤ entry × (trend_velocity_daily × window_days × 0.8); altrimenti la struttura R:R è irrealizzabile nel window scelto e il trade è strutturalmente dipendente dall'azzardo. #momentum #target_calibration #time_stop #L1_beta #velocity_mismatch
 - **execution_issue** (ZEC, $2.03): Strutture di distribuzione (vol_surge + vol_compression + funding positivo) senza confluenza multi-segnale sono precondizionanti necessari ma non sufficienti: in regime chop richiedono un trigger di follow-through osservabile (volume breakdown intraday, accelerazione del funding oltre soglia, primo lower-high su timeframe H4) prima dell'entry — senza di esso il time_stop diventa il risk dominante e comprime sistematicamente l'R atteso portando il trade a flat anziché al target. #crowding_fade #chop_regime #time_stop_dominance #no_confluence #distribution_precondition_vs_confirmation #entry_trigger_missing
 - **thesis_wrong** (ETH, $-84.37): Un range-breakdown short confermato da volume_surge non distingue tra distribuzione reale e stop-run (liquidità che scatta sotto il range e attrae compratori). In ETH, se entro 4-6 ore dalla presunta rottura il prezzo non stampa un nuovo low, il breakdown è probabilmente un liquidity grab: aggiungere un micro time-stop (es. 4h senza follow-through → riduci 50%) prima di lasciar correre fino allo stop strutturale evita di assorbire l'intera inversione. Volume + range break in regime bear è condizione necessaria ma non sufficiente: serve conferma di continuation (nuovo low nella sessione successiva o BTC che perde il livello chiave) prima di conviction piena. #breakdown-failure #liquidity-grab-vs-distribution #volume-signal-limitations #micro-time-stop #ETH #bear-regime #confirmation-bias
+- **execution_issue** (ZEC, $-3.76): Le tesi strutturali (vol-compression breakdown, trapped-long capitulation, macro headwind fade) richiedono un trigger di ingresso specifico — non basta "i segnali sono accesi". Senza un trigger event-defined (break di livello, spike di volume, cambio di funding), il time-stop deve essere proporzionale all'orizzonte della tesi (5-10+ giorni), non standardizzato a 72h. Un time-stop corto su una tesi strutturale equivale a scommettere non sulla direzione ma sul timing, che è la componente meno prevedibile. #time-stop-mismatch #trigger-vs-condition #vol-compression-breakdown #trapped-longs #structural-thesis #ZEC #bear-regime
+- **thesis_wrong** (ETH, $1.57): Un efficiency_ratio=1 e un momentum già sviluppato (-7.9% in 7g) descrivono lo stato PAST del trend, non la sua persistenza futura: senza un catalizzatore fresco e confermato (es. BTC che effettivamente perde il livello chiave), entrare short su 'trend persistence' significa comprare il ritardo del segnale. La tesi conteneva un condizionale ('SE BTC perde $60K') che non si è materializzato: il trade era quindi una scommessa su trend continuation senza trigger attivo. Lezione: nei trade di momentum con segnali lagging (efficiency_ratio, tsmom), richiedere conferma di break di livello intra-session prima di entrare, o entrare solo con il catalizzatore già in atto — non anticiparlo. #momentum_lag #efficiency_ratio #conditional_catalyst #time_stop_discipline #trend_persistence #BTC_correlation
+- **thesis_wrong** (SOL, $65.76): La forza relativa in regime bear + funding negativo è un edge valido, ma il salto logico verso 'squeeze imminente' richiede un catalizzatore attivo (breakout di range, flush di liquidità, cambio di narrativa). Senza un trigger identificabile — e il trade stesso lo riconosceva ('nessun lux_confluence allineato') — la dinamica è un grind lento, non un'esplosione. Il time-stop a 72h era coerente con la tesi di squeeze 'imminente', ma la tesi sopravvalutava la velocità: funding negativo + RS identifica polvere da sparo, ma la polvere ha bisogno di un fiammifero. Lezione generale: le tesi squeeze senza catalizzatore attivo hanno expected move troppo lenta per giustificare time-stop corti; o si allunga l'orizzonte o si aspetta il trigger prima di entrare. #relative_strength #funding_squeeze #no_catalyst #time_stop #bear_regime #catalyst_dependency
+- **thesis_wrong** (ETH, $-39.80): Quando la tesi si basa sulla 'persistence di un drift lento senza capitulazione' (longs che escono silenziosamente), manca il catalizzatore che converte drift in breakdown. Efficiency_ratio=1 in regime chop-classificato non è sufficiente edge direzionale: il drift può esaurirsi tanto quanto accelerare. In questi casi servirebbe aspettare la conferma del breakdown (es. BTC che perde effettivamente $60K, o spike di volume/OI) prima di entrare, o ridurre ulteriormente size e accorciare il time-stop a 24-48h: un trade di trend-persistence che non si muove nella direzione attesa entro 2-3 sessioni è già invalidato. #trend_persistence #efficiency_ratio #chop_regime #time_stop #no_catalyst #conditional_thesis
 
 [[lessons|Tutte le lezioni]] · [[timeline|Timeline]]

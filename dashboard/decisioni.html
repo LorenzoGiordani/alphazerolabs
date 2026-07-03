@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AlphaZero Labs — desk di ricerca autonomo, in pubblico</title>
+<title>Decisioni · AlphaZero Labs</title>
 <link rel="icon" href="assets/az-mark.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -180,7 +180,6 @@ section:first-of-type{ border-top:0; }
 .pfl-countdown .d{ width:7px; height:7px; border-radius:50%; background:var(--amber); }
 .pfl-countdown.soon .d{ background:var(--green); animation:pulse 1.5s infinite; }
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.3} }
-.pfl-curve{ height:80px; margin:8px 0 4px; }
 
 /* ---------- hero accounts ---------- */
 .accounts{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
@@ -253,7 +252,6 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .acct-pill{ font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:var(--text-3); border:1px solid var(--line); border-radius:100px; padding:2px 8px; white-space:nowrap; }
 .muted-cell{ color:var(--text-3); }
 .ev-desc{ font-family:var(--serif); font-size:13.5px; color:var(--text-2); line-height:1.5; max-width:440px; }
-.bar-mini{ display:inline-block; vertical-align:middle; }
 
 /* ---------- notizie ---------- */
 .news-filters{ display:flex; gap:8px; flex-wrap:wrap; margin:16px 0 4px; }
@@ -336,14 +334,6 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .book-stats b{ color:var(--text-1); font-weight:600; }
 
 /* ---------- mini-chart posizioni ---------- */
-.charts-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; margin-top:18px; }
-.pchart{ border:1px solid var(--line); border-radius:var(--r); padding:14px 16px 10px; }
-.pchart .pc-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
-.pchart .pc-sym{ font-family:var(--mono); font-size:12px; letter-spacing:.08em; }
-.pchart .pc-meta{ font-family:var(--mono); font-size:10px; color:var(--text-4); margin-left:auto; }
-.pchart svg{ width:100%; height:auto; display:block; }
-.pchart .pc-legend{ display:flex; gap:14px; margin-top:6px; font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-4); }
-.pchart .pc-legend .sw{ display:inline-block; width:10px; height:2px; vertical-align:middle; margin-right:5px; }
 .verdict .mult{ color:var(--text-3); font-size:9.5px; }
 .thesis{ font-family:var(--serif); font-size:16.5px; line-height:1.55; color:var(--text); margin:4px 0 0; max-width:68ch; text-wrap:pretty; }
 .invalidation{
@@ -1112,7 +1102,7 @@ h1,h2,h3,h4,
   /* ---------- render: posizioni unificate (sintetica + espansa, live) ---------- */
   const POS=[];                 // {p, acct, card, dir, baseLast}
   const LIVE={};                // symbol -> {px, ts, ok}
-  if(typeof window!=='undefined') window.LUX_LIVE = LIVE;  // esponi al layer nof1
+  if(typeof window!=='undefined') window.AZ_LIVE = LIVE;  // esponi al layer nof1
   const LIVEHIST={};            // symbol -> [[hh:mm:ss, px], ...] accumulati nella sessione
   function posPnl(p, last){
     const dir=p.direction==='long'?1:-1;
@@ -1367,9 +1357,9 @@ h1,h2,h3,h4,
       const lcRetire=(DATA.lifecycle||[]).find(e=>e.event==='retire'&&e.strategy===s.id);
       const REASON_LC={drawdown_breach:'drawdown oltre soglia', losing:'perdente su basket'};
       const motivo=(lcRetire&&lcRetire.reason)?(REASON_LC[lcRetire.reason]||lcRetire.reason)
-        :(s.stats?(s.stats.mean_r<0?'perdente su basket':(s.stats.sharpe_r<-1?'Sharpe critico':'drawdown')):'');
+        :(s.stats?(s.stats.mean_r<0?'perdente su basket':(s.stats.sharpe_r<-1?'t-stat critica':'drawdown')):'');
       const reason=(archived&&s.stats)?'<div class="strat-retire-reason">'+
-        (s.stats.sharpe_r!=null?'<span><b>Sharpe</b> '+NF2.format(s.stats.sharpe_r)+'</span>':'')+
+        (s.stats.sharpe_r!=null?'<span><b>t-stat (R)</b> '+NF2.format(s.stats.sharpe_r)+'</span>':'')+
         (s.stats.mean_r!=null?'<span><b>R medio</b> '+NF2.format(s.stats.mean_r)+'</span>':'')+
         (s.stats.n_closed?'<span><b>Trade</b> '+s.stats.n_closed+'</span>':'')+
         '<span><b>Motivo</b> '+escHtml(motivo)+'</span></div>':'';
@@ -1852,7 +1842,7 @@ h1,h2,h3,h4,
         '<span class="node-id num">'+escHtml(e.strategy||'')+'</span>'+
         '<span class="status '+(e.event==='promote'?'champion':'retired')+'">'+escHtml(EV_IT[e.event]||e.event)+'</span>'+
         (e.by?'<span style="color:var(--text-3)">da '+escHtml(e.by)+'</span>':'')+
-        (e.sharpe_r!=null?'<span class="'+cls+'">sharpe '+NF2.format(e.sharpe_r)+'</span>':'')+
+        (e.sharpe_r!=null?'<span class="'+cls+'">t-stat '+NF2.format(e.sharpe_r)+'</span>':'')+
         (e.n_closed!=null?'<span style="color:var(--text-3)">'+e.n_closed+' trade</span>':'')+
       '</div>';
     }).join('');
@@ -1954,7 +1944,7 @@ h1,h2,h3,h4,
   function renderChangeBanner(){
     const host=$('#change-banner'); if(!host) return;
     const cur={closed:closedTrades().length, lc:(DATA.lifecycle||[]).length};
-    let prev=null; try{ prev=JSON.parse(localStorage.getItem('lux_seen')||'null'); }catch(e){}
+    let prev=null; try{ prev=JSON.parse(localStorage.getItem('az_seen')||'null'); }catch(e){}
     if(prev){
       const dC=cur.closed-prev.closed, dL=cur.lc-prev.lc, parts=[];
       if(dC>0) parts.push(dC+' trade chiusi');
@@ -1965,7 +1955,7 @@ h1,h2,h3,h4,
         host.querySelector('.cb-x').onclick=()=>host.classList.remove('show');
       }
     }
-    try{ localStorage.setItem('lux_seen', JSON.stringify(cur)); }catch(e){}
+    try{ localStorage.setItem('az_seen', JSON.stringify(cur)); }catch(e){}
   }
 
   /* ---------- render: portafogli live (engine:portfolio) ---------- */
@@ -2023,7 +2013,7 @@ h1,h2,h3,h4,
           '<span><b>Net</b> <span class="'+netCls+'">'+signedUsd(p.net_usd)+' $</span></span>'+
           '<span><b>Ribilanciamento</b> ogni '+p.rebalance_h+'h</span>'+
           '<span><b>Ultimo</b> '+fmtTs(p.last_rebalance)+'</span>'+
-          '<span class="pfl-countdown'+(cdSoon?' soon':'')+'"><span class="d"></span>proximo tra <b>'+cdTxt+'</b></span>'+
+          '<span class="pfl-countdown'+(cdSoon?' soon':'')+'"><span class="d"></span>prossimo tra <b>'+cdTxt+'</b></span>'+
         '</div>';
       host.appendChild(card);
     });
@@ -2053,7 +2043,7 @@ h1,h2,h3,h4,
       const fresh=JSON.parse(m[1]);
       if(!fresh.updated_utc || fresh.updated_utc===DATA.updated_utc) return;  // niente di nuovo
       DATA=fresh; setHeaderTs(); renderAll(); loadChartBases(); updateAccountsLive();
-      window.dispatchEvent(new CustomEvent('lux:data',{detail:fresh}));  // notifica il ticker (poller unico)
+      window.dispatchEvent(new CustomEvent('az:data',{detail:fresh}));  // notifica il ticker (poller unico)
     }catch(e){ /* riprova al giro dopo */ }
   }
 
@@ -2176,10 +2166,10 @@ h1,h2,h3,h4,
         return (c&&c.length)?c[c.length-1][1]:ps[j].entry_px; } } }
     return null;
   }
-  // live px: preferisce WS HL dell'IIFE (window.LUX_LIVE, 2s, tutti i perp),
+  // live px: preferisce WS HL dell'IIFE (window.AZ_LIVE, 2s, tutti i perp),
   // fallback a LIVEPX (binance poll 6s, solo crypto)
   function livePxOf(sym){
-    if(window.LUX_LIVE && window.LUX_LIVE[sym] && window.LUX_LIVE[sym].ok) return window.LUX_LIVE[sym].px;
+    if(window.AZ_LIVE && window.AZ_LIVE[sym] && window.AZ_LIVE[sym].ok) return window.AZ_LIVE[sym].px;
     if(LIVEPX[sym] && isFinite(LIVEPX[sym]) && LIVEPX[sym]>0) return LIVEPX[sym];
     return null;
   }
@@ -2281,11 +2271,11 @@ h1,h2,h3,h4,
   }
   renderAggregate();
   var aggT; window.addEventListener('resize', function(){ clearTimeout(aggT); aggT=setTimeout(renderAggregate,160); });
-  // re-render aggregate ogni 2s usando i prezzi live WS HL (window.LUX_LIVE) — l'IIFE li aggiorna
+  // re-render aggregate ogni 2s usando i prezzi live WS HL (window.AZ_LIVE) — l'IIFE li aggiorna
   setInterval(renderAggregate, 2000);
 
   /* ---------- sync col poller unico (refreshData): niente secondo fetch ---------- */
-  window.addEventListener('lux:data', function(ev){
+  window.addEventListener('az:data', function(ev){
     D=ev.detail; fillCounts(); renderAggregate(); if(ticker) renderTicker();
   });
 })();

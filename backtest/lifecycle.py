@@ -143,19 +143,26 @@ def paper_stats(strategy_id: str) -> dict:
         equities = [float(v) for _, v in eq_pts]
         return _portfolio_stats(equities)
 
+    # round-trip, non fill: i partial (remaining>0) accumulano PnL sull'open
+    # e il trade conta 1 sola volta alla chiusura totale. Prima il primo partial
+    # consumava l'open (pnl monco) e la chiusura finale restava orfana.
     opens, closed = {}, []
     for e in j:
         if e.get("strategy") != strategy_id:
             continue
         if e.get("type") == "open":
-            opens[e["symbol"]] = e
+            opens[e["symbol"]] = {"o": e, "pnl": 0.0}
         elif e.get("type") == "close":
-            o = opens.pop(e["symbol"], None)
-            if not o:
+            oc = opens.get(e["symbol"])
+            if not oc:
                 continue
+            oc["pnl"] += e.get("pnl_usd", 0.0)
+            if e.get("remaining", 0.0) > 1e-9:
+                continue   # partial: round-trip ancora aperto
+            o = opens.pop(e["symbol"])["o"]
             risk = abs(o["stop_px"] / o["entry_px"] - 1) * o["size_usd"]
-            closed.append({"pnl": e.get("pnl_usd", 0.0),
-                           "r": e.get("pnl_usd", 0.0) / risk if risk > 0 else 0.0,
+            closed.append({"pnl": oc["pnl"],
+                           "r": oc["pnl"] / risk if risk > 0 else 0.0,
                            "symbol": e.get("symbol", "")})
     n = len(closed)
     # drawdown corrente da state.json (equity unrealized incluse posizioni aperte),

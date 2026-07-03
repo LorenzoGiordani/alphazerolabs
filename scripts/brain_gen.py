@@ -10,10 +10,14 @@ Uso:  uv run scripts/brain_gen.py
 """
 
 import json
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from backtest.lifecycle import paper_stats
 
 ROOT = Path(__file__).resolve().parent.parent
 PAPER = ROOT / "paper"
@@ -82,15 +86,16 @@ def all_strategies(data: dict) -> list[str]:
 
 
 def stats_for(strat: str, data: dict) -> dict:
+    """Numeri canonici da lifecycle.paper_stats (round-trip + ramo portfolio):
+    prima il wiki contava i fill grezzi e divergeva dalla dashboard."""
     closes = [j for j in data["journal"] if j.get("strategy") == strat and j.get("type") == "close"]
     opens = [j for j in data["journal"] if j.get("strategy") == strat and j.get("type") == "open"]
-    pnls = [c.get("pnl_usd", 0.0) for c in closes]
-    wins = [p for p in pnls if p > 0]
+    ps = paper_stats(strat)
     eq = data["state"].get(strat, {}).get("equity")
     open_now = len(data["state"].get(strat, {}).get("positions", {}))
     return dict(
-        n_open=len(opens), n_closed=len(closes), open_now=open_now,
-        total_pnl=sum(pnls), win_rate=(len(wins) / len(pnls)) if pnls else 0.0,
+        n_open=len(opens), n_closed=ps["n_closed"], open_now=open_now,
+        total_pnl=ps["total_pnl"], win_rate=ps["win_rate"],
         equity=eq, closes=closes, opens=opens,
     )
 

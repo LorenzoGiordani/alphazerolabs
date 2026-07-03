@@ -4,6 +4,73 @@
 
 _Eventi lifecycle + open/close, più recenti in alto._
 
+- `2026-07-03T03:23:28` 🔴 close [[agents-rr2-v1]] SOL — retired $-0.93
+- `2026-07-03T03:21:01` 🟢 open [[agents-rr2-v1]] SOL long
+- `2026-07-02T19:24:39` 🔴 close [[agents-rr2-v1]] SOL — retired $-0.91
+- `2026-07-02T19:22:09` 🟢 open [[agents-rr2-v1]] SOL long
+- `2026-07-02T19:22:08` 🟢 open [[agents-v1]] SOL long
+- `2026-07-02T14:15:34` 🔴 close [[agents-v1]] ETH — time_stop $-39.80
+- `2026-07-01T04:20:05` 🔴 close [[geopolitics-v1]] xyz:CL — time_stop $-16.28
+- `2026-07-01T00:24:03` 🔴 close [[geopolitics-v1]] xyz:NATGAS — time_stop $-1.98
+- `2026-06-30T23:19:23` 🔴 close [[geopolitics-v1]] xyz:NATGAS — time_stop $-1.98
+- `2026-06-30T23:16:02` 🔴 close [[agents-v1]] SOL — time_stop $65.76
+- `2026-06-30T15:19:53` 🔴 close [[geopolitics-v1]] BTC — time_stop $35.95
+- `2026-06-30T12:16:04` 🔴 close [[agents-v1]] ETH — time_stop $1.57
+- `2026-06-30T10:17:01` 🔴 close [[geopolitics-v1]] ETH — time_stop $-4.53
+- `2026-06-30T05:22:49` 🔴 close [[agents-rr2-v1]] ZEC — retired $-1.30
+- `2026-06-30T05:20:17` 🟢 open [[agents-rr2-v1]] ZEC long
+- `2026-06-30T01:22:22` 🔴 close [[agents-rr2-v1]] SOL — retired $-0.50
+- `2026-06-30T01:20:19` 🔴 close [[geopolitics-v1]] xyz:GOLD — stopped $-155.81
+- `2026-06-30T01:20:15` 🟢 open [[agents-rr2-v1]] SOL long
+- `2026-06-29T19:22:31` 🔴 close [[agents-rr2-v1]] SOL — retired $-0.78
+- `2026-06-29T19:20:11` 🟢 open [[agents-rr2-v1]] SOL long
+- `2026-06-29T15:25:42` 🔴 close [[agents-rr2-v1]] SOL — retired $-0.95
+- `2026-06-29T15:23:21` 🟢 open [[agents-rr2-v1]] SOL long
+- `2026-06-29T12:38:44` 🔴 close [[agents-rr2-v1]] ZEC — retired $-0.37
+- `2026-06-29T12:21:45` 🟢 open [[agents-rr2-v1]] ZEC short
+- `2026-06-29T05:32:18` 🔴 close [[agents-rr2-v1]] ZEC — retired $-0.24
+- `2026-06-29T05:27:25` 🟢 open [[agents-rr2-v1]] ZEC short
+- `2026-06-28T19:25:08` 🔴 close [[agents-rr2-v1]] ZEC — retired $-0.54
+- `2026-06-28T19:22:21` 🟢 open [[agents-rr2-v1]] ZEC short
+- `2026-06-28T10:21:55` 🔴 close [[agents-rr2-v1]] SUI — retired $-0.81
+- `2026-06-28T10:21:54` 🔴 close [[agents-rr2-v1]] SOL — retired $-1.27
+- `2026-06-28T10:21:53` 🔴 close [[agents-rr2-v1]] ETH — retired $-0.67
+- `2026-06-28T10:15:58` 🟢 open [[agents-rr2-v1]] SUI short
+- `2026-06-28T10:15:58` 🟢 open [[agents-rr2-v1]] SOL long
+- `2026-06-28T10:15:57` 🟢 open [[agents-rr2-v1]] ETH short
+- `2026-06-27T23:23:00` 🔴 close [[geopolitics-v1]] ETH/USD — dedup_fix (bug canonical: fantasma chiave ETH/USD vs ETH) $0.00
+- `2026-06-27T23:21:36` 🟢 open [[geopolitics-v1]] ETH short
+- `2026-06-27T23:18:47` 🟢 open [[agents-v1]] ETH short
+- `2026-06-27T23:18:46` 🟢 open [[agents-v1]] SOL long
+- `2026-06-27T20:24:13` 🟢 open [[geopolitics-v1]] xyz:NATGAS long
+- `2026-06-27T17:32:10` 🟢 open [[geopolitics-v1]] xyz:GOLD long
+- `2026-06-27T14:29:28` 🟢 open [[geopolitics-v1]] BTC short
+- `2026-06-27T12:28:57` 🔴 close [[agents-rr2-v1]] ETH — retired $-0.39
+- `2026-06-27T12:25:22` 🟢 open [[agents-rr2-v1]] ETH short
+- `2026-06-27T12:25:21` 🟢 open [[agents-v1]] ETH short
+- `2026-06-27T09:26:33` 🟢 open [[geopolitics-v1]] ETH short
+- `2026-06-27T03:15:54` 🔴 close [[agents-v1]] ZEC — time_stop $-3.76
+- `2026-06-27T01:24:26` 🟢 open [[geopolitics-v1]] xyz:CL long
+- `2026-06-26T23:21:06` 🔴 close [[geopolitics-v1]] ETH — time_stop $42.78
+- `2026-06-26T21:19:56` 🔄 lifecycle **promote** [[geopolitics-v1]] — 
+- `2026-06-26T21:19:54` 🔴 close [[geopolitics-v1]] xyz:NATGAS — time_stop $85.51
+- `2026-06-26T15:21:33` 🔴 close [[lux-flow-confluence-v1]] CRV — retired $4.95
+- `2026-06-26T15:21:33` 🔴 close [[lux-flow-confluence-v1]] SOL — retired $-67.20
+- `2026-06-26T15:21:31` 🔴 close [[lux-flow-confluence-v1]] ETH — retired $4.73
+- `2026-06-26T15:21:30` 🔴 close [[lux-flow-confluence-v1]] ZEC — retired $-15.83
+- `2026-06-26T15:21:29` 🔴 close [[lux-flow-confluence-v1]] XRP — retired $-5.27
+- `2026-06-26T15:21:28` 🔴 close [[lux-flow-confluence-v1]] BTC — retired $-2.94
+- `2026-06-26T15:21:27` 🔴 close [[agents-rr2-v1]] ZEC — retired $6.26
+- `2026-06-26T15:21:26` 🔴 close [[lux-confluence-rr2-v1]] NEAR — retired $19.91
+- `2026-06-26T15:21:24` 🔴 close [[lux-confluence-rr2-v1]] ETH — retired $-9.40
+- `2026-06-26T15:21:23` 🔴 close [[lux-confluence-rr2-v1]] SOL — retired $-73.47
+- `2026-06-26T15:21:22` 🔴 close [[lux-confluence-rr2-v1]] XRP — retired $-11.59
+- `2026-06-26T15:21:21` 🔴 close [[lux-confluence-rr2-v1]] CRV — retired $-33.63
+- `2026-06-26T15:21:20` 🔴 close [[lux-confluence-rr2-v1]] ZEC — retired $-28.28
+- `2026-06-26T15:21:15` 🔄 lifecycle **retire** [[xsmom-port-v1]] — basket_mean_r_negative
+- `2026-06-26T15:21:15` 🔄 lifecycle **retire** [[agents-rr2-v1]] — basket_mean_r_negative
+- `2026-06-26T14:21:36` 🟢 open [[agents-rr2-v1]] ZEC short
+- `2026-06-26T13:21:04` 🔴 close [[agents-rr2-v1]] ZEC — target $91.25
 - `2026-06-26T07:24:01` 🟢 open [[agents-rr2-v1]] ZEC short
 - `2026-06-26T07:16:12` 🔴 close [[agents-rr2-v1]] ETH — stopped $-81.25
 - `2026-06-26T07:16:11` 🔴 close [[agents-v1]] ETH — stopped $-84.37

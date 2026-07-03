@@ -281,3 +281,41 @@ def test_paper_exits_closes_retired_positions(tmp_path, monkeypatch):
     close_events = [json.loads(l) for l in journal_file.read_text().splitlines()
                     if json.loads(l).get("type") == "close"]
     assert any(e.get("reason") == "retired" for e in close_events), "reason=retired non loggato"
+
+
+def test_paper_stats_partial_close_round_trip(tmp_path, monkeypatch):
+    """Partial (remaining>0) + chiusura finale = 1 round-trip col PnL sommato.
+    Prima il primo partial consumava l'open (pnl monco) e il close finale
+    restava orfano: n_closed contava i fill, non i trade."""
+    rows = [
+        {"type": "open", "strategy": "s", "symbol": "BTC",
+         "entry_px": 100.0, "stop_px": 96.0, "size_usd": 1000.0},
+        {"type": "close", "strategy": "s", "symbol": "BTC", "reason": "partial",
+         "exit_px": 105.0, "frac": 0.5, "remaining": 0.5, "pnl_usd": 25.0},
+        {"type": "close", "strategy": "s", "symbol": "BTC", "reason": "target",
+         "exit_px": 110.0, "frac": 0.5, "remaining": 0.0, "pnl_usd": 50.0},
+    ]
+    _write_journal(tmp_path, rows)
+    monkeypatch.setattr("backtest.lifecycle.JOURNAL", tmp_path / "journal.jsonl")
+    monkeypatch.setattr("backtest.lifecycle.ROOT", tmp_path)
+    st = paper_stats("s")
+    assert st["n_closed"] == 1          # 1 round-trip, non 2 fill
+    assert st["total_pnl"] == 75.0      # 25 (partial) + 50 (finale)
+    assert st["win_rate"] == 1.0
+    assert st["open_now"] == 0
+
+
+def test_paper_stats_partial_position_still_open(tmp_path, monkeypatch):
+    """Solo partial bookato, posizione ancora viva: 0 round-trip, open_now=1."""
+    rows = [
+        {"type": "open", "strategy": "s", "symbol": "BTC",
+         "entry_px": 100.0, "stop_px": 96.0, "size_usd": 1000.0},
+        {"type": "close", "strategy": "s", "symbol": "BTC", "reason": "partial",
+         "exit_px": 105.0, "frac": 0.5, "remaining": 0.5, "pnl_usd": 25.0},
+    ]
+    _write_journal(tmp_path, rows)
+    monkeypatch.setattr("backtest.lifecycle.JOURNAL", tmp_path / "journal.jsonl")
+    monkeypatch.setattr("backtest.lifecycle.ROOT", tmp_path)
+    st = paper_stats("s")
+    assert st["n_closed"] == 0
+    assert st["open_now"] == 1

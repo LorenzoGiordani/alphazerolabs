@@ -19,8 +19,8 @@ seed di ricerca
 ## Performance (paper)
 
 - equity: $10,020.07
-- trade chiusi: 27 · win rate: 37%
-- PnL totale: $55.60
+- trade chiusi: 22 · win rate: 32%
+- PnL totale: $-137.11
 - posizioni aperte ora: 0
 
 ### Trade chiusi

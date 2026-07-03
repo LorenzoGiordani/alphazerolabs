@@ -20,8 +20,8 @@ LUX 0.1 BETA — tripla confluenza ortogonale (tsmom+liq+kronos), voto a 5 segna
 ## Performance (paper)
 
 - equity: $10,263.47
-- trade chiusi: 19 · win rate: 21%
-- PnL totale: $-665.18
+- trade chiusi: 17 · win rate: 24%
+- PnL totale: $-303.79
 - posizioni aperte ora: 0
 
 ### Trade chiusi
