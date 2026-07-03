@@ -3,6 +3,15 @@ name: paper-exits
 # Exit-check real-time TP/SL. Lanciato via workflow_dispatch dal Worker CF
 # (lux-paper-cron) SOLO quando un livello stop/target è sfiorato → minuti ~zero.
 # Stesso concurrency group dell'hourly: niente sovrapposizioni / race sullo stato.
+#
+# DECISIONE (audit 2026-07-02, MEDIUM "coda unica"): il gruppo condiviso RESTA.
+# - state.json è read-modify-write full-file: gruppi separati = due writer
+#   concorrenti = lost update / PnL doppio (peggio della latenza).
+# - la latenza NON distorce i fill: paper_exits riempie al prezzo del livello
+#   sulla candela storica (watermark checked_until), non al prezzo corrente.
+# - un pending cancellato da un dispatch successivo si auto-ripara: il monitor
+#   del Worker (ogni 3 min) re-dispatcha finché il breach persiste nello state.
+#   Attesa worst-case ≈ durata paper-run (~8 min) + un tick monitor.
 on:
   workflow_dispatch:
 

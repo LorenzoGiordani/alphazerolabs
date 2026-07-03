@@ -9,7 +9,7 @@
 //
 // Secret richiesto: GH_PAT — PAT fine-grained con permesso Actions: write sul repo.
 
-const REPO = "LorenzoGiordani/lux-ai"; // repo rinominato da defi-ai-vault
+const REPO = "LorenzoGiordani/alphazerolabs"; // nome attuale (ex lux-ai / defi-ai-vault)
 const HOURLY_CRON = "10 * * * *";
 const KRONOS_CRON = "30 5 * * *"; // 1x/giorno: rigenera la cache forecast Kronos (lux-0.1-beta)
 const GDELT_CRON = "45 */6 * * *"; // 4x/giorno: rinfresca la cache eventi GDELT (desk geopolitics-v1)

@@ -27,7 +27,8 @@ sys.path.insert(0, str(ROOT))
 from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
 from backtest.lifecycle import all_specs, paper_symbols
 from pipeline.live import atomic_write_text, canonical_symbol, fetch_live
-from scripts.decide import ROLES, _ask_role, build_context, hard_check, log_decision
+from scripts.decide import (ROLES, _ask_role, _ask_strategist, build_context,
+                            hard_check, log_decision)
 from scripts.paper_trade import STATE_FILE, log_event, update_position
 
 ACCOUNT = "geopolitics-v1"
@@ -147,8 +148,11 @@ def run_desk(symbols: list[str], bursts: list[dict], pack: bool) -> dict | None:
                       f"CONTESTO:\n{json.dumps(ctx, default=str)}")
     bull = _ask_role("bull", f"BRIEF:\n{brief}")
     bear = _ask_role("bear", f"BRIEF:\n{brief}")
-    proposal = _ask_role("strategist", f"BRIEF:\n{brief}\n\nBULL:\n{bull}\n\nBEAR:\n{bear}")
-    errs = hard_check(proposal)
+    # self-consistency (N=3) come il desk principale: il desk geopolitico e' quello
+    # col bypass sizing attivo — proprio qui un singolo sample era il piu' rischioso
+    proposal = _ask_strategist(f"BRIEF:\n{brief}\n\nBULL:\n{bull}\n\nBEAR:\n{bear}")
+    atr_by_symbol = {s: a["atr_pct"] for s, a in ctx["assets"].items() if a.get("atr_pct")}
+    errs = hard_check(proposal, atr_by_symbol=atr_by_symbol)
     if errs:
         log_decision({"strategy": ACCOUNT, "stage": "final", "bursts": bursts,
                       "proposal": proposal, "verdict": "hard_veto", "violations": errs})

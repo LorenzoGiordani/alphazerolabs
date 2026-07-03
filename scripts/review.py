@@ -44,21 +44,22 @@ def reviewed_keys() -> set:
 
 
 def pending() -> list[dict]:
-    evs = events()
-    opens = {}
-    for e in evs:
-        if e.get("type") == "open":
-            opens[(e.get("strategy"), e.get("symbol"))] = e
+    """Single-pass cronologico: l'open giusto per un close e' l'ULTIMO open della
+    stessa (strategy, symbol) loggato PRIMA del close. Il vecchio pre-scan teneva
+    solo l'ultimo open in assoluto → su trade ripetuti il post-mortem leggeva la
+    tesi di un ALTRO trade (lezioni inquinate)."""
     done = reviewed_keys()
+    opens: dict = {}
     out = []
-    for e in evs:
-        if e.get("type") != "close":
-            continue
-        key = f"{e.get('strategy')}|{e.get('symbol')}|{e.get('ts')}"
-        if key in done:
-            continue
-        o = opens.get((e.get("strategy"), e.get("symbol")), {})
-        out.append({"trade_key": key, "open": o, "close": e})
+    for e in events():
+        k = (e.get("strategy"), e.get("symbol"))
+        if e.get("type") == "open":
+            opens[k] = e
+        elif e.get("type") == "close":
+            key = f"{e.get('strategy')}|{e.get('symbol')}|{e.get('ts')}"
+            if key in done:
+                continue
+            out.append({"trade_key": key, "open": opens.get(k, {}), "close": e})
     return out
 
 
