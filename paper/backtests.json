@@ -2,7 +2,7 @@
  "months": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-04T10:21 UTC",
+ "generated_at": "2026-07-04T11:24 UTC",
  "strategies": [
   {
    "id": "highvol-port-v1",
@@ -14,9 +14,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.24,
-    "mean_return": 0.2125,
-    "worst_drawdown": -0.1791,
+    "mean_sharpe": 1.33,
+    "mean_return": 0.2344,
+    "worst_drawdown": -0.1581,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -32,9 +32,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 2.28,
-    "mean_return": 0.4053,
-    "worst_drawdown": -0.1084,
+    "mean_sharpe": 1.96,
+    "mean_return": 0.3368,
+    "worst_drawdown": -0.1154,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
    },
@@ -48,11 +48,11 @@
    "is_benchmark": false,
    "window": "2025-12-08 → 2026-07-04",
    "basket_size": 9,
-   "vol_target": "on (m medio 0.84)",
+   "vol_target": "on (m medio 0.85)",
    "aggregate": {
-    "mean_sharpe": 2.61,
-    "mean_return": 0.3471,
-    "worst_drawdown": -0.0993,
+    "mean_sharpe": 2.09,
+    "mean_return": 0.2669,
+    "worst_drawdown": -0.1046,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
    },
@@ -68,9 +68,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.47,
-    "mean_return": 0.2436,
-    "worst_drawdown": -0.1316,
+    "mean_sharpe": 1.72,
+    "mean_return": 0.2782,
+    "worst_drawdown": -0.1203,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
    },
@@ -86,9 +86,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 2.28,
-    "mean_return": 0.4053,
-    "worst_drawdown": -0.1084,
+    "mean_sharpe": 1.96,
+    "mean_return": 0.3368,
+    "worst_drawdown": -0.1154,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
    },
