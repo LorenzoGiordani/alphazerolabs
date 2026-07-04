@@ -4,7 +4,7 @@
   "positions": {}
  },
  "agents-v1": {
-  "equity": 10293.0535980712,
+  "equity": 10248.286409273,
   "positions": {
    "SOL": {
     "strategy": "agents-v1",
@@ -47,29 +47,6 @@
     "remaining": 1.0,
     "partial_done": false,
     "hi_water": 464.34285,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-07-04 22:00:00+00:00"
-   },
-   "SUI": {
-    "strategy": "agents-v1",
-    "symbol": "SUI",
-    "direction": "long",
-    "entry_px": 0.773174604,
-    "size_usd": 2922.7,
-    "stop_px": 0.76183213255932,
-    "target_px": 0.7977537396119536,
-    "opened_at": "2026-07-04 21:00:00+00:00",
-    "checked_until": "2026-07-04 22:00:00+00:00",
-    "time_stop_h": 72,
-    "thesis": "SUI \u00e8 il long con miglior risk/reward del paniere: regime bull alt, vol compression + tsmom + volume profile attivi simultaneamente, ATR 0.93% (alta beta = optionality direzionale). Il pullback 24h su base 7g forte (+13%) \u00e8 punto di ingresso, non warning. Funding neutro-basso e posizionamento leggero = nessun rischio di long squeeze imminente ma anche nessuna resistenza di positioning al rialzo. Catalizzatore: breakout BTC dalla vol compression che direziona il paniere upside entro 72h.\n\nNOTA su lux_confluence: nessun asset ha confluence aligned (lux score 1/5 per SUI). Vado long comunque perch\u00e9: (1) la tesi \u00e8 allineata con il regime (bull alt), (2) la densit\u00e0 di segnali tecnici su SUI \u00e8 la pi\u00f9 alta del paniere, (3) l'assenza di confluence sistematica giustifica size ridotta (size_mult 0.5, risk 1%) non l'astensione totale. Vado contro ZEC short perch\u00e9 shortare il strongest performer in un regime bull alt con tsmom spento \u00e8 contro-trend puro in un contesto sfavorevole \u2014 l'edge del mean-reversion senza conferma sistematica \u00e8 debole.",
-    "invalidation": "Tesi invalidata se BTC perde 63K e SUI rompe il low del pullback 24h \u2014 il bounce del paniere \u00e8 finito e l'alta beta amplifica il downside senza supporto di regime.",
-    "decision_ts": "2026-07-04T22:19:15.283052+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 0.773174604,
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,

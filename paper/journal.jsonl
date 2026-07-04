@@ -3719,3 +3719,4 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10293.05, "open_positions": 3, "logged_at": "2026-07-04T23:20:00.058215+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9969.98, "open_positions": 0, "logged_at": "2026-07-04T23:20:00.624834+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9983.36, "open_positions": 0, "logged_at": "2026-07-04T23:21:53.293892+00:00"}
+{"type": "close", "strategy": "agents-v1", "symbol": "SUI", "reason": "stopped", "exit_px": 0.7616797661328082, "frac": 1.0, "remaining": 0.0, "pnl_usd": -44.77, "equity": 10248.29, "ts": "2026-07-04 23:00:00+00:00", "logged_at": "2026-07-04T23:57:59.813123+00:00"}
