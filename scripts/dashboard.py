@@ -969,7 +969,7 @@ PAGES = [
     ("posizioni.html",    "Posizioni",    ["posizioni"]),
     ("rischio.html",      "Rischio",      ["rischio"]),
     ("decisioni.html",    "Decisioni",    ["decisioni"]),
-    ("trading-book.html", "Trading book", ["book"]),
+    ("trading-book.html", "Book",         ["book"]),
     ("lezioni.html",      "Lezioni",      ["lezioni"]),
     ("evoluzione.html",   "Evoluzione",   ["evoluzione"]),
     ("eventi.html",       "Eventi",       ["eventi"]),
