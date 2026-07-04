@@ -398,8 +398,21 @@ def main() -> int:
                   file=sys.stderr)
             return 0
 
+    # mesi EFFETTIVI coperti dai dati, non quelli richiesti: il fetch cloud e'
+    # cappato (~5000h/7m) mentre in locale i parquet arrivano a 12m — l'header
+    # diceva sempre "12" anche quando la finestra reale era 7 (fuorviante vs i
+    # numeri validati a 12m). Derivo lo span dalla finestra prodotta (uguale per
+    # tutte: stesso close panel), fallback a `months` richiesto.
+    eff_months = months
+    if results:
+        try:
+            a, b = (x.strip() for x in results[0]["window"].split("→"))
+            eff_months = max(1, round((pd.Timestamp(b) - pd.Timestamp(a)).days / 30.4))
+        except (KeyError, ValueError):
+            pass
     payload = {
-        "months": months,
+        "months": eff_months,
+        "months_requested": months,
         "impact_k": IMPACT_K,
         "funding_mode": "storico (dove disponibile)",
         "generated_at": pd.Timestamp.now(tz="UTC").strftime("%Y-%m-%dT%H:%M UTC"),
