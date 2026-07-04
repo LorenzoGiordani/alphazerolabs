@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LLM · AlphaZero Labs</title>
-<link rel="icon" href="assets/az-mark.png" type="image/png">
+<link rel="icon" href="assets/az-favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1898,29 +1898,6 @@ h1,h2,h3,h4,
       kpiTile('Trade chiusi', cl.length)+'</div>';
   }
 
-  function renderPortfolioCurve(){
-    const host=$('#portfolio-curve'); if(!host) return;
-    const cl=closedTrades().slice().sort((a,b)=>(a.closed_at||'').localeCompare(b.closed_at||''));
-    if(cl.length<2){ host.innerHTML=''; return; }
-    let cum=0; const pts=[0]; cl.forEach(t=>{ cum+=t.pnl_usd; pts.push(cum); });
-    const W=920,H=180,L=10,R=72,T=14,B=14,n=pts.length;
-    let lo=Math.min(0,...pts),hi=Math.max(0,...pts); const pad=(hi-lo)*0.08||1; lo-=pad;hi+=pad;
-    const X=i=>L+(W-L-R)*i/(n-1), Y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
-    const path=pts.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' ');
-    const area=path+' L'+X(n-1).toFixed(1)+' '+Y(lo).toFixed(1)+' L'+X(0).toFixed(1)+' '+Y(lo).toFixed(1)+' Z';
-    const col=cum>=0?'var(--green)':'var(--red)';
-    // intestazione esplicita: è il P&L REALIZZATO (scalino a ogni chiusura),
-    // non un'equity live — senza label sembrava un grafico rotto/fermo
-    host.innerHTML='<div class="nof-agg-head" style="margin-bottom:4px"><span class="kicker">P&amp;L realizzato</span>'+
-      '<span class="nof-agg-sub">solo trade chiusi · avanza a ogni chiusura</span></div>'+
-      '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block" aria-label="P&L cumulato">'+
-      '<path d="'+area+'" fill="'+(cum>=0?'var(--green-wash)':'var(--red-wash)')+'"/>'+
-      '<line x1="'+L+'" y1="'+Y(0).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(0).toFixed(1)+'" stroke="var(--line-2)" stroke-dasharray="3 3"/>'+
-      '<path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="1.7"/>'+
-      '<text x="'+(W-R+6)+'" y="'+(Y(cum)+3).toFixed(1)+'" fill="'+col+'" font-size="10.5" font-family="var(--mono)">'+signedUsd(cum)+'</text>'+
-      '<text x="'+L+'" y="'+(H-2)+'" fill="var(--text-4)" font-size="9" font-family="var(--mono)">P&amp;L cumulato · '+(n-1)+' trade</text></svg>';
-  }
-
   function renderRiskPanel(){
     const host=$('#risk-panel'); if(!host) return;
     const accs=DATA.accounts||[];
@@ -2046,7 +2023,7 @@ h1,h2,h3,h4,
     // throwerebbero su DOM mancante: try/catch per-funzione le isola.
     [renderSummary,renderAccounts,renderPositions,renderFeed,renderLessons,
      renderTree,renderLifecycle,renderEvents,renderNews,renderStrats,renderBook,
-     renderPortfolioKpi,renderPortfolioCurve,renderRiskPanel,renderSignalsMatrix,
+     renderPortfolioKpi,renderRiskPanel,renderSignalsMatrix,
      renderBacktests,renderPortfoliosLive,renderChangeBanner
     ].forEach(function(fn){ try{ fn(); }catch(e){ console.warn('render', fn.name, e); } });
   }
