@@ -15,7 +15,7 @@
     "stop_px": 77.0414052,
     "target_px": 91.9103964036,
     "opened_at": "2026-07-02 18:00:00+00:00",
-    "checked_until": "2026-07-04 07:00:00+00:00",
+    "checked_until": "2026-07-04 08:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "SOL long: funding negativo (-0.69% APR) in regime bull con prezzo +22.6% 7d = divergenza rara di posizionamento. I long sono sottoposizionati mentre il trend accelera \u2014 struttura compressa pronta per short squeeze. Le lessons del journal indicavano funding negativo + RS come 'polvere da sparo' in cerca di un fiammifero: la news Securitize tokenizza $295M su Solana \u00e8 il trigger fondamentale reale che mancava nei tentativi precedenti. Tsmom=1 (lux component attivo) + vwap_z=1 confermano momentum qualitativo, non solo drift. Catalizzatori near-term: squeeze residuo dal funding negativo + esecuzione flussi istituzionali Securitize + rotazione alt verso il leader cross-section. Nota: lux_confluence non completo \u2014 il desk non ha edge sistem\u00e1tico confermato, quindi rischio conservativo (1% portfolio, 3x lev). Vado comunque perch\u00e9 la combinazione funding negativo + catalizzatore reale + tsmom attivo \u00e8 un setup asimmetrico che le lessons identificano come ad alta potenzialit\u00e0 quando il fiammifero arriva. Stop 5% (>= ATR contestuale di SOL in regime di elevated vol post +22% 7d, fuori dal rumore), sotto VWAP daily come da bull thesis.",
     "invalidation": "Funding flip a positivo senza espansione di volume + perdita del VWAP daily con chiusura 4h sotto. Se il prezzo fa lower-low sul timeframe 4h dopo l'entry, la struttura di momentum della tesi \u00e8 rotta.",
@@ -27,7 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-04 07:00:00+00:00"
+    "_last_ts": "2026-07-04 08:00:00+00:00"
    },
    "ZEC": {
     "strategy": "agents-v1",
@@ -38,7 +38,7 @@
     "stop_px": 442.56517033499995,
     "target_px": 507.89820933000004,
     "opened_at": "2026-07-03 22:00:00+00:00",
-    "checked_until": "2026-07-04 07:00:00+00:00",
+    "checked_until": "2026-07-04 08:00:00+00:00",
     "time_stop_h": 96,
     "thesis": "ZEC LONG su conferma close >470. Setup asimmetrico: funding negativo (-9.3bps/8h) in uptrend +7.4% 24h = short crowd nel verso sbagliato, polvere da sparo per squeeze. Catalizzatore reale imminente (Ironwood upgrade) con ATR 1.9% che dice il prezzo sta gi\u00e0 reagendo. Trend attivo su 7d. Entry condizionata a conferma >470 rispetta la lezione: nessun lux_confluence allineato \u2192 size ridotta (0.5x) e conferma intra-session obbligatoria. Stop 448 = 2.5 ATR, fuori dal rumore, sotto struttura 7d. Target 510-520 = ATR expansion gap. Time stop 96h: Ironwood matura in giorni, non ore.",
     "invalidation": "Chiusura sotto 448 invalida la tesi squeeze: il funding negativo non basta pi\u00f9, il trend 7d \u00e8 rotto e Ironwood diventa sell-the-news con prezzo che sconfessa il catalizzatore.",
@@ -50,7 +50,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-04 07:00:00+00:00"
+    "_last_ts": "2026-07-04 08:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-07-03T23:21:12.596240+00:00"
@@ -540,107 +540,107 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 9793.363784484809,
+  "equity": 9785.098652686904,
   "positions": {
    "BTC": {
-    "notional": -236.18339117624086,
-    "px": 62570.0
+    "notional": -236.1154464576669,
+    "px": 62552.0
    },
    "xyz:SKHX": {
-    "notional": 236.27486356242858,
-    "px": 1601.4
+    "notional": 235.92076110673366,
+    "px": 1599.0
    },
    "ETH": {
-    "notional": -237.5324457215706,
-    "px": 1758.7
+    "notional": -238.11320964754023,
+    "px": 1763.0
    },
    "xyz:XYZ100": {
-    "notional": -234.38775184415175,
-    "px": 29640.0
+    "notional": -234.39565966303988,
+    "px": 29641.0
    },
    "xyz:MU": {
-    "notional": 235.2441388571326,
-    "px": 1030.3
+    "notional": 234.78748712684603,
+    "px": 1028.3
    },
    "xyz:SP500": {
-    "notional": -233.7518186952554,
-    "px": 7475.4
+    "notional": -233.9519433226532,
+    "px": 7481.8
    },
    "xyz:SNDK": {
-    "notional": 235.17273643069214,
-    "px": 1825.8
+    "notional": 235.03105058882898,
+    "px": 1824.7
    },
    "xyz:DRAM": {
-    "notional": 234.0330307581288,
-    "px": 64.938
+    "notional": 233.24376663333234,
+    "px": 64.719
    },
    "xyz:SMSN": {
-    "notional": 235.42077613277056,
-    "px": 204.68
+    "notional": 235.05271550954168,
+    "px": 204.36
    },
    "xyz:GOLD": {
-    "notional": -234.89297404855105,
-    "px": 4177.1
+    "notional": -234.97732430616344,
+    "px": 4178.6
    },
    "xyz:CL": {
-    "notional": -234.6653953353714,
-    "px": 68.657
+    "notional": -234.64488770509314,
+    "px": 68.651
    },
    "LIT": {
-    "notional": 240.35650811983461,
-    "px": 2.1911
+    "notional": 238.2722702236743,
+    "px": 2.1721
    },
    "xyz:BRENTOIL": {
-    "notional": -234.57548366895182,
-    "px": 71.924
+    "notional": -234.55591505622152,
+    "px": 71.918
    },
    "XRP": {
-    "notional": -240.565144060186,
-    "px": 1.1395
+    "notional": -240.98737336086205,
+    "px": 1.1415
    },
    "xyz:MRVL": {
-    "notional": 235.22745443089156,
-    "px": 256.79
+    "notional": 235.9053169499883,
+    "px": 257.53
    },
    "WLD": {
-    "notional": 234.5582105749411,
-    "px": 0.42509
+    "notional": 235.10447755009739,
+    "px": 0.42608
    },
    "FARTCOIN": {
-    "notional": 220.75777645886245,
-    "px": 0.16535
+    "notional": 221.8125006403109,
+    "px": 0.16614
    },
    "xyz:MSTR": {
-    "notional": 234.71841341016577,
-    "px": 105.46
+    "notional": 233.6278385706913,
+    "px": 104.97
    },
    "PUMP": {
     "notional": 231.2510755803369,
     "px": 0.001611
    },
    "XPL": {
-    "notional": 223.65851798322427,
-    "px": 0.10699
+    "notional": 226.1879768743328,
+    "px": 0.1082
    },
    "xyz:MSFT": {
-    "notional": -237.18249868296692,
-    "px": 392.07
+    "notional": -236.68644020126715,
+    "px": 391.25
    },
    "xyz:NVDA": {
-    "notional": -234.35064743784534,
-    "px": 196.7
+    "notional": -234.23150628510624,
+    "px": 196.6
    },
    "xyz:NBIS": {
-    "notional": 238.23529249025376,
-    "px": 226.85
+    "notional": 237.00657178400033,
+    "px": 225.68
    },
    "xyz:AAPL": {
-    "notional": -235.34425701555585,
-    "px": 308.66
+    "notional": -235.43575351928766,
+    "px": 308.78
    },
    "SUI": {
-    "notional": -236.07033979152024,
-    "px": 0.75931
+    "notional": -235.37392125214498,
+    "px": 0.75707
    },
    "xyz:KIOXIA": {
     "notional": 241.03226876851508,
@@ -655,40 +655,40 @@
     "px": 11.376
    },
    "VVV": {
-    "notional": 221.83632427639077,
-    "px": 13.162
+    "notional": 218.34748374112158,
+    "px": 12.955
    },
    "xyz:AMZN": {
-    "notional": -234.73468999209788,
-    "px": 243.67
+    "notional": -234.8599229288524,
+    "px": 243.8
    },
    "xyz:GOOGL": {
     "notional": -233.77937491836374,
     "px": 359.55
    },
    "LINK": {
-    "notional": -236.59168429253208,
-    "px": 7.9258
+    "notional": -236.80064008122824,
+    "px": 7.9328
    },
    "ZRO": {
-    "notional": 238.8157100219728,
-    "px": 0.90783
+    "notional": 239.5180859577302,
+    "px": 0.9105
    },
    "xyz:BOT": {
     "notional": 238.42646919636127,
     "px": 37.263
    },
    "XMR": {
-    "notional": -240.31814489779165,
-    "px": 330.0
+    "notional": -241.76005376717842,
+    "px": 331.98
    },
    "BNB": {
-    "notional": -236.26414397149802,
-    "px": 569.57
+    "notional": -238.61197664330072,
+    "px": 575.23
    },
    "DYDX": {
-    "notional": 226.11080037257824,
-    "px": 0.12668
+    "notional": 225.61102910557227,
+    "px": 0.1264
    },
    "xyz:COPPER": {
     "notional": -234.4850482342844,
@@ -699,8 +699,8 @@
     "px": 571.93
    },
    "GRASS": {
-    "notional": 233.86652087018328,
-    "px": 0.5666
+    "notional": 234.68377415525734,
+    "px": 0.56858
    },
    "xyz:NATGAS": {
     "notional": -234.73960026017065,
@@ -1380,6 +1380,10 @@
    {
     "ts": "2026-07-04T08:16:13.599828+00:00",
     "eq": 9793.36
+   },
+   {
+    "ts": "2026-07-04T09:16:14.287462+00:00",
+    "eq": 9785.1
    }
   ]
  },
