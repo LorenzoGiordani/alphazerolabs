@@ -38,7 +38,13 @@ jobs:
         run: uv run scripts/paper_exits.py
 
       - name: dashboard
-        run: uv run scripts/dashboard.py
+        # frontend più recente prima di rigenerare (stessa guardia di
+        # paper-run.yml): senza, un fix UI pushato a run in corso veniva
+        # sovrascritto dal deploy di questo job
+        run: |
+          git fetch origin main || true
+          git checkout origin/main -- dashboard/template.html scripts/dashboard.py || true
+          uv run scripts/dashboard.py
 
       - name: deploy dashboard pubblica (lux-ai.pages.dev)
         if: env.CLOUDFLARE_API_TOKEN != ''
