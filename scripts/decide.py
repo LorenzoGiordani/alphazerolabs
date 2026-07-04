@@ -9,8 +9,10 @@ Modi:
   uv run scripts/decide.py BTC,ETH,SOL --pack       # stampa contesto+prompt (per ispezione, LLM esterno)
   uv run scripts/decide.py BTC,ETH,SOL --check p.json  # valida proposta Strategist e logga
 
-Hard limits (non negoziabili dall'LLM): leva ≤2, rischio ≤1% equity/trade,
-stop obbligatorio 0.5-8%, max 3 posizioni, solo simboli del contesto.
+CARTA BIANCA (paper research, default): i limiti di SIZING (leva ≤2, rischio ≤1%,
+stop ≤8%) sono DISATTIVATI — gli LLM propongono senza cap, le violazioni restano
+tracciate. Restano i soli check STRUTTURALI (stop nel rumore/<0.5%, direction,
+tesi/invalidazione). Riattivare i cap deterministici: HARD_LIMITS_BYPASS=0.
 """
 
 import json
@@ -21,13 +23,16 @@ from pathlib import Path
 
 import numpy as np
 
-# BYPASS TEMPORANEO (test): se HARD_LIMITS_BYPASS e' settato, hard_check non vetoa
-# MAI per sizing (leva/risk/stop). Restituisce le violazioni in `bypassed` invece
-# di `errs`, cosi' il trade passa ma resta tracciato. Da rimuovere dopo il test;
-# il design corretto (clamp, non bypass) e' in docs/TODO-sizing-clamp.md.
+# CARTA BIANCA (paper research desk, scelta consapevole): i veto di SIZING
+# (leva/risk/stop-largo) sono OFF DI DEFAULT. Siamo in paper e vogliamo osservare
+# cosa propongono gli LLM senza cap deterministici, per poi tarare i limiti sul
+# comportamento reale (draw-down osservato). Le violazioni restano tracciate in
+# `bypassed` sul record. I check STRUTTURALI di hard_check (stop nel rumore, campi
+# mancanti) restano SEMPRE attivi: non fanno crashare il runner.
+# Per riattivare i limiti deterministici: export HARD_LIMITS_BYPASS=0.
 def _hard_bypass() -> bool:
-    # valutato a runtime (non a import): il runner puo' settarlo da spec.bypass_limits
-    return bool(os.environ.get("HARD_LIMITS_BYPASS"))
+    # valutato a runtime (non a import). Default ON: solo HARD_LIMITS_BYPASS=0 riattiva i cap.
+    return os.environ.get("HARD_LIMITS_BYPASS", "1") != "0"
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))

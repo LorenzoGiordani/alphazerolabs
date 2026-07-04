@@ -220,7 +220,9 @@ def main() -> None:
     # bypass_limits (sperimentale): nessun cap su posizioni/rischio, voglio vedere
     # il comportamento grezzo del desk. Tiene i check STRUTTURALI di hard_check
     # (campi mancanti, stop nel rumore) per non far crashare il runner.
-    bypass = bool(spec.get("risk", {}).get("bypass_limits"))
+    # CARTA BIANCA di default (paper research): bypass sizing + nessun cap posizioni
+    # + veto Risk role ignorato. spec puo' forzare i limiti con bypass_limits:false.
+    bypass = bool(spec.get("risk", {}).get("bypass_limits", True))
     if bypass:
         os.environ["HARD_LIMITS_BYPASS"] = "1"   # → decide.hard_check salta i veto di sizing
     symbols = desk_universe(spec)   # all_perps → commodity + top_crypto (Leva B)

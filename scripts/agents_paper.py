@@ -3,7 +3,8 @@
 Ogni run (cron, insieme a paper_trade):
 1. aggiorna le posizioni aperte (stop/target/time-stop su candele reali)
 2. ingerisce le decisioni nuove da paper/decisions.jsonl (stage final,
-   risk verdict approve/reduce, hard_check passed) e apre le posizioni
+   action=trade) e apre le posizioni. CARTA BIANCA (paper research): il veto
+   del Risk role e i cap di sizing/posizioni sono disattivati, vedi decide._hard_bypass.
 
 Balance fittizio 10k$, dati e prezzi reali. Stesse fee/slippage dell'engine.
 """
@@ -30,7 +31,9 @@ ACCOUNT = "agents-v1"
 SOURCE = "agents-v1"        # da quale strategia provengono le decisioni da eseguire
 TARGET_R = None             # None = usa il target_r proposto dall'LLM (comportamento storico)
 DECISIONS = ROOT / "paper/decisions.jsonl"
-MAX_CONCURRENT = 3
+# CARTA BIANCA (paper research): nessun cap sul numero di posizioni concorrenti.
+# Voglio vedere quante ne aprono gli LLM senza limite; il cap si taro' dopo.
+MAX_CONCURRENT = 10**9
 
 
 def _matches_source(d: dict, source: str) -> bool:
@@ -51,8 +54,10 @@ def pending_decisions(after_ts: str) -> list[dict]:
         if not _matches_source(d, SOURCE):
             continue
         p = d.get("proposal", {})
-        risk = d.get("risk", {})
-        if p.get("action") != "trade" or risk.get("verdict") not in ("approve", "reduce"):
+        # CARTA BIANCA: il veto del Risk role NON blocca piu' l'esecuzione. Passa
+        # ogni proposta di trade; il size_multiplier di un eventuale "reduce" resta
+        # applicato in open_from_decision (clamp [0,1]). Solo l'action conta.
+        if p.get("action") != "trade":
             continue
         out.append(d)
     return out
