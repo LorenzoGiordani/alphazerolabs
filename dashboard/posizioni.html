@@ -91,6 +91,8 @@ header.top{
 }
 .brand{ display:flex; align-items:center; gap:12px; margin-right:auto; }
 .brand-mark{ height:30px; width:auto; flex:none; display:block; align-self:center; }
+.brand-lockup{ height:22px; width:auto; flex:none; display:block; align-self:center; }
+@media(max-width:560px){ .brand-lockup{ height:17px; } }
 .brand .mark{
   font-family:var(--serif); font-weight:700; font-size:23px; letter-spacing:.01em;
   color:var(--text);
@@ -702,8 +704,7 @@ h1,h2,h3,h4,
 <header class="top">
   <div class="top-inner">
     <div class="brand">
-      <img class="brand-mark" src="assets/az-mark.png" alt="AlphaZero Labs">
-      <span class="sub">desk di ricerca autonomo</span>
+      <img class="brand-lockup" src="assets/az-lockup.png" alt="AlphaZero Labs — desk di ricerca autonomo">
     </div>
     <span class="badge-paper"><span class="dot"></span>Paper trading — nessun fondo reale</span>
     <span class="feed-status off" id="feed-status"><span class="fs-dot"></span><span class="fs-txt">feed in attesa</span></span>
