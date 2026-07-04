@@ -73,7 +73,38 @@
  },
  "geopolitics-v1": {
   "equity": 9983.361696372609,
-  "positions": {},
+  "positions": {
+   "xyz:CL": {
+    "strategy": "geopolitics-v1",
+    "symbol": "xyz:CL",
+    "direction": "short",
+    "entry_px": 68.480301,
+    "size_usd": 1426.19,
+    "stop_px": 70.877112,
+    "target_px": 63.68668,
+    "opened_at": "2026-07-02 19:00:00+00:00",
+    "checked_until": "2026-07-02 19:00:00+00:00",
+    "time_stop_h": 72,
+    "thesis": "Short WTI sul canale geopolitico rotto. Il catalizzatore GDELT (27 giu) ha 120h di vita e non ha generato spike di premium \u2014 lesson del journal: se il catalyst non muove il prezzo entro la prima sessione, l'edge \u00e8 evaporato. La headline fresh 'Iran Tightens Grip on Hormuz' alle 18:30 \u00e8 stata ignorata dal mercato (CL +0.18% sulla seduta, -5% su 7g), confermando che il war risk \u00e8 stato pricing-out. Contestualmente OPEC+ hike supply simultaneo crea sovrafferta fondamentale che accelera il drift bearish. Il trade cavalca la disconnessione causale: headline belliche che piovono mentre il prezzo scende \u2014 il mercato ci sta dicendo che Hormuz \u00e8 un miraggio. Stop a 3.5% (>=1 ATR per CL tipicamente ~2-2.5%) posizionato fuori dal rumore e sopra i massimi recenti per catturare invalidazione da evento cinetico. Time stop 72h coerente con l'orizzonte del drift OPEC+ e la finestra di maturazione del catalyst pricing-out. Rischio fat tail onestamente riconosciuto: un incidente tanker reale nello Stretto invaliderebbe istantaneamente, ma la probabilit\u00e0 \u00e8 bassa e il mercato stesso sta scontando questa probabilit\u00e0 a zero. Nessuna confluenza LUX disponibile in brief \u2014 direction allineata con l'edge cleaner identificato dall'Analyst (short/fade sul canale rotto).",
+    "invalidation": "CL recupera i massimi recenti di 7 giorni (evento cinetico reale nello Stretto di Hormuz o short squeeze forzato da headline escalation) \u2014 la tesi del canale rotto collassa se il prezzo dimostra che il premium geopolitico si sta ri-prezzando.",
+    "decision_ts": "2026-07-02T19:24:33.703252+00:00"
+   },
+   "xyz:GOLD": {
+    "strategy": "geopolitics-v1",
+    "symbol": "xyz:GOLD",
+    "direction": "long",
+    "entry_px": 4178.8356,
+    "size_usd": 7289.65,
+    "stop_px": 4083.432783,
+    "target_px": 4376.033222,
+    "opened_at": "2026-07-03 18:00:00+00:00",
+    "checked_until": "2026-07-03 18:00:00+00:00",
+    "time_stop_h": 72,
+    "thesis": "LONG GOLD \u2014 edge geopolitico pi\u00f9 pulito e LUX confluence aligned. Il summit NATO \u00e8 un catalizzatore LIVE (non stale): +3.3% in 24h conferma che il canale safe-haven si sta attivando ora, a differenza dell'oil (numb, Hormuz neutralizza) e crypto (manca confirmation gate). Catena causale pi\u00f9 corta: escalation Kyiv pre-summit \u2192 flight-to-safety \u2192 prezzo. Stop a $4,090 (~2.55%, fuori dal rumore del daily ATR di gold ~2%). Target $4,450 (~6% upside, 2.2R). Time-stop 72h coerente con orizzonte del catalizzatore (summit matura in giorni).",
+    "invalidation": "Tesi invalidata se: (1) il summit NATO produce de-escalation surprise o dichiarazioni concilianti che sgonfiano il risk premium safe-haven; (2) gold perde $4,090 \u2014 il che segnala che il canale flight-to-safety non si \u00e8 attivato nonostante il catalizzatore geopolitico, oppure profit-taking aggressivo pre-event satura la domanda.",
+    "decision_ts": "2026-07-03T18:18:55.785123+00:00"
+   }
+  },
   "last_decision_ts": "2026-07-03T03:23:23.667304+00:00"
  },
  "tsmom-atr-v1": {
