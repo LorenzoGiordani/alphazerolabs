@@ -2,7 +2,7 @@
  "months": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-04T01:20 UTC",
+ "generated_at": "2026-07-04T02:23 UTC",
  "strategies": [
   {
    "id": "highvol-port-v1",
@@ -14,9 +14,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.65,
-    "mean_return": 0.3058,
-    "worst_drawdown": -0.1493,
+    "mean_sharpe": 1.66,
+    "mean_return": 0.3108,
+    "worst_drawdown": -0.1648,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -32,11 +32,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.27,
-    "mean_return": 0.2052,
-    "worst_drawdown": -0.1668,
+    "mean_sharpe": 1.51,
+    "mean_return": 0.2562,
+    "worst_drawdown": -0.1308,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "5/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -50,11 +50,11 @@
    "basket_size": 9,
    "vol_target": "on (m medio 0.81)",
    "aggregate": {
-    "mean_sharpe": 1.41,
-    "mean_return": 0.1701,
-    "worst_drawdown": -0.1445,
+    "mean_sharpe": 1.85,
+    "mean_return": 0.2339,
+    "worst_drawdown": -0.1147,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "5/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -68,9 +68,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.74,
-    "mean_return": 0.2831,
-    "worst_drawdown": -0.1176,
+    "mean_sharpe": 1.19,
+    "mean_return": 0.1857,
+    "worst_drawdown": -0.1202,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
    },
@@ -86,11 +86,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.29,
-    "mean_return": 0.2106,
-    "worst_drawdown": -0.1668,
+    "mean_sharpe": 1.53,
+    "mean_return": 0.2606,
+    "worst_drawdown": -0.1308,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "5/6 fold positivi"
    },
    "per_symbol": []
   }
