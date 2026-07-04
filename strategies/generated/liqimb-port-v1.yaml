@@ -1,0 +1,69 @@
+id: liqimb-port-v1
+parent: null                     # fattore da dati liquidazioni (non lineage prezzo)
+status: challenger      # 04/07: 10a strategia, nata da backtest_factor_zoo2.py
+engine: portfolio
+created: '2026-07-04'
+thesis: >
+  LIQUIDATION IMBALANCE cross-sectional a portafoglio: per ogni asset lo
+  sbilancio (liq_short - liq_long)/oi medio degli ultimi 7 giorni; long il
+  top-terzile (dove gli SHORT vengono squeezati), short il bottom, dollar-neutral,
+  ribilancio 24h. E' la versione PORTFOLIO del segnale liq_imbalance gia'
+  validato per-simbolo (14/06: primo edge ortogonale robusto, tsmom+liq 1.02 vs
+  0.60 baseline, generalizza cross-asset a parametri congelati). Direzione
+  FOLLOW, non fade (liq-cascade-reversal: -52%, falsificata 22/06).
+  Backtest (backtest_factor_zoo2.py, 04/07): Sharpe 1.35 @168h / 1.68 @24h,
+  maxDD -13/-14%, ortogonale (corr +0.36 xsmom, +0.24 highvol). DSR 0.07-0.14
+  SOTTO soglia: la storia Coinalyze e' corta (~7 mesi daily, ~3 mesi 1h) e il
+  multiple-testing (n_trials=16) pesa. Promossa a challenger COMUNQUE perche'
+  l'edge sottostante ha gia' una validazione indipendente per-simbolo e il DD
+  e' il piu' basso dello zoo2 — il paper forward e' esattamente il test che
+  discrimina. Falsificata se: dopo >=8 settimane di paper lo sharpe_r resta
+  sotto il basket B&H o il DD supera -20%.
+
+universe:
+  selection: all_perps
+paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+portfolio:
+  liq_lookback_d: 7            # media imbalance 7g (14g dimezza lo Sharpe)
+  rebalance_h: 24
+  long_q: 0.66
+  short_q: 0.33
+  gross: 1.0
+  dollar_neutral: true
+  factor: liqimb               # (liq_short-liq_long)/oi da data/coinalyze_1h/
+timeframe: 1h
+decision_every_h: 4
+signals: []
+exit:
+  stop_pct: 0
+  target_r: 0
+  time_stop_h: 0
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 9
+evolution:
+  mutable: [portfolio]
+  notes: >
+    v1 seed: liqimb 7d reb24. Mutazioni: lookback (3/7/14g), rebalance, combo
+    con xsmom. Dipendenza operativa: data/coinalyze_1h/ dal cron cloud (6h) —
+    se il collector si ferma il segnale degrada a stale (il runner salta i
+    simboli sotto min_bars, con <3 simboli il rebalance viene saltato).
+backtest:
+  basket_12m:
+    config: liqimb 7d reb24 gross1.0 dollar-neutral, funding modellato
+    aggregate:
+      total_return: 0.4500
+      sharpe: 1.68
+      max_drawdown: -0.1370
+      dsr: 0.07
+      rebalances: 137
+    diagnostics:
+      corr_vs_xsmom: +0.36
+      corr_vs_highvol: +0.24
+      storia_dati: ~7m daily / ~3m 1h (limite del DSR, non dell'edge)
+    note: >
+      10a strategia del roster (Fase 2 estesa, 04/07). Sharpe sopra soglia,
+      DSR sotto per storia corta: challenger in prova col paper forward come
+      arbitro. Validazione indipendente: segnale per-simbolo liq_imbalance
+      (14/06) + zoo2 amihud/maxret scartati come cloni highvol (corr 0.7+).

@@ -38,6 +38,22 @@ def xs_momentum_weights(trailing_ret: pd.Series, long_q: float = 0.66,
     return w / gabs * gross if gabs > 0 else w
 
 
+def sign_weights(signal: pd.Series, gross: float = 1.0) -> pd.Series:
+    """Pesi time-series (TSMOM-neutral): long gli asset con segnale > 0, short < 0,
+    equal-weight per gamba, scalati a `gross`. A differenza di xs_momentum_weights
+    il book NON e' dollar-neutral by-construction: se tutti i segnali concordano
+    diventa direzionale — e' la sleeve trend, l'esposizione al beta e' voluta."""
+    s = signal.dropna()
+    w = pd.Series(0.0, index=signal.index)
+    longs, shorts = s[s > 0].index, s[s < 0].index
+    if len(longs):
+        w[longs] = 0.5 / len(longs)
+    if len(shorts):
+        w[shorts] = -0.5 / len(shorts)
+    gabs = w.abs().sum()
+    return w / gabs * gross if gabs > 0 else w
+
+
 class PortfolioBacktest:
     """Simula un singolo portafoglio sull'intero basket. close = DataFrame
     (index ts, colonne simboli)."""

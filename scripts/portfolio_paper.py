@@ -21,7 +21,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
-from backtest.portfolio import xs_momentum_weights
+from backtest.portfolio import sign_weights, xs_momentum_weights
 from backtest.lifecycle import paper_symbols
 from backtest.strategy import load
 from pipeline.live import atomic_write_text, fetch_live
@@ -116,6 +116,36 @@ def vol_signal(symbols: list[str], lookback_h: int) -> tuple[pd.Series, dict]:
     return pd.Series(vols), px
 
 
+def liqimb_signal(symbols: list[str], lookback_d: int) -> tuple[pd.Series, dict]:
+    """LIQIMB factor: sbilancio liquidazioni (liq_short - liq_long)/oi, media
+    rolling su lookback_d giorni. Long dove gli short vengono squeezati (FOLLOW,
+    lezione 14/06: il fade perde). Fonte: data/coinalyze_1h/ (refresh cron cloud
+    6h) — solo barre passate, anti-lookahead by-construction. Prezzi live HL."""
+    sigs, px = {}, {}
+    min_bars = lookback_d * 12                     # tolleranza buchi del collector
+    for s in symbols:
+        p = ROOT / f"data/coinalyze_1h/{s}.parquet"
+        if not p.exists():
+            continue
+        try:
+            c = pd.read_parquet(p).drop_duplicates("ts").sort_values("ts")
+        except Exception as e:
+            print(f"  {s}: coinalyze_1h illeggibile ({e})", file=sys.stderr)
+            continue
+        tail = c.tail(lookback_d * 24)
+        if len(tail) < min_bars:
+            continue
+        imb = ((tail.liq_short - tail.liq_long) / tail.oi.replace(0, np.nan)).mean()
+        if pd.isna(imb):
+            continue
+        try:
+            px[s] = float(fetch_live(s, lookback_h=8)["candles"].close.iloc[-1])
+            sigs[s] = float(imb)
+        except Exception as e:
+            print(f"  {s}: fetch fallito ({e})", file=sys.stderr)
+    return pd.Series(sigs), px
+
+
 def combo_signal(symbols: list[str], factors: list[str], weights: list[float],
                  lookback_h: int, vol_lookback_h: int) -> tuple[pd.Series, dict]:
     """COMBO multi-fattore: media pesata dei segnali normalizzati (z-score per
@@ -159,7 +189,7 @@ def main() -> None:
     rebalance_h = int(pf["rebalance_h"])
     gross = float(pf.get("gross", 1.0))
     multi_horizon = pf.get("lookbacks_h")        # [96,168,336] → media dei rank
-    factor = pf.get("factor", "xsmom")           # xsmom (rank ret) | highvol (rank std)
+    factor = pf.get("factor", "xsmom")           # xsmom | highvol | tsmom | liqimb
 
     state = json.loads(STATE_FILE.read_text()) if STATE_FILE.exists() else {}
     st = state.setdefault(acct, {"equity": 10_000.0, "positions": {}, "last_rebalance_ts": "",
@@ -175,7 +205,9 @@ def main() -> None:
                                 pf.get("lookback_h", 168), pf.get("vol_lookback_h", 72))
     elif factor == "highvol":
         rets, px = vol_signal(symbols, int(pf.get("vol_lookback_h", 72)))
-    else:
+    elif factor == "liqimb":
+        rets, px = liqimb_signal(symbols, int(pf.get("liq_lookback_d", 7)))
+    else:                                        # xsmom E tsmom: ritorno trailing
         rets, px = trailing_returns(symbols, lookback_h, multi_horizon)
     if not px:
         print("  nessun prezzo: skip"); return
@@ -198,9 +230,13 @@ def main() -> None:
         gross_eff = gross * m
         if vt and vt.get("enabled") and abs(m - 1.0) > 1e-6:
             print(f"  vol-target: realized->m={m:.2f} (gross {gross:.2f}->{gross_eff:.2f})")
-        w = xs_momentum_weights(rets, long_q=float(pf.get("long_q", 0.66)),
-                                short_q=float(pf.get("short_q", 0.33)), gross=gross_eff,
-                                dollar_neutral=bool(pf.get("dollar_neutral", True)))
+        if factor == "tsmom":
+            # sleeve trend time-series: segno del momentum, NON rank cross-section
+            w = sign_weights(rets, gross=gross_eff)
+        else:
+            w = xs_momentum_weights(rets, long_q=float(pf.get("long_q", 0.66)),
+                                    short_q=float(pf.get("short_q", 0.33)), gross=gross_eff,
+                                    dollar_neutral=bool(pf.get("dollar_neutral", True)))
         target = {s: float(w[s]) * st["equity"] for s in w.index if abs(w[s]) > 1e-9}
         current = {s: st["positions"].get(s, {}).get("notional", 0.0) for s in set(target) | set(st["positions"])}
         turnover = sum(abs(target.get(s, 0.0) - current.get(s, 0.0)) for s in current)

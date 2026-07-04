@@ -80,3 +80,23 @@ backtest:
       ora legge l''equity del book per engine:portfolio.
 
       '
+  validazione_lb168_04_07:
+    fonte: validate_xsmom_lb168.py + robustness_portfolio.py (spec docs/xsmom-lb168.md §7)
+    funding_ab:
+      sharpe_price_only: 3.67
+      sharpe_con_funding: 3.67
+      drag_annualizzato: -0.002    # trascurabile: il temuto 3-4%/anno non c'e' su questo book
+    walk_forward_fold:
+      sharpe_trimestri: [6.49, 4.59, 1.35, 2.28]   # 4/4 positivi, degradazione visibile
+    per_simbolo:
+      asset_positivi: 7/9          # edge diffuso (negativi: BTC -0.007, SOL -0.075)
+    bootstrap_ci95_sharpe: [1.45, 5.58]   # lower bound > 1.0: soglia credibilita' PASSATA
+    oos_split:
+      freeze_reb168_test: 0.88     # crolla OOS
+      reb48_test: 2.37             # generalizza -> depositato xsmom-reb48-v1 (challenger A/B)
+    dsr_n_trials_67: 0.90
+    verdetto: >
+      Edge core VALIDATO (bootstrap CI95-inferiore 1.45 > 1.0, prima volta).
+      Riserve residue: momentum in rallentamento (fold 2026), survivorship del
+      basket, slippage reale sulle gambe illiquide. Prossimo gate: DSR>=0.95 +
+      track record paper forward (G4).

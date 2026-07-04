@@ -506,3 +506,66 @@ def test_agents_time_stop_fallback(monkeypatch, tmp_path):
     assert pos["time_stop_h"] == 96          # fallback, non 0
     assert fake_journal.exists() and json.loads(fake_journal.read_text())["thesis"] == "t"
 
+
+
+# --- Fase 2 chiusa: tsmom-neutral + liqimb + xsmom-reb48 (04/07) ---
+
+def test_sign_weights_construction():
+    """sign_weights: long segno+, short segno-, gross rispettato. Con segni tutti
+    concordi il book diventa direzionale (net != 0): e' la sleeve trend, voluto."""
+    from backtest.portfolio import sign_weights
+    mixed = pd.Series({"A": 0.2, "B": 0.1, "C": -0.05, "D": -0.3})
+    w = sign_weights(mixed, gross=1.0)
+    assert abs(w.abs().sum() - 1.0) < 1e-9
+    assert w["A"] > 0 and w["D"] < 0
+    assert abs(w.sum()) < 1e-9                     # 2 gambe piene → neutrale
+    allpos = sign_weights(pd.Series({"A": 0.2, "B": 0.1, "C": 0.05}), gross=1.0)
+    assert allpos.sum() > 0.99                     # tutti long → net-long (direzionale)
+    assert (sign_weights(pd.Series({"A": 0.0, "B": 0.0})) == 0).all()
+
+
+def test_tsmom_neutral_backtest_holds():
+    """Regression gate 04/07: tsmom sign lb168 reb24 promosso (Sharpe 2.02 DSR 0.71).
+    Il gate HMM e' FALSIFICATO (ogni variante gated peggiora) — non rimetterlo.
+    Qui blocco la regressione sull'edge ungated."""
+    from backtest.portfolio import PortfolioBacktest, sign_weights
+    cols = {}
+    for s in ["BTC","ETH","SOL","XRP","SUI","NEAR","WLD","ZEC","CRV"]:
+        cols[s] = pd.read_parquet(ROOT / f"data/candles/{s}.parquet").tail(12*30*24).set_index("ts")["close"]
+    px = pd.DataFrame(cols).sort_index()
+    bt = PortfolioBacktest(px)
+    eq, ret, meta = bt.run(sign_weights, lookback_h=168, rebalance_h=24)
+    sh = float(ret.mean() / ret.std() * np.sqrt(24*365)) if ret.std() else 0
+    assert sh > 1.2, f"tsmom-neutral degradato: Sharpe {sh:.2f}"
+    assert float(eq.iloc[-1] - 1) > 0.5
+
+
+def test_fase2_specs_active_and_wired():
+    """I 3 artefatti del 04/07 caricano, sono engine:portfolio challenger e il
+    runner ha i signal necessari (tsmom via trailing+sign, liqimb via coinalyze_1h)."""
+    from backtest.lifecycle import all_specs
+    import scripts.portfolio_paper as pp
+    ts = load(ROOT / "strategies/generated/tsmom-neutral-v1.yaml")
+    assert ts["engine"] == "portfolio" and ts["portfolio"]["factor"] == "tsmom"
+    assert ts["portfolio"]["dollar_neutral"] is False   # sign book: il net e' il punto
+    li = load(ROOT / "strategies/generated/liqimb-port-v1.yaml")
+    assert li["engine"] == "portfolio" and li["portfolio"]["factor"] == "liqimb"
+    rb = load(ROOT / "strategies/generated/xsmom-reb48-v1.yaml")
+    assert rb["portfolio"]["rebalance_h"] == 48 and rb["parent"] == "xsmom-port-v1"
+    active = [s["id"] for _, s in all_specs() if s.get("engine") == "portfolio"
+              and s["status"] in ("champion", "challenger")]
+    for sid in ("tsmom-neutral-v1", "liqimb-port-v1", "xsmom-reb48-v1"):
+        assert sid in active
+    assert callable(pp.liqimb_signal)
+
+
+def test_liqimb_signal_from_cache(monkeypatch):
+    """liqimb_signal legge data/coinalyze_1h (cache storica, anti-lookahead) e usa
+    fetch_live solo per il prezzo. Rete monkeypatchata: nessuna chiamata reale."""
+    import scripts.portfolio_paper as pp
+    monkeypatch.setattr(pp, "fetch_live",
+                        lambda s, lookback_h=8: {"candles": _candles(n=10)})
+    sigs, px = pp.liqimb_signal(["BTC", "ETH", "NOPE"], lookback_d=7)
+    assert "NOPE" not in sigs.index                 # simbolo senza cache: saltato
+    assert len(sigs) == 2 and np.isfinite(sigs).all()
+    assert set(px) >= set(sigs.index)               # prezzo per ogni segnale

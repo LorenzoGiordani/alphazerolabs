@@ -1,0 +1,84 @@
+id: funding-carry-v1
+parent: null                     # fattore NUOVO e ortogonale (non lineage xsmom/highvol)
+status: retired         # 02/07 sera: FALSIFICATO come edge dopo fix del bug della cassflow funding.
+                        # Bug: la cassflow funding era applicata ogni barra oraria invece che per-
+                        # intervallo (8h) -> sovrastimata ~8-10x. Dopo correzione Sharpe 1.08/DSR 0.26.
+                        # NON candidare di nuovo finché non si modella il funding correttamente e
+                        # non emerge Sharpe>1 & DSR>=0.5 con cassflow reale (~5-7%/anno di harvest).
+engine: portfolio
+created: '2026-07-02'
+retired: '2026-07-02'
+thesis: >
+  FUNDING-CARRY cross-section (Koijen-style carry). Carry di un long = -funding_rate
+  (su HL funding>0 e' pagato DA long VERSO short). Carry trade: long gli asset ad alto
+  carry (funding piu' negativo), short i basso-carry. Ortogonale al momentum (ranka
+  funding, non rendimento). CRITICO: il carry ha un FLUSSO DI CASSA vero (funding) — il
+  P&L modella ENTRAMBI price moves + cashflow Σ_i(-w_i*r_i). Falsificata se in walk-forward
+  non mantiene Sharpe>1.5 con cassflow reale, o se corr con xsmom >0.4.
+universe:
+  selection: all_perps
+paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+portfolio:
+  carry_lookback_h: 168
+  rebalance_h: 8
+  long_q: 0.66
+  short_q: 0.33
+  gross: 1.0
+  dollar_neutral: true
+  factor: carry
+timeframe: 1h
+decision_every_h: 4
+signals: []
+exit:
+  stop_pct: 0
+  target_r: 0
+  time_stop_h: 0
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 9
+evolution:
+  mutable: [portfolio]
+  notes: >
+    RETIRED 02/07 sera. Backtest iniziale (cassflow funding applicata ogni barra oraria
+    invece che per-intervallo 8h) dava Sharpe 2.36/DSR 0.79 -> PROMOSSO: ERA UN BUG, la
+    cassflow era sovrastimata ~8-10x. Dopo fix (rate diviso per 8): Sharpe 1.08, +31.0%,
+    maxDD -21.0%, DSR 0.26, 293 rebal -> DEBOLE, sotto soglia zoo (Sharpe>1 & DSR>=0.5).
+    Contributo REALE del funding harvest ~5-7% in 12m (non ~50%). La strategia collassa
+    nel price-only (Sharpe 0.90) + piccolo harvest. Ortogonalita' a xsmom resta genuina
+    (corr +0.04) ma un fattore ortogonale DEBOLE non costruisce portafoglio. Lezione in
+    [[wiki/Lezioni Apprese e Falsificazioni]]: verifica sempre le unita' del funding (per-
+    intervallo vs orario). Per riaprire: modellare funding correttamente + sweep lookback
+    con cassflow reale, solo se risorge sopra soglia.
+backtest:
+  basket_12m:
+    config: funding-carry dollar-neutral carry_lb168 reb8h gross1.0 (cashflow funding CORRETTA, /8)
+    aggregate:
+      total_return: 0.3101
+      sharpe: 1.08
+      max_drawdown: -0.2095
+      dsr: 0.26
+      rebalances: 293
+      avg_gross: 1.0
+    comparativo:
+      equal_weight_bh:
+        ret: -0.1715
+        sharpe: 0.08
+      xsmom_lb168:
+        sharpe: 3.73
+        corr_vs_carry: 0.04
+      funding_as_signal_price_only:
+        ret: 0.2434
+        sharpe: 0.90
+        max_dd: -0.2299
+        dsr: 0.20
+    diagnostics:
+      corr_vs_xsmom: +0.04
+      funding_harvest_reale_12m_pct: 5.4      # contributo composto reale, non 51.9% (bug)
+    note: >
+      BUG CORRETTO 02/07 sera: cassflow funding era per-intervallo 8h ma applicata ogni
+      barra oraria (ffill) -> 8-10x sovrastima. Fix: dividere per 8. Prima del fix la
+      strategia appariva Sharpe 2.36/DSR 0.79 (PROMOSSA) — era artefatto del bug. Dopo
+      fix: Sharpe 1.08/DSR 0.26 (DEBOLE, RETIRED). L'edge funding-carry ortogonale a
+      xsmom resta concettualmente valido ma troppo debole come edge costruttivo con
+      cassflow reale. Script: scripts/backtest_funding_carry.py.

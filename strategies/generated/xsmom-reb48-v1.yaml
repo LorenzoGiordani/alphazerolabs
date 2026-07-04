@@ -1,0 +1,59 @@
+id: xsmom-reb48-v1
+parent: xsmom-port-v1            # stessa xsmom lb168, cadenza ribilancio 48h
+status: challenger      # 04/07: dall'OOS split della validazione xsmom-lb168
+engine: portfolio
+created: '2026-07-04'
+thesis: >
+  Cross-sectional momentum lb168 IDENTICO a xsmom-port-v1 ma ribilanciato ogni
+  48h invece di 168h. Motivazione dall'OOS split (robustness_portfolio.py,
+  04/07, train 8m / test 4m mai visti): il config canonico lb168/reb168 crolla
+  OOS (Sharpe 4.18 train -> 0.88 test) mentre lb168/reb48 GENERALIZZA
+  (3.95 train -> 2.37 test, maxDD test -12.8%). Full-period: Sharpe 3.75 vs
+  3.67, maxDD -11.3% vs -11.9%. Ipotesi: col momentum che rallenta (fold
+  Sharpe 6.49 -> 4.59 -> 1.35 -> 2.28 nel 2026) la cadenza piu' fitta esce
+  prima dalle gambe morte. Challenger A/B contro il parent: stesso segnale,
+  solo il timing cambia — il paper forward decide quale cadenza tenere.
+  Falsificata se: in paper non batte xsmom-port-v1 risk-adjusted su >=8
+  settimane (allora il vantaggio OOS era rumore del singolo split).
+
+universe:
+  selection: all_perps
+paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+portfolio:
+  lookback_h: 168
+  rebalance_h: 48
+  long_q: 0.66
+  short_q: 0.33
+  gross: 1.0
+  dollar_neutral: true
+timeframe: 1h
+decision_every_h: 4
+signals: []
+exit:
+  stop_pct: 0
+  target_r: 0
+  time_stop_h: 0
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 9
+evolution:
+  mutable: [portfolio]
+  notes: >
+    Variante di cadenza del core. Mutazioni sensate: reb 24-72h. Il turnover
+    ~3.5x del parent e' il costo da battere: se il paper mostra fee-drag
+    superiore al vantaggio di timing, ritirare.
+backtest:
+  basket_12m:
+    config: xs-mom dollar-neutral lb168 reb48 gross1.0 (slippage validazione 5bps)
+    aggregate:
+      total_return: 1.9990
+      sharpe: 3.75
+      max_drawdown: -0.1130
+    oos_split:
+      train_8m_sharpe: 3.95
+      test_4m_sharpe: 2.37       # vs 0.88 del reb168 FREEZE — il motivo di questo artefatto
+      test_4m_max_dd: -0.128
+    note: >
+      Nato dalla validazione spec xsmom-lb168 (04/07): unico config del top-5
+      train che regge OOS. A/B di cadenza contro xsmom-port-v1 in paper.
