@@ -97,7 +97,14 @@ jobs:
       - name: dashboard
         id: dashboard
         if: always()
-        run: uv run scripts/dashboard.py
+        # frontend più recente PRIMA di rigenerare (checkout mirato: il working
+        # tree ha i dati del run non ancora committati, un pull fallirebbe):
+        # un fix UI pushato a run in corso veniva sovrascritto dal deploy di
+        # questo job e restava offline fino al run successivo
+        run: |
+          git fetch origin main || true
+          git checkout origin/main -- dashboard/template.html scripts/dashboard.py || true
+          uv run scripts/dashboard.py
 
       - name: deploy dashboard pubblica (lux-ai.pages.dev)
         if: always() && env.CLOUDFLARE_API_TOKEN != '' && steps.dashboard.outcome == 'success'
