@@ -33,7 +33,7 @@ import numpy as np
 
 from backtest.engine import Backtest
 from backtest.metrics import HOURS_PER_YEAR, compute
-from backtest.portfolio import PortfolioBacktest, xs_momentum_weights
+from backtest.portfolio import PortfolioBacktest, sign_weights, xs_momentum_weights
 from backtest.strategy import compile_strategy, load
 from backtest.walkforward import evaluate
 from pipeline.live import atomic_write_text
@@ -194,10 +194,35 @@ def _close_panel(symbols: list[str], months: int) -> pd.DataFrame | None:
     return panel if len(panel) >= 30 * 24 else None
 
 
+def _liqimb_panel(close: pd.DataFrame, lookback_d: int) -> pd.DataFrame:
+    """Pannello segnale LIQIMB per il report: sbilancio liquidazioni
+    (liq_short - liq_long)/oi, media rolling su lookback_d giorni, allineato
+    all'indice orario del close. Stessa fonte e formula del live
+    (portfolio_paper.liqimb_signal): data/coinalyze_1h/. Simboli senza parquet →
+    NaN, esclusi dal ranking come nel live. Anti-lookahead: rolling usa solo t<=."""
+    win = lookback_d * 24
+    cols = {}
+    for sym in close.columns:
+        p = DATA / "coinalyze_1h" / f"{sym}.parquet"
+        if not p.exists():
+            continue
+        try:
+            c = pd.read_parquet(p).drop_duplicates("ts").sort_values("ts").set_index("ts")
+        except Exception:
+            continue
+        imb = (c["liq_short"] - c["liq_long"]) / c["oi"].replace(0, np.nan)
+        cols[sym] = imb.rolling(win, min_periods=win // 2).mean()
+    if not cols:
+        return pd.DataFrame(index=close.index, columns=close.columns, dtype=float)
+    return pd.DataFrame(cols).reindex(close.index, method="ffill")
+
+
 def _signal_panel(close: pd.DataFrame, pf: dict) -> pd.DataFrame:
-    """Pannello del segnale di ranking (un valore per simbolo per ts): xsmom =
-    ritorno trailing, highvol = volatilita' trailing, combo = z-score pesato.
-    Anti-lookahead: ogni segnale usa solo dati <= t."""
+    """Pannello del segnale di ranking (un valore per simbolo per ts): xsmom/tsmom
+    = ritorno trailing, highvol = volatilita' trailing, liqimb = sbilancio
+    liquidazioni, combo = z-score pesato. Anti-lookahead: ogni segnale usa dati <= t.
+    NB: il tsmom condivide il segnale (ritorno trailing) con xsmom; a distinguerli e'
+    il WEIGHT (sign_weights vs rank cross-section), applicato in _portfolio_weight_fn."""
     factors = pf.get("factors")
     if factors:
         weights = pf.get("weights", [0.5] * len(factors))
@@ -214,6 +239,8 @@ def _signal_panel(close: pd.DataFrame, pf: dict) -> pd.DataFrame:
         sd = sig.std(axis=1).replace(0.0, np.nan)
         return sig.sub(mu, axis=0).div(sd, axis=0)   # z-score cross-section
     factor = pf.get("factor", "xsmom")
+    if factor == "liqimb":
+        return _liqimb_panel(close, int(pf.get("liq_lookback_d", 7)))
     if factor == "highvol":
         vl = int(pf.get("vol_lookback_h", 72))
         return close.pct_change().rolling(vl).std()
@@ -227,11 +254,17 @@ def _signal_panel(close: pd.DataFrame, pf: dict) -> pd.DataFrame:
 def _portfolio_weight_fn(signal_panel: pd.DataFrame, pf: dict):
     """weight_fn per PortfolioBacktest.run: recupera il ts dalla riga (`.name`) e
     ranka il segnale di portafoglio corretto. xs_momentum_weights converte rank -> pesi."""
+    factor = pf.get("factor", "xsmom")
+    gross = float(pf.get("gross", 1.0))
     kw = dict(long_q=float(pf.get("long_q", 0.66)), short_q=float(pf.get("short_q", 0.33)),
-              gross=float(pf.get("gross", 1.0)), dollar_neutral=bool(pf.get("dollar_neutral", True)))
+              gross=gross, dollar_neutral=bool(pf.get("dollar_neutral", True)))
 
     def wf(trailing_row):
         sig = signal_panel.loc[trailing_row.name] if trailing_row.name in signal_panel.index else trailing_row
+        # tsmom = sleeve trend time-series: segno del momentum (sign_weights), NON
+        # rank cross-section. Stesso split del live (portfolio_paper.py:233).
+        if factor == "tsmom":
+            return sign_weights(sig, gross=gross)
         return xs_momentum_weights(sig, **kw)
     return wf
 
