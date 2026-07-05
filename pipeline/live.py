@@ -41,10 +41,25 @@ _QUOTE_SUFFIXES = ("USDT", "USDC", "USD", "BUSD", "TUSD", "PERP")
 # riconciliano con la posizione "NATGAS" in state -> feed e posizioni discordano.
 _COMMODITY_ALIASES = {
     "NG": "NATGAS", "NG1": "NATGAS", "NG1!": "NATGAS", "NATGAS": "NATGAS", "NATURALGAS": "NATGAS",
-    "WTI": "CL", "CRUDE": "CL", "CL": "CL",
+    "WTI": "CL", "CRUDE": "CL", "CL": "CL", "WTCL": "CL",
     "BRENT": "BRENTOIL", "BRENTOIL": "BRENTOIL",
     "XAUUSD": "GOLD", "XAU": "GOLD", "GOLD": "GOLD",
     "XAGUSD": "SILVER", "XAG": "SILVER", "SILVER": "SILVER",
+}
+
+# Base commodity -> simbolo con venue HIP-3 su Hyperliquid. Le commodity NON sono
+# perp crypto: vivono sulla venue xyz: (xyz:CL, xyz:GOLD...). L'LLM emette il
+# ticker nudo ("CL", "GOLD"); senza riattaccare la venue, fetch_live instrada su
+# HL crypto -> nessun crude/oro -> fetch fallisce -> open_from_decision ritorna
+# None e la posizione non viene MAI aperta (solo stderr, nemmeno uno skip nel
+# journal). Questa mappa chiude il buco nel path live: stessa venue-map che finora
+# esisteva solo in scripts/backfill_lost_positions.py (cerotto retroattivo).
+_COMMODITY_VENUE = {
+    "NATGAS": "xyz:NATGAS",
+    "CL": "xyz:CL",
+    "BRENTOIL": "xyz:BRENTOIL",
+    "GOLD": "xyz:GOLD",
+    "SILVER": "xyz:SILVER",
 }
 
 
@@ -93,9 +108,15 @@ def canonical_symbol(symbol) -> str:
                 s = s[: -len(q)]
                 changed = True
     s = s.replace("/", "").replace("-", "")
+    # scarta le parentetiche descrittive che l'LLM a volte appiccica al ticker:
+    # "CL(WTICRUDEOIL)" -> "CL". Robusto per qualsiasi "XX(...)" futuro.
+    s = _re.sub(r"\(.*?\)", "", s)
     # alias commodity: NG/NG1!/WTI/XAUUSD -> NATGAS/CL/GOLD (stesso underlying,
     # nomi diversi emessi dall'LLM). Solo sui base coin puliti.
-    return _COMMODITY_ALIASES.get(s, s)
+    base = _COMMODITY_ALIASES.get(s, s)
+    # riattacca la venue HIP-3 (CL -> xyz:CL): rende il simbolo fetchabile da HL.
+    # I crypto core (BTC/ETH/SOL) non sono nella mappa -> restano base puliti.
+    return _COMMODITY_VENUE.get(base, base)
 
 
 def _perp_dexs() -> list[str]:

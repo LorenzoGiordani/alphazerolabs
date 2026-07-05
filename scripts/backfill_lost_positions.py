@@ -198,9 +198,14 @@ def log_event_with(event: dict, decision_ts: str) -> None:
         f.write(json.dumps(event, default=str) + "\n")
 
 
-def lost_decisions(include_vetoed: bool = False) -> list[dict]:
+def lost_decisions(include_vetoed: bool = False, all_time: bool = False) -> list[dict]:
     """Decisioni del desk geopolitico senza una open corrispondente
     (né reale né gia' backfillata) nelle ultime 48h.
+
+    all_time=True: ignora la finestra 48h e considera TUTTO lo storico. Serve al
+    recupero una-tantum di tutte le commodity perse dal buco symbol->venue (giorni
+    di decisioni, ben oltre le 48h). L'idempotenza (has_open/already_backfilled) e
+    il dedup concorrenza restano attivi, quindi resta sicuro contro i doppioni.
 
     include_vetoed=True: include anche le decisioni hard_veto bloccate SOLO per
     sizing (leva/risk/stop). Con il bypass temporaneo dei limiti, queste sarebbero
@@ -232,7 +237,7 @@ def lost_decisions(include_vetoed: bool = False) -> list[dict]:
             continue
         ts = d["logged_at"]
         try:
-            if datetime.fromisoformat(ts).timestamp() < cutoff:
+            if not all_time and datetime.fromisoformat(ts).timestamp() < cutoff:
                 continue
         except ValueError:
             continue
@@ -259,8 +264,9 @@ def lost_decisions(include_vetoed: bool = False) -> list[dict]:
 
 def main() -> int:
     include_vetoed = "--include-vetoed" in sys.argv
+    all_time = "--all" in sys.argv
     state = json.loads(STATE_FILE.read_text())
-    lost = lost_decisions(include_vetoed=include_vetoed)
+    lost = lost_decisions(include_vetoed=include_vetoed, all_time=all_time)
     if not lost:
         print("[backfill] nessuna posizione tradeable persa da recuperare"
               + (" (incluse hard_veto da sizing)." if include_vetoed else "."))

@@ -44,14 +44,16 @@ def test_canonical_strips_quote_suffixes():
 
 def test_canonical_commodity_aliases():
     # l'LLM emette nomi incoerenti per lo stesso underlying (desk geopolitico):
-    # NG / NATGAS / NG1! sono tutti natural gas. Devono convergere a NATGAS.
-    assert canonical_symbol("NG") == "NATGAS"
-    assert canonical_symbol("NG1!") == "NATGAS"
-    assert canonical_symbol("NATGAS") == "NATGAS"
-    assert canonical_symbol("WTI") == "CL"
-    assert canonical_symbol("CL") == "CL"
-    assert canonical_symbol("XAUUSD") == "GOLD"
-    assert canonical_symbol("BRENT") == "BRENTOIL"
+    # NG / NATGAS / NG1! sono tutti natural gas -> convergono a NATGAS, poi
+    # canonical_symbol riattacca la venue HIP-3 (xyz:) perché il simbolo deve
+    # essere fetchabile da HL. Il base coin puro si ottiene con clean_symbol.
+    assert canonical_symbol("NG") == "xyz:NATGAS"
+    assert canonical_symbol("NG1!") == "xyz:NATGAS"
+    assert canonical_symbol("NATGAS") == "xyz:NATGAS"
+    assert canonical_symbol("WTI") == "xyz:CL"
+    assert canonical_symbol("CL") == "xyz:CL"
+    assert canonical_symbol("XAUUSD") == "xyz:GOLD"
+    assert canonical_symbol("BRENT") == "xyz:BRENTOIL"
 
 
 def test_clean_symbol_strips_venue_for_matching():

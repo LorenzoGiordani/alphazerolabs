@@ -17,7 +17,12 @@ schemas:
     type: object
     properties:
       action: {type: string, enum: [trade, no_trade]}
-      symbol: {type: string}
+      # symbol: copia ESATTA di una chiave del dict `assets` nel contesto (prefisso
+      # venue incluso, es. "xyz:CL", "xyz:GOLD", "BTC"). NON riscrivere/tradurre/
+      # abbreviare il ticker: "CL", "WTI", "XAUUSD", "CL(WTICRUDEOIL)" non sono
+      # fetchabili e la posizione va persa in silenzio. Se non è tra le chiavi di
+      # `assets`, non è tradeable → action=no_trade.
+      symbol: {type: string, description: "Copia ESATTA di una chiave di `assets` nel contesto, prefisso venue incluso (es. 'xyz:CL', 'xyz:GOLD', 'BTC'). Vietato riscrivere/abbreviare il ticker (no 'CL', 'WTI', 'XAUUSD')."}
       direction: {type: string, enum: [long, short]}
       leverage: {type: number}
       risk_pct: {type: number}
@@ -96,6 +101,9 @@ roles:
       Favorisci i setup con `lux_confluence.aligned`=true (edge validato, top-conviction) e allinea la
       direction alla sua; se vai contro la confluenza LUX, motivalo esplicitamente nella tesi.
       Decidi: UN trade o nessuno (nessun trade è una decisione rispettabile).
+      SYMBOL: nel campo `symbol` copia ESATTAMENTE la chiave dell'asset dal contesto
+      (`assets`), prefisso venue incluso (es. "xyz:CL", non "CL"/"WTI"/"XAUUSD"). Un
+      ticker riscritto non è fetchabile e il trade va perso in silenzio.
       STOP: deve stare FUORI dal rumore — usa stop_pct >= `atr_pct` dell'asset (nel contesto) e
       mai più stretto dell'invalidazione della tesi. Stop dentro 1 ATR = noise-stop garantito
       (lezioni execution_issue ricorrenti). TIME_STOP: coerente con l'orizzonte della tesi — se i
