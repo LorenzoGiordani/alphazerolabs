@@ -3848,3 +3848,15 @@
 {"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 10107.48, "open_positions": 2, "logged_at": "2026-07-05T13:21:00.564769+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10248.29, "open_positions": 2, "logged_at": "2026-07-05T13:22:50.672913+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9968.04, "open_positions": 0, "logged_at": "2026-07-05T13:22:51.147910+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10248.29, "open_positions": 2, "logged_at": "2026-07-05T14:18:44.607878+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9968.04, "open_positions": 0, "logged_at": "2026-07-05T14:18:45.201584+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9781.23, "open_positions": 42, "logged_at": "2026-07-05T14:19:17.001593+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9953.32, "open_positions": 4, "logged_at": "2026-07-05T14:19:23.847069+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 10101.71, "open_positions": 65, "logged_at": "2026-07-05T14:19:28.280709+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10360.45, "open_positions": 2, "logged_at": "2026-07-05T14:19:30.995155+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10273.05, "open_positions": 2, "logged_at": "2026-07-05T14:19:33.222597+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10364.44, "open_positions": 17, "logged_at": "2026-07-05T14:19:37.010464+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9755.05, "open_positions": 6, "logged_at": "2026-07-05T14:19:39.373818+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 10148.21, "open_positions": 2, "logged_at": "2026-07-05T14:19:42.008178+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10248.29, "open_positions": 2, "logged_at": "2026-07-05T14:19:44.000860+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9968.04, "open_positions": 0, "logged_at": "2026-07-05T14:19:44.519370+00:00"}
