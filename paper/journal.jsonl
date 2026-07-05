@@ -3868,3 +3868,18 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10248.29, "open_positions": 2, "logged_at": "2026-07-05T15:19:09.054710+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9968.04, "open_positions": 0, "logged_at": "2026-07-05T15:19:09.528664+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9983.36, "open_positions": 0, "logged_at": "2026-07-05T15:22:14.900413+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10248.29, "open_positions": 2, "logged_at": "2026-07-05T16:16:05.996944+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9968.04, "open_positions": 0, "logged_at": "2026-07-05T16:16:06.514874+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9780.96, "open_positions": 42, "logged_at": "2026-07-05T16:16:47.049118+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9944.57, "open_positions": 4, "logged_at": "2026-07-05T16:16:50.583483+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 10101.93, "open_positions": 65, "logged_at": "2026-07-05T16:16:53.985767+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10409.96, "open_positions": 2, "logged_at": "2026-07-05T16:16:57.618269+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10190.77, "open_positions": 2, "logged_at": "2026-07-05T16:17:04.388161+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10425.36, "open_positions": 17, "logged_at": "2026-07-05T16:17:56.283387+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 10205.53, "open_positions": 2, "logged_at": "2026-07-05T16:18:05.747822+00:00"}
+{"type": "skip", "strategy": "agents-v1", "symbol": "SOL", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-07-05T16:21:18.586643+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10248.29, "open_positions": 2, "logged_at": "2026-07-05T16:21:18.590007+00:00"}
+{"type": "open", "strategy": "agents-rr2-v1", "symbol": "SOL", "direction": "long", "entry_px": 81.3282624, "size_usd": 510.06, "stop_px": 78.54683582592, "target_px": 86.89111554816, "opened_at": "2026-07-05 15:00:00+00:00", "checked_until": "2026-07-05 15:00:00+00:00", "time_stop_h": 72, "thesis": "SOL \u00e8 l'unico asset con 4 fattori convergenti: regime bull 7d, compression attiva, tsmom confermato e vwap_zscore=1 (unico nel libro). Il rally +12.9% 7g \u00e8 spot-driven (funding ~0): la leva long non \u00e8 ancora entrata, lasciando spazio all'amplificazione. Compression generalizzata = decompressione imminente; SOL ha il maggior numero di frammenti direzionali per risolverla verso l'alto. Setup di secondo ordine (no lux_confluence, taker flow neutro) \u2014 per questo size ridotta. Se BTC risolve il chop verso l'alto, SOL come high-beta trascina.", "invalidation": "Tesi invalidata se SOL perde $78.5 \u2014 il vwap_zscore si neutralizzerebbe e il regime bull 7g entrerebbe in zona di rollover. Anche BTC < $61K invalida la tesi (trascinamento beta).", "decision_ts": "2026-07-05T16:21:16.716300+00:00", "logged_at": "2026-07-05T16:21:19.620523+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9967.81, "open_positions": 1, "logged_at": "2026-07-05T16:21:19.624227+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9983.36, "open_positions": 0, "logged_at": "2026-07-05T16:24:04.680945+00:00"}
+{"type": "close", "strategy": "agents-rr2-v1", "symbol": "SOL", "reason": "retired", "exit_px": 81.312, "frac": 1.0, "remaining": 0.0, "pnl_usd": -0.33, "equity": 9967.48, "ts": "2026-07-05 15:00:00+00:00", "logged_at": "2026-07-05T16:24:12.067753+00:00"}
