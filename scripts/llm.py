@@ -1,8 +1,10 @@
-"""Layer LLM — GLM-5.2 via OpenRouter (endpoint OpenAI-compatible).
+"""Layer LLM — GLM via catena provider: Z AI coding plan (default) → OpenRouter (fallback).
 
-Un solo modello, pinnato: z-ai/glm-5.2 (canonical slug). Una sola chiamata
-HTTP a OpenRouter /chat/completions (Bearer auth). Punto d'ingresso unico
-ask() per tutta la pipeline.
+Provider chain, endpoint OpenAI-compatible in entrambi i casi. ask() prova il
+provider primario (Z AI coding plan); se fallisce (auth/quota/rete/errore
+modello) degrada automaticamente al fallback (OpenRouter) — trasparente al
+chiamante. Un provider è saltato se manca la sua API key, quindi la catena si
+riduce a ciò che è configurato. Punto d'ingresso unico ask() per tutta la pipeline.
 
 Capacità del layer:
   • EFFORT MULTI-LIVELLO — max/medium/low/none mappati a reasoning_effort
@@ -18,10 +20,15 @@ Capacità del layer:
     paper/llm_cache/. Determinismo + costo zero per eval/test/dedup. Il caching
     lato-API non è supportato, quindi è tutto client-side.
 
-Config (priorità: env di processo → .env del progetto):
-  OPENROUTER_API_KEY     api key OpenRouter (header Authorization: Bearer).
-  OPENROUTER_BASE_URL    default https://openrouter.ai/api/v1
-  OPENROUTER_MODEL       default z-ai/glm-5.2-20260616 (canonical slug pinnato)
+Config (priorità: .env del progetto → env di processo):
+  Provider primario — Z AI coding plan:
+    ZAI_API_KEY          api key Z AI coding plan (header Authorization: Bearer).
+    ZAI_BASE_URL         default https://api.z.ai/api/coding/paas/v4
+    ZAI_MODEL            default glm-5.2
+  Provider fallback — OpenRouter:
+    OPENROUTER_API_KEY   api key OpenRouter (header Authorization: Bearer).
+    OPENROUTER_BASE_URL  default https://openrouter.ai/api/v1
+    OPENROUTER_MODEL     default z-ai/glm-5.2-20260616 (canonical slug pinnato)
 """
 
 from __future__ import annotations
@@ -40,6 +47,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "z-ai/glm-5.2-20260616"
+
+# Provider primario: Z AI coding plan (endpoint OpenAI-compatible /chat/completions).
+DEFAULT_ZAI_BASE_URL = "https://api.z.ai/api/coding/paas/v4"
+DEFAULT_ZAI_MODEL = "glm-5.2"
 
 # Effort → reasoning_effort (enum OpenRouter). "none" = reasoning omesso (modello
 # non ragiona). ponytail: il vecchio GLM_THINKING_BUDGET numerico non ha senso su
@@ -97,6 +108,31 @@ def get_api_key() -> str:
             "OPENROUTER_API_KEY mancante: imposta il secret/env, oppure scrivi "
             "OPENROUTER_API_KEY=... in .env.")
     return key
+
+
+def _providers() -> list[dict]:
+    """Catena provider ordinata: Z AI coding plan (default) → OpenRouter (fallback).
+
+    Un provider entra in catena solo se la sua API key è configurata: così se
+    ZAI_API_KEY manca, la catena resta OpenRouter-only (comportamento invariato),
+    e viceversa. ask() prova i provider in ordine, degradando al successivo su
+    qualsiasi errore."""
+    chain: list[dict] = []
+    zai_key = _config("ZAI_API_KEY")
+    if zai_key:
+        chain.append({"name": "zai", "api_key": zai_key,
+                      "base_url": _config("ZAI_BASE_URL", DEFAULT_ZAI_BASE_URL),
+                      "model": _config("ZAI_MODEL", DEFAULT_ZAI_MODEL)})
+    or_key = _config("OPENROUTER_API_KEY")
+    if or_key:
+        chain.append({"name": "openrouter", "api_key": or_key,
+                      "base_url": _config("OPENROUTER_BASE_URL", DEFAULT_BASE_URL),
+                      "model": _config("OPENROUTER_MODEL", DEFAULT_MODEL)})
+    if not chain:
+        raise RuntimeError(
+            "nessun provider LLM configurato: imposta ZAI_API_KEY (Z AI coding plan) "
+            "e/o OPENROUTER_API_KEY, via env o .env.")
+    return chain
 
 
 def reasoning_effort(effort: str) -> str | None:
@@ -271,16 +307,16 @@ def ask(prompt: str, system: str | None = None, as_json: bool = False,
 
     Ritorna str (testo), oppure dict/list se schema/as_json. Solleva RuntimeError
     su errori di quota/auth/rete con messaggio actionable."""
-    model = _config("OPENROUTER_MODEL", DEFAULT_MODEL)
-    base_url = _config("OPENROUTER_BASE_URL", DEFAULT_BASE_URL)
-    api_key = get_api_key()
+    providers = _providers()
 
-    key = _cache_key(model, system, prompt, effort, schema, temperature)
+    # Cache key logico: ancorato al modello del provider PRIMARIO (l'intento),
+    # così l'hit non dipende da quale provider ha effettivamente risposto.
+    key = _cache_key(providers[0]["model"], system, prompt, effort, schema, temperature)
     if cache:
         hit = _cache_get(key)
         if hit is not None:
-            _trace({"role": role, "model": model, "effort": effort, "ok": True,
-                    "cached": True, "latency_s": 0.0, "usage": {}})
+            _trace({"role": role, "model": providers[0]["model"], "effort": effort,
+                    "ok": True, "cached": True, "latency_s": 0.0, "usage": {}})
             return hit
 
     reasoning = reasoning_effort(effort)
@@ -292,65 +328,73 @@ def ask(prompt: str, system: str | None = None, as_json: bool = False,
         messages.append({"role": "system", "content": system})
     messages.append({"role": "user", "content": prompt})
 
-    payload: dict = {
-        "model": model,
-        "max_tokens": max_tokens,
-        "messages": messages,
-    }
+    base_payload: dict = {"max_tokens": max_tokens, "messages": messages}
     if temperature is not None:
-        payload["temperature"] = temperature
+        base_payload["temperature"] = temperature
     if reasoning is not None:
-        payload["reasoning_effort"] = reasoning
+        base_payload["reasoning_effort"] = reasoning
     if schema:
-        payload["tools"] = [{"type": "function", "function": {
+        base_payload["tools"] = [{"type": "function", "function": {
             "name": schema_name, "description": f"Output strutturato per {schema_name}",
             "parameters": schema}}]
-        payload["tool_choice"] = {"type": "function", "function": {"name": schema_name}}
+        base_payload["tool_choice"] = {"type": "function", "function": {"name": schema_name}}
 
-    t0 = time.time()
-    err, data, result = None, None, None
-    try:
-        data = _post(base_url, api_key, payload, timeout)
-        message = data["choices"][0]["message"]
-        if schema:
-            result = extract_tool_input(message)
-            if result is None:  # safety net: il modello a volte risponde in testo
-                txt = extract_text(message)
-                result = parse_json(txt) if txt else None
-            if result is None:
-                raise RuntimeError("risposta senza tool_use e senza JSON testuale")
-        elif as_json:
-            result = parse_json(extract_text(message))
-        else:
-            result = extract_text(message)
-            if not result:
-                raise RuntimeError("risposta GLM-5.2 senza testo")
-    except Exception as e:
-        err = f"{type(e).__name__}: {str(e)[:200]}"
-        _trace({"role": role, "model": model, "effort": effort, "ok": False, "cached": False,
-                "latency_s": round(time.time() - t0, 2), "error": err, "usage": {}})
-        raise
-    latency = round(time.time() - t0, 2)
-    usage = data.get("usage", {}) if data else {}
-    # OpenRouter usage: prompt_tokens/completion_tokens (+ reasoning_tokens in
-    # completion_tokens_details per i modelli reasoning).
-    ctd = usage.get("completion_tokens_details", {}) or {}
-    _trace({"role": role, "model": model, "effort": effort, "ok": True, "cached": False,
-            "latency_s": latency, "reasoning_effort": reasoning,
-            "schema": schema_name if schema else None,
-            "usage": {"in": usage.get("prompt_tokens"), "out": usage.get("completion_tokens"),
-                      "reasoning": ctd.get("reasoning_tokens", 0)}})
-    if cache:
-        _cache_put(key, result, usage)
-    return result
+    # Catena provider: prova ciascuno in ordine; degrada al successivo su errore.
+    errors: list[str] = []
+    for i, prov in enumerate(providers):
+        model = prov["model"]
+        payload = {**base_payload, "model": model}
+        t0 = time.time()
+        try:
+            data = _post(prov["base_url"], prov["api_key"], payload, timeout)
+            message = data["choices"][0]["message"]
+            if schema:
+                result = extract_tool_input(message)
+                if result is None:  # safety net: il modello a volte risponde in testo
+                    txt = extract_text(message)
+                    result = parse_json(txt) if txt else None
+                if result is None:
+                    raise RuntimeError("risposta senza tool_use e senza JSON testuale")
+            elif as_json:
+                result = parse_json(extract_text(message))
+            else:
+                result = extract_text(message)
+                if not result:
+                    raise RuntimeError("risposta LLM senza testo")
+        except Exception as e:
+            err = f"{type(e).__name__}: {str(e)[:200]}"
+            _trace({"role": role, "provider": prov["name"], "model": model, "effort": effort,
+                    "ok": False, "cached": False, "fallback": i > 0,
+                    "latency_s": round(time.time() - t0, 2), "error": err, "usage": {}})
+            errors.append(f"{prov['name']}({model}): {err}")
+            continue  # prova il prossimo provider della catena
+
+        latency = round(time.time() - t0, 2)
+        usage = data.get("usage", {}) if data else {}
+        # usage: prompt_tokens/completion_tokens (+ reasoning_tokens in
+        # completion_tokens_details per i modelli reasoning).
+        ctd = usage.get("completion_tokens_details", {}) or {}
+        _trace({"role": role, "provider": prov["name"], "model": model, "effort": effort,
+                "ok": True, "cached": False, "fallback": i > 0, "latency_s": latency,
+                "reasoning_effort": reasoning, "schema": schema_name if schema else None,
+                "usage": {"in": usage.get("prompt_tokens"), "out": usage.get("completion_tokens"),
+                          "reasoning": ctd.get("reasoning_tokens", 0)}})
+        if cache:
+            _cache_put(key, result, usage)
+        return result
+
+    raise RuntimeError("tutti i provider LLM falliti — " + " | ".join(errors))
 
 
 def model_label() -> str:
-    return _config("OPENROUTER_MODEL", DEFAULT_MODEL)
+    """Modello del provider primario configurato (Z AI se presente, altrimenti OpenRouter)."""
+    return _providers()[0]["model"]
 
 
 if __name__ == "__main__":
-    print(f"[llm] modello={model_label()} base={_config('OPENROUTER_BASE_URL', DEFAULT_BASE_URL)}")
+    _p = _providers()
+    print(f"[llm] catena provider: " + " → ".join(f"{p['name']}({p['model']})" for p in _p))
+    print(f"[llm] primario={_p[0]['name']} modello={_p[0]['model']} base={_p[0]['base_url']}")
     out = ask("Rispondi con una sola parola: OK", effort="max", role="smoke")
     print(f"[llm] text: {out!r}")
     # structured output test
