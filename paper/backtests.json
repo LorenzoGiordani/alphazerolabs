@@ -3,7 +3,7 @@
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-05T11:23 UTC",
+ "generated_at": "2026-07-05T12:22 UTC",
  "strategies": [
   {
    "id": "highvol-port-v1",
@@ -34,7 +34,7 @@
    "vol_target": "off",
    "aggregate": {
     "mean_sharpe": 1.52,
-    "mean_return": 0.2107,
+    "mean_return": 0.2116,
     "worst_drawdown": -0.1464,
     "positive_symbols": "market-neutral",
     "consistency": "2/6 fold positivi"
@@ -52,7 +52,7 @@
    "vol_target": "off",
    "aggregate": {
     "mean_sharpe": 2.44,
-    "mean_return": 0.9456,
+    "mean_return": 0.9474,
     "worst_drawdown": -0.1606,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
@@ -69,8 +69,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 2.1,
-    "mean_return": 0.3726,
+    "mean_sharpe": 2.11,
+    "mean_return": 0.3744,
     "worst_drawdown": -0.1219,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
@@ -87,8 +87,8 @@
    "basket_size": 9,
    "vol_target": "on (m medio 0.81)",
    "aggregate": {
-    "mean_sharpe": 2.41,
-    "mean_return": 0.3174,
+    "mean_sharpe": 2.42,
+    "mean_return": 0.3183,
     "worst_drawdown": -0.1094,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
@@ -105,8 +105,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.95,
-    "mean_return": 0.1425,
+    "mean_sharpe": 0.96,
+    "mean_return": 0.1433,
     "worst_drawdown": -0.1557,
     "positive_symbols": "market-neutral",
     "consistency": "2/6 fold positivi"
@@ -124,7 +124,7 @@
    "vol_target": "off",
    "aggregate": {
     "mean_sharpe": 2.19,
-    "mean_return": 0.3823,
+    "mean_return": 0.3841,
     "worst_drawdown": -0.1219,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
@@ -141,8 +141,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 2.05,
-    "mean_return": 0.3581,
+    "mean_sharpe": 2.06,
+    "mean_return": 0.3602,
     "worst_drawdown": -0.1333,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
