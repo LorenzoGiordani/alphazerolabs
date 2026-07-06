@@ -616,6 +616,15 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 .nof-ticker:hover .tk-track{ animation-play-state:paused; }
 @media(prefers-reduced-motion:reduce){ .tk-track{ animation:none; } }
 
+/* ---------- digest "Cosa è successo oggi" ---------- */
+.digest-box{ margin:0 0 24px; border:1px solid var(--amber-dim); border-radius:var(--r);
+  background:linear-gradient(180deg,var(--amber-wash),transparent 140%); padding:16px 18px 14px; }
+.digest-box .kicker{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--amber); }
+.digest-box p{ font-family:var(--serif); font-size:16.5px; line-height:1.6; color:var(--text);
+  margin:8px 0 0; max-width:78ch; text-wrap:pretty; }
+.digest-box .digest-ts{ font-family:var(--mono); font-size:10px; color:var(--text-4); margin-left:10px; letter-spacing:.06em; }
+
 /* ---------- aggregate equity ---------- */
 .nof-agg{ margin:0 0 24px; border:1px solid var(--line); border-radius:var(--r);
   background:linear-gradient(180deg,var(--bg-2),var(--bg-3)); padding:16px 18px 14px; }
@@ -1007,6 +1016,17 @@ h1,h2,h3,h4,
         setTimeout(()=>{ dot.style.transition='opacity .3s ease'; dot.style.opacity='1'; }, 900);
       });
     }
+  }
+
+  /* ---------- render: digest "Cosa è successo oggi" ---------- */
+  function renderDigest(){
+    const host=$('#digest'); if(!host) return;
+    const d=DATA.digest;
+    if(!d||!d.text){ host.innerHTML=''; return; }
+    host.innerHTML='<div class="digest-box">'+
+      '<span class="kicker">Cosa è successo oggi</span>'+
+      '<span class="digest-ts num">aggiornato '+fmtTs(d.ts)+'</span>'+
+      '<p>'+escHtml(d.text)+'</p></div>';
   }
 
   /* ---------- render: portfolio summary ---------- */
@@ -2005,7 +2025,7 @@ h1,h2,h3,h4,
     // multipagina: ogni pagina ha 1 sola sezione → le render delle sezioni assenti
     // devono no-op. Le poche non auto-protette (Accounts/Positions/Lessons/Tree)
     // throwerebbero su DOM mancante: try/catch per-funzione le isola.
-    [renderSummary,renderAccounts,renderPositions,renderFeed,renderLessons,
+    [renderDigest,renderSummary,renderAccounts,renderPositions,renderFeed,renderLessons,
      renderTree,renderLifecycle,renderEvents,renderNews,renderStrats,renderBook,
      renderPortfolioKpi,renderRiskPanel,renderSignalsMatrix,
      renderBacktests,renderPortfoliosLive,renderChangeBanner
