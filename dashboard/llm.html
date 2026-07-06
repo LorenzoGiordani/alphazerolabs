@@ -223,6 +223,18 @@ section:first-of-type{ border-top:0; }
 .chart-tip .t-time{ color:var(--text-3); font-size:9.5px; display:block; letter-spacing:.04em; }
 .chart-tip .t-val{ font-variant-numeric:tabular-nums; }
 
+/* ---------- card conto compatta (default) / espansa ---------- */
+.acct{ cursor:pointer; }
+.acct .acct-row{ display:flex; align-items:center; gap:14px; }
+.acct .acct-row .spark{ margin-left:auto; flex:none; opacity:.9; }
+.acct .acct-row .eqcol{ text-align:right; flex:none; }
+.acct .acct-row .eqcol .equity{ font-size:19px; }
+.acct .acct-row .chev{ flex:none; color:var(--text-4); font-size:11px; transition:transform .2s ease; }
+.acct.open .acct-row .chev{ transform:rotate(180deg); }
+.acct:not(.open) .acct-body{ display:none; }
+.acct.open .acct-row .spark{ display:none; }
+@media(max-width:560px){ .acct .acct-row .spark{ display:none; } }
+
 /* ---------- generic value colors ---------- */
 .pos{ color:var(--green); }
 .neg{ color:var(--red); }
@@ -1111,7 +1123,16 @@ h1,h2,h3,h4,
   }
 
   /* ---------- render: accounts ---------- */
-  const ACCTS=[];   // {a, equityEl, deltaEl} per update live
+  const ACCTS=[];   // {a, card, equityEl, deltaEl, wrap, hasCurve, drawn} per update live
+  function sparkSVG(curve){ // sparkline compatta: solo la forma, niente assi
+    if(!curve||curve.length<2) return '';
+    const w=110,h=32; const vals=curve.map(p=>p[1]);
+    const min=Math.min.apply(null,vals), max=Math.max.apply(null,vals), span=(max-min)||1;
+    const pts=vals.map((v,i)=>((i/(vals.length-1))*w).toFixed(1)+','+((1-(v-min)/span)*(h-4)+2).toFixed(1)).join(' ');
+    const up=vals[vals.length-1]>=vals[0];
+    return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" width="110" height="32" aria-hidden="true">'+
+      '<polyline points="'+pts+'" fill="none" stroke="'+(up?'var(--green)':'var(--red)')+'" stroke-width="1.5"/></svg>';
+  }
   function renderAccounts(){
     const host=$('#accounts'); if(!host) return; host.innerHTML=''; ACCTS.length=0;
     (DATA.accounts||[]).forEach(a=>{
@@ -1119,26 +1140,41 @@ h1,h2,h3,h4,
       const card=el('div','acct');
       const wr = a.equity - 10000;
       const wrPct = wr/10000*100;
+      // niente "0 · 0" quando non c'è nulla da contare
+      const closedCell = a.trades_closed ? (a.trades_closed+' · '+(a.wins||0))
+        : '<span class="muted-cell">nessuna</span>';
       card.innerHTML =
-        '<div class="acct-top"><div>'+
-          '<div class="acct-name">'+escHtml(a.label)+'</div>'+
-          '<div class="acct-id num">'+escHtml(a.id)+'</div>'+
-        '</div><span class="tag">'+escHtml(a.tag||'')+'</span></div>'+
-        '<div class="equity-row">'+
-          '<span class="equity num" data-eq>'+NF2.format(a.equity)+' <span class="cur">$</span></span>'+
-          '<span class="delta-chip '+chipOf(wr)+'" data-delta>'+signedUsd(wr)+' · '+pctSigned(wrPct)+'</span>'+
+        '<div class="acct-row">'+
+          '<div><div class="acct-name">'+escHtml(a.label)+'</div>'+
+          '<div class="acct-id num">'+escHtml(a.id)+'</div></div>'+
+          sparkSVG(a.equity_curve)+
+          '<div class="eqcol">'+
+            '<div class="equity num" data-eq>'+NF2.format(a.equity)+' <span class="cur">$</span></div>'+
+            '<div class="delta-chip '+chipOf(wr)+'" data-delta>'+signedUsd(wr)+' · '+pctSigned(wrPct)+'</div>'+
+          '</div>'+
+          '<span class="chev">▾</span>'+
         '</div>'+
-        '<div class="metrics">'+
-          '<div class="metric"><div class="l">P&amp;L realizzato</div><div class="v '+clsOf(a.pnl_realized)+'">'+signedUsd(a.pnl_realized)+'</div></div>'+
-          '<div class="metric"><div class="l">Posizioni aperte</div><div class="v">'+(a.positions?a.positions.length:0)+'</div></div>'+
-          '<div class="metric"><div class="l">Chiusi · vinti</div><div class="v">'+(a.trades_closed||0)+' · '+(a.wins||0)+'</div></div>'+
-        '</div>'+
-        '<div class="chart-wrap"><div class="chart-tip"></div></div>';
+        '<div class="acct-body">'+
+          (a.tag?'<div style="margin-top:10px"><span class="tag">'+escHtml(a.tag)+'</span></div>':'')+
+          '<div class="metrics">'+
+            '<div class="metric"><div class="l">P&amp;L realizzato</div><div class="v '+clsOf(a.pnl_realized)+'">'+signedUsd(a.pnl_realized)+'</div></div>'+
+            '<div class="metric"><div class="l">Posizioni aperte</div><div class="v">'+(a.positions?a.positions.length:0)+'</div></div>'+
+            '<div class="metric"><div class="l">Chiuse · vinte</div><div class="v">'+closedCell+'</div></div>'+
+          '</div>'+
+          '<div class="chart-wrap"><div class="chart-tip"></div></div>'+
+        '</div>';
       host.appendChild(card);
       const wrap=card.querySelector('.chart-wrap');
-      if(a.equity_curve && a.equity_curve.length>1) registerChart(wrap, a.equity_curve);
-      ACCTS.push({a, equityEl:card.querySelector('[data-eq]'), deltaEl:card.querySelector('[data-delta]'),
-        wrap, hasCurve:!!(a.equity_curve&&a.equity_curve.length>1)});
+      const rec={a, card, equityEl:card.querySelector('[data-eq]'), deltaEl:card.querySelector('[data-delta]'),
+        wrap, hasCurve:!!(a.equity_curve&&a.equity_curve.length>1), drawn:false};
+      // compatta di default: il chart (costoso, 13 conti) si disegna alla prima apertura
+      card.querySelector('.acct-row').addEventListener('click',()=>{
+        card.classList.toggle('open');
+        if(card.classList.contains('open') && rec.hasCurve && !rec.drawn){
+          registerChart(wrap, a.equity_curve); rec.drawn=true;
+        }
+      });
+      ACCTS.push(rec);
     });
   }
   // equity live = snapshot + variazione mark-to-market delle posizioni con prezzo live
@@ -1146,7 +1182,8 @@ h1,h2,h3,h4,
   function nowStamp(){ return new Date().toISOString().slice(0,19).replace('T',' '); }
   function updateAccountsLive(){
     let totalEq=0, totalAny=false;
-    ACCTS.forEach(({a,equityEl,deltaEl,wrap,hasCurve})=>{
+    ACCTS.forEach(rec=>{
+      const {a,equityEl,deltaEl,wrap,hasCurve,card}=rec;
       let delta=0, any=false;
       (a.positions||[]).forEach(p=>{
         const lv=LIVE[p.symbol]; if(!lv||!lv.ok) return;
@@ -1161,7 +1198,8 @@ h1,h2,h3,h4,
       equityEl.innerHTML=NF2.format(eq)+' <span class="cur">$</span>';
       deltaEl.className='delta-chip '+chipOf(wr);
       deltaEl.textContent=signedUsd(wr)+' · '+pctSigned(wr/10000*100);
-      if(hasCurve){  // estende la curva equity fino a 'ora' col valore live (no ri-animazione)
+      if(hasCurve && rec.drawn && card.classList.contains('open')){
+        // estende la curva equity fino a 'ora' col valore live (solo se il chart è visibile)
         drawChart(wrap, a.equity_curve.concat([[nowStamp(), eq]]), false);
       }
     });
