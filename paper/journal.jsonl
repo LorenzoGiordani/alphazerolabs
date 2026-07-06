@@ -4023,3 +4023,4 @@
 {"type": "skip", "strategy": "geopolitics-v1", "symbol": "xyz:GOLD", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-07-06T09:24:00.726477+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9980.07, "open_positions": 2, "logged_at": "2026-07-06T09:24:00.729997+00:00"}
 {"type": "close", "strategy": "geopolitics-v1", "symbol": "xyz:GOLD", "reason": "stopped", "exit_px": 4138.298834468041, "frac": 1.0, "remaining": 0.0, "pnl_usd": -62.03, "equity": 9918.04, "ts": "2026-07-06 09:00:00+00:00", "logged_at": "2026-07-06T09:34:00.575888+00:00"}
+{"type": "close", "strategy": "agents-v1", "symbol": "ZEC", "reason": "stopped", "exit_px": 442.47665730093297, "frac": 1.0, "remaining": 0.0, "pnl_usd": -26.09, "equity": 10218.82, "ts": "2026-07-06 09:00:00+00:00", "logged_at": "2026-07-06T09:40:00.029722+00:00"}

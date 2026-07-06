@@ -4,32 +4,8 @@
   "positions": {}
  },
  "agents-v1": {
-  "equity": 10244.910297286615,
-  "positions": {
-   "ZEC": {
-    "strategy": "agents-v1",
-    "symbol": "ZEC",
-    "direction": "long",
-    "entry_px": 464.34285,
-    "size_usd": 548.75,
-    "stop_px": 442.56517033499995,
-    "target_px": 507.89820933000004,
-    "opened_at": "2026-07-03 22:00:00+00:00",
-    "checked_until": "2026-07-06 08:00:00+00:00",
-    "time_stop_h": 96,
-    "thesis": "ZEC LONG su conferma close >470. Setup asimmetrico: funding negativo (-9.3bps/8h) in uptrend +7.4% 24h = short crowd nel verso sbagliato, polvere da sparo per squeeze. Catalizzatore reale imminente (Ironwood upgrade) con ATR 1.9% che dice il prezzo sta gi\u00e0 reagendo. Trend attivo su 7d. Entry condizionata a conferma >470 rispetta la lezione: nessun lux_confluence allineato \u2192 size ridotta (0.5x) e conferma intra-session obbligatoria. Stop 448 = 2.5 ATR, fuori dal rumore, sotto struttura 7d. Target 510-520 = ATR expansion gap. Time stop 96h: Ironwood matura in giorni, non ore.",
-    "invalidation": "Chiusura sotto 448 invalida la tesi squeeze: il funding negativo non basta pi\u00f9, il trend 7d \u00e8 rotto e Ironwood diventa sell-the-news con prezzo che sconfessa il catalizzatore.",
-    "decision_ts": "2026-07-03T23:21:12.596240+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 464.34285,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-07-06 08:00:00+00:00"
-   }
-  },
+  "equity": 10218.822382061615,
+  "positions": {},
   "last_decision_ts": "2026-07-05T16:21:16.716300+00:00"
  },
  "tsmom-v1": {
