@@ -35,7 +35,7 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
 
 ## Medio impatto
 
-- [ ] **6. Card conti compatte** — 10 conti × ~400px = scroll infinito. Vista
+- [x] **6. Card conti compatte** — 10 conti × ~400px = scroll infinito. Vista
   compatta di default (riga: nome, equity, sparkline 60px, P&L), click per
   espandere. Nascondere celle "0 · 0" (chiusi·vinti) quando non c'è nulla.
 
