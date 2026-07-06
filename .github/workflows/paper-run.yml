@@ -1,7 +1,8 @@
 name: paper-run
 
 # Run 24/7 in cloud: ogni ora anche a Mac spento. Paper trading; l'LLM è GLM-5.2
-# via OpenRouter (secret OPENROUTER_API_KEY), max effort reasoning.
+# via catena provider: Z AI coding plan (secret ZAI_API_KEY) → fallback OpenRouter
+# (secret OPENROUTER_API_KEY), max effort reasoning.
 # Trigger orario via Cloudflare Worker (lux-paper-cron) → workflow_dispatch: lo
 # scheduler nativo GitHub saltava le run su repo privato. Worker = clock affidabile.
 on:
@@ -23,6 +24,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
