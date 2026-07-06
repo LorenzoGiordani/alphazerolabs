@@ -101,6 +101,29 @@ def set_status(path: Path, status: str) -> None:
     path.write_text(yaml.safe_dump(spec, sort_keys=False, allow_unicode=True))
 
 
+LESSONS = ROOT / "paper" / "lessons.jsonl"
+
+
+def recent_lessons(fam: str | None = None, n: int = 8) -> list[dict]:
+    """Ultime N lezioni dal canale unificato (paper/lessons.jsonl).
+    fam → solo quelle della famiglia; None → tutte. Per i prompt evolutivi:
+    l'LLM che propone mutazioni deve sapere perché le sorelle sono morte
+    (chiude il loop: l'evoluzione impara dal forward, non solo dal backtest)."""
+    if not LESSONS.exists():
+        return []
+    rows = []
+    for line in LESSONS.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            r = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if fam is None or family(str(r.get("strategy", ""))) == fam:
+            rows.append(r)
+    return rows[-n:]
+
+
 def _journal() -> list[dict]:
     if not JOURNAL.exists():
         return []

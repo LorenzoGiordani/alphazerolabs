@@ -1,5 +1,14 @@
 """Loop evolutivo AUTOMATICO: per ogni famiglia, evolve il miglior esemplare.
 
+Copre TRE canali (tutti giornalieri tranne i seed):
+  A. famiglie MECCANICHE (engine a segnali) — mutazioni via evolve.validate
+  B. famiglie PORTFOLIO (engine:portfolio) — mutazioni del blocco portfolio
+     via scripts/evolve_portfolio.py (i champion veri vivono lì)
+  C. SEED settimanali (lunedì): strategie nuove dal registry, non figlie di
+     nessuno — sangue fresco contro gli ottimi locali del ceppo
+I prompt includono le LEZIONI del paper (perché le sorelle sono morte):
+l'evoluzione impara dal forward, non solo dal backtest.
+
 Per ogni ceppo attivo (champion, o miglior challenger se non c'è champion):
   1. LLM genera N mutazioni (registry chiuso di segnali)
   2. ognuna valutata sul basket → backtest = SOLO sanity check + baseline
@@ -24,19 +33,29 @@ morire muto (lezione: ImportError silenziato da `|| true` per settimane).
 
 import argparse
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from backtest.lifecycle import (NON_MECHANICAL_ENGINES, active_specs, all_specs,
-                                family, paper_stats, paper_symbols)
+from backtest.lifecycle import (DEFAULT_SYMBOLS, NON_MECHANICAL_ENGINES,
+                                active_specs, all_specs, family, paper_stats,
+                                paper_symbols)
 from backtest.stats import deflated_sharpe, sharpe_moments
-from scripts.evolve import (OUT_DIR, REGISTRY_DOC, ask_glm, eval_basket,
-                            load_data, validate)
+from scripts.evolve import (EXIT_DOC, OUT_DIR, REGISTRY_DOC, ask_glm,
+                            eval_basket, lessons_block, load_data, validate)
+from scripts.evolve_portfolio import evolve_portfolio_family, pick_portfolio_parents
 
 MAX_FAMILY_CHALLENGERS = 6   # cap challenger per famiglia: oltre, si aspetta promote
 MAX_RESEED_FAMILIES = 2      # famiglie riseminate per run quando il loop è spento
+MAX_MECH_FAMILIES = 8        # cap famiglie meccaniche attive: oltre, niente seed nuovi
+N_SEEDS = 2                  # strategie NUOVE chieste all'LLM il lunedì
+
+# blocco risk per i seed (non hanno parent da cui ereditarlo): conservativo,
+# promote alza la posta solo con evidenza forward
+DEFAULT_SEED_RISK = {"max_leverage": 1.5, "risk_per_trade_pct": 1.0,
+                     "max_concurrent_positions": 4}
 
 
 def _bt_sharpe(spec: dict) -> float:
@@ -98,6 +117,7 @@ PARENT (YAML):
 
 RISULTATI PARENT su basket {','.join(symbols)}, {months} mesi (fee/slippage/funding inclusi):
 aggregato: {pa}
+{lessons_block(fam)}
 
 Proponi {n} mutazioni in YAML (schema identico al parent). Obiettivo: robustezza
 sul basket, non picchi su singolo asset. Puoi usare `entry.veto` (segnali-gate
@@ -145,20 +165,91 @@ che sospendono entrate, es. news_event come filtro di volatilità)."""
     return promoted
 
 
+def seed_new_families(months: int) -> int:
+    """SEED settimanale (lunedì): strategie NUOVE dal registry segnali, non figlie
+    di nessuno — per non restare intrappolati negli ottimi locali del ceppo.
+    Cap sulle famiglie meccaniche attive; sanity gate identico alle mutazioni."""
+    active_fams = {family(s["id"]) for _, s in active_specs()}
+    if len(active_fams) >= MAX_MECH_FAMILIES:
+        print(f"\nseed: {len(active_fams)} famiglie attive ≥ cap {MAX_MECH_FAMILIES}, salto")
+        return 0
+    all_fams = sorted({family(s["id"]) for _, s in all_specs()})
+    symbols = DEFAULT_SYMBOLS["perp"].split(",")
+    datasets = {s: load_data(s, months) for s in symbols}
+
+    prompt = f"""{REGISTRY_DOC}
+
+{EXIT_DOC}
+{lessons_block(None)}
+
+Famiglie GIÀ esistenti (evita di duplicarne l'edge): {', '.join(all_fams)}
+
+Proponi {N_SEEDS} strategie COMPLETAMENTE NUOVE in YAML (non mutazioni: edge diversi
+dalle famiglie esistenti). Schema: id (kebab-case nuovo, suffisso -v1), thesis,
+signals, entry (rule/direction), exit. Basket crypto: {','.join(symbols)}.
+Obiettivo: edge ortogonali a momentum/breakout già coperti."""
+    try:
+        specs = [yaml.safe_load(c["yaml"]) for c in ask_glm(prompt)["candidates"]]
+    except Exception as e:
+        print(f"seed: generazione LLM fallita: {e}", file=sys.stderr)
+        return 0
+
+    promoted = 0
+    for i, cand in enumerate(specs, 1):
+        try:
+            base = str(cand.get("id", f"seed-{i}")).rsplit("-v", 1)[0]
+            if family(base) in all_fams:
+                raise ValueError(f"famiglia già esistente: {base}")
+            # validate() vuole un parent per risk/id: seed = parent di sé stesso
+            # con risk conservativo di default
+            pseudo_parent = {"id": f"{base}-v1", "risk": dict(DEFAULT_SEED_RISK)}
+            spec = validate(cand, pseudo_parent, i)
+            spec["parent"] = None                     # seed: nessun genitore reale
+            res = eval_basket(spec, datasets)
+            res.pop("basket_rets")
+            spec["backtest"] = {f"basket_{months}m": res}
+            agg = res["aggregate"]
+            passes = agg["mean_sharpe"] > 0
+            spec["status"] = "challenger" if passes else "candidate"
+            if passes:
+                spec.setdefault("paper_symbols", ",".join(symbols))
+            OUT_DIR.mkdir(parents=True, exist_ok=True)
+            (OUT_DIR / f"{spec['id']}.yaml").write_text(
+                yaml.safe_dump(spec, sort_keys=False, allow_unicode=True))
+            flag = "✓ CHALLENGER" if passes else "· candidate (backtest ≤ 0)"
+            print(f"  seed {spec['id']:<40} sharpe {agg['mean_sharpe']:+.2f} | {flag}")
+            promoted += int(passes)
+        except Exception as e:
+            print(f"  seed {i} scartato: {e}", file=sys.stderr)
+    return promoted
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=4)
     ap.add_argument("--months", type=int, default=6)
+    ap.add_argument("--seed", action="store_true",
+                    help="forza il seed di famiglie nuove (di default: solo lunedì)")
     args = ap.parse_args()
 
     parents = pick_parents()
-    if not parents:
+    pparents = pick_portfolio_parents()
+    if not parents and not pparents:
         print("ERRORE: nessun ceppo attivo NÉ candidate riseminabili — evoluzione ferma",
               file=sys.stderr)
         sys.exit(1)
+
     total = 0
     for fam, (pf, ps) in parents.items():
         total += evolve_family(pf, ps, args.n, args.months)
+
+    print(f"\n— evoluzione portfolio ({len(pparents)} famiglie) —")
+    for fam, (pf, ps) in pparents.items():
+        total += evolve_portfolio_family(pf, ps, args.n, args.months)
+
+    if args.seed or datetime.now(timezone.utc).weekday() == 0:   # lunedì: sangue nuovo
+        total += seed_new_families(args.months)
+
     print(f"\n{total} nuovi challenger in paper (gate: expectancy>0; il forward decide)")
 
 

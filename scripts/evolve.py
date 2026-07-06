@@ -66,6 +66,24 @@ EXIT_DOC = """Knob di uscita mutabili (blocco `exit`) — esplorali, l'harness m
 - by_class (opz): override per asset class {crypto, stock}. HIP-3 xyz_* = stock. Es. leva maggiore su stock low-vol.
   La sizing è vol-target (exposure=risk%/stop%): stop più stretto ⇒ più leva, fino al cap."""
 
+def lessons_block(fam: str | None) -> str:
+    """Lezioni recenti per i prompt evolutivi: quelle della famiglia + gli ultimi
+    retire globali (scansione larga: i retire sono rari tra le review di trade).
+    L'LLM che muta deve sapere perché le sorelle sono morte."""
+    from backtest.lifecycle import recent_lessons
+    rows = recent_lessons(fam, n=5) if fam else []
+    seen = {r.get("trade_key") for r in rows}
+    retires = [r for r in recent_lessons(None, n=200)
+               if "retire" in (r.get("tags") or [])][-3:]
+    rows += [r for r in retires if r.get("trade_key") not in seen]
+    if not rows:
+        return ""
+    lines = [f"- [{r.get('strategy')}] {r.get('verdict')}: {str(r.get('lesson', ''))[:200]}"
+             for r in rows]
+    return ("\nLEZIONI dal paper trading (perché sorelle/cugine sono morte — non ripetere):\n"
+            + "\n".join(lines))
+
+
 def ask_glm(prompt: str) -> dict:
     """GLM-5.2 via Z.ai Coding Plan, ruolo 'evolve' (max effort, structured output
     'candidates'). System/effort/schema dal yaml centralizzato (scripts.prompts)."""
@@ -157,7 +175,15 @@ def validate(spec: dict, parent: dict, idx: int) -> dict:
 
 
 def load_data(symbol: str, months: int) -> dict:
-    candles = pd.read_parquet(f"data/candles/{symbol}.parquet").tail(months * 30 * 24).reset_index(drop=True)
+    cp = Path(f"data/candles/{symbol}.parquet")
+    if cp.exists():
+        candles = pd.read_parquet(cp)
+    else:
+        # runner cloud: i parquet candele sono gitignorati — fetch live con cache,
+        # stesso pattern di backtest_report._load_candles (5000h ≈ 7 mesi)
+        from pipeline.live import fetch_live_cached
+        candles = fetch_live_cached(symbol, lookback_h=5000)["candles"]
+    candles = candles.tail(months * 30 * 24).reset_index(drop=True)
     data = {"candles": candles, "symbol": symbol}
     for kind in ("funding", "flow"):
         p = Path(f"data/{kind}/{symbol}.parquet")
