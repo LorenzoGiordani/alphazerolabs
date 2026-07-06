@@ -48,7 +48,7 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
   compaiono nudi nelle card. Tooltip tap/hover (sottolineatura puntinata) con
   spiegazione di una frase — stesso pattern delle intro di sezione.
 
-- [ ] **9. Timestamp relativi** — "6 lug · 13:31 UTC" → "2 ore fa" (assoluto in
+- [x] **9. Timestamp relativi** — "6 lug · 13:31 UTC" → "2 ore fa" (assoluto in
   tooltip).
 
 ## Da verificare / piccoli
