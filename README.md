@@ -238,6 +238,17 @@ Code review completa (motore backtest · layer decisionale/evolutivo · pipeline
 
 Rapporto integrale + log operativo nel vault dedicato (`AlphaZero Labs Vault/`).
 
+### Dashboard UX per non-tecnici (06/07)
+Implementati 8 dei 12 punti dell'audit UI/UX (`dashboard/IMPROVEMENTS.md`, spuntati lì):
+- **Digest "Cosa è successo oggi"** — 2-3 frasi in italiano piano generate dall'LLM a ogni run sui fatti del giorno (aperture/chiusure, best/worst della settimana, lezione recente); errore LLM → la build prosegue senza digest.
+- **Nav a 2 livelli** — da 13 voci tecniche a 4 gruppi (Oggi · Strategie · Diario · Contesto) con riga secondaria del gruppo attivo; mobile 375px ok.
+- **Nomi amichevoli ovunque** — `friendly_label()` + mappa `labels` nel data: albero evolutivo, lifecycle, backtest e legenda mostrano il nome, l'id tecnico vive nel tooltip.
+- **Equity aggregata senza spaghetti** — default top 3 + peggiori 3, le altre curve si accendono dalla legenda.
+- **Benchmark & verdetto** — "comprare e tenere BTC" sullo stesso periodo + riga verdetto in linguaggio piano sotto i KPI.
+- **Card conti compatte** (riga + sparkline, chart lazy all'apertura), **glossario inline** (tooltip su dollar-neutral, drawdown, sharpe…), **timestamp relativi**, **tooltip badge feed**.
+
+Rimasti: albero evolutivo orizzontale (7), test su device fisico (10), dominio custom (12).
+
 ## Riferimenti
 
 [TradingAgents](https://github.com/TauricResearch/TradingAgents) (pattern, non i numeri) · [Kronos](https://github.com/shiyu-coder/Kronos) · [FINSABER](https://arxiv.org/abs/2505.07078) · [Profit Mirage](https://arxiv.org/abs/2510.07920) · [TSMOM](https://quantpedia.com/strategies/time-series-momentum-effect) · [nof1 Alpha Arena](https://nof1.ai/)
