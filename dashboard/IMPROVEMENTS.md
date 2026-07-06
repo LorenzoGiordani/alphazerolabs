@@ -9,7 +9,7 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
 
 ## Alto impatto
 
-- [ ] **1. Riquadro "Cosa è successo oggi"** — digest di 3 frasi in italiano piano,
+- [x] **1. Riquadro "Cosa è successo oggi"** — digest di 3 frasi in italiano piano,
   generato dall'LLM a ogni run in `dashboard.py`, mostrato sopra il grafico.
   Es: "Oggi il sistema ha aperto 2 posizioni (oro, petrolio). La migliore della
   settimana è Combo momentum (+4,1%). Ieri ha ammesso un errore su GOLD."

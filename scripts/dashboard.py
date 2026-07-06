@@ -599,6 +599,78 @@ def portfolio_live_view(state: dict) -> list[dict]:
     return out
 
 
+def build_digest(data: dict) -> dict | None:
+    """Riquadro "Cosa è successo oggi": 2-3 frasi in italiano piano generate
+    dall'LLM sui fatti del giorno (aperture, chiusure, migliore della settimana,
+    ultima lezione, mosse evolutive). L'LLM riformula fatti già calcolati dalla
+    pipeline — non giudica il mercato e non prevede nulla (regola #1: giudice,
+    non oracolo — qui nemmeno giudice, solo cronista). cache=True: i run orari
+    con fatti identici non ripagano la chiamata. Qualsiasi errore (API key
+    assente, rete, quota) → None: la dashboard esce senza digest, mai bloccata."""
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    today = data["updated_utc"][:10]
+    facts: list[str] = []
+    book = data.get("tradebook") or []
+    opened = [t for t in book if (t.get("opened_at") or "").startswith(today)]
+    closed = [t for t in book if (t.get("closed_at") or "").startswith(today)]
+    if opened:
+        facts.append("aperte oggi: " + ", ".join(
+            f"{t['symbol']} {t['direction']} dal conto «{t['account_label']}»" for t in opened[:6]))
+    if closed:
+        facts.append("chiuse oggi: " + ", ".join(
+            f"{t['symbol']} {t['pnl_usd']:+.0f}$ (uscita: {t.get('reason') or '—'})" for t in closed[:6]))
+    # migliore/peggiore degli ultimi 7 giorni sull'equity curve dei conti
+    week_ago = f"{now - timedelta(days=7):%Y-%m-%d %H:%M}"
+    perf = []
+    for a in data.get("accounts") or []:
+        c = a.get("equity_curve") or []
+        if len(c) < 2:
+            continue
+        base = next((v for ts, v in c if ts >= week_ago), c[0][1])
+        if base > 0:
+            perf.append((a["label"], (c[-1][1] / base - 1) * 100))
+    if perf:
+        perf.sort(key=lambda x: x[1])
+        facts.append(f"migliore della settimana: «{perf[-1][0]}» ({perf[-1][1]:+.1f}%)")
+        if len(perf) > 1 and perf[0][1] < 0:
+            facts.append(f"peggiore: «{perf[0][0]}» ({perf[0][1]:+.1f}%)")
+    les = data.get("lessons") or []
+    two_days = f"{now - timedelta(days=2):%Y-%m-%d}"
+    if les and les[0].get("ts", "") >= two_days:
+        facts.append(f"lezione recente ({les[0].get('verdict', '')}): "
+                     f"{les[0].get('lesson', '')[:220]}")
+    for e in (data.get("lifecycle") or []):
+        if (e.get("ts") or "").startswith(today):
+            facts.append(f"evoluzione: strategia {e.get('strategy')} → {e.get('event')}")
+    if not (opened or closed):
+        facts.append("nessuna operazione aperta o chiusa oggi: i sistemi restano "
+                     "in attesa dei loro segnali")
+    n = len(data.get("accounts") or [])
+    if n:
+        tot = sum(a.get("equity", 0) for a in data["accounts"])
+        facts.append(f"stato complessivo: {tot - n * 10000:+.0f}$ "
+                     f"({(tot / (n * 10000) - 1) * 100:+.1f}%) dall'avvio, su {n} conti paper")
+    prompt = (
+        "Sei il cronista di un progetto pubblico di paper trading con AI. Scrivi un "
+        "riassunto di ESATTAMENTE 2-3 frasi in italiano semplice, per persone non "
+        "tecniche, dei fatti di oggi elencati sotto. Regole: solo i fatti dati, "
+        "nessuna previsione, nessun consiglio, niente gergo (no 'long/short' da soli: "
+        "di' 'al rialzo/al ribasso'), tono onesto anche sulle perdite. Non inventare "
+        "numeri. Rispondi SOLO con le frasi, senza titolo né elenchi.\n\nFatti:\n- "
+        + "\n- ".join(facts))
+    try:
+        from scripts.llm import ask
+        txt = str(ask(prompt, effort="low", role="dashboard_digest",
+                      cache=True, timeout=120)).strip()
+    except Exception as e:
+        print(f"[dashboard] digest LLM saltato: {e}", file=sys.stderr)
+        return None
+    if not txt:
+        return None
+    return {"text": txt, "ts": data["updated_utc"]}
+
+
 def build_data() -> dict:
     state = json.loads((ROOT / "paper/state.json").read_text()) if (ROOT / "paper/state.json").exists() else {}
     journal = jsonl(ROOT / "paper/journal.jsonl")
@@ -942,7 +1014,7 @@ def build_data() -> dict:
             print(f"[dashboard] backtests.json illeggibile: {e}", file=sys.stderr)
             backtests = {}
 
-    return {
+    data = {
         "updated_utc": f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M}",
         "accounts": accounts, "decisions": dec_out, "lessons": les_out, "lineage": lineage,
         "lifecycle": lifecycle,
@@ -953,6 +1025,8 @@ def build_data() -> dict:
         "llm_stats": llm_stats(),
         "portfolio_live": portfolio_live_view(state),
     }
+    data["digest"] = build_digest(data)
+    return data
 
 
 # Sito multipagina: una pagina per voce di nav. (file, etichetta, [section id]).
