@@ -4043,3 +4043,14 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9967.48, "open_positions": 0, "logged_at": "2026-07-06T11:25:59.226251+00:00"}
 {"type": "skip", "strategy": "geopolitics-v1", "symbol": "xyz:CL", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-07-06T11:31:07.017951+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9918.04, "open_positions": 1, "logged_at": "2026-07-06T11:31:07.021388+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10218.82, "open_positions": 0, "logged_at": "2026-07-06T12:16:08.692355+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9967.48, "open_positions": 0, "logged_at": "2026-07-06T12:16:09.201440+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9726.55, "open_positions": 42, "logged_at": "2026-07-06T12:16:56.743809+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 10115.53, "open_positions": 65, "logged_at": "2026-07-06T12:17:56.018689+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10140.53, "open_positions": 2, "logged_at": "2026-07-06T12:18:04.319064+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10372.52, "open_positions": 17, "logged_at": "2026-07-06T12:18:59.663976+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 9781.11, "open_positions": 6, "logged_at": "2026-07-06T12:19:55.779074+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9975.04, "open_positions": 2, "logged_at": "2026-07-06T12:19:59.221816+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10218.82, "open_positions": 0, "logged_at": "2026-07-06T12:20:00.564147+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9967.48, "open_positions": 0, "logged_at": "2026-07-06T12:20:01.067513+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9918.04, "open_positions": 1, "logged_at": "2026-07-06T12:24:57.440879+00:00"}
