@@ -1,53 +1,49 @@
 id: xsmom-highvol-voltarget-v1
-parent: xsmom-highvol-combo-v1   # combo + vol-target overlay (Moreira-Muir 2017)
-status: challenger      # 26/06: candidata a minor DOWNSIDE RISK (coda DD abbattuta)
+parent: xsmom-highvol-combo-v1
+status: champion
 engine: portfolio
 created: '2026-06-26'
-thesis: >
-  COMBO 50/50 dei due edge ortogonali (xsmom + highvol, corr 0.28) con VOL-TARGET
-  OVERLAY (Moreira-Muir "Volatility-Managed Portfolios" 2017). Il blend-ratio sweep
-  dell'audit di robustezza ha mostrato 50/50 marginalmente > del 70/30 scelto in
-  xsmom-highvol-combo-v1 (Sharpe 2.75 vs 2.62, stesso maxDD -15.8%).
-
-  L'overlay scala il gross m = clip(sigma*/sigma_realized, gross_floor, gross_cap)
-  dove sigma_realized e' la vol annualizzata DEL BOOK STESSO sui rendimenti passati
-  (rolling 720h, anti-lookahead). FUNZIONA perche' la vol clusterizza (GARCH): i
-  rendimenti avversi si concentrano nei periodi ad alta vol, quindi de-riskare li'
-  abbatte la CODA del drawdown.
-
-  Edge VALIDATO (scripts/voltarget_portfolio.py, basket 9 crypto 12m, 26/06) vs la
-  combo 50/50 senza overlay:
-    Sharpe 2.68 vs 2.75 (costo NULLo, -0.06)
-    maxDD -11.3% vs -15.8% (-4.5pp)
-    coda DD 5° percentile -17.9% vs -23.2% (+5.3pp, la coda e' meno avversa)
-    P(DD peggiore di -25%) 0% vs 3% (rovina eliminata)
-  Gradiente monotono su sigma* (20/25/30% -> coda -17.9/-22/-25.9%) = non overfit.
-  avg_gross 0.72-0.78 (de-risk ~25% medio), moltiplicatore min 0.34 nei periodi
-  turbolenti. La firma (costo Sharpe nullo + riduzione DD nella coda) e' cio' che
-  Moreira-Muir documentano come vol-targeting reale.
-
-  Questo NON e' un nuovo edge (lo Sharpe non sale): e' un layer di RISK MANAGEMENT
-  che riduce il rischio di rovina. E' il candidato a minor downside risk del progetto.
-  Falsificata se: in paper l'overlay non abbassa il DD vs la combo senza overlay, o
-  se il de-risk e' cosi' aggressivo da uccidere il ritorno (Sharpe < 1.5).
-
+thesis: "COMBO 50/50 dei due edge ortogonali (xsmom + highvol, corr 0.28) con VOL-TARGET\
+  \ OVERLAY (Moreira-Muir \"Volatility-Managed Portfolios\" 2017). Il blend-ratio\
+  \ sweep dell'audit di robustezza ha mostrato 50/50 marginalmente > del 70/30 scelto\
+  \ in xsmom-highvol-combo-v1 (Sharpe 2.75 vs 2.62, stesso maxDD -15.8%).\nL'overlay\
+  \ scala il gross m = clip(sigma*/sigma_realized, gross_floor, gross_cap) dove sigma_realized\
+  \ e' la vol annualizzata DEL BOOK STESSO sui rendimenti passati (rolling 720h, anti-lookahead).\
+  \ FUNZIONA perche' la vol clusterizza (GARCH): i rendimenti avversi si concentrano\
+  \ nei periodi ad alta vol, quindi de-riskare li' abbatte la CODA del drawdown.\n\
+  Edge VALIDATO (scripts/voltarget_portfolio.py, basket 9 crypto 12m, 26/06) vs la\
+  \ combo 50/50 senza overlay:\n  Sharpe 2.68 vs 2.75 (costo NULLo, -0.06)\n  maxDD\
+  \ -11.3% vs -15.8% (-4.5pp)\n  coda DD 5° percentile -17.9% vs -23.2% (+5.3pp, la\
+  \ coda e' meno avversa)\n  P(DD peggiore di -25%) 0% vs 3% (rovina eliminata)\n\
+  Gradiente monotono su sigma* (20/25/30% -> coda -17.9/-22/-25.9%) = non overfit.\
+  \ avg_gross 0.72-0.78 (de-risk ~25% medio), moltiplicatore min 0.34 nei periodi\
+  \ turbolenti. La firma (costo Sharpe nullo + riduzione DD nella coda) e' cio' che\
+  \ Moreira-Muir documentano come vol-targeting reale.\nQuesto NON e' un nuovo edge\
+  \ (lo Sharpe non sale): e' un layer di RISK MANAGEMENT che riduce il rischio di\
+  \ rovina. E' il candidato a minor downside risk del progetto. Falsificata se: in\
+  \ paper l'overlay non abbassa il DD vs la combo senza overlay, o se il de-risk e'\
+  \ cosi' aggressivo da uccidere il ritorno (Sharpe < 1.5).\n"
 universe:
-  selection: all_perps   # tutti i perp HL >= 1M$/24h, risolti live (ex 9 ticker)
+  selection: all_perps
 paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
 portfolio:
-  factors: [xsmom, highvol]
-  weights: [0.5, 0.5]          # 50/50 (audit: marginalmente > del 70/30)
-  lookback_h: 168              # xsmom
-  vol_lookback_h: 72           # high-vol
+  factors:
+  - xsmom
+  - highvol
+  weights:
+  - 0.5
+  - 0.5
+  lookback_h: 168
+  vol_lookback_h: 72
   rebalance_h: 168
   gross: 1.0
   dollar_neutral: true
-  vol_target:                  # overlay Moreira-Muir (NON cablato nel paper engine live)
+  vol_target:
     enabled: true
-    target_vol_ann: 0.20       # sweet spot (sweep 20-25%)
-    vol_window_h: 720          # 30g di rendimenti passati del book
-    gross_floor: 0.3           # mai sotto 30% gross (non fermarsi del tutto)
-    gross_cap: 1.5             # mai sopra 150% (cap leva in calma estrema)
+    target_vol_ann: 0.2
+    vol_window_h: 720
+    gross_floor: 0.3
+    gross_cap: 1.5
 timeframe: 1h
 decision_every_h: 4
 signals: []
@@ -60,12 +56,14 @@ risk:
   risk_per_trade_pct: 1.0
   max_concurrent_positions: 9
 evolution:
-  mutable: [portfolio]
-  notes: >
-    v1 seed: combo 50/50 + vol-target sigma*=20%. Mutazioni: sigma* (25%, 30%),
+  mutable:
+  - portfolio
+  notes: 'v1 seed: combo 50/50 + vol-target sigma*=20%. Mutazioni: sigma* (25%, 30%),
     vol_window (480h, 1440h), floor/cap. CAVEAT onesto: i parametri del vol_target
     sono NUOVI e selezionati sui dati (selection bias); il DSR del backtest sconta
-    il multiple-testing sullo sweep. Il vero test e' il paper forward.
+    il multiple-testing sullo sweep. Il vero test e'' il paper forward.
+
+    '
 backtest:
   basket_12m:
     aggregate:
@@ -74,12 +72,21 @@ backtest:
       max_drawdown: -0.113
       dsr: 0.92
     comparativo:
-      combo_5050_no_overlay: {sharpe: 2.75, max_dd: -0.158, dd_tail5: -0.232, p_dd25: 0.03}
-      this_voltarget_20pct: {sharpe: 2.68, max_dd: -0.113, dd_tail5: -0.179, p_dd25: 0.00}
-    note: >
-      Costo Sharpe nullo (-0.06), maxDD -4.5pp, coda DD +5.3pp, P(DD<-25%) 3%->0%.
-      Il ritorno assoluto scende (52.5% vs 98%) perche' l'avg_gross e' 0.72-0.78
-      (si deploya meno capitale); in un vault si compensa alzando l'allocazione.
-      Non cablato nel paper engine: portfolio_paper.py e' stateless, servirebbe
-      storare l'equity history per stimare la vol realizzata. Da cablare con test
-      dedicati (il paper track record e' il gate M5).
+      combo_5050_no_overlay:
+        sharpe: 2.75
+        max_dd: -0.158
+        dd_tail5: -0.232
+        p_dd25: 0.03
+      this_voltarget_20pct:
+        sharpe: 2.68
+        max_dd: -0.113
+        dd_tail5: -0.179
+        p_dd25: 0.0
+    note: 'Costo Sharpe nullo (-0.06), maxDD -4.5pp, coda DD +5.3pp, P(DD<-25%) 3%->0%.
+      Il ritorno assoluto scende (52.5% vs 98%) perche'' l''avg_gross e'' 0.72-0.78
+      (si deploya meno capitale); in un vault si compensa alzando l''allocazione.
+      Non cablato nel paper engine: portfolio_paper.py e'' stateless, servirebbe storare
+      l''equity history per stimare la vol realizzata. Da cablare con test dedicati
+      (il paper track record e'' il gate M5).
+
+      '
