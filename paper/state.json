@@ -15,7 +15,7 @@
     "stop_px": 442.56517033499995,
     "target_px": 507.89820933000004,
     "opened_at": "2026-07-03 22:00:00+00:00",
-    "checked_until": "2026-07-06 04:00:00+00:00",
+    "checked_until": "2026-07-06 05:00:00+00:00",
     "time_stop_h": 96,
     "thesis": "ZEC LONG su conferma close >470. Setup asimmetrico: funding negativo (-9.3bps/8h) in uptrend +7.4% 24h = short crowd nel verso sbagliato, polvere da sparo per squeeze. Catalizzatore reale imminente (Ironwood upgrade) con ATR 1.9% che dice il prezzo sta gi\u00e0 reagendo. Trend attivo su 7d. Entry condizionata a conferma >470 rispetta la lezione: nessun lux_confluence allineato \u2192 size ridotta (0.5x) e conferma intra-session obbligatoria. Stop 448 = 2.5 ATR, fuori dal rumore, sotto struttura 7d. Target 510-520 = ATR expansion gap. Time stop 96h: Ironwood matura in giorni, non ore.",
     "invalidation": "Chiusura sotto 448 invalida la tesi squeeze: il funding negativo non basta pi\u00f9, il trend 7d \u00e8 rotto e Ironwood diventa sell-the-news con prezzo che sconfessa il catalizzatore.",
@@ -27,7 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-06 04:00:00+00:00"
+    "_last_ts": "2026-07-06 05:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-07-05T16:21:16.716300+00:00"
@@ -60,7 +60,7 @@
     "stop_px": 4139.1266598,
     "target_px": 4278.477257346601,
     "opened_at": "2026-07-05 19:00:00+00:00",
-    "checked_until": "2026-07-06 03:00:00+00:00",
+    "checked_until": "2026-07-06 05:00:00+00:00",
     "time_stop_h": 120,
     "thesis": "Gold long is the cleanest geopolitical edge available. The safe-haven channel is open and unopposed \u2014 unlike oil, where OPEC+ expansion directly neutralizes the supply-disruption premium. Gold has responded only +2.3% to a z=2.0 burst over 8 days with ATR compressed to 0.04%, suggesting the market has prematurely declared the shock 'digested.' ATR compression this extreme functions as a directional coil: the breakout, when it comes, tends to be sharp. Asymmetry favors longs \u2014 downside is limited to a slow bleed if the burst is truly spent, while upside is significant if geopolitical risk renews (titoli energetici persist, LNG/tensioni strutturali non transitorie). Stop placed below $4,140 range floor, well outside the 0.04% ATR noise band (~25 ATR), at the thesis invalidation level. Bear thesis on oil is directionally valid but carries unquantifiable tail risk (short squeeze on real disruption) and the brief explicitly flags it as 'too confused' \u2014 oil is a trade for when OPEC+ shows a brake, not now. No explicit LUX confluence data available in context; if LUX aligned long on gold, this would be top-conviction \u2014 without it, I size moderate.",
     "invalidation": "Gold closes below $4,140 \u2014 the compressed range floor breaks, signaling the burst premium has fully evaporated and the coil is resolving downward rather than upward",
@@ -72,7 +72,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-06 03:00:00+00:00"
+    "_last_ts": "2026-07-06 05:00:00+00:00"
    },
    "xyz:CL": {
     "strategy": "geopolitics-v1",
@@ -83,7 +83,7 @@
     "stop_px": 72.0039408311,
     "target_px": 60.755378412116286,
     "opened_at": "2026-07-05 22:00:00+00:00",
-    "checked_until": "2026-07-06 03:00:00+00:00",
+    "checked_until": "2026-07-06 05:00:00+00:00",
     "time_stop_h": 152,
     "thesis": "Il burst geopolitico del 27 Giugno \u00e8 invecchiato 8 giorni senza escalation cinetica \u2014 il mercato ha gi\u00e0 scartato il risk premium. L'unica trasmissione residua \u00e8 OPEC+ che alza i target di produzione \u2192 glut di offerta \u2192 prezzo pi\u00f9 basso. Momentum 7d negativo (-2.4%) conferma il soffio strutturale. L'edge pulito \u00e8 il fading del premium geopolitico morto, allineato alla forza dominante di offerta. Catalizzatori: conferme incrementi produzione OPEC+, build inventari EIA/IEA, assenza di eventi cinetici che invalida definitivamente il premium. Brief identifica questo come 'edge geopolitico pi\u00f9 pulito'. Orizzonte tesi: giorni-settimane, time-stop 120h d\u00e0 margine per la maturazione dei catalizzatori senza overstay.",
     "invalidation": "Prezzo viola $72 (rottura della struttura chop upward \u2014 il bid geopolitico residuo si riattiva e l'OPEC+ glut non basta a contenerlo) OPPURE escalation cinetica reale (attacco a infrastrutture energetiche, minaccia chiusura Stretto di Hormuz) che price-in un disruption fisico di offerta.",
@@ -95,10 +95,10 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-06 03:00:00+00:00"
+    "_last_ts": "2026-07-06 05:00:00+00:00"
    }
   },
-  "last_decision_ts": "2026-07-06T04:25:37.436518+00:00"
+  "last_decision_ts": "2026-07-06T06:22:39.958966+00:00"
  },
  "tsmom-atr-v1": {
   "equity": 9324.897124664369,
@@ -660,151 +660,151 @@
   "positions": {}
  },
  "highvol-port-v1": {
-  "equity": 9797.803550735212,
+  "equity": 9781.569094153458,
   "positions": {
    "BTC": {
-    "notional": -238.8105869611005,
-    "px": 63266.0
+    "notional": -238.21040861369724,
+    "px": 63107.0
    },
    "xyz:SKHX": {
-    "notional": 229.62068824916187,
-    "px": 1556.3
+    "notional": 229.5911797111873,
+    "px": 1556.1
    },
    "ETH": {
-    "notional": -240.2066610085935,
-    "px": 1778.5
+    "notional": -239.70693390950336,
+    "px": 1774.8
    },
    "xyz:XYZ100": {
-    "notional": -234.01608435640972,
-    "px": 29593.0
+    "notional": -233.7393106953252,
+    "px": 29558.0
    },
    "xyz:MU": {
-    "notional": 231.61375760135408,
-    "px": 1014.4
+    "notional": 231.49959466878244,
+    "px": 1013.9
    },
    "xyz:SP500": {
-    "notional": -234.49603215339113,
-    "px": 7499.2
+    "notional": -234.42411236542003,
+    "px": 7496.9
    },
    "xyz:SNDK": {
-    "notional": 238.68912141511439,
-    "px": 1853.1
+    "notional": 237.98069220579856,
+    "px": 1847.6
    },
    "xyz:DRAM": {
-    "notional": 236.6963466860949,
-    "px": 65.677
+    "notional": 236.32153632546095,
+    "px": 65.573
    },
    "xyz:SMSN": {
-    "notional": 237.3185887212946,
-    "px": 206.33
+    "notional": 236.39843716322238,
+    "px": 205.53
    },
    "xyz:GOLD": {
-    "notional": -234.02697807039692,
-    "px": 4161.7
+    "notional": -233.31281255594513,
+    "px": 4149.0
    },
    "xyz:CL": {
-    "notional": -234.68932090402924,
-    "px": 68.664
+    "notional": -235.45493910108306,
+    "px": 68.888
    },
    "LIT": {
-    "notional": 292.71475800600905,
-    "px": 2.6684
+    "notional": 285.3979860231726,
+    "px": 2.6017
    },
    "xyz:BRENTOIL": {
-    "notional": -234.46133342802514,
-    "px": 71.889
+    "notional": -235.20167927632133,
+    "px": 72.116
    },
    "XRP": {
-    "notional": -241.85294342724788,
-    "px": 1.1456
+    "notional": -240.88181603569294,
+    "px": 1.141
    },
    "xyz:MRVL": {
-    "notional": 230.40913436271723,
-    "px": 251.53
+    "notional": 230.4366152756536,
+    "px": 251.56
    },
    "WLD": {
-    "notional": 234.9499777995481,
-    "px": 0.4258
+    "notional": 232.11380380732243,
+    "px": 0.42066
    },
    "FARTCOIN": {
-    "notional": 216.45877409903457,
-    "px": 0.16213
+    "notional": 211.7592435690364,
+    "px": 0.15861
    },
    "xyz:MSTR": {
-    "notional": 233.40527227692112,
-    "px": 104.87
+    "notional": 233.49429879442923,
+    "px": 104.91
    },
    "PUMP": {
-    "notional": 239.86377858146665,
-    "px": 0.001671
+    "notional": 237.71060283118416,
+    "px": 0.001656
    },
    "XPL": {
-    "notional": 233.0028826470714,
-    "px": 0.11146
+    "notional": 227.73491867550652,
+    "px": 0.10894
    },
    "xyz:MSFT": {
-    "notional": -236.2024807069261,
-    "px": 390.45
+    "notional": -235.70037273154708,
+    "px": 389.62
    },
    "xyz:NVDA": {
-    "notional": -232.75415599114118,
-    "px": 195.36
+    "notional": -232.43247487874552,
+    "px": 195.09
    },
    "xyz:NBIS": {
-    "notional": 233.96102473431222,
-    "px": 222.78
+    "notional": 233.71948134761286,
+    "px": 222.55
    },
    "xyz:AAPL": {
-    "notional": -233.4914528149863,
-    "px": 306.23
+    "notional": -233.4457045631204,
+    "px": 306.17
    },
    "SUI": {
-    "notional": -231.49076609286092,
-    "px": 0.74458
+    "notional": -228.7859262301089,
+    "px": 0.73588
    },
    "xyz:KIOXIA": {
-    "notional": 229.9429323810691,
-    "px": 504.08
+    "notional": 228.47408568557032,
+    "px": 500.86
    },
    "xyz:ORCL": {
-    "notional": -236.76856562492543,
-    "px": 142.81
+    "notional": -237.31568155977746,
+    "px": 143.14
    },
    "xyz:BB": {
     "notional": 231.171764679308,
     "px": 11.413
    },
    "VVV": {
-    "notional": 196.08295066338937,
-    "px": 11.634
+    "notional": 196.63914263278008,
+    "px": 11.667
    },
    "xyz:AMZN": {
-    "notional": -235.22598843628865,
-    "px": 244.18
+    "notional": -234.83102302037057,
+    "px": 243.77
    },
    "xyz:GOOGL": {
-    "notional": -233.5062909593435,
-    "px": 359.13
+    "notional": -234.0394548793353,
+    "px": 359.95
    },
    "LINK": {
-    "notional": -238.38870407531869,
-    "px": 7.986
+    "notional": -237.18870083166382,
+    "px": 7.9458
    },
    "ZRO": {
     "notional": 251.70312466345447,
     "px": 0.95682
    },
    "xyz:BOT": {
-    "notional": 234.54259331942725,
-    "px": 36.656
+    "notional": 233.92833947398137,
+    "px": 36.56
    },
    "XMR": {
-    "notional": -236.46577221139975,
-    "px": 324.71
+    "notional": -233.3780481678645,
+    "px": 320.47
    },
    "BNB": {
-    "notional": -242.1378737652659,
-    "px": 583.73
+    "notional": -241.82261708141962,
+    "px": 582.97
    },
    "DYDX": {
     "notional": 227.71720801652623,
@@ -819,8 +819,8 @@
     "px": 568.83
    },
    "GRASS": {
-    "notional": 212.7995472993853,
-    "px": 0.51556
+    "notional": 213.51773958020794,
+    "px": 0.5173
    },
    "xyz:NATGAS": {
     "notional": -234.73960026017065,
@@ -1680,6 +1680,10 @@
    {
     "ts": "2026-07-06T05:16:15.600931+00:00",
     "eq": 9797.8
+   },
+   {
+    "ts": "2026-07-06T06:16:16.828119+00:00",
+    "eq": 9781.57
    }
   ]
  },
@@ -3616,15 +3620,15 @@
   ]
  },
  "xsmom-reb48-v1": {
-  "equity": 9950.081981850655,
+  "equity": 9948.000478145279,
   "positions": {
    "SOL": {
-    "notional": 4946.7752802106925,
-    "px": 80.766
+    "notional": 4924.725914129967,
+    "px": 80.406
    },
    "WLD": {
-    "notional": -4990.193298360036,
-    "px": 0.42235
+    "notional": -4970.2254359846875,
+    "px": 0.42066
    }
   },
   "last_rebalance_ts": "2026-07-04T11:48:37.115176+00:00",
@@ -3716,6 +3720,10 @@
    {
     "ts": "2026-07-06T04:19:28.502936+00:00",
     "eq": 9950.08
+   },
+   {
+    "ts": "2026-07-06T06:16:59.817071+00:00",
+    "eq": 9948.0
    }
   ]
  }
