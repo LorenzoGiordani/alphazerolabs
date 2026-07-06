@@ -616,6 +616,12 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 .nof-ticker:hover .tk-track{ animation-play-state:paused; }
 @media(prefers-reduced-motion:reduce){ .tk-track{ animation:none; } }
 
+/* ---------- verdetto in linguaggio piano (benchmark BTC) ---------- */
+.verdict-row{ margin:-6px 0 20px; padding:12px 16px; border:1px solid var(--line);
+  border-left:2px solid var(--amber); border-radius:var(--r); background:var(--bg-2);
+  font-family:var(--sans); font-size:13.5px; line-height:1.6; color:var(--text-2); text-wrap:pretty; }
+.verdict-row b{ font-weight:600; }
+
 /* ---------- digest "Cosa è successo oggi" ---------- */
 .digest-box{ margin:0 0 24px; border:1px solid var(--amber-dim); border-radius:var(--r);
   background:linear-gradient(180deg,var(--amber-wash),transparent 140%); padding:16px 18px 14px; }
@@ -636,7 +642,10 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 .nof-agg-chart svg{ width:100%; display:block; overflow:visible; }
 .nof-agg-legend{ display:flex; flex-wrap:wrap; gap:20px; margin-top:12px; padding-top:11px;
   border-top:1px solid var(--line); }
-.agg-leg-item{ display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; }
+.agg-leg-item{ display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; cursor:pointer; user-select:none; }
+.agg-leg-item:hover .agg-name{ color:var(--text-1); }
+.agg-leg-item.off{ opacity:.38; }
+.agg-leg-item.off .agg-sw{ background:var(--text-4)!important; }
 .agg-sw{ width:14px; height:2px; border-radius:1px; }
 .agg-name{ color:var(--text-2); }
 .agg-val{ font-variant-numeric:tabular-nums; font-weight:600; }
@@ -1050,6 +1059,26 @@ h1,h2,h3,h4,
       '<div class="pf"><div class="l">Operazioni chiuse</div>'+
         '<div class="v">'+closed+(wrate!=null?' <span class="u">· '+wrate+'% win</span>':'')+'</div>'+
         '<div class="s" style="color:var(--text-4)">'+wins+' vinte</div></div>';
+  }
+
+  /* ---------- render: verdetto in linguaggio piano + benchmark BTC ---------- */
+  function renderVerdict(){
+    const host=$('#verdict'); if(!host) return;
+    const accs=DATA.accounts||[]; if(!accs.length){ host.innerHTML=''; return; }
+    const base=accs.length*10000, eq=accs.reduce((s,a)=>s+(a.equity||0),0);
+    const pct=(eq/base-1)*100;
+    let txt;
+    if(pct>=1) txt='Il sistema è in attivo del <b class="pos">'+NF1.format(pct)+'%</b> dall\'avvio.';
+    else if(pct<=-1) txt='Il sistema è sotto del <b class="neg">'+NF1.format(Math.abs(pct))+'%</b> dall\'avvio: normale in questa fase, l\'edge si misura su mesi, non su giorni.';
+    else txt='Il sistema è vicino al pareggio (<b>'+pctSigned(pct)+'</b>) dall\'avvio: normale in questa fase, l\'edge si misura su mesi, non su giorni.';
+    const b=DATA.benchmark; let bench='';
+    if(b&&isFinite(b.pct)){
+      const diff=pct-b.pct;
+      bench=' Nello stesso periodo, comprare e tenere Bitcoin avrebbe reso <b class="'+clsOf(b.pct)+'">'+pctSigned(b.pct)+'</b>: il sistema è '+
+        (diff>=0?'<b class="pos">'+NF1.format(diff)+' punti sopra</b>':'<b class="neg">'+NF1.format(Math.abs(diff))+' punti sotto</b>')+
+        ' quel riferimento.';
+    }
+    host.innerHTML='<div class="verdict-row">'+txt+bench+'</div>';
   }
 
   /* ---------- render: accounts ---------- */
@@ -2020,7 +2049,7 @@ h1,h2,h3,h4,
     // multipagina: ogni pagina ha 1 sola sezione → le render delle sezioni assenti
     // devono no-op. Le poche non auto-protette (Accounts/Positions/Lessons/Tree)
     // throwerebbero su DOM mancante: try/catch per-funzione le isola.
-    [renderDigest,renderSummary,renderAccounts,renderPositions,renderFeed,renderLessons,
+    [renderDigest,renderSummary,renderVerdict,renderAccounts,renderPositions,renderFeed,renderLessons,
      renderTree,renderLifecycle,renderEvents,renderNews,renderStrats,renderBook,
      renderPortfolioKpi,renderRiskPanel,renderSignalsMatrix,
      renderBacktests,renderPortfoliosLive,renderChangeBanner
@@ -2190,19 +2219,31 @@ h1,h2,h3,h4,
     });
     return {eq:a.equity+delta, any:any};
   }
+  var AGG_SEL=null;   // conti accesi nel grafico (persiste tra i re-render ogni 2s)
   function renderAggregate(){
     var host=$('#nof-agg-chart'); if(!host) return;
     var leg=$('#nof-agg-legend');
     var accs=(D.accounts||[]).filter(function(a){ return a.equity_curve && a.equity_curve.length>1; });
     if(!accs.length){ host.innerHTML=''; if(leg) leg.innerHTML=''; return; }
+    // default anti-spaghetti: solo migliori 3 + peggiori 3 (per equity corrente);
+    // gli altri si accendono dalla legenda. Con pochi conti, tutti accesi.
+    if(!AGG_SEL){
+      var lastEq=function(a){ var c=a.equity_curve; return c[c.length-1][1]; };
+      var ranked=accs.slice().sort(function(a,b){ return lastEq(b)-lastEq(a); });
+      AGG_SEL={};
+      (accs.length<=7?ranked:ranked.slice(0,3).concat(ranked.slice(-3)))
+        .forEach(function(a){ AGG_SEL[a.id]=true; });
+    }
     var W=920,H=230,L=14,R=128,T=18,B=28;
     var nowTs=Date.now();
     // curve estese col punto live (solo se c'è almeno un prezzo live per quel conto)
     var curves=accs.map(function(a){ var liv=liveEquity(a);
       return (liv.any)?a.equity_curve.concat([[new Date(nowTs).toISOString().slice(0,16).replace('T',' '), liv.eq]]):a.equity_curve; });
     var allT=[],allV=[];
-    curves.forEach(function(c){ c.forEach(function(p){
+    curves.forEach(function(c,i){ if(!AGG_SEL[accs[i].id]) return; c.forEach(function(p){
       allT.push(new Date(String(p[0]).replace(' ','T')).getTime()); allV.push(p[1]); }); });
+    if(!allT.length){ curves.forEach(function(c){ c.forEach(function(p){
+      allT.push(new Date(String(p[0]).replace(' ','T')).getTime()); allV.push(p[1]); }); }); }
     var minT=Math.min.apply(null,allT), maxT=Math.max.apply(null,allT);
     var minV=Math.min.apply(null,allV), maxV=Math.max.apply(null,allV);
     minV=Math.min(minV,10000); maxV=Math.max(maxV,10000);
@@ -2240,27 +2281,34 @@ h1,h2,h3,h4,
     svg.appendChild(blab);
     var legendHtml='';
     accs.forEach(function(a,idx){
-      var col=COL[idx%COL.length];
+      var col=COL[idx%COL.length];   // colore stabile per conto, anche da spento
+      var on=!!AGG_SEL[a.id];
       var c=curves[idx];
-      var d=c.map(function(p,i){ var x=X(new Date(String(p[0]).replace(' ','T')).getTime()), y=Y(p[1]);
-        return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1); }).join(' ');
-      var path=document.createElementNS(svgNS,'path');
-      path.setAttribute('d',d); path.setAttribute('fill','none'); path.setAttribute('stroke',col);
-      path.setAttribute('stroke-width','2'); path.setAttribute('stroke-linejoin','round'); path.setAttribute('stroke-linecap','round');
-      if(DASH[idx%DASH.length]) path.setAttribute('stroke-dasharray',DASH[idx%DASH.length]);
-      svg.appendChild(path);
-      var last=c[c.length-1];
-      var ex=X(new Date(String(last[0]).replace(' ','T')).getTime()), ey=Y(last[1]);
-      var dot=document.createElementNS(svgNS,'circle');
-      dot.setAttribute('cx',ex); dot.setAttribute('cy',ey); dot.setAttribute('r','3.2'); dot.setAttribute('fill',col);
-      svg.appendChild(dot);
-      var wr=last[1]-10000;
-      legendHtml+='<span class="agg-leg-item"><span class="agg-sw" style="background:'+col+'"></span>'+
-        '<span class="agg-name">'+a.label+'</span>'+
+      if(on){
+        var d=c.map(function(p,i){ var x=X(new Date(String(p[0]).replace(' ','T')).getTime()), y=Y(p[1]);
+          return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1); }).join(' ');
+        var path=document.createElementNS(svgNS,'path');
+        path.setAttribute('d',d); path.setAttribute('fill','none'); path.setAttribute('stroke',col);
+        path.setAttribute('stroke-width','2'); path.setAttribute('stroke-linejoin','round'); path.setAttribute('stroke-linecap','round');
+        if(DASH[idx%DASH.length]) path.setAttribute('stroke-dasharray',DASH[idx%DASH.length]);
+        svg.appendChild(path);
+        var last=c[c.length-1];
+        var ex=X(new Date(String(last[0]).replace(' ','T')).getTime()), ey=Y(last[1]);
+        var dot=document.createElementNS(svgNS,'circle');
+        dot.setAttribute('cx',ex); dot.setAttribute('cy',ey); dot.setAttribute('r','3.2'); dot.setAttribute('fill',col);
+        svg.appendChild(dot);
+      }
+      var wr=c[c.length-1][1]-10000;
+      legendHtml+='<span class="agg-leg-item'+(on?'':' off')+'" data-agg="'+escHtml(a.id)+'" title="'+(on?'clicca per nascondere':'clicca per mostrare')+'"><span class="agg-sw" style="background:'+col+'"></span>'+
+        '<span class="agg-name">'+escHtml(a.label)+'</span>'+
         '<span class="agg-val '+(wr>0?'pos':wr<0?'neg':'')+'">'+(wr>0?'+':wr<0?'−':'')+NF2.format(Math.abs(wr))+' $</span></span>';
     });
     host.innerHTML=''; host.appendChild(svg);
-    if(leg) leg.innerHTML=legendHtml;
+    if(leg){ leg.innerHTML=legendHtml;
+      leg.querySelectorAll('[data-agg]').forEach(function(it){
+        it.onclick=function(){ var id=it.getAttribute('data-agg'); AGG_SEL[id]=!AGG_SEL[id]; renderAggregate(); };
+      });
+    }
     // aggiorna anche il tile "Equity totale" dello strip portfolio con il valore live aggregato
     var totalEq=accs.reduce(function(s,a){ return s+liveEquity(a).eq; },0);
     var anyLive=accs.some(function(a){ return liveEquity(a).any; });
