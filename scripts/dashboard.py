@@ -1130,11 +1130,30 @@ PAGES = [
 ]
 
 
+# Nav a 2 livelli (punto 2 IMPROVEMENTS): 4 gruppi parlanti al posto di 13 voci
+# tecniche. Riga primaria = gruppi; riga secondaria = pagine del gruppo attivo.
+NAV_GROUPS = [
+    ("Oggi",      [("index.html", "Stato"), ("posizioni.html", "Posizioni")]),
+    ("Strategie", [("strategie.html", "Le strategie"), ("portafogli.html", "Portafogli"),
+                   ("backtest.html", "Backtest"), ("evoluzione.html", "Evoluzione")]),
+    ("Diario",    [("decisioni.html", "Decisioni"), ("lezioni.html", "Lezioni"),
+                   ("trading-book.html", "Storico operazioni")]),
+    ("Contesto",  [("eventi.html", "Eventi"), ("news.html", "News"),
+                   ("rischio.html", "Rischio"), ("llm.html", "LLM")]),
+]
+
+
 def _nav_inner(active_file: str) -> str:
-    links = "".join(
-        f'<a href="{fn}"{" class=\"active\"" if fn == active_file else ""}>{label}</a>'
-        for fn, label, _ in PAGES)
-    return f'<div class="wrap secnav-inner">\n    {links}\n  </div>'
+    group = next((g for g, pages in NAV_GROUPS
+                  if any(f == active_file for f, _ in pages)), NAV_GROUPS[0][0])
+    prim = "".join(
+        f'<a href="{pages[0][0]}"{" class=\"active\"" if g == group else ""}>{g}</a>'
+        for g, pages in NAV_GROUPS)
+    sub = "".join(
+        f'<a href="{f}"{" class=\"active\"" if f == active_file else ""}>{label}</a>'
+        for f, label in dict(NAV_GROUPS)[group])
+    return (f'<div class="wrap secnav-inner">\n    {prim}\n  </div>\n'
+            f'  <div class="wrap secnav-sub">{sub}</div>')
 
 
 def main() -> None:

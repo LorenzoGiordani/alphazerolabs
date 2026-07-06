@@ -15,7 +15,7 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
   settimana è Combo momentum (+4,1%). Ieri ha ammesso un errore su GOLD."
   La pipeline LLM c'è già: è un prompt in più.
 
-- [ ] **2. Nav: da 13 voci a 4-5 gruppi** — "Book", "LLM", "Backtest" non dicono
+- [x] **2. Nav: da 13 voci a 4-5 gruppi** — "Book", "LLM", "Backtest" non dicono
   nulla al target. Raggruppare: **Oggi** (stato+posizioni) · **Strategie**
   (strategie+portafogli+backtest+evoluzione) · **Diario** (decisioni+lezioni+book)
   · **Contesto** (eventi+news+rischio+llm).
