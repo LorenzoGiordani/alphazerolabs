@@ -632,6 +632,17 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 .nof-ticker:hover .tk-track{ animation-play-state:paused; }
 @media(prefers-reduced-motion:reduce){ .tk-track{ animation:none; } }
 
+/* ---------- glossario inline (tooltip su termini tecnici) ---------- */
+.gloss{ border-bottom:1px dotted var(--text-4); cursor:help; position:relative; }
+.gloss:hover::after, .gloss:active::after{
+  content:attr(data-g); position:absolute; left:0; bottom:calc(100% + 6px); z-index:40;
+  width:max-content; max-width:260px; padding:8px 10px; border-radius:4px;
+  background:var(--bg-raise); border:1px solid var(--line-2); color:var(--text-2);
+  font-family:var(--sans); font-size:12px; line-height:1.45; letter-spacing:0;
+  text-transform:none; font-weight:400; box-shadow:0 6px 18px rgba(0,0,0,.4);
+  pointer-events:none; white-space:normal;
+}
+
 /* ---------- verdetto in linguaggio piano (benchmark BTC) ---------- */
 .verdict-row{ margin:-6px 0 20px; padding:12px 16px; border:1px solid var(--line);
   border-left:2px solid var(--amber); border-radius:var(--r); background:var(--bg-2);
@@ -884,6 +895,28 @@ h1,h2,h3,h4,
   let DATA = window.__DATA__ || {};
   // nome amichevole per qualsiasi id strategia/conto (id tecnico solo in tooltip)
   function labelOf(id){ return (DATA.labels&&DATA.labels[id])||id; }
+  // glossario inline (punto 8): termini tecnici spiegati in una frase, tap/hover
+  const GLOSS={
+    'dollar-neutral':"metà del capitale scommette al rialzo e metà al ribasso: se il mercato sale o scende tutto insieme, il risultato non cambia",
+    'market-neutral':"guadagna dalla differenza tra i migliori e i peggiori del paniere, non dalla direzione del mercato",
+    'vol-target':"l'esposizione si riduce da sola quando il mercato si agita, e risale quando si calma",
+    'time-stop':"chiusura automatica dopo troppo tempo senza risultato",
+    'drawdown':"il calo massimo dal punto più alto raggiunto: quanto si è scesi dalla vetta prima di risalire",
+    'sharpe':"rendimento rapportato alle oscillazioni subite: sopra 1 è buono, intorno a 0 domina il caso",
+    'gross':"somma di tutte le posizioni aperte, al rialzo e al ribasso, in valore assoluto: quanto capitale sta lavorando",
+    'funding':"costo periodico per tenere aperta una posizione sui perpetual: quando è estremo, troppi trader sono dallo stesso lato",
+    'leva':"moltiplicatore dell'esposizione: con leva 2x si muove il doppio del capitale investito",
+    'stop':"uscita automatica che taglia la perdita se il prezzo va contro",
+    'target':"obiettivo di profitto: raggiunto quello, la posizione si chiude da sola"
+  };
+  function glossify(txt){ // input già escapato: wrappa la 1ª occorrenza di ogni termine
+    let out=String(txt||'');
+    for(const term of Object.keys(GLOSS)){
+      const re=new RegExp('(^|[^\\wàèéìòù-])('+term+')(?![\\wàèéìòù-])','i');
+      if(re.test(out)) out=out.replace(re,(m,p1,p2)=>p1+'<span class="gloss" data-g="'+escHtml(GLOSS[term])+'">'+p2+'</span>');
+    }
+    return out;
+  }
 
   /* ---------- chart registry (redraw on resize) ---------- */
   const CHARTS = [];
@@ -1304,11 +1337,11 @@ h1,h2,h3,h4,
       const head=el('div','pcard book-leg');
       head.innerHTML=
         '<div class="pcard-head">'+
-          '<div class="sym"><span class="s-tick">'+escHtml(label)+'</span><span class="s-name">book dollar-neutral</span></div>'+
+          '<div class="sym"><span class="s-tick">'+escHtml(label)+'</span><span class="s-name">book '+glossify('dollar-neutral')+'</span></div>'+
           '<span class="acct-pill">portfolio</span>'+
         '</div>'+
         '<div class="pcard-sub"><span style="font-family:var(--mono);font-size:11px;color:var(--text-3)">'+
-          legs.length+' gambe · gross '+NF0.format(gross)+' $ · net '+signedUsd(net)+'</span></div>'+
+          legs.length+' gambe · '+glossify('gross')+' '+NF0.format(gross)+' $ · net '+signedUsd(net)+'</span></div>'+
         '<div class="pcard-strip">'+
           legs.map(b=>{
             const d=b.side==='long'?'long':'short';
@@ -1472,10 +1505,10 @@ h1,h2,h3,h4,
       card.innerHTML =
         '<div class="s-head"><h3>'+escHtml(s.nome)+'</h3>'+stat+'</div>'+
         (tags?'<div class="s-tags">'+tags+'</div>':'')+
-        '<p class="s-cosa">'+escHtml(s.cosa)+'</p>'+
-        '<div class="s-row"><span class="s-k">Entra</span><span>'+escHtml(s.entra)+'</span></div>'+
-        '<div class="s-row"><span class="s-k">Esce</span><span>'+escHtml(s.esce)+'</span></div>'+
-        '<div class="s-row"><span class="s-k">Rischio</span><span>'+escHtml(s.rischio)+'</span></div>'+
+        '<p class="s-cosa">'+glossify(escHtml(s.cosa))+'</p>'+
+        '<div class="s-row"><span class="s-k">Entra</span><span>'+glossify(escHtml(s.entra))+'</span></div>'+
+        '<div class="s-row"><span class="s-k">Esce</span><span>'+glossify(escHtml(s.esce))+'</span></div>'+
+        '<div class="s-row"><span class="s-k">Rischio</span><span>'+glossify(escHtml(s.rischio))+'</span></div>'+
         paper+
         '<div class="s-row" style="margin-top:8px"><span class="s-k">'+escHtml(s.id||'')+'</span><span style="color:var(--amber)">Dettaglio →</span></div>'+
         reason;
@@ -1532,7 +1565,7 @@ h1,h2,h3,h4,
         '<div class="bt-head"><h3 title="'+escHtml(s.id)+'">'+escHtml(labelOf(s.id))+(s.engine==='portfolio'?'<span class="bt-eng">portfolio</span>':'')+'</h3>'+
         '<span class="bt-badge'+(s.is_benchmark?' bench':'')+'">'+(s.is_benchmark?'riferimento':(ST_IT_B[s.status]||s.status))+'</span></div>'+
         '<div class="bt-sharpe-big '+clsOf(a.mean_sharpe)+'">'+(a.mean_sharpe>0?'+':'')+NF2.format(a.mean_sharpe)+'</div>'+
-        '<div class="bt-th">'+(s.engine==='portfolio'?'Sharpe di portafoglio (basket '+s.basket_size+' asset, dollar-neutral)':'Sharpe medio (basket '+s.basket_size+' asset)')+'</div>'+
+        '<div class="bt-th">'+glossify(s.engine==='portfolio'?'Sharpe di portafoglio (basket '+s.basket_size+' asset, dollar-neutral)':'Sharpe medio (basket '+s.basket_size+' asset)')+'</div>'+
         '<div class="bt-agg">'+
           (s.engine==='portfolio'
             ? '<div><div class="k">Rendimento</div><div class="v '+clsOf(a.mean_return)+'">'+(a.mean_return>0?'+':'')+(a.mean_return*100).toFixed(2)+'%</div></div>'+
@@ -1540,7 +1573,7 @@ h1,h2,h3,h4,
               '<div><div class="k">Vol-target</div><div class="v">'+(s.vol_target||'—')+'</div></div>'
             : '<div><div class="k">Rendimento medio</div><div class="v '+clsOf(a.mean_return)+'">'+(a.mean_return>0?'+':'')+(a.mean_return*100).toFixed(2)+'%</div></div>'+
               '<div><div class="k">Asset positivi</div><div class="v">'+a.positive_symbols+'</div></div>')+
-          '<div><div class="k">Worst drawdown</div><div class="v neg">'+(a.worst_drawdown*100).toFixed(1)+'%</div></div>'+
+          '<div><div class="k">'+glossify('Worst drawdown')+'</div><div class="v neg">'+(a.worst_drawdown*100).toFixed(1)+'%</div></div>'+
           '<div><div class="k">Fold positivi</div><div class="v">'+a.consistency+'</div></div>'+
         '</div>'+
         (s.engine==='portfolio'
@@ -1567,10 +1600,10 @@ h1,h2,h3,h4,
     if(s){
       html+='<div class="strat-card" style="cursor:default;margin-bottom:18px">'+
         '<div class="s-head"><h3>'+escHtml(s.nome)+'</h3>'+(s.status?'<span class="s-stat '+escHtml(s.status)+'">'+escHtml(ST_IT[s.status]||s.status)+'</span>':'')+'</div>'+
-        (s.cosa?'<p class="s-cosa">'+escHtml(s.cosa)+'</p>':'')+
-        (s.entra?'<div class="s-row"><span class="s-k">Entra</span><span>'+escHtml(s.entra)+'</span></div>':'')+
-        (s.esce?'<div class="s-row"><span class="s-k">Esce</span><span>'+escHtml(s.esce)+'</span></div>':'')+
-        (s.rischio?'<div class="s-row"><span class="s-k">Rischio</span><span>'+escHtml(s.rischio)+'</span></div>':'')+
+        (s.cosa?'<p class="s-cosa">'+glossify(escHtml(s.cosa))+'</p>':'')+
+        (s.entra?'<div class="s-row"><span class="s-k">Entra</span><span>'+glossify(escHtml(s.entra))+'</span></div>':'')+
+        (s.esce?'<div class="s-row"><span class="s-k">Esce</span><span>'+glossify(escHtml(s.esce))+'</span></div>':'')+
+        (s.rischio?'<div class="s-row"><span class="s-k">Rischio</span><span>'+glossify(escHtml(s.rischio))+'</span></div>':'')+
         '</div>';
     }
     // scheda conto (equity + metriche + curva)
