@@ -844,6 +844,20 @@ h1,h2,h3,h4,
     return d.getDate()+' '+months[d.getMonth()]+' · '+
       String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   }
+  function relTs(s){ // "2 ore fa" (punto 9); l'assoluto resta nel tooltip
+    if(!s) return '';
+    const t=new Date(String(s).replace(' ','T')+'Z').getTime();
+    if(!isFinite(t)) return escHtml(String(s));
+    const m=(Date.now()-t)/6e4;
+    let txt;
+    if(m<1) txt='adesso';
+    else if(m<60) txt=Math.round(m)+' min fa';
+    else if(m<120) txt='1 ora fa';
+    else if(m<48*60) txt=Math.round(m/60)+' ore fa';
+    else if(m<5760) txt=Math.round(m/1440)+' giorni fa';
+    else txt=fmtTs(s);   // oltre ~4 giorni la data assoluta dice di più
+    return '<span title="'+escHtml(fmtTs(s))+'">'+txt+'</span>';
+  }
   function sinceFrom(s){ // "aperta da"
     const t = new Date(String(s).replace(' ','T')+'Z').getTime();
     const now = DATA && DATA.updated_utc ? new Date(DATA.updated_utc.replace(' ','T')+'Z').getTime() : Date.now();
@@ -1052,7 +1066,7 @@ h1,h2,h3,h4,
     if(!d||!d.text){ host.innerHTML=''; return; }
     host.innerHTML='<div class="digest-box">'+
       '<span class="kicker">Cosa è successo oggi</span>'+
-      '<span class="digest-ts num">aggiornato '+fmtTs(d.ts)+'</span>'+
+      '<span class="digest-ts num">aggiornato '+relTs(d.ts)+'</span>'+
       '<p>'+escHtml(d.text)+'</p></div>';
   }
 
@@ -1387,7 +1401,7 @@ h1,h2,h3,h4,
       const acct = d.account_label || 'Agenti LLM';
       card.innerHTML =
         '<div class="dcard-top">'+
-          '<span class="dcard-ts num">'+fmtTs(d.ts)+'</span>'+
+          '<span class="dcard-ts num">'+relTs(d.ts)+'</span>'+
           '<span class="dcard-asset"><span class="tk">'+escHtml(d.symbol)+'</span>'+
             (d.direction?('<span class="dir '+escHtml(d.direction)+'">'+(d.direction==='long'?'▲ long':'▼ short')+'</span>'):'')+'</span>'+
           '<span class="acct-pill">'+escHtml(acct)+'</span>'+
@@ -1420,7 +1434,7 @@ h1,h2,h3,h4,
       item.innerHTML =
         '<span class="node"></span>'+
         '<div class="lesson-top">'+
-          '<span class="lesson-ts num">'+fmtTs(l.ts)+'</span>'+
+          '<span class="lesson-ts num">'+relTs(l.ts)+'</span>'+
           '<span class="lesson-scope num">'+escHtml(l.scope)+'</span>'+
           '<span class="lv '+escHtml(l.verdict)+'">'+escHtml(LVERD_IT[l.verdict]||l.verdict)+'</span>'+
         '</div>'+
@@ -1887,7 +1901,7 @@ h1,h2,h3,h4,
       card.innerHTML=
         '<div class="news-head"><span class="acct-pill">'+escHtml(n.topic_label)+'</span>'+
           '<span class="n-src">'+escHtml(n.source)+'</span>'+
-          '<span class="n-ts num">'+fmtTs(n.ts)+'</span></div>'+
+          '<span class="n-ts num">'+relTs(n.ts)+'</span></div>'+
         '<div class="news-title">'+escHtml(n.title)+'</div>'+
         (impact?('<div class="news-impact"><span class="ni-k">Impatto potenziale sul mercato</span><ul>'+impact+'</ul></div>'):'');
       host.appendChild(card);
@@ -1932,7 +1946,7 @@ h1,h2,h3,h4,
     host.innerHTML=evs.map(e=>{
       const cls=e.event==='promote'?'pos':'neg';
       return '<div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px">'+
-        '<span class="num" style="color:var(--text-3)">'+escHtml(e.ts||'')+'</span>'+
+        '<span class="num" style="color:var(--text-3)">'+relTs(e.ts||'')+'</span>'+
         '<span class="node-id num" title="'+escHtml(e.strategy||'')+'">'+escHtml(e.label||labelOf(e.strategy||''))+'</span>'+
         '<span class="status '+(e.event==='promote'?'champion':'retired')+'">'+escHtml(EV_IT[e.event]||e.event)+'</span>'+
         (e.by?'<span style="color:var(--text-3)">da '+escHtml(e.by)+'</span>':'')+
