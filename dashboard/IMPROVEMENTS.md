@@ -20,7 +20,7 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
   (strategie+portafogli+backtest+evoluzione) · **Diario** (decisioni+lezioni+book)
   · **Contesto** (eventi+news+rischio+llm).
 
-- [ ] **3. Nomi coerenti ovunque** — in legenda convivono "Agenti LLM" e
+- [x] **3. Nomi coerenti ovunque** — in legenda convivono "Agenti LLM" e
   "liqimb-port-v1"/"xsmom-reb48-v1". Un nome amichevole ovunque (grafico, card,
   filtri decisioni), id tecnico solo in tooltip/sottotitolo.
 

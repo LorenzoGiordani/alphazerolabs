@@ -37,6 +37,46 @@ ACCOUNT_META = {
     "glm-regime-confluence-v1": {"label": "GLM regime confluence", "tag": "2 momentum ortogonali"},
 }
 
+# Parole note negli id generati dal loop evolutivo -> italiano leggibile.
+# Fallback di friendly_label: ACCOUNT_META/STRATEGY_INFO restano la fonte curata.
+_ID_WORDS = {
+    "tsmom": "TSMOM", "xsmom": "momentum relativo", "highvol": "high-vol",
+    "liqimb": "liquidazioni", "funding": "funding", "squeeze": "squeeze",
+    "breakout": "breakout", "combo": "combo", "voltarget": "vol-target",
+    "multihorizon": "multi-orizzonte", "conservative": "prudente",
+    "aggressive": "aggressiva", "atr": "ATR", "port": "(book)", "lux": "LUX",
+    "agents": "agenti AI", "geopolitics": "desk geopolitico", "carry": "carry",
+    "confluence": "confluenza", "regime": "regime", "neutral": "neutrale",
+    "revert": "ritorno alla media", "mean": "", "rr2": "RR2", "glm": "GLM",
+}
+
+
+def friendly_label(sid: str) -> str:
+    """Nome amichevole per QUALSIASI id strategia/conto (punto 3 IMPROVEMENTS):
+    prima la fonte curata (ACCOUNT_META, STRATEGY_INFO), poi derivazione
+    leggibile dall'id ("xsmom-reb48-v1" -> "Momentum relativo · ribil. 48h").
+    L'id tecnico resta visibile solo in tooltip/sottotitolo."""
+    if sid in ACCOUNT_META:
+        return ACCOUNT_META[sid]["label"]
+    if sid in STRATEGY_INFO:
+        return STRATEGY_INFO[sid]["nome"]
+    parts = [p for p in re.split(r"[-_]", sid)
+             if p and not re.fullmatch(r"v\d+(\.\d+)?", p) and p != "beta"]
+    words, gens = [], []
+    for p in parts:
+        if re.fullmatch(r"g\d+", p):     # generazione: tenerla distingue i fratelli
+            gens.append(p)               # nell'albero (g2 vs g2-g1 vs g2-g1-g2)
+        elif (m := re.fullmatch(r"reb(\d+)", p)):
+            words.append(f"ribil. {m.group(1)}h")
+        else:
+            words.append(_ID_WORDS.get(p, p))
+    label = " ".join(w for w in words if w)
+    if not label:
+        return sid
+    label = label[:1].upper() + label[1:]
+    return label + (" · " + ".".join(gens) if gens else "")
+
+
 # Spiegazioni in linguaggio semplice — sezione "Le strategie" + "perché"
 # delle aperture sistematiche nel feed decisioni.
 STRATEGY_INFO = {
@@ -286,7 +326,7 @@ def build_strategies(state: dict) -> list[dict]:
             thesis = " ".join((spec.get("thesis") or "").split())
             entry = {
                 "id": sid,
-                "nome": ACCOUNT_META.get(sid, {}).get("label", sid),
+                "nome": friendly_label(sid),
                 "cosa": thesis[:280] + ("…" if len(thesis) > 280 else ""),
                 "entra": "segnali: " + ", ".join(s["name"] for s in spec.get("signals", [])),
                 "esce": f"stop {spec['exit'].get('stop_pct')}%, target {spec['exit'].get('target_r')}R, "
@@ -587,7 +627,7 @@ def portfolio_live_view(state: dict) -> list[dict]:
         gross_now = sum(abs(l["notional_usd"]) for l in legs)
         net_now = round(sum(l["notional_usd"] for l in legs), 0)
         out.append({
-            "id": sid, "label": ACCOUNT_META.get(sid, {}).get("label", sid),
+            "id": sid, "label": friendly_label(sid),
             "factor": factor_label, "equity": round(st.get("equity", 10000.0), 2),
             "last_rebalance": ts_short(last_reb), "next_rebalance": ts_short(nxt),
             "rebalance_h": reb_h, "gross_usd": round(gross_now, 0), "net_usd": net_now,
@@ -686,7 +726,7 @@ def build_data() -> dict:
         # strategie ritirate senza posizioni aperte: non sono conti vivi, non gonfiano i KPI
         if sid in retired_ids and not st.get("positions"):
             continue
-        meta = ACCOUNT_META.get(sid, {"label": sid, "tag": ""})
+        meta = ACCOUNT_META.get(sid) or {"label": friendly_label(sid), "tag": "dal loop evolutivo"}
         closes = [e for e in journal if e.get("type") == "close" and e.get("strategy") == sid]
         curve = [[ts_short(e["logged_at"]), round(e["equity"], 2)] for e in journal
                  if e.get("type") == "heartbeat" and e.get("strategy") == sid]
@@ -775,7 +815,7 @@ def build_data() -> dict:
         rec = {
             "ts": ts_short(d.get("logged_at", "")), "symbol": sym,
             "direction": p.get("direction"), "account": acct,
-            "account_label": ACCOUNT_META.get(acct, {}).get("label", acct),
+            "account_label": friendly_label(acct),
             "risk_verdict": risk_verdict,
             "risk_notes": risk_notes,
             "thesis": p.get("thesis", ""), "invalidation": p.get("invalidation", ""),
@@ -819,7 +859,7 @@ def build_data() -> dict:
         rec = {
             "ts": ts_short(e.get("opened_at", e.get("logged_at", ""))),
             "symbol": clean_symbol(e.get("symbol", "")), "direction": e.get("direction", ""),
-            "account": sid, "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
+            "account": sid, "account_label": friendly_label(sid),
             "risk_verdict": "sistema", "thesis": why,
             "entry_px": round(entry, 6) if entry else None,
             "size_usd": round(e.get("size_usd", 0) or 0, 2),
@@ -848,7 +888,7 @@ def build_data() -> dict:
             "ts": ts_short(e.get("logged_at", "")),
             "symbol": f"book · {len(longs) + len(shorts)} asset",
             "direction": None, "account": sid,
-            "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
+            "account_label": friendly_label(sid),
             "risk_verdict": "sistema", "thesis": why,
             "invalidation": info.get("esce", "ricostruisce il book al prossimo ribilanciamento"),
         })
@@ -863,7 +903,7 @@ def build_data() -> dict:
         info = STRATEGY_INFO.get(sid, {})
         dec_out.append({
             "ts": ts_short(e.get("logged_at", "")), "symbol": sym, "direction": None,
-            "account": sid, "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
+            "account": sid, "account_label": friendly_label(sid),
             "risk_verdict": "sistema",
             "thesis": f"Operazione chiusa su {sym} dal sistema «{info.get('nome', sid)}» "
                       f"(apertura precedente allo storico disponibile).",
@@ -908,7 +948,8 @@ def build_data() -> dict:
             ps = paper_stats(s["id"])
         except Exception:
             ps = {}
-        lineage.append({"id": s["id"], "parent": s.get("parent"),
+        lineage.append({"id": s["id"], "label": friendly_label(s["id"]),
+                        "parent": s.get("parent"),
                         "status": s.get("status", "candidate"), "sharpe": round(float(sharpe), 2),
                         "sharpe_r": ps.get("sharpe_r"), "n_closed": ps.get("n_closed"),
                         "mean_r": ps.get("mean_r"), "pnl_paper": ps.get("total_pnl"),
@@ -924,6 +965,7 @@ def build_data() -> dict:
             e = json.loads(l)
             st = e.get("stats", {}) or {}
             lifecycle.append({"event": e.get("event"), "strategy": e.get("strategy"),
+                              "label": friendly_label(e.get("strategy") or ""),
                               "family": e.get("family"), "by": e.get("by"),
                               "reason": e.get("reason"),   # motivo REALE del retire (non euristica)
                               "sharpe_r": st.get("sharpe_r"), "n_closed": st.get("n_closed"),
@@ -974,7 +1016,7 @@ def build_data() -> dict:
             risk = risk_usd(o)
             book.append({
                 "strategy": e["strategy"],
-                "account_label": ACCOUNT_META.get(e["strategy"], {}).get("label", e["strategy"]),
+                "account_label": friendly_label(e["strategy"]),
                 "symbol": clean_symbol(e["symbol"]), "direction": o["direction"],
                 "entry_px": round(o["entry_px"], 6), "exit_px": round(e["exit_px"], 6),
                 "size_usd": round(o["size_usd"], 2), "pnl_usd": round(oc["pnl"], 2),
@@ -988,7 +1030,7 @@ def build_data() -> dict:
     for (sid, sym), oc in pending.items():  # ancora aperte (anche con partial già bookati)
         o = oc["o"]
         book.append({
-            "strategy": sid, "account_label": ACCOUNT_META.get(sid, {}).get("label", sid),
+            "strategy": sid, "account_label": friendly_label(sid),
             "symbol": clean_symbol(sym), "direction": o["direction"],
             "entry_px": round(o["entry_px"], 6), "exit_px": None,
             "size_usd": round(o["size_usd"], 2), "pnl_usd": None, "pnl_pct": None,
@@ -1025,6 +1067,11 @@ def build_data() -> dict:
         "llm_stats": llm_stats(),
         "portfolio_live": portfolio_live_view(state),
     }
+    # mappa unica id -> nome amichevole (punto 3): il JS la usa ovunque un id
+    # tecnico comparirebbe nudo (albero evolutivo, backtest, lifecycle).
+    ids = {n["id"] for n in lineage} | set(state) | {s["id"] for s in strategies}
+    ids |= {s.get("id") for s in (backtests.get("strategies") or []) if isinstance(s, dict)}
+    data["labels"] = {i: friendly_label(i) for i in ids if i}
     data["digest"] = build_digest(data)
     return data
 
