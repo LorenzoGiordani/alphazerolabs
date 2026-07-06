@@ -507,12 +507,16 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .empty-box .e-next .d{ width:6px; height:6px; border-radius:50%; background:var(--amber); }
 @media(max-width:520px){ .empty-box{ padding:22px 18px; } }
 
-/* ---------- nav sezioni ---------- */
+/* ---------- nav sezioni (2 livelli: gruppi + pagine del gruppo) ---------- */
 .secnav{ position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
 .secnav-inner{ display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
 .secnav a{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); text-decoration:none; padding:10px 12px; white-space:nowrap; border-bottom:2px solid transparent; }
 .secnav a:hover{ color:var(--text-1); }
 .secnav a.active{ color:var(--amber); border-bottom-color:var(--amber); }
+.secnav-sub{ display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; border-top:1px solid var(--line); }
+.secnav-sub a{ font-size:9.5px; padding:8px 12px; color:var(--text-4); }
+.secnav-sub a:hover{ color:var(--text-2); }
+.secnav-sub a.active{ color:var(--text-1); border-bottom-color:var(--text-3); }
 
 /* ---------- footer ---------- */
 footer{ border-top:1px solid var(--line); padding:30px 0 48px; }
@@ -532,7 +536,7 @@ footer .foot-mark b{ color:var(--amber); }
   .wrap{ padding:0 16px; }
   .thesis{ font-size:15.5px; }
   /* tab nav overflows on narrow screens: fade the right edge to signal more tabs */
-  .secnav-inner{ -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 30px),transparent);
+  .secnav-inner, .secnav-sub{ -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 30px),transparent);
     mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 30px),transparent); }
 }
 @media (max-width:440px){
@@ -732,8 +736,9 @@ h1,h2,h3,h4,
 
 <nav class="secnav" id="secnav">
   <div class="wrap secnav-inner">
-    <a href="index.html">Stato</a><a href="strategie.html">Strategie</a><a href="portafogli.html">Portafogli</a><a href="backtest.html">Backtest</a><a href="posizioni.html">Posizioni</a><a href="rischio.html">Rischio</a><a href="decisioni.html">Decisioni</a><a href="trading-book.html">Book</a><a href="lezioni.html">Lezioni</a><a href="evoluzione.html" class="active">Evoluzione</a><a href="eventi.html">Eventi</a><a href="news.html">News</a><a href="llm.html">LLM</a>
+    <a href="index.html">Oggi</a><a href="strategie.html" class="active">Strategie</a><a href="decisioni.html">Diario</a><a href="eventi.html">Contesto</a>
   </div>
+  <div class="wrap secnav-sub"><a href="strategie.html">Le strategie</a><a href="portafogli.html">Portafogli</a><a href="backtest.html">Backtest</a><a href="evoluzione.html" class="active">Evoluzione</a></div>
 </nav>
 
 <main class="wrap">
@@ -858,6 +863,8 @@ h1,h2,h3,h4,
   }
 
   let DATA = window.__DATA__ || {};
+  // nome amichevole per qualsiasi id strategia/conto (id tecnico solo in tooltip)
+  function labelOf(id){ return (DATA.labels&&DATA.labels[id])||id; }
 
   /* ---------- chart registry (redraw on resize) ---------- */
   const CHARTS = [];
@@ -1477,7 +1484,7 @@ h1,h2,h3,h4,
       ).join('');
       const exits=(p)=>{ const e=p.exits||{}; const k=Object.keys(e); return k.length?k.map(x=>x+' '+e[x]).join(' · '):'—'; };
       card.innerHTML=
-        '<div class="bt-head"><h3>'+s.id+(s.engine==='portfolio'?'<span class="bt-eng">portfolio</span>':'')+'</h3>'+
+        '<div class="bt-head"><h3 title="'+escHtml(s.id)+'">'+escHtml(labelOf(s.id))+(s.engine==='portfolio'?'<span class="bt-eng">portfolio</span>':'')+'</h3>'+
         '<span class="bt-badge'+(s.is_benchmark?' bench':'')+'">'+(s.is_benchmark?'riferimento':(ST_IT_B[s.status]||s.status))+'</span></div>'+
         '<div class="bt-sharpe-big '+clsOf(a.mean_sharpe)+'">'+(a.mean_sharpe>0?'+':'')+NF2.format(a.mean_sharpe)+'</div>'+
         '<div class="bt-th">'+(s.engine==='portfolio'?'Sharpe di portafoglio (basket '+s.basket_size+' asset, dollar-neutral)':'Sharpe medio (basket '+s.basket_size+' asset)')+'</div>'+
@@ -1866,8 +1873,8 @@ h1,h2,h3,h4,
       const sh = n.sharpe;
       const shCls = clsOf(sh);
       const paper = (n.n_closed)?'<span class="sharpe"><span class="sl">paper</span><span class="'+clsOf(n.mean_r||0)+'">'+n.n_closed+'t · '+(n.pnl_paper>=0?'+':'')+NF0.format(n.pnl_paper||0)+'$</span></span>':'';
-      return '<div class="node-row'+champ+'">'+
-        '<span class="node-id num">'+escHtml(n.id)+'</span>'+
+      return '<div class="node-row'+champ+'" title="'+escHtml(n.id)+'">'+
+        '<span class="node-id num">'+escHtml(n.label||labelOf(n.id))+'</span>'+
         '<span class="status '+escHtml(n.status)+'">'+escHtml(STATUS_IT[n.status]||n.status)+'</span>'+
         '<span class="sharpe"><span class="sl">Sharpe</span><span class="'+shCls+'">'+(sh>0?'+':sh<0?'−':'')+NF2.format(Math.abs(sh))+'</span></span>'+
         paper+
@@ -1893,7 +1900,7 @@ h1,h2,h3,h4,
       const cls=e.event==='promote'?'pos':'neg';
       return '<div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px">'+
         '<span class="num" style="color:var(--text-3)">'+escHtml(e.ts||'')+'</span>'+
-        '<span class="node-id num">'+escHtml(e.strategy||'')+'</span>'+
+        '<span class="node-id num" title="'+escHtml(e.strategy||'')+'">'+escHtml(e.label||labelOf(e.strategy||''))+'</span>'+
         '<span class="status '+(e.event==='promote'?'champion':'retired')+'">'+escHtml(EV_IT[e.event]||e.event)+'</span>'+
         (e.by?'<span style="color:var(--text-3)">da '+escHtml(e.by)+'</span>':'')+
         (e.sharpe_r!=null?'<span class="'+cls+'">t-stat '+NF2.format(e.sharpe_r)+'</span>':'')+
