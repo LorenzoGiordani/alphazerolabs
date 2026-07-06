@@ -53,9 +53,10 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
 
 ## Da verificare / piccoli
 
-- [ ] **10. Mobile** — con 13 voci la nav quasi certamente sborda su 390px:
-  scroll orizzontale con fade o menu. Testare davvero su device.
-- [ ] **11. Badge feed** — "FEED IN ATTESA" vs "LIVE · 44/79 · HL WS" ambiguo per
+- [x] **10. Mobile** — risolto dal punto 2 (4 gruppi entrano in 375px; fade di
+  overflow su entrambe le righe). Verificato in preview a 375×812; resta il
+  controllo su device fisico.
+- [x] **11. Badge feed** — "FEED IN ATTESA" vs "LIVE · 44/79 · HL WS" ambiguo per
   un non-tecnico: tooltip che spiega lo stato.
 - [ ] **12. Dominio custom** — al posto di lux-ai.pages.dev: credibilità.
 
