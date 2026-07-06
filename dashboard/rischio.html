@@ -752,7 +752,7 @@ h1,h2,h3,h4,
       <img class="brand-lockup" src="assets/az-lockup.png" alt="AlphaZero Labs — desk di ricerca autonomo">
     </div>
     <span class="badge-paper"><span class="dot"></span>Paper trading — nessun fondo reale</span>
-    <span class="feed-status off" id="feed-status"><span class="fs-dot"></span><span class="fs-txt">feed in attesa</span></span>
+    <span class="feed-status off" id="feed-status" title="Stato del collegamento ai prezzi in tempo reale: quando è LIVE, P&L e grafici si aggiornano da soli."><span class="fs-dot"></span><span class="fs-txt">feed in attesa</span></span>
     <span class="updated">Aggiornato <b id="updated-ts">—</b> UTC · prossimo run <b id="next-run">—</b></span>
   </div>
 </header>
@@ -1706,9 +1706,14 @@ h1,h2,h3,h4,
     const txt=fs.querySelector('.fs-txt');
     const held=heldSymbols().length;
     const live=Object.values(LIVE).filter(v=>v.ok).length;
-    if(!held){ fs.className='feed-status off'; txt.textContent='nessuna posizione'; return; }
-    if(live){ fs.className='feed-status live'; txt.textContent='live · '+live+'/'+held+' asset · '+(lastSrc||''); return; }
+    if(!held){ fs.className='feed-status off'; txt.textContent='nessuna posizione';
+      fs.title='Nessuna posizione aperta: non ci sono prezzi da seguire in tempo reale.'; return; }
+    if(live){ fs.className='feed-status live'; txt.textContent='live · '+live+'/'+held+' asset · '+(lastSrc||'');
+      fs.title='Prezzi in tempo reale: '+live+' dei '+held+' asset in posizione ricevono aggiornamenti '+
+        '(fonte: '+(lastSrc==='HL ws'?'WebSocket Hyperliquid':'Binance')+'). P&L e grafici si muovono da soli.'; return; }
     fs.className='feed-status warn'; txt.textContent=wsAlive?'in attesa prezzi…':'riconnessione…';
+    fs.title=wsAlive?'Connesso al feed prezzi, in attesa dei primi aggiornamenti.'
+      :'Feed prezzi momentaneamente non raggiungibile: riconnessione automatica in corso. I dati mostrati restano quelli dell\'ultimo run.';
   }
   // ridisegno campionato (ogni 2s): accumula tail + ridipinge posizioni e conti
   // P&L live dei book dollar-neutral: ricalcola le gambe dai prezzi live senza rerender completo.
