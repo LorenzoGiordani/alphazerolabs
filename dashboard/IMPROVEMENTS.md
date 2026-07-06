@@ -24,7 +24,7 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
   "liqimb-port-v1"/"xsmom-reb48-v1". Un nome amichevole ovunque (grafico, card,
   filtri decisioni), id tecnico solo in tooltip/sottotitolo.
 
-- [ ] **4. Grafico aggregato: basta spaghetti** — 11 linee illeggibili. Default:
+- [x] **4. Grafico aggregato: basta spaghetti** — 11 linee illeggibili. Default:
   solo top 3 + bottom 3 (o media aggregata con banda), le altre spente; click
   sulla legenda per accendere/spegnere. La legenda diventa indice dei conti.
 
