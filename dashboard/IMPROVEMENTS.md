@@ -44,7 +44,7 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
   Con l'evoluzione giornaliera crescerà molto: collapse per famiglia con
   contatore ("tsmom-aggressive: 6 attive, 12 ritirate").
 
-- [ ] **8. Glossario inline** — `dollar-neutral`, `drawdown`, `gross`, `sharpe`
+- [x] **8. Glossario inline** — `dollar-neutral`, `drawdown`, `gross`, `sharpe`
   compaiono nudi nelle card. Tooltip tap/hover (sottolineatura puntinata) con
   spiegazione di una frase — stesso pattern delle intro di sezione.
 
