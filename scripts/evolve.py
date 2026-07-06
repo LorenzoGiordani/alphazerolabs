@@ -150,7 +150,9 @@ def validate(spec: dict, parent: dict, idx: int) -> dict:
     spec["parent"] = parent["id"]
     spec["status"] = "candidate"
     spec["created"] = str(date.today())
-    spec["id"] = f"{parent['id'].rsplit('-v', 1)[0]}-g{idx}"
+    # suffisso data: col loop giornaliero lo stesso parent genera g1..gN ogni run;
+    # senza data i figli di oggi sovrascriverebbero i file (e lo stato paper) di ieri
+    spec["id"] = f"{parent['id'].rsplit('-v', 1)[0]}-g{idx}-{date.today():%y%m%d}"
     return spec
 
 

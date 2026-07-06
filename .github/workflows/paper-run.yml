@@ -76,14 +76,18 @@ jobs:
       - name: exit-check (chiude retired + TP/SL)
         run: uv run scripts/paper_exits.py || true
 
-      # GENERAZIONE nuovi challenger — settimanale (lun 00:xx UTC), serve l'LLM ed è pesante.
+      # GENERAZIONE nuovi challenger — GIORNALIERA (00:xx UTC): mutazioni con
+      # expectancy>0 entrano SUBITO in paper, il forward test è il gate vero.
+      # continue-on-error (non `|| true`): un crash rende lo step rosso in Actions
+      # invece di morire muto (lezione: ImportError silenziato per settimane).
       - name: evolve (genera challenger)
         if: env.OPENROUTER_API_KEY != ''
+        continue-on-error: true
         run: |
-          if [ "$(date -u +%u)" = "1" ] && [ "$(date -u +%H)" = "00" ]; then
-            uv run scripts/evolve_auto.py || true
+          if [ "$(date -u +%H)" = "00" ]; then
+            uv run scripts/evolve_auto.py
           else
-            echo "evolve: salta (gira lun 00:xx UTC)"
+            echo "evolve: salta (gira alle 00:xx UTC)"
           fi
 
       - name: sync journal → Supabase (idempotente, gated su credenziali)

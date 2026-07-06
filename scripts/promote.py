@@ -15,7 +15,7 @@ Uso: .venv/bin/python scripts/promote.py [--min-trades 20] [--dry-run]
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -30,6 +30,20 @@ MIN_SHARPE = 0.3   # sharpe_r minimo per essere "champion material"
 MARGIN = 0.2       # il challenger deve battere il champion di questo margine (sharpe_r)
 MAX_DD_PCT = 15.0  # drawdown equity oltre il quale ritira anche con pochi trade chiusi
 MIN_DSR = 0.95     # deflated Sharpe minimo per promozione (gate anti-overfitting, regola 10)
+ZOMBIE_DAYS = 14   # challenger evolutivo con 0 trade chiusi dopo N giorni → retired
+                   # (libera slot nel cap famiglia di evolve_auto; precedente:
+                   # glm-regime-confluence ritirata come zombie, gate sempre chiuso)
+
+
+def _age_days(spec: dict) -> int | None:
+    """Giorni dalla creazione (campo `created` dello YAML), None se assente."""
+    created = spec.get("created")
+    if not created:
+        return None
+    try:
+        return (datetime.now(timezone.utc).date() - date.fromisoformat(str(created))).days
+    except ValueError:
+        return None
 
 
 def log_event(rec: dict) -> None:
@@ -101,6 +115,22 @@ def main() -> None:
                                (["lifecycle", "retire", "paper", "drawdown"]
                                 + (["portfolio"] if is_portfolio else [])))
                 changes += 1
+            elif (s.get("parent") and st["n_closed"] == 0
+                  and _age_days(s) is not None and _age_days(s) >= ZOMBIE_DAYS):
+                # zombie: mutazione evolutiva che non ha MAI tradato — gate d'ingresso
+                # mai aperto. Occupa uno slot del cap famiglia senza produrre dati.
+                # Solo figli evolutivi (campo parent): i reseed manuali restano.
+                print(f"    → RETIRE (zombie: 0 trade in {_age_days(s)} giorni)")
+                if not args.dry_run:
+                    set_status(f, "retired")
+                    log_event({"event": "retire", "strategy": s["id"], "family": fam, "stats": st,
+                               "reason": "zombie_no_trades"})
+                    add_lesson(s["id"], "thesis_wrong",
+                               f"Ritirata da challenger: 0 trade chiusi in {_age_days(s)} giorni "
+                               f"(soglia {ZOMBIE_DAYS}). Entry rule mai soddisfatta — mutazione "
+                               f"sterile, nessun dato raccolto.",
+                               ["lifecycle", "retire", "paper", "zombie"])
+                changes += 1
             elif not is_portfolio and st["n_closed"] >= args.min_trades and bmr < 0:
                 # per-simbolo: n_closed sono trade discreti, mean_r negativo = edge falsificato
                 print(f"    → RETIRE (perdente con {st['n_closed']} trade, basket_meanR<0)")
@@ -127,12 +157,16 @@ def main() -> None:
         best = max(qual, key=lambda m: m[2].get("basket_sharpe_r", 0.0))
         bf, bs, bst = best
 
-        # gate DSR: se il backtest ha DSR < MIN_DSR, la skill apparente è
-        # compatibile col rumore su K prove → niente promozione
+        # gate DSR SOFT: DSR basso = il backtest non distingue skill da rumore, ma
+        # il paper è il gate finale (FORMAT.md) — con un campione forward doppio
+        # (2×min_trades chiusi, out-of-sample per costruzione) l'evidenza paper
+        # supera lo scetticismo sul backtest. Prima era gate duro: nessuna
+        # mutazione (DSR tipici 0.0-0.45) sarebbe mai potuta diventare champion.
         dsr = backtest_dsr(bs)
-        if dsr is not None and dsr < MIN_DSR:
+        if dsr is not None and dsr < MIN_DSR and bst["n_closed"] < 2 * args.min_trades:
             print(f"  {bs['id']} (basket_sharpe {bst.get('basket_sharpe_r', 0.0)}) "
-                  f"DSR {dsr} < {MIN_DSR}: skill non distinguibile dal rumore (overfitting)")
+                  f"DSR {dsr} < {MIN_DSR} e solo {bst['n_closed']} trade forward "
+                  f"(<{2 * args.min_trades}): aspetto più dati paper")
             continue
         if dsr is None:
             print(f"  ⚠ {bs['id']}: DSR backtest mancante — promozione senza gate anti-overfitting")
