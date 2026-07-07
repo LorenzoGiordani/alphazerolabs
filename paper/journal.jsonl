@@ -4249,3 +4249,4 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10218.82, "open_positions": 0, "logged_at": "2026-07-07T05:19:00.273610+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9967.48, "open_positions": 0, "logged_at": "2026-07-07T05:19:00.780214+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9915.75, "open_positions": 3, "logged_at": "2026-07-07T05:19:06.229442+00:00"}
+{"type": "close", "strategy": "geopolitics-v1", "symbol": "xyz:SILVER", "reason": "stopped", "exit_px": 60.40113718395441, "frac": 1.0, "remaining": 0.0, "pnl_usd": -71.04, "equity": 9844.71, "ts": "2026-07-07 05:00:00+00:00", "logged_at": "2026-07-07T05:42:55.574743+00:00"}

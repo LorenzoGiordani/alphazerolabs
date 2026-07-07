@@ -25,7 +25,7 @@
   "positions": {}
  },
  "geopolitics-v1": {
-  "equity": 9915.748747952608,
+  "equity": 9844.713698796468,
   "positions": {
    "xyz:CL": {
     "strategy": "geopolitics-v1",
@@ -68,29 +68,6 @@
     "remaining": 1.0,
     "partial_done": false,
     "hi_water": 4165.93302,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-07-07 04:00:00+00:00"
-   },
-   "xyz:SILVER": {
-    "strategy": "geopolitics-v1",
-    "symbol": "xyz:SILVER",
-    "direction": "long",
-    "entry_px": 62.13242399999999,
-    "size_usd": 2508.79,
-    "stop_px": 60.413219827919995,
-    "target_px": 66.4304344302,
-    "opened_at": "2026-07-06 21:00:00+00:00",
-    "checked_until": "2026-07-07 04:00:00+00:00",
-    "time_stop_h": 72,
-    "thesis": "Canale B (safe-haven) \u00e8 l'unico canale geopolitico vivo: oil \u00e8 stato esplicitamente rifiutato dal mercato (drift negativo a giorno 9), quindi tutta la domanda di protezione Iran converge su metalli preziosi. Silver esprime questo edge con beta amplificata: +6.5% 7d vs +3.6% gold \u2014 i flussi confermano la direzione, non la narrativa. Momentum positivo in chop = capitali speculativi seguiranno. A differenza del gold (coil compresso, ATR 0.29%, coin-flip senza breakout), silver sta gi\u00e0 trendando: la lesson anti-coil non si applica qui.",
-    "invalidation": "De-escalazione improvvisa del conflitto Iran che fa collassare il risk premium sui metalli in ore (silver \u00e8 brutale nelle correzioni, la beta amplificata lavora anche al ribasso). Oppure rottura del momentum con chiusura giornaliera sotto il livello di consolidamento recente.",
-    "decision_ts": "2026-07-06T22:22:40.097255+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 62.13242399999999,
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
