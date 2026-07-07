@@ -1,9 +1,6 @@
 id: xsmom-port-v1
 parent: xsmom-v1
-status: challenger      # 26/06: RIPRESA (2a volta). Falsa ritirazione del cron corretta:
-                        # il gate promote ritirava i portfolio su n_closed(letture 4h)/mean_r
-                        # = rumore su pochi giorni. Ora i portfolio si ritirano solo su DD breach.
-                        # Backtest edge +79.8% confermato a 12m, resta il core.
+status: champion
 engine: portfolio
 created: '2026-06-22'
 thesis: 'Cross-sectional momentum a PORTAFOGLIO: long il top-terzile del basket per
@@ -18,7 +15,7 @@ thesis: 'Cross-sectional momentum a PORTAFOGLIO: long il top-terzile del basket 
 
   '
 universe:
-  selection: all_perps   # tutti i perp HL >= 1M$/24h, risolti live (ex 9 ticker)
+  selection: all_perps
 paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
 portfolio:
   lookback_h: 168
@@ -81,22 +78,30 @@ backtest:
 
       '
   validazione_lb168_04_07:
-    fonte: validate_xsmom_lb168.py + robustness_portfolio.py (spec docs/xsmom-lb168.md §7)
+    fonte: validate_xsmom_lb168.py + robustness_portfolio.py (spec docs/xsmom-lb168.md
+      §7)
     funding_ab:
       sharpe_price_only: 3.67
       sharpe_con_funding: 3.67
-      drag_annualizzato: -0.002    # trascurabile: il temuto 3-4%/anno non c'e' su questo book
+      drag_annualizzato: -0.002
     walk_forward_fold:
-      sharpe_trimestri: [6.49, 4.59, 1.35, 2.28]   # 4/4 positivi, degradazione visibile
+      sharpe_trimestri:
+      - 6.49
+      - 4.59
+      - 1.35
+      - 2.28
     per_simbolo:
-      asset_positivi: 7/9          # edge diffuso (negativi: BTC -0.007, SOL -0.075)
-    bootstrap_ci95_sharpe: [1.45, 5.58]   # lower bound > 1.0: soglia credibilita' PASSATA
+      asset_positivi: 7/9
+    bootstrap_ci95_sharpe:
+    - 1.45
+    - 5.58
     oos_split:
-      freeze_reb168_test: 0.88     # crolla OOS
-      reb48_test: 2.37             # generalizza -> depositato xsmom-reb48-v1 (challenger A/B)
-    dsr_n_trials_67: 0.90
-    verdetto: >
-      Edge core VALIDATO (bootstrap CI95-inferiore 1.45 > 1.0, prima volta).
-      Riserve residue: momentum in rallentamento (fold 2026), survivorship del
-      basket, slippage reale sulle gambe illiquide. Prossimo gate: DSR>=0.95 +
-      track record paper forward (G4).
+      freeze_reb168_test: 0.88
+      reb48_test: 2.37
+    dsr_n_trials_67: 0.9
+    verdetto: 'Edge core VALIDATO (bootstrap CI95-inferiore 1.45 > 1.0, prima volta).
+      Riserve residue: momentum in rallentamento (fold 2026), survivorship del basket,
+      slippage reale sulle gambe illiquide. Prossimo gate: DSR>=0.95 + track record
+      paper forward (G4).
+
+      '
