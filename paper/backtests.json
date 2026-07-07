@@ -3,7 +3,7 @@
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-07T12:24 UTC",
+ "generated_at": "2026-07-07T13:29 UTC",
  "strategies": [
   {
    "id": "commodities-trend-v1",
@@ -13,8 +13,8 @@
    "window": "2025-08-21 → 2026-07-07",
    "basket_size": 5,
    "aggregate": {
-    "mean_sharpe": -1.25,
-    "mean_return": -0.1079,
+    "mean_sharpe": -1.27,
+    "mean_return": -0.1089,
     "worst_drawdown": -0.16,
     "positive_symbols": "0/5",
     "consistency": "8/30"
@@ -51,8 +51,8 @@
     },
     {
      "symbol": "xyz_CL",
-     "ret": -0.1383,
-     "sharpe": -1.53,
+     "ret": -0.1397,
+     "sharpe": -1.55,
      "max_dd": -0.16,
      "trades": 59,
      "win_rate": 0.305,
@@ -65,8 +65,8 @@
     },
     {
      "symbol": "xyz_BRENTOIL",
-     "ret": -0.1048,
-     "sharpe": -1.11,
+     "ret": -0.1055,
+     "sharpe": -1.12,
      "max_dd": -0.1388,
      "trades": 53,
      "win_rate": 0.34,
@@ -80,8 +80,8 @@
     },
     {
      "symbol": "xyz_NATGAS",
-     "ret": -0.1318,
-     "sharpe": -1.65,
+     "ret": -0.1348,
+     "sharpe": -1.69,
      "max_dd": -0.1473,
      "trades": 42,
      "win_rate": 0.286,
@@ -220,8 +220,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.91,
-    "mean_return": 0.0941,
+    "mean_sharpe": 1.9,
+    "mean_return": 0.0932,
     "worst_drawdown": -0.1452,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
@@ -238,11 +238,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": -0.58,
-    "mean_return": -0.0321,
-    "worst_drawdown": -0.16,
+    "mean_sharpe": -0.54,
+    "mean_return": -0.0306,
+    "worst_drawdown": -0.1583,
     "positive_symbols": "market-neutral",
-    "consistency": "2/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -254,18 +254,18 @@
    "window": "2026-05-26 → 2026-07-07",
    "basket_size": 8,
    "aggregate": {
-    "mean_sharpe": -1.14,
-    "mean_return": -0.0837,
+    "mean_sharpe": -1.18,
+    "mean_return": -0.0839,
     "worst_drawdown": -0.2248,
     "positive_symbols": "1/8",
-    "consistency": "12/48"
+    "consistency": "13/48"
    },
    "per_symbol": [
     {
      "symbol": "BTC",
      "ret": -0.0145,
-     "sharpe": -2.2,
-     "max_dd": -0.0255,
+     "sharpe": -2.5,
+     "max_dd": -0.0221,
      "trades": 1,
      "win_rate": 0.0,
      "pf": 0.0,
@@ -276,13 +276,13 @@
     },
     {
      "symbol": "ETH",
-     "ret": -0.0122,
+     "ret": -0.012,
      "sharpe": -1.61,
-     "max_dd": -0.0231,
+     "max_dd": -0.0262,
      "trades": 1,
      "win_rate": 0.0,
      "pf": 0.0,
-     "consistency": "0/6 fold positivi",
+     "consistency": "1/6 fold positivi",
      "exits": {
       "stopped": 1
      }
@@ -304,8 +304,8 @@
     },
     {
      "symbol": "xyz_CL",
-     "ret": -0.1948,
-     "sharpe": -1.47,
+     "ret": -0.1968,
+     "sharpe": -1.49,
      "max_dd": -0.2248,
      "trades": 59,
      "win_rate": 0.305,
@@ -318,7 +318,7 @@
     },
     {
      "symbol": "xyz_BRENTOIL",
-     "ret": -0.1748,
+     "ret": -0.1746,
      "sharpe": -1.27,
      "max_dd": -0.2231,
      "trades": 54,
@@ -385,8 +385,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.16,
-    "mean_return": 0.0685,
+    "mean_sharpe": 1.63,
+    "mean_return": 0.1093,
     "worst_drawdown": -0.1351,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
@@ -403,8 +403,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 3.1,
-    "mean_return": 0.1424,
+    "mean_sharpe": 2.46,
+    "mean_return": 0.1099,
     "worst_drawdown": -0.1369,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
@@ -421,8 +421,8 @@
    "basket_size": 9,
    "vol_target": "on (m medio 0.85)",
    "aggregate": {
-    "mean_sharpe": 2.58,
-    "mean_return": 0.1104,
+    "mean_sharpe": 1.5,
+    "mean_return": 0.0596,
     "worst_drawdown": -0.1369,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
@@ -439,9 +439,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 3.07,
-    "mean_return": 0.0763,
-    "worst_drawdown": -0.044,
+    "mean_sharpe": 2.82,
+    "mean_return": 0.0697,
+    "worst_drawdown": -0.0441,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -457,8 +457,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 3.1,
-    "mean_return": 0.1424,
+    "mean_sharpe": 2.46,
+    "mean_return": 0.1099,
     "worst_drawdown": -0.1369,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
@@ -475,11 +475,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.62,
-    "mean_return": 0.0193,
-    "worst_drawdown": -0.1436,
+    "mean_sharpe": 0.67,
+    "mean_return": 0.0202,
+    "worst_drawdown": -0.1097,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   }
