@@ -4,7 +4,7 @@
   "positions": {}
  },
  "agents-v1": {
-  "equity": 10273.636158794114,
+  "equity": 10236.644326329115,
   "positions": {
    "SOL": {
     "strategy": "agents-v1",
@@ -15,7 +15,7 @@
     "stop_px": 77.30287391328599,
     "target_px": 90.548064916785,
     "opened_at": "2026-07-07 05:00:00+00:00",
-    "checked_until": "2026-07-07 17:00:00+00:00",
+    "checked_until": "2026-07-07 18:00:00+00:00",
     "time_stop_h": 72,
     "thesis": "SOL presenta la triade tecnica piu' pulita del desk: vol_compression + tsmom + efficiency_ratio=1 in regime bull 7d (+9.2%). Volatilita' compressa contro trend persistente = coil direzionale caricato per espansione. Funding neutro (0%): nessun crowding long, spazio per squeeze/short-cover. Catalyst di price-action (break range intraday) innesca momentum algos. Nessun lux_confluence aligned su alcun asset \u2192 setup secondario, size ridotta (0.5% risk) e stop fuori rumore (5% > 1 ATR). ZEC short scartato: stessi segnali bullish (compression+tsmom) ma shortare contro trend per funding cost e' low-probability; la risoluzione piu' probabile della compressione e' rialzo, che squeezeerebbe i short.",
     "invalidation": "Chiusura sotto la base della compressione / trend 7d violato. Se SOL perde il supporto della struttura di trend (coperto da stop 5%), il coil thesis e' invalidato e il trade va chiuso immediatamente.",
@@ -27,30 +27,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-07 17:00:00+00:00"
-   },
-   "ZEC": {
-    "strategy": "agents-v1",
-    "symbol": "ZEC",
-    "direction": "long",
-    "entry_px": 505.75113,
-    "size_usd": 1598.23,
-    "stop_px": 494.371729575,
-    "target_px": 531.3547809562499,
-    "opened_at": "2026-07-07 16:00:00+00:00",
-    "checked_until": "2026-07-07 17:00:00+00:00",
-    "time_stop_h": 60,
-    "thesis": "ZEC mostra 8 segnali simultanei (breakout, volume surge, compression resolve, NW, VWAP z-score, efficiency) con funding ancora al percentile 0 \u2014 nessun crowding long nonostante +26.8% 7d. Questo pattern \"extreme momentum + flat funding\" ha storico di continuation elevato: il mercato non ha ancora posizionato il rally. Size ridotta perch\u00e9 nessun lux_confluence (1/5) \u2014 convinzione discrezionale, non sistematica. Stop 2.5% (1.45x ATR) per stare fuori dal rumore di un asset con volatilit\u00e0 massima desk.",
-    "invalidation": "Se ZEC non riesce a tenere sopra il livello di breakout e rolla sotto -2.5% dall'entry, il momentum burst era uno spike di relief rally, non continuation. Secondo invalidante: se funding sale sopra il 30\u00b0 percentile entro 24h, il crowding long sta arrivando tardi e il move si sta esaurendo.",
-    "decision_ts": "2026-07-07T17:22:23.456275+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 505.75113,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-07-07 17:00:00+00:00"
+    "_last_ts": "2026-07-07 18:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-07-07T18:25:36.010671+00:00"
@@ -83,7 +60,7 @@
     "stop_px": 72.0039408311,
     "target_px": 60.755378412116286,
     "opened_at": "2026-07-05 22:00:00+00:00",
-    "checked_until": "2026-07-07 17:00:00+00:00",
+    "checked_until": "2026-07-07 18:00:00+00:00",
     "time_stop_h": 152,
     "thesis": "Il burst geopolitico del 27 Giugno \u00e8 invecchiato 8 giorni senza escalation cinetica \u2014 il mercato ha gi\u00e0 scartato il risk premium. L'unica trasmissione residua \u00e8 OPEC+ che alza i target di produzione \u2192 glut di offerta \u2192 prezzo pi\u00f9 basso. Momentum 7d negativo (-2.4%) conferma il soffio strutturale. L'edge pulito \u00e8 il fading del premium geopolitico morto, allineato alla forza dominante di offerta. Catalizzatori: conferme incrementi produzione OPEC+, build inventari EIA/IEA, assenza di eventi cinetici che invalida definitivamente il premium. Brief identifica questo come 'edge geopolitico pi\u00f9 pulito'. Orizzonte tesi: giorni-settimane, time-stop 120h d\u00e0 margine per la maturazione dei catalizzatori senza overstay.",
     "invalidation": "Prezzo viola $72 (rottura della struttura chop upward \u2014 il bid geopolitico residuo si riattiva e l'OPEC+ glut non basta a contenerlo) OPPURE escalation cinetica reale (attacco a infrastrutture energetiche, minaccia chiusura Stretto di Hormuz) che price-in un disruption fisico di offerta.",
@@ -95,7 +72,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-07 17:00:00+00:00"
+    "_last_ts": "2026-07-07 18:00:00+00:00"
    },
    "xyz:GOLD": {
     "strategy": "geopolitics-v1",
@@ -106,7 +83,7 @@
     "stop_px": 4040.9550294,
     "target_px": 4478.3779965,
     "opened_at": "2026-07-06 18:00:00+00:00",
-    "checked_until": "2026-07-07 17:00:00+00:00",
+    "checked_until": "2026-07-07 18:00:00+00:00",
     "time_stop_h": 96,
     "thesis": "Long Gold come antenna diretta del canale Risk-Off dall'escalation Iran/Hormuz. A differenza del petrolio (dove UAE oversupply e mosse USA neutralizzano il risk premium), l'oro converte l'incertezza bellica in domanda safe-haven senza attriti strutturali. Il canale causale \u00e8 lineare e gi\u00e0 validato dal momentum (+4.6% in 7 giorni). La confluenza LUX allinea con direzione long. Il trade sfrutta la persistenza del terrore sistemico finch\u00e9 la minaccia di interruzione resta sul tavolo geopolitico.",
     "invalidation": "De-escalation diplomatica concreta e repentina (cessate il fuoco verificato, accordo navigazione Hormuz) che farebbe evaporare il premio al rischio safe-haven. Chiusura anche per time-stop se il momentum si arresta entro 96h senza nuovi sviluppi geopolitici a supporto.",
@@ -118,7 +95,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-07 17:00:00+00:00"
+    "_last_ts": "2026-07-07 18:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-07-06T23:23:03.861602+00:00"
@@ -4559,7 +4536,7 @@
   ]
  },
  "commodities-trend-v1": {
-  "equity": 9561.273186288943,
+  "equity": 9460.574432309773,
   "positions": {
    "xyz_CL": {
     "sign": -1,
@@ -4579,25 +4556,6 @@
     "opened_at": "2026-07-07 14:00:00+00:00",
     "checked_until": "2026-07-07 17:00:00+00:00",
     "_last_ts": "2026-07-07 17:00:00+00:00"
-   },
-   "xyz_BRENTOIL": {
-    "sign": -1,
-    "entry_px": 73.75524264373779,
-    "stop_px": 74.66648853716168,
-    "target_px": 72.11500003557478,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 73.75524264373779,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "commodities-trend-v1",
-    "symbol": "xyz_BRENTOIL",
-    "direction": "short",
-    "size_usd": 7741.61,
-    "opened_at": "2026-07-07 14:00:00+00:00",
-    "checked_until": "2026-07-07 17:00:00+00:00",
-    "_last_ts": "2026-07-07 17:00:00+00:00"
    }
   }
  },
@@ -4606,7 +4564,7 @@
   "positions": {}
  },
  "tsmom-aggressive-v1": {
-  "equity": 9636.412252903605,
+  "equity": 9484.149419419438,
   "positions": {
    "BTC": {
     "sign": 1,
@@ -4624,8 +4582,8 @@
     "direction": "long",
     "size_usd": 2500.0,
     "opened_at": "2026-07-06 12:00:00+00:00",
-    "checked_until": "2026-07-07 17:00:00+00:00",
-    "_last_ts": "2026-07-07 17:00:00+00:00"
+    "checked_until": "2026-07-07 18:00:00+00:00",
+    "_last_ts": "2026-07-07 18:00:00+00:00"
    },
    "ETH": {
     "sign": 1,
@@ -4643,8 +4601,8 @@
     "direction": "long",
     "size_usd": 2499.72,
     "opened_at": "2026-07-06 12:00:00+00:00",
-    "checked_until": "2026-07-07 17:00:00+00:00",
-    "_last_ts": "2026-07-07 17:00:00+00:00"
+    "checked_until": "2026-07-07 18:00:00+00:00",
+    "_last_ts": "2026-07-07 18:00:00+00:00"
    },
    "xyz_CL": {
     "sign": -1,
@@ -4661,25 +4619,6 @@
     "symbol": "xyz_CL",
     "direction": "short",
     "size_usd": 10601.21,
-    "opened_at": "2026-07-07 14:00:00+00:00",
-    "checked_until": "2026-07-07 17:00:00+00:00",
-    "_last_ts": "2026-07-07 17:00:00+00:00"
-   },
-   "xyz_BRENTOIL": {
-    "sign": -1,
-    "entry_px": 73.75524264373779,
-    "stop_px": 74.66648853716168,
-    "target_px": 72.11500003557478,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 73.75524264373779,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-aggressive-v1",
-    "symbol": "xyz_BRENTOIL",
-    "direction": "short",
-    "size_usd": 11705.8,
     "opened_at": "2026-07-07 14:00:00+00:00",
     "checked_until": "2026-07-07 17:00:00+00:00",
     "_last_ts": "2026-07-07 17:00:00+00:00"

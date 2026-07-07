@@ -4438,3 +4438,6 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9963.27, "open_positions": 1, "logged_at": "2026-07-07T18:25:38.831429+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9844.71, "open_positions": 2, "logged_at": "2026-07-07T18:25:43.370251+00:00"}
 {"type": "close", "strategy": "agents-rr2-v1", "symbol": "ZEC", "reason": "retired", "exit_px": 504.91, "frac": 1.0, "remaining": 0.0, "pnl_usd": -0.22, "equity": 9963.06, "ts": "2026-07-07 17:00:00+00:00", "logged_at": "2026-07-07T18:25:53.035302+00:00"}
+{"type": "close", "strategy": "agents-v1", "symbol": "ZEC", "reason": "stopped", "exit_px": 494.27285522908505, "frac": 1.0, "remaining": 0.0, "pnl_usd": -36.99, "equity": 10236.64, "ts": "2026-07-07 19:00:00+00:00", "logged_at": "2026-07-07T19:00:57.205770+00:00"}
+{"type": "close", "strategy": "commodities-trend-v1", "symbol": "xyz_BRENTOIL", "reason": "stopped", "exit_px": 74.68142183486911, "frac": 1.0, "remaining": 0.0, "pnl_usd": -100.7, "equity": 9460.57, "ts": "2026-07-07 18:00:00+00:00", "logged_at": "2026-07-07T19:01:00.612815+00:00"}
+{"type": "close", "strategy": "tsmom-aggressive-v1", "symbol": "xyz_BRENTOIL", "reason": "stopped", "exit_px": 74.68142183486911, "frac": 1.0, "remaining": 0.0, "pnl_usd": -152.26, "equity": 9484.15, "ts": "2026-07-07 18:00:00+00:00", "logged_at": "2026-07-07T19:01:03.263873+00:00"}
