@@ -39,7 +39,7 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
   compatta di default (riga: nome, equity, sparkline 60px, P&L), click per
   espandere. Nascondere celle "0 · 0" (chiusi·vinti) quando non c'è nulla.
 
-- [ ] **7. Albero evolutivo visuale** — oggi lista testuale indentata; farne un
+- [x] **7. Albero evolutivo visuale** — oggi lista testuale indentata; farne un
   albero orizzontale con nodi colorati per status (colori già definiti).
   Con l'evoluzione giornaliera crescerà molto: collapse per famiglia con
   contatore ("tsmom-aggressive: 6 attive, 12 ritirate").

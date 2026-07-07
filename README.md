@@ -246,8 +246,9 @@ Implementati 8 dei 12 punti dell'audit UI/UX (`dashboard/IMPROVEMENTS.md`, spunt
 - **Equity aggregata senza spaghetti** — default top 3 + peggiori 3, le altre curve si accendono dalla legenda.
 - **Benchmark & verdetto** — "comprare e tenere BTC" sullo stesso periodo + riga verdetto in linguaggio piano sotto i KPI.
 - **Card conti compatte** (riga + sparkline, chart lazy all'apertura), **glossario inline** (tooltip su dollar-neutral, drawdown, sharpe…), **timestamp relativi**, **tooltip badge feed**.
+- **Albero evolutivo orizzontale** (07/07) — una card per famiglia con contatore ("12 generazioni · 4 attive · 8 ritirate"), collapse nativo (le famiglie tutte ritirate partono chiuse), nodi pill colorati per status, dentro la famiglia resta solo la generazione (g2.g1…), dettagli nel tooltip.
 
-Rimasti: albero evolutivo orizzontale (7), test su device fisico (10), dominio custom (12).
+Rimasti: test su device fisico (10), dominio custom (12).
 
 ## Riferimenti
 

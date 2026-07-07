@@ -463,19 +463,39 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .lineage-legend{ display:flex; flex-wrap:wrap; gap:14px; margin-bottom:18px; }
 .ll-item{ display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-3); }
 .ll-item .sw{ width:9px; height:9px; border-radius:2px; }
-.tree ul{ list-style:none; margin:0; padding:0 0 0 26px; position:relative; }
-.tree > ul{ padding-left:0; }
-.tree li{ position:relative; padding:6px 0; }
-.tree ul ul li:before{ content:""; position:absolute; left:-15px; top:0; bottom:50%; width:1px; background:var(--line-2); }
-.tree ul ul li:after{ content:""; position:absolute; left:-15px; top:50%; width:13px; height:1px; background:var(--line-2); }
-.tree ul ul li:last-child:before{ bottom:50%; }
-.node-row{
-  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
-  background:var(--bg-2); border:1px solid var(--line); border-radius:var(--r);
-  padding:9px 13px; transition:border-color .12s ease, background .12s ease;
-}
-.node-row:hover{ border-color:var(--line-2); }
-.node-row.champion{ border-color:var(--amber-dim); background:linear-gradient(90deg,var(--amber-wash),transparent 70%); }
+/* albero ORIZZONTALE per famiglia (punto 7): <details> con contatore, nodi pill
+   colorati per status, connettori CSS. Cresce a destra con le generazioni. */
+.htree-family{ border:1px solid var(--line); border-radius:var(--r); background:var(--bg-2); margin-bottom:12px; overflow:hidden; }
+.htree-family summary{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:12px 16px; cursor:pointer; list-style:none; }
+.htree-family summary::-webkit-details-marker{ display:none; }
+.htree-family summary:hover{ background:var(--bg-3); }
+.hfam-name{ font-family:var(--serif); font-size:16px; color:var(--text-1); }
+.hfam-count{ font-family:var(--mono); font-size:11px; color:var(--text-3); }
+.hfam-count b{ font-weight:600; }
+.htree-family .chev{ margin-left:auto; color:var(--text-4); font-size:11px; transition:transform .2s ease; }
+.htree-family[open] .chev{ transform:rotate(180deg); }
+.htree{ padding:6px 16px 16px; overflow-x:auto; }
+.hbranch{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; justify-content:center; }
+.hbranch li{ display:flex; align-items:center; position:relative; padding:4px 0 4px 22px; }
+.hbranch li::before{ content:""; position:absolute; left:0; top:50%; width:22px; height:1px; background:var(--line-2); }
+.hbranch li::after{ content:""; position:absolute; left:0; top:0; bottom:0; width:1px; background:var(--line-2); }
+.hbranch li:first-child::after{ top:50%; }
+.hbranch li:last-child::after{ bottom:50%; }
+.hbranch li:only-child::after{ display:none; }
+.hbranch.root > li{ padding-left:0; }
+.hbranch.root > li::before, .hbranch.root > li::after{ display:none; }
+.hbranch li > ul{ margin-left:22px; position:relative; }
+.hbranch li > ul::before{ content:""; position:absolute; left:-22px; top:50%; width:22px; height:1px; background:var(--line-2); }
+.hnode{ display:inline-flex; align-items:center; gap:8px; flex:none; border:1px solid var(--line-2); border-radius:100px; padding:5px 12px; background:var(--bg-3); font-family:var(--mono); font-size:11px; white-space:nowrap; cursor:help; }
+.hnode .hdot{ width:8px; height:8px; border-radius:50%; flex:none; background:var(--text-4); }
+.hnode.champion{ border-color:var(--amber); background:var(--amber-wash); }
+.hnode.champion .hdot{ background:var(--amber); }
+.hnode.challenger{ border-color:var(--amber-dim); }
+.hnode.challenger .hdot{ background:var(--amber); opacity:.6; }
+.hnode.candidate .hdot{ background:var(--blue); }
+.hnode.retired{ opacity:.55; border-style:dashed; }
+.hnode .hlabel{ color:var(--text-1); }
+.hnode .hmeta{ color:var(--text-3); font-size:10px; }
 .node-id{ font-family:var(--mono); font-size:12.5px; color:var(--text); letter-spacing:.01em; }
 .status{ font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase; padding:3px 8px; border-radius:100px; border:1px solid; }
 .status.candidate{ color:var(--blue); border-color:#3d5666; background:rgba(122,166,194,.08); }
@@ -484,7 +504,6 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .status.retired{ color:var(--text-4); border-color:var(--line-2); background:transparent; }
 .sharpe{ font-family:var(--mono); font-size:11.5px; font-variant-numeric:tabular-nums; }
 .sharpe .sl{ color:var(--text-4); font-size:9px; letter-spacing:.1em; text-transform:uppercase; margin-right:4px; }
-.node-note{ font-family:var(--sans); font-size:12px; color:var(--text-3); margin-left:auto; font-style:italic; }
 
 /* ---------- decision filters ---------- */
 .filter-stack{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
@@ -2339,30 +2358,48 @@ h1,h2,h3,h4,
   function renderTree(){
     const host=$('#tree'); if(!host) return; host.innerHTML='';
     const nodes=DATA.lineage||[];
-    const byParent={};
-    nodes.forEach(n=>{ const k=n.parent||'__root'; (byParent[k]=byParent[k]||[]).push(n); });
-
-    function nodeRow(n){
-      const champ = n.status==='champion' ? ' champion' : '';
-      const sh = n.sharpe;
-      const shCls = clsOf(sh);
-      const paper = (n.n_closed)?'<span class="sharpe"><span class="sl">paper</span><span class="'+clsOf(n.mean_r||0)+'">'+n.n_closed+'t · '+(n.pnl_paper>=0?'+':'')+NF0.format(n.pnl_paper||0)+'$</span></span>':'';
-      return '<div class="node-row'+champ+'" title="'+escHtml(n.id)+'">'+
-        '<span class="node-id num">'+escHtml(n.label||labelOf(n.id))+'</span>'+
-        '<span class="status '+escHtml(n.status)+'">'+escHtml(STATUS_IT[n.status]||n.status)+'</span>'+
-        '<span class="sharpe"><span class="sl">Sharpe</span><span class="'+shCls+'">'+(sh>0?'+':sh<0?'−':'')+NF2.format(Math.abs(sh))+'</span></span>'+
-        paper+
-        '<span class="node-note">'+escHtml(n.note||'')+'</span>'+
-      '</div>';
+    const byParent={}, byId={};
+    nodes.forEach(n=>{ byId[n.id]=n; });
+    // parent mancante dal data (yaml rimosso) → il nodo diventa radice, non sparisce
+    nodes.forEach(n=>{ const k=(n.parent&&byId[n.parent])?n.parent:'__root'; (byParent[k]=byParent[k]||[]).push(n); });
+    const roots=byParent.__root||[];
+    function collect(id,acc){ acc.push(byId[id]); (byParent[id]||[]).forEach(k=>collect(k.id,acc)); return acc; }
+    function hnode(n, famName){
+      const sh=n.sharpe;
+      const paper=(n.n_closed)?' · '+n.n_closed+'t '+(n.pnl_paper>=0?'+':'')+NF0.format(n.pnl_paper||0)+'$':'';
+      const tip=n.id+' — '+(STATUS_IT[n.status]||n.status)+(n.note?'. '+n.note:'');
+      // dentro il box famiglia il nome è ridondante: resta solo la generazione
+      let short=n.label||labelOf(n.id);
+      if(famName&&short.indexOf(famName)===0) short=short.slice(famName.length).replace(/^ · /,'')||'origine';
+      return '<div class="hnode '+escHtml(n.status)+'" title="'+escHtml(tip)+'">'+
+        '<span class="hdot"></span><span class="hlabel">'+escHtml(short)+'</span>'+
+        '<span class="hmeta num">S '+(sh>0?'+':sh<0?'−':'')+NF2.format(Math.abs(sh))+paper+'</span></div>';
     }
-    function build(parentKey){
-      const kids=byParent[parentKey]; if(!kids) return '';
-      let html='<ul>';
-      kids.forEach(n=>{ html+='<li>'+nodeRow(n)+build(n.id)+'</li>'; });
-      html+='</ul>';
-      return html;
+    function branch(id, famName){
+      const kids=byParent[id]; if(!kids||!kids.length) return '';
+      return '<ul class="hbranch">'+kids.map(k=>'<li>'+hnode(k,famName)+branch(k.id,famName)+'</li>').join('')+'</ul>';
     }
-    host.innerHTML=build('__root');
+    // famiglie con membri vivi prima, poi le più numerose
+    const fams=roots.map(r=>({r, members:collect(r.id,[])}));
+    fams.sort((a,b)=>{
+      const va=a.members.some(n=>n.status!=='retired')?0:1;
+      const vb=b.members.some(n=>n.status!=='retired')?0:1;
+      return va-vb || b.members.length-a.members.length;
+    });
+    fams.forEach(({r,members})=>{
+      const alive=members.filter(n=>n.status!=='retired').length;
+      const ret=members.length-alive;
+      const famName=(r.label||labelOf(r.id)).replace(/ · g[\d.g]+$/,'');
+      const det=el('details','htree-family');
+      if(alive) det.open=true;   // le famiglie tutte ritirate partono chiuse
+      det.innerHTML='<summary>'+
+        '<span class="hfam-name">'+escHtml(famName)+'</span>'+
+        '<span class="hfam-count">'+members.length+(members.length>1?' generazioni':' generazione')+
+          ' · <b class="'+(alive?'pos':'')+'">'+alive+' attive</b> · '+ret+' ritirate</span>'+
+        '<span class="chev">▾</span></summary>'+
+        '<div class="htree"><ul class="hbranch root"><li>'+hnode(r,famName)+branch(r.id,famName)+'</li></ul></div>';
+      host.appendChild(det);
+    });
   }
   // feed eventi del ciclo di vita: promozioni / retrocessioni automatiche (evoluzione sul campo)
   const EV_IT={promote:'promossa a champion', retire:'ritirata', dethrone:'spodestata'};
