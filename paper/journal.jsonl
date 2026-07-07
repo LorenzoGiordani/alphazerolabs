@@ -4394,3 +4394,4 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9966.06, "open_positions": 1, "logged_at": "2026-07-07T15:27:01.502514+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9844.71, "open_positions": 2, "logged_at": "2026-07-07T15:27:06.281114+00:00"}
 {"type": "close", "strategy": "agents-rr2-v1", "symbol": "ZEC", "reason": "retired", "exit_px": 470.36, "frac": 1.0, "remaining": 0.0, "pnl_usd": -0.93, "equity": 9965.13, "ts": "2026-07-07 14:00:00+00:00", "logged_at": "2026-07-07T15:27:17.300445+00:00"}
+{"type": "close", "strategy": "agents-v1", "symbol": "ZEC", "reason": "target", "exit_px": 488.880405444783, "frac": 1.0, "remaining": 0.0, "pnl_usd": 56.52, "equity": 10274.36, "ts": "2026-07-07 15:00:00+00:00", "logged_at": "2026-07-07T15:45:57.033917+00:00"}

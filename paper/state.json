@@ -4,7 +4,7 @@
   "positions": {}
  },
  "agents-v1": {
-  "equity": 10217.836877561615,
+  "equity": 10274.355362294114,
   "positions": {
    "SOL": {
     "strategy": "agents-v1",
@@ -28,28 +28,6 @@
     "tp1_frac": 0.0,
     "trail_dist": null,
     "_last_ts": "2026-07-07 14:00:00+00:00"
-   },
-   "ZEC": {
-    "strategy": "agents-v1",
-    "symbol": "ZEC",
-    "direction": "long",
-    "entry_px": 470.454072,
-    "size_usd": 1459.78,
-    "stop_px": 462.22112574,
-    "target_px": 488.97820108499997,
-    "opened_at": "2026-07-07 14:00:00+00:00",
-    "checked_until": "2026-07-07 14:00:00+00:00",
-    "time_stop_h": 72,
-    "thesis": "ZEC \u00e8 il momentum leader assoluto del desk (+18.1% 7d) con 7 segnali attivi simultanei: range breakout confermato + volume surge + vol compression che suggerisce ulteriore espansione direzionale. Funding piatto al percentile 0 = nessun crowding long, spazio per flussi FOMO. Regime macro crypto risk-on con narrative istituzionale positiva. Vado long con il trend e il regime, NON contro. Caveat gestito: lux_confluence non allineato (assenza smart money profondo) \u2192 size ridotta e stop rigoroso sotto il livello di breakout. Attesa: breakout segue attraverso con arrivo taker volume entro 48-72h.",
-    "invalidation": "Chiusura oraria sostenibile sotto il livello di breakout (\u2248 -1.5% da entry) che invalida il pattern di espansione e segnala fakeout. Annullamento immediato se volume taker inverte bruscamente negativo nelle prime 24h.",
-    "decision_ts": "2026-07-07T15:26:58.993967+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 470.454072,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null
    }
   },
   "last_decision_ts": "2026-07-07T15:26:58.993967+00:00"
