@@ -5,9 +5,19 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+
+# data/candles e data/funding sono gitignored: nei worktree/clone freschi mancano.
+# I gate di regressione su dati storici si skippano invece di fallire.
+needs_candles = pytest.mark.skipif(
+    not (ROOT / "data/candles/BTC.parquet").exists(),
+    reason="data/candles assente (gitignored, solo sul dev box)")
+needs_funding = pytest.mark.skipif(
+    not (ROOT / "data/funding/BTC.parquet").exists(),
+    reason="data/funding assente (gitignored, solo sul dev box)")
 from backtest.signals import SIGNALS, volume_profile
 from backtest.strategy import compile_strategy, load
 
@@ -196,6 +206,7 @@ def test_efficiency_ratio_trending_vs_chop():
             assert (out == 1).any()                  # il trend pulito e' riconosciuto trending
 
 
+@needs_candles
 def test_xsection_cache_refresh_covers_window():
     """La cache xsection era stale (201g vs 360g candele, degradava a neutro i primi
     5 mesi). Rigenerata a 12m il 26/06. Sanity: ora copre ~tutto l'arco candele."""
@@ -239,12 +250,12 @@ def test_portfolio_stats_empty_neutral():
 
 
 def test_xsmom_port_active_and_not_in_per_symbol_loop():
-    """xsmom-port-v1 e' ripresa (status challenger) ma resta FUORI dal loop
+    """xsmom-port-v1 e' viva (status attivo) ma resta FUORI dal loop
     per-simbolo (paper_all) perche' ha il suo runner (engine:portfolio)."""
     from backtest.lifecycle import active_specs
     spec = load(ROOT / "strategies/generated/xsmom-port-v1.yaml")
     assert spec["engine"] == "portfolio"
-    assert spec["status"] == "challenger"          # ripresa 26/06
+    assert spec["status"] in ("champion", "challenger")  # viva; il rango lo muove promote.py
     active = [s["id"] for _, s in active_specs()]
     assert "xsmom-port-v1" not in active            # non nel loop per-simbolo
 
@@ -301,6 +312,7 @@ def test_vol_target_overlay_multiplier():
     assert _vol_target_multiplier(hist_lo, {"enabled": False}) == 1.0
 
 
+@needs_candles
 def test_portfolio_backtest_12m_edge_holds():
     """L'edge cross-sectional a portafoglio e' confermato a 12m (regression gate).
     Era +29.4% a 6m nel deploy originale; a 12m e' +79.8% Sharpe 2.11. Questo test
@@ -327,7 +339,7 @@ def test_xsmom_multihorizon_active_and_conservative():
     from backtest.lifecycle import all_specs
     spec = load(ROOT / "strategies/generated/xsmom-multihorizon-v1.yaml")
     assert spec["engine"] == "portfolio"
-    assert spec["status"] == "challenger"
+    assert spec["status"] in ("champion", "challenger")  # viva; il rango lo muove promote.py
     assert spec["portfolio"]["lookbacks_h"] == [96, 168, 336]
     active = [s["id"] for _, s in all_specs() if s.get("engine") == "portfolio"
              and s["status"] in ("champion", "challenger")]
@@ -335,6 +347,7 @@ def test_xsmom_multihorizon_active_and_conservative():
     assert "xsmom-port-v1" in active           # il core resta
 
 
+@needs_funding
 def test_funding_carry_factor_is_weak():
     """Il funding carry NON esplode a portfolio come xsmom (era l'ipotesi). Test di
     documentazione onesta: l'edge carry e' debole anche come book (Sharpe < 1).
@@ -350,6 +363,7 @@ def test_funding_carry_factor_is_weak():
     assert (w > 0).any() and (w < 0).any()          # ha long e short
 
 
+@needs_candles
 def test_crossasset_expansion_degrades_edge():
     """L'espansione cross-asset di xsmom e' FALSIFICATA (research_crossasset.py 26/06):
     - crypto-only IC +0.089 t+21 (il nostro edge forte)
@@ -376,6 +390,7 @@ def test_crossasset_expansion_degrades_edge():
 
 # --- HIGH-VOL: 2° edge ortogonale forte trovato (26/06) ---
 
+@needs_candles
 def test_highvol_factor_is_strong_and_orthogonal():
     """HIGH-VOL (long asset piu' volatili) e' il 2° edge FORTE del progetto, ortogonale
     a xsmom. Regression gate: Sharpe>1.5 E correlazione rendimenti con xsmom <0.5
@@ -524,6 +539,7 @@ def test_sign_weights_construction():
     assert (sign_weights(pd.Series({"A": 0.0, "B": 0.0})) == 0).all()
 
 
+@needs_candles
 def test_tsmom_neutral_backtest_holds():
     """Regression gate 04/07: tsmom sign lb168 reb24 promosso (Sharpe 2.02 DSR 0.71).
     Il gate HMM e' FALSIFICATO (ogni variante gated peggiora) — non rimetterlo.
