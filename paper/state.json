@@ -4563,7 +4563,7 @@
   ]
  },
  "commodities-trend-v1": {
-  "equity": 9259.475054805569,
+  "equity": 9360.31978323505,
   "positions": {}
  },
  "crypto-trend-flow-v1": {
@@ -4571,7 +4571,7 @@
   "positions": {}
  },
  "tsmom-aggressive-v1": {
-  "equity": 9181.714964033297,
+  "equity": 9332.53298554386,
   "positions": {
    "BTC": {
     "sign": 1,
