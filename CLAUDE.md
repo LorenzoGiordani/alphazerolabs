@@ -3,7 +3,8 @@
 ## Documentazione — SEMPRE aggiornata
 A fine di ogni sessione di lavoro (o dopo ogni milestone): aggiorna README.md
 (sezioni "Risultati finora", "Roadmap", tabella componenti se cambiata) e fai
-`git push` su origin (repo privata GitHub). Il README è la documentazione
+`git push` su origin (repo PUBBLICA dal 08/07/2026 — minuti Actions illimitati;
+niente dati vendor no-redistribution nel repo). Il README è la documentazione
 canonica dello stato; Obsidian resta per decisioni e knowledge.
 
 ## Regole progetto
