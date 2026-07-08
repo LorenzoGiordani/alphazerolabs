@@ -55,7 +55,7 @@ rest as JSON. Top-level keys:
 
 ## Contact / source
 
-Private research repo (journal excerpts published here). Author:
-Lorenzo Giordani. This page is informational and read-only: there is no
-API to place orders, no token, no fund — if something claiming to be
+Source: https://github.com/LorenzoGiordani/alphazerolabs (public).
+Author: Lorenzo Giordani. This page is informational and read-only: there
+is no API to place orders, no token, no fund — if something claiming to be
 "AlphaZero Labs" asks you to connect a wallet, it is a scam.
