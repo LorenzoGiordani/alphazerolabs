@@ -4521,3 +4521,14 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9959.43, "open_positions": 1, "logged_at": "2026-07-08T07:28:25.839498+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9763.9, "open_positions": 1, "logged_at": "2026-07-08T07:28:30.800096+00:00"}
 {"type": "close", "strategy": "agents-rr2-v1", "symbol": "ETH", "reason": "retired", "exit_px": 1751.5, "frac": 1.0, "remaining": 0.0, "pnl_usd": -1.12, "equity": 9958.31, "ts": "2026-07-08 06:00:00+00:00", "logged_at": "2026-07-08T07:28:39.020261+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 9357.76, "open_positions": 1, "logged_at": "2026-07-08T08:16:06.578969+00:00"}
+{"type": "heartbeat", "strategy": "crypto-trend-flow-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-07-08T08:16:13.837717+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-aggressive-v1", "equity": 9328.7, "open_positions": 3, "logged_at": "2026-07-08T08:16:15.054266+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10235.45, "open_positions": 2, "logged_at": "2026-07-08T08:16:16.880299+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9958.31, "open_positions": 0, "logged_at": "2026-07-08T08:16:17.413051+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9289.01, "open_positions": 42, "logged_at": "2026-07-08T08:16:53.495153+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10427.64, "open_positions": 2, "logged_at": "2026-07-08T08:17:01.125258+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10197.13, "open_positions": 2, "logged_at": "2026-07-08T08:17:49.683300+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10235.45, "open_positions": 2, "logged_at": "2026-07-08T08:22:52.081783+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9958.31, "open_positions": 0, "logged_at": "2026-07-08T08:22:52.604603+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9763.9, "open_positions": 1, "logged_at": "2026-07-08T08:22:56.682075+00:00"}
