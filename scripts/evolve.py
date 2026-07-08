@@ -192,6 +192,8 @@ def load_data(symbol: str, months: int) -> dict:
     data["news_events"] = pd.read_parquet(ev) if ev.exists() else None
     cot = Path(f"data/cot/{symbol}.parquet")
     data["cot"] = pd.read_parquet(cot) if cot.exists() else None
+    ep = Path(f"data/edgar/eps_{symbol.split(':')[-1].split('_')[-1]}.parquet")
+    data["earnings"] = pd.read_parquet(ep) if ep.exists() else None
     return data
 
 

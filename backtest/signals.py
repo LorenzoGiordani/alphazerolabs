@@ -490,6 +490,37 @@ def efficiency_ratio(data, lookback: int = 168, trend_pct: float = 60) -> pd.Ser
     return pd.Series(np.where(rank >= trend_pct, 1, 0), index=c.index)
 
 
+def earnings_window(data, days_before: int = 3, days_after: int = 1) -> pd.Series:
+    """+1 = finestra earnings ATTESA attiva, 0 altrimenti. GATE DI RISCHIO da
+    usare in `entry.veto`, mai direzionale: l'edge study PEAD su HIP-3 mega-cap
+    (323 eventi, 2026-07-08) ha falsificato la direzione (IC ~0), ma il vol
+    spike all'annuncio è documentato. Prossimo filing atteso = ultimo `filed`
+    noto a t + 91g (solo info ≤ t, causale). Simboli senza dati EDGAR → 0.
+    Mai -1. Vedi paper/lessons.jsonl (research|pead-hip3)."""
+    c = data["candles"]
+    earn = data.get("earnings")
+    if earn is None or len(earn) == 0:
+        return pd.Series(0, index=c.index)
+    ts = pd.to_datetime(c["ts"]).reset_index(drop=True)
+    filed = pd.to_datetime(earn["filed"]).sort_values().reset_index(drop=True)
+    if ts.dt.tz is not None and filed.dt.tz is None:
+        filed = filed.dt.tz_localize(ts.dt.tz)
+    elif ts.dt.tz is None and filed.dt.tz is not None:
+        filed = filed.dt.tz_localize(None)
+    ts, filed = ts.dt.as_unit("ns"), filed.dt.as_unit("ns")  # parquet ms/us mix
+    # cadenza attesa = mediana ESPANDIBILE dei gap fra filing passati (causale:
+    # a ogni filed usa solo i gap precedenti; fallback 91g ai primi report)
+    gap_med = filed.diff().dt.days.expanding().median()
+    ref = pd.merge_asof(pd.DataFrame({"ts": ts}),
+                        pd.DataFrame({"ts": filed, "filed": filed,
+                                      "gap": gap_med.to_numpy()}),
+                        on="ts", direction="backward")
+    expected = ref["filed"] + pd.to_timedelta(ref["gap"].fillna(91), unit="D")
+    active = (ts >= expected - pd.Timedelta(days=days_before)) \
+        & (ts <= expected + pd.Timedelta(days=days_after))
+    return pd.Series(active.fillna(False).astype(int).to_numpy(), index=c.index)
+
+
 SIGNALS = {
     "funding_percentile": funding_percentile,
     "range_breakout": range_breakout,
@@ -511,4 +542,5 @@ SIGNALS = {
     "xsection_momentum": xsection_momentum,
     "nadaraya_watson": nadaraya_watson,
     "efficiency_ratio": efficiency_ratio,
+    "earnings_window": earnings_window,
 }

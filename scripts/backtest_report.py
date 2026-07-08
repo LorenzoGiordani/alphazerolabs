@@ -91,6 +91,7 @@ def _dataset(symbol: str, months: int) -> dict | None:
         "flow": _read(DATA / "flow" / f"{symbol}.parquet"),
         "cot": _read(DATA / "cot" / f"{symbol}.parquet"),
         "news_events": _read(DATA / "news" / "gdelt_events.parquet"),
+        "earnings": _read(DATA / "edgar" / f"eps_{symbol.split(':')[-1].split('_')[-1]}.parquet"),
     }
 
 
