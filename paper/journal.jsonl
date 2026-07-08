@@ -4532,3 +4532,6 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10235.45, "open_positions": 2, "logged_at": "2026-07-08T08:22:52.081783+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9958.31, "open_positions": 0, "logged_at": "2026-07-08T08:22:52.604603+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9763.9, "open_positions": 1, "logged_at": "2026-07-08T08:22:56.682075+00:00"}
+{"type": "close", "strategy": "agents-v1", "symbol": "SOL", "reason": "stopped", "exit_px": 77.28741333850334, "frac": 1.0, "remaining": 0.0, "pnl_usd": -34.55, "equity": 10200.9, "ts": "2026-07-08 08:00:00+00:00", "logged_at": "2026-07-08T08:27:50.042816+00:00"}
+{"type": "close", "strategy": "commodities-trend-v1", "symbol": "xyz_CL", "reason": "stopped", "exit_px": 73.06142460265451, "frac": 1.0, "remaining": 0.0, "pnl_usd": -97.32, "equity": 9260.43, "ts": "2026-07-08 08:00:00+00:00", "logged_at": "2026-07-08T08:27:52.902323+00:00"}
+{"type": "close", "strategy": "tsmom-aggressive-v1", "symbol": "xyz_CL", "reason": "stopped", "exit_px": 73.06142460265451, "frac": 1.0, "remaining": 0.0, "pnl_usd": -145.55, "equity": 9183.15, "ts": "2026-07-08 08:00:00+00:00", "logged_at": "2026-07-08T08:27:55.116560+00:00"}
