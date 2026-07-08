@@ -4,32 +4,9 @@
   "positions": {}
  },
  "agents-v1": {
-  "equity": 10096.399918994934,
-  "positions": {
-   "ETH": {
-    "strategy": "agents-v1",
-    "symbol": "ETH",
-    "direction": "long",
-    "entry_px": 1729.6458599999999,
-    "size_usd": 946.58,
-    "stop_px": 1660.4600255999999,
-    "target_px": 1868.0175288,
-    "opened_at": "2026-07-08 14:00:00+00:00",
-    "checked_until": "2026-07-08 14:00:00+00:00",
-    "time_stop_h": 84,
-    "thesis": "Pullback -3.4% in trend bull 7d intatto: tsmom +1 e volume surge +1 confermano continuation, non reversal. Funding percentile 0 = nessun crowded long \u2192 asimmetria upside. ETH \u00e8 il solo asset dove regime bull + multipli segnali + funding basso coesistono. In un panel senza edge, offre il miglior R/R long-side. Size ridotta per assenza di lux_confluence; leva bassa per macro headwind (Iran/oil). Stop $1,660 = violazione regime bull 7d.",
-    "invalidation": "Close sotto $1,660 viola il regime bull 7d e invalida la tesi di continuation. Se BTC perde $61K, correlazione negativa trascina ETH \u2014 chiusura preventiva se BTC < $60,500.",
-    "decision_ts": "2026-07-08T15:25:05.542448+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 1729.6458599999999,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null
-   }
-  },
-  "last_decision_ts": "2026-07-08T15:25:05.542448+00:00"
+  "equity": 10096.825879994934,
+  "positions": {},
+  "last_decision_ts": "2026-07-08T07:28:22.712793+00:00"
  },
  "tsmom-v1": {
   "equity": 10272.467328831875,
@@ -4596,24 +4573,6 @@
     "opened_at": "2026-07-08 13:00:00+00:00",
     "checked_until": "2026-07-08 14:00:00+00:00",
     "_last_ts": "2026-07-08 14:00:00+00:00"
-   },
-   "xyz_GOLD": {
-    "sign": -1,
-    "entry_px": 4050.9896888183594,
-    "stop_px": 4098.123187130301,
-    "target_px": 3966.149391856864,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 4050.9896888183594,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "commodities-trend-v1",
-    "symbol": "xyz_GOLD",
-    "direction": "short",
-    "size_usd": 7957.62,
-    "opened_at": "2026-07-08 14:00:00+00:00",
-    "checked_until": "2026-07-08 14:00:00+00:00"
    }
   }
  },
@@ -4680,24 +4639,6 @@
     "opened_at": "2026-07-08 13:00:00+00:00",
     "checked_until": "2026-07-08 14:00:00+00:00",
     "_last_ts": "2026-07-08 14:00:00+00:00"
-   },
-   "xyz_GOLD": {
-    "sign": -1,
-    "entry_px": 4050.9896888183594,
-    "stop_px": 4098.123187130301,
-    "target_px": 3966.149391856864,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 4050.9896888183594,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "strategy": "tsmom-aggressive-v1",
-    "symbol": "xyz_GOLD",
-    "direction": "short",
-    "size_usd": 11835.72,
-    "opened_at": "2026-07-08 14:00:00+00:00",
-    "checked_until": "2026-07-08 14:00:00+00:00"
    }
   }
  }
