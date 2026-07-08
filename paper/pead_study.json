@@ -1,0 +1,88 @@
+{
+ "asof": "2026-07-08T09:58:28.563699+00:00",
+ "universe": [
+  "AAPL",
+  "AMD",
+  "AMZN",
+  "CRCL",
+  "CRWV",
+  "GOOGL",
+  "HOOD",
+  "INTC",
+  "META",
+  "MRVL",
+  "MSFT",
+  "MSTR",
+  "MU",
+  "NVDA",
+  "ORCL",
+  "PLTR",
+  "SNDK",
+  "TSLA"
+ ],
+ "protocol": {
+  "sue": "seasonal-diff / std 8 scarti (Bernard-Thomas)",
+  "entry": "close primo giorno dopo filed",
+  "adj": "minus SPY",
+  "alpha_t_threshold": 3.5,
+  "n_shuffles": 200
+ },
+ "full_sample": [
+  {
+   "fwd_days": 5,
+   "n_events": 323,
+   "ic": 0.006,
+   "t_ic": 0.1,
+   "spread_top_bot": 0.0064,
+   "alpha_t": 0.12,
+   "category": "noise"
+  },
+  {
+   "fwd_days": 20,
+   "n_events": 322,
+   "ic": -0.015,
+   "t_ic": -0.3,
+   "spread_top_bot": 0.0014,
+   "alpha_t": -0.32,
+   "category": "noise"
+  },
+  {
+   "fwd_days": 60,
+   "n_events": 309,
+   "ic": -0.041,
+   "t_ic": -0.7,
+   "spread_top_bot": -0.0427,
+   "alpha_t": -0.81,
+   "category": "noise"
+  }
+ ],
+ "last_3y": [
+  {
+   "fwd_days": 5,
+   "n_events": 130,
+   "ic": -0.039,
+   "t_ic": -0.4,
+   "spread_top_bot": 0.007,
+   "alpha_t": -0.57,
+   "category": "noise"
+  },
+  {
+   "fwd_days": 20,
+   "n_events": 129,
+   "ic": -0.05,
+   "t_ic": -0.6,
+   "spread_top_bot": 0.0033,
+   "alpha_t": -0.72,
+   "category": "noise"
+  },
+  {
+   "fwd_days": 60,
+   "n_events": 116,
+   "ic": -0.087,
+   "t_ic": -0.9,
+   "spread_top_bot": -0.0608,
+   "alpha_t": -1.07,
+   "category": "noise"
+  }
+ ]
+}
