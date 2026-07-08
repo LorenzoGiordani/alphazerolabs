@@ -191,6 +191,17 @@ Costo Sharpe **nullo** (-0.06), maxDD -4.5pp, coda avversa **+5.3pp**, **rovina 
 
 **Onestà del backtest (funding storico + slippage size-aware).** Il funding è ora storico reale per-asset (la costante legacy sovrastimava di ~8x e nascondeva i flip di segno nei mesi bear). Lo slippage è opzionalmente un modello square-root (Almgren 2005, additivo sul base). Slippage size-aware (square-root, Almgren 2005) e liquidazione mark-to-market su account equity (con MMR) opt-in. Su CRV (illiquido) l'impact smaschera un Profit Mirage: Sharpe 0.73→0.16 a $10k. Su BTC (liquido) l'edge regge fino a $10M AUM (1.37→1.33). La liquidazione MTM coincide col legacy a leva ragionevole (≤5, nessuna posizione attiva la rischia) ma a leva 8 + flash crash lascia il margine residuo realistico (1088$ vs 0 del legacy rigido). `run_strategy.py --impact 0.5 --mmr 0.01` per attivarli.
 
+**🔬 Alpha Zoo sweep FALSIFICATO (08/07, Fase 2 piano integrazioni).** Vendorizzati 456
+fattori equity MIT da Vibe-Trading (`vendor/vibe_zoo/`: alpha101 Kakushadze, gtja191,
+qlib158, academic). Protocollo pre-registrato (`scripts/research_zoo.py` +
+`research_zoo_backtest.py`): IC + random-control (159 con |alpha_t|≥3.5, 81 sotto gate
+overlap ≤0.4 vs xsmom/highvol) → backtest portfolio dollar-neutral dei top-3 mutuamente
+diversi, fee+slippage. Esito: **Sharpe 2.3-3.0 e OOS positivo, MA DSR 0.25-0.50 << 0.95
+con K=456** — indistinguibili dal massimo del rumore su 456 prove. Nessuna promozione;
+lezione in lessons.jsonl. Due conferme di metodo: (1) l'alpha_t su fwd 7d overlappato si
+inflaziona sui segnali persistenti (cluster volume/vol = size-beta di regime); (2) il DSR
+è la difesa reale contro il factor mining. xsmom + highvol restano gli unici edge.
+
 **Tesi falsificate** (documentate in `paper/lessons.jsonl`): scalp-exit su crowding, flow-confirmed breakout, fade VWAP (7/7 asset), stop più stretti dell'invalidazione. Pattern: il regime 2026-H1 premia il trend, punisce il mean-reversion.
 
 **Learning loop dimostrato**: ZEC long (tesi squeeze) → stop -50.92$ (=0.5% budgettato, il reduce del Risk Manager ha dimezzato il danno) → 2 lezioni → recall attivo nei prompt.
