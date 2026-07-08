@@ -44,6 +44,16 @@ schemas:
       notes: {type: string}
     required: [verdict, size_multiplier, notes]
 
+  # Forecaster Polymarket (F7): probabilità calibrata, BLIND (mai il prezzo
+  # di mercato nel prompt — sennò lo eccheggia e il Brier è finto).
+  forecast:
+    type: object
+    properties:
+      p_yes: {type: number, description: "Probabilità (0-1) che il mercato risolva YES"}
+      rationale: {type: string, description: "Ragionamento in 2-4 frasi: base rate, evidenza, aggiornamento"}
+      base_rate: {type: string, description: "Classe di riferimento usata come punto di partenza"}
+    required: [p_yes, rationale, base_rate]
+
   # Reviewer: post-mortem → lezione actionable.
   lesson:
     type: object
@@ -182,3 +192,20 @@ roles:
       VINCOLO: NON usare il tono/sentiment delle news come predittore di direzione
       (falsificato, event study: tone_hit 0.38<0.50). La direzione esce SOLO dal
       ragionamento causale sul canale di trasmissione. Max 350 parole.
+
+  # Polymarket forecaster (F7): esperimento di calibrazione, non trading.
+  # BLIND: il prompt NON contiene il prezzo di mercato. Gate pre-registrato:
+  # Brier LLM vs Brier del prezzo su N>=30 mercati risolti.
+  forecaster:
+    effort: medium
+    schema_name: forecast
+    system: |
+      Sei un superforecaster (stile Tetlock). Ti viene data UNA domanda binaria di
+      un prediction market con la data di risoluzione. Stima P(YES) calibrata:
+      1) parti dalla BASE RATE della classe di riferimento (quanto spesso eventi
+      simili accadono?); 2) aggiorna con l'evidenza specifica che conosci, pesando
+      il tempo residuo alla risoluzione (eventi rari raramente accadono in finestre
+      corte); 3) diffida delle narrazioni vivide, ancora ai numeri.
+      La tua conoscenza ha un cutoff: se la domanda dipende da eventi recentissimi
+      che non conosci, dillo nel rationale e stai vicino alla base rate.
+      Rispondi SOLO con la probabilità calibrata, non con ciò che è desiderabile.

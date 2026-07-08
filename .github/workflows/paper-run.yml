@@ -90,6 +90,16 @@ jobs:
             echo "evolve: salta (gira alle 00:xx UTC)"
           fi
 
+      - name: polymarket forecast journal (F7 — calibrazione, non trading)
+        if: always()
+        # predict 1×/giorno (07 UTC, blind sul prezzo, 3 LLM call); resolve ogni
+        # run (solo HTTP, computa i Brier dei mercati scaduti). Gate: N>=30.
+        run: |
+          if [ "$(date -u +%H)" = "07" ]; then
+            uv run scripts/polymarket_paper.py predict --n 3 || true
+          fi
+          uv run scripts/polymarket_paper.py resolve || true
+
       - name: sync journal → Supabase (idempotente, gated su credenziali)
         if: env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
         # continue-on-error invece di `|| true`: il run prosegue ma lo step
