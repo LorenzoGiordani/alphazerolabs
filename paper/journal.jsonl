@@ -4607,3 +4607,4 @@
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10200.9, "open_positions": 1, "logged_at": "2026-07-08T14:17:52.273181+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9958.31, "open_positions": 0, "logged_at": "2026-07-08T14:17:52.772560+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9763.9, "open_positions": 1, "logged_at": "2026-07-08T14:17:53.881493+00:00"}
+{"type": "close", "strategy": "geopolitics-v1", "symbol": "xyz:GOLD", "reason": "stopped", "exit_px": 4040.14683839412, "frac": 1.0, "remaining": 0.0, "pnl_usd": -79.38, "equity": 9684.53, "ts": "2026-07-08 14:00:00+00:00", "logged_at": "2026-07-08T14:45:53.030490+00:00"}
