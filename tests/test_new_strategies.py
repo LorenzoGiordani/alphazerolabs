@@ -239,12 +239,14 @@ def test_portfolio_stats_empty_neutral():
 
 
 def test_xsmom_port_active_and_not_in_per_symbol_loop():
-    """xsmom-port-v1 e' ripresa (status challenger) ma resta FUORI dal loop
-    per-simbolo (paper_all) perche' ha il suo runner (engine:portfolio)."""
+    """xsmom-port-v1 e' attiva (challenger o champion — promossa champion dal
+    cron il 07/07, 193 trade, DSR 0.91) ma resta FUORI dal loop per-simbolo
+    (paper_all) perche' ha il suo runner (engine:portfolio). Lo status esatto
+    e' gestito dal lifecycle: il test verifica solo che non sia ritirata."""
     from backtest.lifecycle import active_specs
     spec = load(ROOT / "strategies/generated/xsmom-port-v1.yaml")
     assert spec["engine"] == "portfolio"
-    assert spec["status"] == "challenger"          # ripresa 26/06
+    assert spec["status"] in ("challenger", "champion")   # attiva, non retired
     active = [s["id"] for _, s in active_specs()]
     assert "xsmom-port-v1" not in active            # non nel loop per-simbolo
 
@@ -323,11 +325,13 @@ def test_portfolio_backtest_12m_edge_holds():
 
 def test_xsmom_multihorizon_active_and_conservative():
     """xsmom-multihorizon-v1 e' il compagno conservativo di xsmom-port: stesso edge,
-    DD minore (-16% vs -19%). engine:portfolio, in produzione."""
+    DD minore (-16% vs -19%). engine:portfolio, in produzione (promossa champion
+    dal cron il 06/07, 108 trade, DSR 0.7 — gate DSR soft con campione forward).
+    Lo status esatto e' del lifecycle: il test verifica solo che sia attiva."""
     from backtest.lifecycle import all_specs
     spec = load(ROOT / "strategies/generated/xsmom-multihorizon-v1.yaml")
     assert spec["engine"] == "portfolio"
-    assert spec["status"] == "challenger"
+    assert spec["status"] in ("challenger", "champion")   # attiva, non retired
     assert spec["portfolio"]["lookbacks_h"] == [96, 168, 336]
     active = [s["id"] for _, s in all_specs() if s.get("engine") == "portfolio"
              and s["status"] in ("champion", "challenger")]
