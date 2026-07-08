@@ -79,6 +79,17 @@ I dati storici (`data/`) non sono nel repo: si rigenerano con i 3 script fetch (
 | `xsection_momentum` | momentum relativo | tutti | rank nel basket (IC +0.089, t +21) |
 | `nadaraya_watson` | struttura prezzo | tutti | envelope kernel-regression (DaviddTech); continuation IC +0.105 (t +5) |
 
+**Random-control gate (08/07)**: l'ammissione via IC ora richiede anche il permutation
+test (`ic_random_control` in `backtest/stats.py`): shuffle cross-section per data =
+null hypothesis con stesso envelope statistico e zero informazione; soglia alpha_t ≥ 3.5
+(Harvey-Liu-Zhu 2016, corregge il multiple testing). Un IC che passa il t-test vs zero ma
+non batte il random è beta condiviso, non edge. Retro-test sui segnali cross-section
+(12m): xsection momentum **alpha_t +19.2 → confirmed_alive**, funding carry
+**alpha_t −7.2 → reversed** (= short-high-funding reale). Design da Vibe-Trading
+`bench_runner_strict` (MIT). Caveat: vale per segnali cross-section; per i time-series
+(tsmom, NW) serve un null diverso (time-shift circolare) — follow-up nel piano
+integrazioni (Obsidian, Fase 2).
+
 ## Risultati finora (backtest 12 mesi, fee/slippage inclusi; paper live dal 11/06/2026)
 
 **Evoluzione famiglia funding-squeeze (3 generazioni, crypto)**

@@ -16,6 +16,7 @@ Output: verdetto per ipotesi. Niente trading, solo misura. Uso:
 """
 import argparse
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -23,6 +24,9 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from backtest.stats import ic_random_control  # noqa: E402
+
 CRYPTO = "BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV"
 
 
@@ -83,10 +87,14 @@ def study_cross_sectional(panel, lb=168, hz=168):
     ic = _row_ic(past, fwd)
     spread = _spread(past, fwd, hz)
     tstat = ic.mean() / ic.std() * np.sqrt(len(ic)) if ic.std() else 0
+    rc = ic_random_control(past, fwd)
     print(f"\n[A] CROSS-SECTIONAL MOMENTUM  (lb {lb}h, fwd {hz}h)")
     print(f"  IC medio {ic.mean():+.3f}  (t {tstat:+.1f}, n {len(ic)})")
     print(f"  spread top−bottom {spread:+.2%} sul fwd window")
-    verdict = "SEGNALE" if abs(tstat) > 2 and ic.mean() > 0 else "debole/assente"
+    print(f"  random control: IC random {rc['random_ic_mean']:+.3f}  "
+          f"alpha_t {rc['alpha_t']:+.1f}  → {rc['category']}")
+    verdict = "SEGNALE" if rc["category"] == "confirmed_alive" and ic.mean() > 0 \
+        else "debole/assente (o solo beta condiviso)"
     print(f"  → momentum relativo: {verdict}")
 
 
@@ -97,10 +105,18 @@ def study_funding_carry(panel, fund, hz=168):
     ic = _row_ic(fund, fwd2)
     spread = _spread(fund, fwd2, hz)   # long high funding − short low (per misurare il segno)
     tstat = ic.mean() / ic.std() * np.sqrt(len(ic)) if ic.std() else 0
+    rc = ic_random_control(fund, fwd2)
     print(f"\n[B] FUNDING CARRY  (fwd {hz}h, {len(common)} asset)")
     print(f"  IC funding↔fwdRet {ic.mean():+.3f}  (t {tstat:+.1f}, n {len(ic)})  [atteso NEGATIVO]")
     print(f"  spread highFund−lowFund {spread:+.2%}  → se <0, short-high-funding paga")
-    verdict = "SEGNALE (short high funding)" if tstat < -2 else ("SEGNALE (long high funding)" if tstat > 2 else "debole/assente")
+    print(f"  random control: IC random {rc['random_ic_mean']:+.3f}  "
+          f"alpha_t {rc['alpha_t']:+.1f}  → {rc['category']}")
+    if rc["category"] == "confirmed_alive":
+        verdict = "SEGNALE (long high funding)"
+    elif rc["category"] == "reversed":
+        verdict = "SEGNALE (short high funding)"
+    else:
+        verdict = "debole/assente (non batte il random)"
     print(f"  → carry: {verdict}")
 
 
