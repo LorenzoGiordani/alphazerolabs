@@ -224,6 +224,12 @@ RISULTATI PARENT su basket {','.join(symbols)}, {months} mesi (fee/slippage/fund
 aggregato: {json.dumps(pa)}
 per asset: {json.dumps(compact, default=str)}
 
+ANTI-RIDONDANZA (lezione lux-nw-tsmom, falsificata): gambe in AND devono essere
+ORTOGONALI per costruzione (prezzo-struttura × flusso ok; momentum × momentum NO:
+l'AND fra segnali correlati ammazza le entry senza aggiungere informazione).
+Non proporre varianti che replicano l'edge del parent con altro nome: una mutazione
+utile cambia il comportamento (returns poco correlati col parent), non i sinonimi.
+
 Proponi {n} mutazioni in YAML (schema identico al parent). Obiettivo: robustezza sul basket, non picchi su singolo asset."""
         specs = [yaml.safe_load(c["yaml"]) for c in ask_glm(prompt)["candidates"]]
 
@@ -244,8 +250,15 @@ Proponi {n} mutazioni in YAML (schema identico al parent). Obiettivo: robustezza
     # gate anti-overfitting: DSR contro il max Sharpe atteso dal rumore su K prove
     trial_srs = [sharpe_moments(r)["sr"] for _, _, r in rows]
     k_trials = n_prior + len(rows) + 1
+    parent_rets = parent_eval.get("basket_rets")
     for spec, agg, rets in rows:
         d = deflated_sharpe(rets, k_trials, trial_srs)
+        # corr coi returns del parent: alta = variante ridondante (nessuna
+        # diversificazione), bassa = comportamento nuovo. Informativa, non gate:
+        # un param-tweak correla per natura; a decidere è promote/selezione.
+        if parent_rets is not None and len(rets) > 30:
+            c = rets.corr(parent_rets.reindex(rets.index))
+            agg["corr_vs_parent"] = round(float(c), 2) if pd.notna(c) else None
         agg["dsr"] = round(d["dsr"], 3)
         agg["dsr_sr0_ann"] = d["sr0_ann"]
         agg["complexity_penalty"] = complexity_penalty(spec)
@@ -260,9 +273,11 @@ Proponi {n} mutazioni in YAML (schema identico al parent). Obiettivo: robustezza
           f"gate: DSR ≥ 0.95 su K={k_trials} prove; ordine per adj_sharpe = mean_sharpe - complexity_penalty):")
     for spec, a, _ in rows:
         gate = "✓ GATE" if a["dsr"] >= 0.95 else "✗"
+        corr = a.get("corr_vs_parent")
+        corr_s = f" | corr˅parent {corr:+.2f}" if corr is not None else ""
         print(f"  {spec['id']:<38} adj {a['adj_sharpe']:6.2f} (sharpe {a['mean_sharpe']:5.2f} - pen {a['complexity_penalty']:4.2f}) "
               f"| DSR {a['dsr']:.2f} {gate} | ret {a['mean_return']:+7.2%} | worstDD {a['worst_drawdown']:7.2%} | "
-              f"trades {a['total_trades']:>3} | fold {a['folds']} | asset+ {a['positive_symbols']}")
+              f"trades {a['total_trades']:>3} | fold {a['folds']} | asset+ {a['positive_symbols']}{corr_s}")
 
 
 
