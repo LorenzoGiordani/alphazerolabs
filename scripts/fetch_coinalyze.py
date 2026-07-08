@@ -14,8 +14,10 @@ Uso:  .venv/bin/python scripts/fetch_coinalyze.py --symbols BTC,ETH,SOL --months
 """
 
 import argparse
+import json
 import os
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -96,6 +98,8 @@ def main() -> None:
             print(f"  {coin}: nessuna liquidazione"); continue
         df = liq.merge(oi, on="ts", how="left") if not oi.empty else liq
         df.to_parquet(OUT_DIR / f"{coin}.parquet", index=False)
+        (OUT_DIR / "_meta.json").write_text(json.dumps(
+            {"source_url": BASE, "asof": datetime.now(timezone.utc).isoformat()}))
         tot = df["liq_long"].sum() + df["liq_short"].sum()
         long_dom = df["liq_long"].sum() / tot * 100 if tot else 0
         print(f"  {coin}: {len(df)} giorni ({df.ts.min().date()}→{df.ts.max().date()}), "

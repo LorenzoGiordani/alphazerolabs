@@ -9,6 +9,7 @@ Uso: .venv/bin/python scripts/fetch_cot.py [--months 14]
 """
 
 import argparse
+import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -65,6 +66,8 @@ def main() -> None:
             print(f"{sym}: nessun dato per '{market}'")
             continue
         df.to_parquet(OUT_DIR / f"{sym}.parquet", index=False)
+        (OUT_DIR / "_meta.json").write_text(json.dumps(
+            {"source_url": API, "asof": datetime.now(timezone.utc).isoformat()}))
         print(f"{sym}: {len(df)} report, ultimo {df.ts.iloc[-1].date()} "
               f"net_pct_oi {df.net_pct_oi.iloc[-1]:+.3f}")
 

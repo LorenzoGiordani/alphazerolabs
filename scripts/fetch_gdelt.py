@@ -16,6 +16,7 @@ Uso: .venv/bin/python scripts/fetch_gdelt.py [--months 12] [--skip-articles]
 """
 
 import argparse
+import json
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -190,6 +191,9 @@ def main():
         arts = pd.DataFrame(articles).drop_duplicates(subset=["topic", "title"])
         arts.to_parquet(OUT_DIR / "gdelt_articles.parquet", index=False)
         print(f"articoli: {len(arts)} → gdelt_articles.parquet", flush=True)
+    (OUT_DIR / "_meta.json").write_text(json.dumps(
+        {"source_url": "https://api.gdeltproject.org/api/v2/doc/doc",
+         "asof": datetime.now(timezone.utc).isoformat()}))
 
 
 if __name__ == "__main__":
