@@ -41,6 +41,7 @@ Principi non negoziabili:
 | `scripts/fetch_universe.py` | Universo asset Hyperliquid (mainnet, volumi reali) filtrato per liquidità |
 | `scripts/fetch_candles.py` | Candele 1h 12 mesi: Binance (crypto), yfinance (commodities/stock), HL fallback |
 | `scripts/fetch_derivs.py` | Funding + taker flow storici (Binance fapi) |
+| `scripts/fetch_edgar.py` | EPS trimestrali SEC EDGAR (XBRL, `filed` = point-in-time) per i 18 single-stock US su HIP-3 — zero vendor |
 | `backtest/engine.py` | Exchange simulato: fill t+1 (anti-lookahead), fee, **funding storico** (opz.), **slippage size-aware** square-root (opz. `impact_k`), **liquidazione mark-to-market** su account equity (opz. `maintenance_margin_frac`), stop/target intrabar |
 | `backtest/signals.py` | **Registry segnali** (chiuso, l'LLM compone ma non inventa codice) |
 | `backtest/strategy.py` | Artefatto YAML → callback engine (rule AND/OR, direction, sizing) |
@@ -78,6 +79,7 @@ I dati storici (`data/`) non sono nel repo: si rigenerano con i 3 script fetch (
 | `volume_surge` | partecipazione | tutti | percentile volume relativo |
 | `xsection_momentum` | momentum relativo | tutti | rank nel basket (IC +0.089, t +21) |
 | `nadaraya_watson` | struttura prezzo | tutti | envelope kernel-regression (DaviddTech); continuation IC +0.105 (t +5) |
+| `earnings_window` | risk gate | stock xyz | veto vol attorno alla finestra earnings attesa (cadenza mediana filed EDGAR, causale). Non direzionale: PEAD falsificato |
 
 **Random-control gate (08/07)**: l'ammissione via IC ora richiede anche il permutation
 test (`ic_random_control` in `backtest/stats.py`): shuffle cross-section per data =
@@ -207,6 +209,16 @@ con K=456** — indistinguibili dal massimo del rumore su 456 prove. Nessuna pro
 lezione in lessons.jsonl. Due conferme di metodo: (1) l'alpha_t su fwd 7d overlappato si
 inflaziona sui segnali persistenti (cluster volume/vol = size-beta di regime); (2) il DSR
 è la difesa reale contro il factor mining. xsmom + highvol restano gli unici edge.
+
+**🔬 PEAD/SUE su HIP-3 FALSIFICATO (08/07, Fase 6).** Edge study earnings sull'universo
+stock HIP-3 (`scripts/research_pead.py`): 323 eventi su 15 mega-cap US (2018-2026), EPS
+EDGAR point-in-time (`filed`), entry t+1, ritorni market-adjusted. IC ≈ 0 su fwd 5/20/60g,
+alpha_t max −1.1 (tutto `noise`), anche su ultimi 3 anni. Coerente con la letteratura: il
+drift post-earnings è arbitraggiato via sulle large-cap liquide (sopravvive nelle small-cap,
+che HIP-3 non lista). Salvage: il calendario filing è ora il **veto `earnings_window`**
+(risk gate non direzionale, stesso precedente di `news_event`). Pipeline dati:
+`fetch_edgar.py` — SEC gratis, niente vendor (financialdatasets: free tier morto, resta
+in panchina per delisted/estimates a $20 se mai servisse).
 
 **Tesi falsificate** (documentate in `paper/lessons.jsonl`): scalp-exit su crowding, flow-confirmed breakout, fade VWAP (7/7 asset), stop più stretti dell'invalidazione. Pattern: il regime 2026-H1 premia il trend, punisce il mean-reversion.
 
