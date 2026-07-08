@@ -1,0 +1,56 @@
+{
+ "asof": "2026-07-08T00:18:50.602475+00:00",
+ "protocol": {
+  "min_sharpe": 1.0,
+  "min_dsr": 0.95,
+  "n_trials": 456,
+  "rebalance_h": 168,
+  "oos_split": "8m/4m",
+  "fees": "taker 4.5bps + slip 5bps"
+ },
+ "results": [
+  {
+   "id": "gtja191_100",
+   "zoo": "gtja191",
+   "theme": "volatility,volume",
+   "inverted": true,
+   "ret": 1.2799,
+   "sharpe": 2.91,
+   "maxdd": -0.229,
+   "dsr": 0.476,
+   "sharpe_train_8m": 3.65,
+   "sharpe_test_4m": 1.5,
+   "n_rebalances": 11,
+   "passed": false
+  },
+  {
+   "id": "gtja191_041",
+   "zoo": "gtja191",
+   "theme": "microstructure",
+   "inverted": true,
+   "ret": 0.8955,
+   "sharpe": 2.29,
+   "maxdd": -0.196,
+   "dsr": 0.25,
+   "sharpe_train_8m": 2.35,
+   "sharpe_test_4m": 2.2,
+   "n_rebalances": 40,
+   "passed": false
+  },
+  {
+   "id": "gtja191_055",
+   "zoo": "gtja191",
+   "theme": "microstructure",
+   "inverted": false,
+   "ret": 1.3685,
+   "sharpe": 2.98,
+   "maxdd": -0.232,
+   "dsr": 0.504,
+   "sharpe_train_8m": 3.83,
+   "sharpe_test_4m": 1.54,
+   "n_rebalances": 42,
+   "passed": false
+  }
+ ],
+ "verdict": "ZOO FALSIFICATO sul basket crypto: nessun candidato passa il gate (risultato valido, lezione pubblica)"
+}
