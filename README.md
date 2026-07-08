@@ -92,6 +92,12 @@ integrazioni (Obsidian, Fase 2).
 
 ## Risultati finora (backtest 12 mesi, fee/slippage inclusi; paper live dal 11/06/2026)
 
+**🏆 Primi CHAMPION del sistema (promossi dal cron promote.py su performance paper)**
+- `xsmom-multihorizon-v1` — champion dal 06/07: 108 trade paper, basket_sharpe 0.818, DSR 0.7
+- `xsmom-port-v1` — champion dal 07/07: 193 trade paper, basket_sharpe 0.427, DSR 0.91
+
+Gate DSR 0.95 soft by design: con campione forward ≥ 2×min_trades l'evidenza paper prevale sul DSR backtest.
+
 **Evoluzione famiglia funding-squeeze (3 generazioni, crypto)**
 | Strategia | Mean Sharpe (basket 9) | Esito |
 |---|---|---|
