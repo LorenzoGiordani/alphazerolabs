@@ -800,6 +800,20 @@ h1,h2,h3,h4,
     <h3 style="font-family:var(--serif);margin:8px 0 10px">Book corrente</h3>
     <table id="propr-positions" style="width:100%;border-collapse:collapse;font-size:13px"></table>
     <p class="note" style="margin-top:14px;font-size:11px;opacity:.7">Account Free Trial $5.000 · target profitto 10% · daily loss max 3% · drawdown max 6% statico. Aggiornato ogni ora via API, ribilanciato settimanalmente (168h) secondo lo spec xsmom-multihorizon-v1.</p>
+
+    <h3 style="font-family:var(--serif);margin:28px 0 10px">Breakdown strategia</h3>
+    <p class="note" id="propr-thesis" style="margin-bottom:16px"></p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:22px">
+      <div>
+        <h4 style="font-family:var(--serif);margin:0 0 8px;font-size:14px;opacity:.8">Parametri</h4>
+        <table id="propr-params" style="width:100%;border-collapse:collapse;font-size:13px"></table>
+      </div>
+      <div>
+        <h4 style="font-family:var(--serif);margin:0 0 8px;font-size:14px;opacity:.8">Backtest 12m vs track record paper</h4>
+        <table id="propr-backtest" style="width:100%;border-collapse:collapse;font-size:13px"></table>
+      </div>
+    </div>
+
     <script>
     (function(){
       function run(){
@@ -839,6 +853,42 @@ h1,h2,h3,h4,
           '<td style="padding:6px 10px;border-bottom:1px solid var(--line);color:'+pnlCol+'">'+(r.unrealized_pnl<0?'-$'+(-r.unrealized_pnl).toFixed(2):'$'+r.unrealized_pnl.toFixed(2))+'</td></tr>';
       }).join('')+'</tbody>';
       t.innerHTML=h+b;
+
+      var det=p.strategy_detail;
+      if(det){
+        document.getElementById('propr-thesis').textContent=det.thesis;
+        function kv(rows){
+          return '<tbody>'+rows.map(function(r){
+            return '<tr><td style="padding:5px 10px 5px 0;border-bottom:1px solid var(--line);opacity:.65">'+r[0]+'</td>'+
+              '<td style="padding:5px 0;border-bottom:1px solid var(--line);font-weight:600">'+r[1]+'</td></tr>';
+          }).join('')+'</tbody>';
+        }
+        document.getElementById('propr-params').innerHTML = kv([
+          ['Universo', det.universe.join(', ')],
+          ['Orizzonti momentum', det.lookbacks_h.join('h, ')+'h'],
+          ['Ribilancio', det.rebalance_h+'h'],
+          ['Quantili long/short', (det.long_q*100).toFixed(0)+'% / '+(det.short_q*100).toFixed(0)+'%'],
+          ['Gross', det.gross+'x'+(det.dollar_neutral?' (dollar-neutral)':'')],
+          ['Leva massima', det.max_leverage+'x'],
+        ]);
+        var bt=det.backtest_12m||{}, tr=det.paper_track_record;
+        var rows=[
+          ['Sharpe', bt.sharpe, tr?tr.basket_sharpe_r:null],
+          ['Max drawdown', bt.max_drawdown!=null?(bt.max_drawdown*100).toFixed(1)+'%':null,
+                          tr?(tr.max_drawdown*100).toFixed(1)+'%':null],
+          ['DSR', bt.dsr, tr?tr.dsr:null],
+          ['Trade / ribilanci', bt.rebalances, tr?tr.n_closed:null],
+        ];
+        document.getElementById('propr-backtest').innerHTML =
+          '<thead><tr><th style="text-align:left;padding:5px 10px 5px 0;border-bottom:1px solid var(--line);opacity:.65">Metrica</th>'+
+          '<th style="text-align:left;padding:5px 10px;border-bottom:1px solid var(--line);opacity:.65">Backtest 12m</th>'+
+          '<th style="text-align:left;padding:5px 0;border-bottom:1px solid var(--line);opacity:.65">Paper (champion)</th></tr></thead>'+
+          '<tbody>'+rows.map(function(r){
+            return '<tr><td style="padding:5px 10px 5px 0;border-bottom:1px solid var(--line)">'+r[0]+'</td>'+
+              '<td style="padding:5px 10px;border-bottom:1px solid var(--line);font-weight:600">'+(r[1]==null?'—':r[1])+'</td>'+
+              '<td style="padding:5px 0;border-bottom:1px solid var(--line);font-weight:600">'+(r[2]==null?'—':r[2])+'</td></tr>';
+          }).join('')+'</tbody>';
+      }
       }
       if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', run);
       else run();

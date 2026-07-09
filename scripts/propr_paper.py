@@ -116,6 +116,45 @@ def _set_leverage(client: ProprClient, symbols: list[str], want: int) -> None:
             print(f"  {asset}: leverage config fallita: {e}", file=sys.stderr)
 
 
+def _paper_track_record(strategy_id: str) -> dict | None:
+    """Ultimo evento promote per la strategia dal loop interno (paper/lifecycle.jsonl)
+    — il track record che ha reso questa strategia champion prima di girare su Propr."""
+    path = ROOT / "paper/lifecycle.jsonl"
+    if not path.exists():
+        return None
+    latest = None
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        d = json.loads(line)
+        if d.get("strategy") == strategy_id and d.get("event") == "promote":
+            latest = d
+    if not latest:
+        return None
+    st = latest["stats"]
+    return {"n_closed": st["n_closed"], "basket_sharpe_r": st["basket_sharpe_r"],
+            "basket_mean_r": st["basket_mean_r"], "win_rate": st["win_rate"],
+            "max_drawdown": st["max_drawdown"], "dsr": latest["dsr"],
+            "promoted_at": latest["logged_at"]}
+
+
+def _strategy_detail(spec: dict) -> dict:
+    pf = spec["portfolio"]
+    bt = (spec.get("backtest") or {}).get("basket_12m", {}).get("aggregate", {})
+    return {
+        "thesis": spec.get("thesis", "").strip(),
+        "universe": spec["paper_symbols"].split(","),
+        "lookbacks_h": pf.get("lookbacks_h") or [pf.get("lookback_h")],
+        "rebalance_h": pf["rebalance_h"], "long_q": pf.get("long_q"), "short_q": pf.get("short_q"),
+        "gross": pf.get("gross", 1.0), "dollar_neutral": pf.get("dollar_neutral", True),
+        "max_leverage": spec.get("risk", {}).get("max_leverage"),
+        "backtest_12m": {"sharpe": bt.get("sharpe"), "total_return": bt.get("total_return"),
+                         "max_drawdown": bt.get("max_drawdown"), "dsr": bt.get("dsr"),
+                         "rebalances": bt.get("rebalances")},
+        "paper_track_record": _paper_track_record(spec["id"]),
+    }
+
+
 def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list[dict],
                  last_rebalance_ts: str) -> None:
     """Snapshot pubblico per la dashboard: stato challenge Propr vs le sue stesse
@@ -151,6 +190,7 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
                        "unrealized_pnl": round(float(p["unrealizedPnl"]), 2)} for p in positions],
         "last_rebalance_ts": last_rebalance_ts,
         "equity_history": history,
+        "strategy_detail": _strategy_detail(spec),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     STATUS_PATH.write_text(json.dumps(status, indent=1))
