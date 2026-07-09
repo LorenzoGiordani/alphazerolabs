@@ -55,6 +55,7 @@ Principi non negoziabili:
 | `scripts/glm_strategy.py` | **Strategia glm-5.2**: gate tsmom+xsection (ortogonale) + veto event/crowding → auditor LLM correlazione |
 | `scripts/paper_trade.py` | Paper trading challenger segnale-based (cron) |
 | `scripts/review.py` | Reviewer: post-mortem trade chiusi → `paper/lessons.jsonl` |
+| `scripts/polymarket_paper.py` | **F7**: forecast journal Polymarket — LLM blind vs prezzo, Brier a risoluzione, gate N≥30. Calibrazione, non trading |
 | `scripts/dashboard.py` | Dashboard statica (HTML, zero dipendenze) — include sezione **Backtest** onesto || `scripts/backtest_report.py` | Backtest basket multi-asset delle strategie attive (funding storico + slippage size-aware) → `paper/backtests.json` → sezione Backtest |
 | `scripts/robustness_portfolio.py` | **Audit robustezza** edge portfolio: parameter stability + block bootstrap CI + true OOS (8m train / 4m test) |
 | `scripts/voltarget_portfolio.py` | **Vol-target overlay** (Moreira-Muir): scala gross inverso a vol realizzata del book, abbatte la coda DD |
