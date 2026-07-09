@@ -107,6 +107,15 @@ via API su Propr (account Free Trial $5.000, esecuzione reale su Hyperliquid, ca
 virtuale). Verifica se la strategia già champion sul ledger interno avrebbe superato
 anche una vera challenge prop firm (target profitto 10%, daily loss max 3%, drawdown
 max 6% statico). Stato live e pass/fail pubblici sulla dashboard, sezione **Propr**.
+Risk overlay Propr-aware nel runner (sera 09/07, da simulazione esatta challenge +
+Monte Carlo bootstrap 1000 path): **gross 0.3** sizing fisso su balance iniziale
+(a gross 1.0 breach daily-loss certo entro l'anno), **circuit breaker** giornaliero
+(flat a -2% di giornata, breach 12m 6.4%→2.6%), **tranching** Jegadeesh-Titman
+7 sub-book giornalieri (il reb168 monolitico è fragile alla fase del rebalance:
+Sharpe 1.1-2.9 per sola scelta dell'ora; tranched 2.51 fase-invariante). Falsificati
+con test: vol targeting sul book, ensemble con port-v1 (corr 0.82), universo ampio
+PIT (edge diluito), inverse-vol legs, skip-24h, no-trade band, post-pass de-risk.
+Attese oneste: pass ~90%, breach ~3.5%, pass mediano ~5 mesi.
 
 **Evoluzione famiglia funding-squeeze (3 generazioni, crypto)**
 | Strategia | Mean Sharpe (basket 9) | Esito |
