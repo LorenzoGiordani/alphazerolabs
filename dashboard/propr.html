@@ -868,7 +868,10 @@ h1,h2,h3,h4,
           ['Orizzonti momentum', det.lookbacks_h.join('h, ')+'h'],
           ['Ribilancio', det.rebalance_h+'h'],
           ['Quantili long/short', (det.long_q*100).toFixed(0)+'% / '+(det.short_q*100).toFixed(0)+'%'],
-          ['Gross', det.gross+'x'+(det.dollar_neutral?' (dollar-neutral)':'')],
+          ['Gross', (det.propr_gross_override!=null?det.propr_gross_override:det.gross)+'x'+
+                    (det.dollar_neutral?' (dollar-neutral)':'')+
+                    (det.propr_gross_override!=null&&det.propr_gross_override!==det.gross?
+                     ' <span style="opacity:.6;font-weight:400">(risk overlay, champion '+det.gross+'x)</span>':'')],
           ['Leva massima', det.max_leverage+'x'],
         ]);
         var bt=det.backtest_12m||{}, tr=det.paper_track_record;

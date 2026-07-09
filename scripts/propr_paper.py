@@ -29,6 +29,14 @@ JOURNAL = ROOT / "paper/propr_journal.jsonl"
 STATUS_PATH = ROOT / "paper/propr_status.json"
 STATE_PATH = ROOT / "paper/propr_state.json"
 
+# Risk overlay Propr-aware, non nello spec (quello resta la champion "pura" per
+# backtest/paper interno). Simulazione esatta challenge (daily loss 3% $150,
+# drawdown statico 6% $4.7k, path orario 12 mesi): a gross 1.0 sizing su equity
+# compounded la challenge si passa al giorno 63 ma l'account muore 3gg dopo per
+# breach daily-loss. Solo gross ~0.3 con sizing fisso su balance iniziale (non
+# compounded) sopravvive tutto l'anno senza breach. Vedi daily note 2026-07-09.
+PROPR_GROSS_OVERRIDE = 0.3
+
 # decimali quantità per prezzo — approssimazione conservativa, l'API rifiuta
 # (e logghiamo) se il tick size è più stretto di quanto assunto qui.
 def _qty_decimals(price: float) -> int:
@@ -146,7 +154,8 @@ def _strategy_detail(spec: dict) -> dict:
         "universe": spec["paper_symbols"].split(","),
         "lookbacks_h": pf.get("lookbacks_h") or [pf.get("lookback_h")],
         "rebalance_h": pf["rebalance_h"], "long_q": pf.get("long_q"), "short_q": pf.get("short_q"),
-        "gross": pf.get("gross", 1.0), "dollar_neutral": pf.get("dollar_neutral", True),
+        "gross": pf.get("gross", 1.0), "propr_gross_override": PROPR_GROSS_OVERRIDE,
+        "dollar_neutral": pf.get("dollar_neutral", True),
         "max_leverage": spec.get("risk", {}).get("max_leverage"),
         "backtest_12m": {"sharpe": bt.get("sharpe"), "total_return": bt.get("total_return"),
                          "max_drawdown": bt.get("max_drawdown"), "dsr": bt.get("dsr"),
@@ -203,7 +212,7 @@ def main() -> None:
     multi_horizon = pf.get("lookbacks_h")
     lookback_h = int(multi_horizon[0]) if multi_horizon else int(pf["lookback_h"])
     rebalance_h = int(pf["rebalance_h"])
-    gross = float(pf.get("gross", 1.0))
+    gross = PROPR_GROSS_OVERRIDE
 
     client = ProprClient()
     account_id = client.setup()
@@ -214,7 +223,11 @@ def main() -> None:
     _set_leverage(client, symbols, int(spec.get("risk", {}).get("max_leverage", 2)))
     acct = client.get_account()
     equity = float(acct["balance"]) + float(acct.get("totalUnrealizedPnl", 0.0))
-    print(f"propr paper {spec['id']} account={account_id} equity={equity:.2f}$")
+    # sizing fisso su balance iniziale della challenge (non su equity compounded) —
+    # parte del risk overlay, evita che il gross effettivo cresca coi profitti
+    sizing_base = float(attempt["challenge"]["initialBalance"])
+    print(f"propr paper {spec['id']} account={account_id} equity={equity:.2f}$ "
+          f"sizing_base={sizing_base:.2f}$ gross_override={gross}")
 
     local_state = json.loads(STATE_PATH.read_text()) if STATE_PATH.exists() else {}
     last_rb = local_state.get("last_rebalance_ts", "")
@@ -231,7 +244,7 @@ def main() -> None:
             w = xs_momentum_weights(rets, long_q=float(pf.get("long_q", 0.66)),
                                      short_q=float(pf.get("short_q", 0.33)), gross=gross,
                                      dollar_neutral=bool(pf.get("dollar_neutral", True)))
-            target = {s: float(w[s]) * equity for s in w.index if abs(w[s]) > 1e-9}
+            target = {s: float(w[s]) * sizing_base for s in w.index if abs(w[s]) > 1e-9}
             print(f"  REBALANCE dovuto: target {len(target)} gambe su {len(px)} prezzi")
             results = rebalance(client, target, px, positions)
             log_event({"type": "rebalance", "strategy": spec["id"], "account_id": account_id,
