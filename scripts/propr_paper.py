@@ -36,6 +36,13 @@ STATE_PATH = ROOT / "paper/propr_state.json"
 # breach daily-loss. Solo gross ~0.3 con sizing fisso su balance iniziale (non
 # compounded) sopravvive tutto l'anno senza breach. Vedi daily note 2026-07-09.
 PROPR_GROSS_OVERRIDE = 0.3
+# Circuit breaker giornaliero: se il P&L di giornata (da snapshot equity al primo
+# run del giorno UTC) scende sotto -2% del balance iniziale ($100 su $5k), flat
+# totale fino a mezzanotte UTC, poi re-entry sull'ultimo target salvato. Monte
+# Carlo (1000 path bootstrap 168h): breach 12m 6.4% -> 2.6%, pass 94.3% -> 95.4%,
+# stesso tempo mediano. Latenza 1h del cron orario già modellata nella sim.
+# Il vol targeting è stato testato e FALSIFICATO (peggiora: vol clustering).
+PROPR_DAILY_STOP_PCT = 0.02
 
 # decimali quantità per prezzo — approssimazione conservativa, l'API rifiuta
 # (e logghiamo) se il tick size è più stretto di quanto assunto qui.
@@ -106,6 +113,27 @@ def rebalance(client: ProprClient, target: dict[str, float], px: dict[str, float
     return results
 
 
+def flatten(client: ProprClient, positions: list[dict]) -> list[dict]:
+    """Chiude tutte le posizioni aperte. Pairing OPPOSTO al segno corrente con
+    reduceOnly (semantica netted one-way: buy+long chiude short, sell+short
+    chiude long); quantity presa dalla posizione, nessun prezzo necessario."""
+    results = []
+    for p in positions:
+        is_short = p["positionSide"] == "short"
+        side, pos_side = ("buy", "long") if is_short else ("sell", "short")
+        qty = str(abs(float(p["quantity"])))
+        try:
+            r = client.create_order(side=side, position_side=pos_side, order_type="market",
+                                     asset=p["base"], quantity=qty,
+                                     reduce_only=True, close_position=False)
+            results.append({"asset": p["base"], "action": "flatten", "side": side,
+                             "qty": qty, "resp": r})
+            print(f"  {p['base']}: flatten {side} {qty}")
+        except ProprError as e:
+            print(f"  {p['base']}: flatten fallito: {e}", file=sys.stderr)
+    return results
+
+
 def _set_leverage(client: ProprClient, symbols: list[str], want: int) -> None:
     """Alza la leva cross al max consentito (cap dello spec) per ogni asset
     dell'universo — di default Propr apre a leva 1x e con gross=1.0 dollar-neutral
@@ -155,6 +183,7 @@ def _strategy_detail(spec: dict) -> dict:
         "lookbacks_h": pf.get("lookbacks_h") or [pf.get("lookback_h")],
         "rebalance_h": pf["rebalance_h"], "long_q": pf.get("long_q"), "short_q": pf.get("short_q"),
         "gross": pf.get("gross", 1.0), "propr_gross_override": PROPR_GROSS_OVERRIDE,
+        "propr_daily_stop_pct": PROPR_DAILY_STOP_PCT,
         "dollar_neutral": pf.get("dollar_neutral", True),
         "max_leverage": spec.get("risk", {}).get("max_leverage"),
         "backtest_12m": {"sharpe": bt.get("sharpe"), "total_return": bt.get("total_return"),
@@ -235,11 +264,44 @@ def main() -> None:
     due = (not last_rb or
            datetime.now(timezone.utc) - datetime.fromisoformat(last_rb) >= timedelta(hours=rebalance_h))
 
+    # --- circuit breaker giornaliero (vedi PROPR_DAILY_STOP_PCT) ---
+    today = datetime.now(timezone.utc).date().isoformat()
+    daily_stop = sizing_base * PROPR_DAILY_STOP_PCT
+    reenter = False
+    if local_state.get("day_date") != today:
+        # nuovo giorno UTC: snapshot equity; se ieri eravamo flat da breaker,
+        # re-entry sull'ultimo target salvato (preserva la cadenza segnale 168h)
+        reenter = bool(local_state.get("halted_today")) and bool(local_state.get("last_target"))
+        local_state.update({"day_date": today, "day_start_equity": equity, "halted_today": False})
+    halted = bool(local_state.get("halted_today"))
+    day_start_eq = float(local_state.get("day_start_equity", equity))
+
     positions = client.get_positions()
-    if due:
+    if not halted and equity - day_start_eq <= -daily_stop:
+        print(f"  CIRCUIT BREAKER: P&L giornata {equity - day_start_eq:+.0f}$ <= -{daily_stop:.0f}$, flat fino a mezzanotte UTC")
+        results = flatten(client, positions)
+        log_event({"type": "circuit_breaker", "strategy": spec["id"], "account_id": account_id,
+                   "equity": round(equity, 2), "day_start_equity": round(day_start_eq, 2),
+                   "day_pnl": round(equity - day_start_eq, 2), "orders": results})
+        local_state["halted_today"] = True
+        halted = True
+        positions = client.get_positions()
+
+    if halted:
+        print("  halted da circuit breaker, no trading fino a mezzanotte UTC")
+    elif due or reenter:
         rets, px = trailing_returns(symbols, lookback_h, multi_horizon)
         if not px:
             print("nessun prezzo disponibile, skip rebalance")
+        elif reenter and not due:
+            # re-entry post-breaker: ripristina il target dell'ultimo rebalance
+            target = {k: float(v) for k, v in local_state["last_target"].items()}
+            print(f"  RE-ENTRY post-breaker: ripristino {len(target)} gambe")
+            results = rebalance(client, target, px, positions)
+            log_event({"type": "reentry", "strategy": spec["id"], "account_id": account_id,
+                       "equity": round(equity, 2), "target": {k: round(v, 2) for k, v in target.items()},
+                       "orders": results})
+            positions = client.get_positions()
         else:
             w = xs_momentum_weights(rets, long_q=float(pf.get("long_q", 0.66)),
                                      short_q=float(pf.get("short_q", 0.33)), gross=gross,
@@ -252,10 +314,11 @@ def main() -> None:
                        "orders": results})
             last_rb = datetime.now(timezone.utc).isoformat()
             local_state["last_rebalance_ts"] = last_rb
-            STATE_PATH.write_text(json.dumps(local_state, indent=1))
+            local_state["last_target"] = {k: round(v, 2) for k, v in target.items()}
             positions = client.get_positions()
     else:
         print(f"  no rebalance (prossimo tra <= {rebalance_h}h da {last_rb})")
+    STATE_PATH.write_text(json.dumps(local_state, indent=1))
 
     write_status(client, spec, attempt, positions, last_rb)
     acct_after = client.get_account()

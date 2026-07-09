@@ -1,3 +1,6 @@
 {
- "last_rebalance_ts": "2026-07-09T08:40:17.216718+00:00"
+ "last_rebalance_ts": "2026-07-09T08:40:17.216718+00:00",
+ "day_date": "2026-07-09",
+ "day_start_equity": 5035.152411,
+ "halted_today": false
 }

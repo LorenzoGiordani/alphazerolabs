@@ -987,7 +987,9 @@ h1,h2,h3,h4,
                     (det.propr_gross_override!=null&&det.propr_gross_override!==det.gross?
                      ' <span style="opacity:.6;font-weight:400">(risk overlay, champion '+det.gross+'x)</span>':'')],
           ['Leva massima', det.max_leverage+'x'],
-        ]);
+        ].concat(det.propr_daily_stop_pct!=null?[
+          ['Circuit breaker', 'flat a -'+(det.propr_daily_stop_pct*100).toFixed(0)+'% di giornata, re-entry a mezzanotte UTC'],
+        ]:[]));
         var bt=det.backtest_12m||{}, tr=det.paper_track_record;
         var rows=[
           ['Sharpe', bt.sharpe, tr?tr.basket_sharpe_r:null],
