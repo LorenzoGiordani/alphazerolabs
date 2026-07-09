@@ -3,7 +3,7 @@
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-09T22:29 UTC",
+ "generated_at": "2026-07-09T23:27 UTC",
  "strategies": [
   {
    "id": "commodities-trend-v1",
@@ -14,7 +14,7 @@
    "basket_size": 5,
    "aggregate": {
     "mean_sharpe": -1.35,
-    "mean_return": -0.1169,
+    "mean_return": -0.1168,
     "worst_drawdown": -0.1535,
     "positive_symbols": "0/5",
     "consistency": "8/30"
@@ -52,7 +52,7 @@
     {
      "symbol": "xyz_CL",
      "ret": -0.1372,
-     "sharpe": -1.49,
+     "sharpe": -1.48,
      "max_dd": -0.153,
      "trades": 61,
      "win_rate": 0.311,
@@ -80,8 +80,8 @@
     },
     {
      "symbol": "xyz_NATGAS",
-     "ret": -0.1386,
-     "sharpe": -1.73,
+     "ret": -0.1382,
+     "sharpe": -1.72,
      "max_dd": -0.1467,
      "trades": 43,
      "win_rate": 0.279,
@@ -220,8 +220,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.75,
-    "mean_return": 0.0845,
+    "mean_sharpe": 1.76,
+    "mean_return": 0.0843,
     "worst_drawdown": -0.1335,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
@@ -238,11 +238,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 3.22,
-    "mean_return": 0.1208,
-    "worst_drawdown": -0.0725,
+    "mean_sharpe": 3.25,
+    "mean_return": 0.1232,
+    "worst_drawdown": -0.065,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -254,7 +254,7 @@
    "window": "2026-05-29 → 2026-07-09",
    "basket_size": 8,
    "aggregate": {
-    "mean_sharpe": -1.46,
+    "mean_sharpe": -1.47,
     "mean_return": -0.095,
     "worst_drawdown": -0.223,
     "positive_symbols": "0/8",
@@ -263,9 +263,9 @@
    "per_symbol": [
     {
      "symbol": "BTC",
-     "ret": -0.0131,
-     "sharpe": -2.66,
-     "max_dd": -0.0258,
+     "ret": -0.0133,
+     "sharpe": -2.69,
+     "max_dd": -0.0266,
      "trades": 1,
      "win_rate": 0.0,
      "pf": 0.0,
@@ -276,9 +276,9 @@
     },
     {
      "symbol": "ETH",
-     "ret": -0.0172,
-     "sharpe": -2.54,
-     "max_dd": -0.0229,
+     "ret": -0.0173,
+     "sharpe": -2.56,
+     "max_dd": -0.0241,
      "trades": 1,
      "win_rate": 0.0,
      "pf": 0.0,
@@ -385,11 +385,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.88,
-    "mean_return": 0.1244,
+    "mean_sharpe": 1.77,
+    "mean_return": 0.1147,
     "worst_drawdown": -0.1351,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -403,9 +403,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": -3.04,
-    "mean_return": -0.1073,
-    "worst_drawdown": -0.157,
+    "mean_sharpe": -2.72,
+    "mean_return": -0.0947,
+    "worst_drawdown": -0.136,
     "positive_symbols": "market-neutral",
     "consistency": "2/6 fold positivi"
    },
@@ -419,11 +419,11 @@
    "is_benchmark": false,
    "window": "2026-05-29 → 2026-07-09",
    "basket_size": 9,
-   "vol_target": "on (m medio 0.88)",
+   "vol_target": "on (m medio 0.90)",
    "aggregate": {
-    "mean_sharpe": -4.88,
-    "mean_return": -0.1668,
-    "worst_drawdown": -0.1999,
+    "mean_sharpe": -2.64,
+    "mean_return": -0.0871,
+    "worst_drawdown": -0.1307,
     "positive_symbols": "market-neutral",
     "consistency": "2/6 fold positivi"
    },
@@ -439,9 +439,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.34,
-    "mean_return": 0.0303,
-    "worst_drawdown": -0.0581,
+    "mean_sharpe": 3.14,
+    "mean_return": 0.0754,
+    "worst_drawdown": -0.0392,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -457,11 +457,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": -5.02,
-    "mean_return": -0.1716,
-    "worst_drawdown": -0.1994,
+    "mean_sharpe": -2.72,
+    "mean_return": -0.0947,
+    "worst_drawdown": -0.136,
     "positive_symbols": "market-neutral",
-    "consistency": "1/6 fold positivi"
+    "consistency": "2/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -475,11 +475,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.05,
-    "mean_return": -0.0043,
-    "worst_drawdown": -0.0955,
+    "mean_sharpe": 2.38,
+    "mean_return": 0.0821,
+    "worst_drawdown": -0.0871,
     "positive_symbols": "market-neutral",
-    "consistency": "2/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   }
