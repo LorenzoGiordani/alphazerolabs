@@ -4806,3 +4806,14 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9956.12, "open_positions": 1, "logged_at": "2026-07-09T07:22:36.473749+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9684.53, "open_positions": 0, "logged_at": "2026-07-09T07:22:39.483816+00:00"}
 {"type": "close", "strategy": "agents-rr2-v1", "symbol": "ETH", "reason": "retired", "exit_px": 1755.3, "frac": 1.0, "remaining": 0.0, "pnl_usd": -0.23, "equity": 9955.89, "ts": "2026-07-09 06:00:00+00:00", "logged_at": "2026-07-09T07:22:46.691600+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 9150.54, "open_positions": 2, "logged_at": "2026-07-09T08:16:17.801559+00:00"}
+{"type": "heartbeat", "strategy": "crypto-trend-flow-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-07-09T08:16:25.386912+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-aggressive-v1", "equity": 9019.76, "open_positions": 4, "logged_at": "2026-07-09T08:16:26.643070+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10095.98, "open_positions": 2, "logged_at": "2026-07-09T08:16:28.369075+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9955.89, "open_positions": 0, "logged_at": "2026-07-09T08:16:28.867765+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9452.87, "open_positions": 42, "logged_at": "2026-07-09T08:17:09.007675+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 10169.0, "open_positions": 6, "logged_at": "2026-07-09T08:17:15.273210+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 10073.58, "open_positions": 45, "logged_at": "2026-07-09T08:17:48.892384+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10095.98, "open_positions": 2, "logged_at": "2026-07-09T08:21:16.869889+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9955.89, "open_positions": 0, "logged_at": "2026-07-09T08:21:17.422278+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9684.53, "open_positions": 0, "logged_at": "2026-07-09T08:21:20.235758+00:00"}
