@@ -741,6 +741,15 @@ def build_digest(data: dict) -> dict | None:
     return {"text": txt, "ts": data["updated_utc"]}
 
 
+def build_propr() -> dict | None:
+    """Snapshot Propr (F8): scritto da scripts/propr_paper.py a ogni run orario,
+    letto qui as-is — nessuna API call in fase di build dashboard."""
+    p = ROOT / "paper/propr_status.json"
+    if not p.exists():
+        return None
+    return json.loads(p.read_text())
+
+
 def build_data() -> dict:
     state = json.loads((ROOT / "paper/state.json").read_text()) if (ROOT / "paper/state.json").exists() else {}
     journal = jsonl(ROOT / "paper/journal.jsonl")
@@ -1104,6 +1113,7 @@ def build_data() -> dict:
     data["labels"] = {i: friendly_label(i) for i in ids if i}
     data["benchmark"] = benchmark_btc(accounts)
     data["digest"] = build_digest(data)
+    data["propr"] = build_propr()
     return data
 
 
@@ -1119,6 +1129,7 @@ PAGES = [
     ("portafogli.html",   "Portafogli",   ["portafogli"]),
     ("backtest.html",     "Backtest",     ["backtest"]),
     ("posizioni.html",    "Posizioni",    ["posizioni"]),
+    ("propr.html",        "Propr",        ["propr"]),
     ("rischio.html",      "Rischio",      ["rischio"]),
     ("decisioni.html",    "Decisioni",    ["decisioni"]),
     ("trading-book.html", "Book",         ["book"]),
@@ -1133,7 +1144,7 @@ PAGES = [
 # Nav a 2 livelli (punto 2 IMPROVEMENTS): 4 gruppi parlanti al posto di 13 voci
 # tecniche. Riga primaria = gruppi; riga secondaria = pagine del gruppo attivo.
 NAV_GROUPS = [
-    ("Oggi",      [("index.html", "Stato"), ("posizioni.html", "Posizioni")]),
+    ("Oggi",      [("index.html", "Stato"), ("posizioni.html", "Posizioni"), ("propr.html", "Propr")]),
     ("Strategie", [("strategie.html", "Le strategie"), ("portafogli.html", "Portafogli"),
                    ("backtest.html", "Backtest"), ("evoluzione.html", "Evoluzione")]),
     ("Diario",    [("decisioni.html", "Decisioni"), ("lezioni.html", "Lezioni"),

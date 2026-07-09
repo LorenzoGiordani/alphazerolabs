@@ -56,6 +56,7 @@ Principi non negoziabili:
 | `scripts/paper_trade.py` | Paper trading challenger segnale-based (cron) |
 | `scripts/review.py` | Reviewer: post-mortem trade chiusi → `paper/lessons.jsonl` |
 | `scripts/polymarket_paper.py` | **F7**: forecast journal Polymarket — LLM blind vs prezzo, Brier a risoluzione, gate N≥30. Calibrazione, non trading |
+| `scripts/propr_paper.py` | **F8**: champion (`xsmom-multihorizon-v1`) eseguita via API su [Propr](https://propr.xyz) (onchain prop firm, Hyperliquid) — capitale virtuale ma enforcement regole reale/verificabile, non ledger interno. Pubblico su dashboard |
 | `scripts/dashboard.py` | Dashboard statica (HTML, zero dipendenze) — include sezione **Backtest** onesto || `scripts/backtest_report.py` | Backtest basket multi-asset delle strategie attive (funding storico + slippage size-aware) → `paper/backtests.json` → sezione Backtest |
 | `scripts/robustness_portfolio.py` | **Audit robustezza** edge portfolio: parameter stability + block bootstrap CI + true OOS (8m train / 4m test) |
 | `scripts/voltarget_portfolio.py` | **Vol-target overlay** (Moreira-Muir): scala gross inverso a vol realizzata del book, abbatte la coda DD |
@@ -100,6 +101,12 @@ integrazioni (Obsidian, Fase 2).
 - `xsmom-port-v1` — champion dal 07/07: 193 trade paper, basket_sharpe 0.427, DSR 0.91
 
 Gate DSR 0.95 soft by design: con campione forward ≥ 2×min_trades l'evidenza paper prevale sul DSR backtest.
+
+**F8 — validazione su onchain prop firm (dal 09/07)**: `xsmom-multihorizon-v1` eseguita
+via API su Propr (account Free Trial $5.000, esecuzione reale su Hyperliquid, capitale
+virtuale). Verifica se la strategia già champion sul ledger interno avrebbe superato
+anche una vera challenge prop firm (target profitto 10%, daily loss max 3%, drawdown
+max 6% statico). Stato live e pass/fail pubblici sulla dashboard, sezione **Propr**.
 
 **Evoluzione famiglia funding-squeeze (3 generazioni, crypto)**
 | Strategia | Mean Sharpe (basket 9) | Esito |

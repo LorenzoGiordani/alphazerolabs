@@ -25,6 +25,7 @@ jobs:
       COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+      PROPR_API_KEY: ${{ secrets.PROPR_API_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
@@ -89,6 +90,11 @@ jobs:
           else
             echo "evolve: salta (gira alle 00:xx UTC)"
           fi
+
+      - name: propr — champion su onchain prop firm (F8, esecuzione reale su capitale virtuale)
+        if: env.PROPR_API_KEY != ''
+        continue-on-error: true
+        run: uv run scripts/propr_paper.py
 
       - name: polymarket forecast journal (F7 — calibrazione, non trading)
         if: always()
