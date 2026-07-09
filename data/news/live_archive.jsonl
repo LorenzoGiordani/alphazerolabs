@@ -2400,3 +2400,5 @@
 {"id": "576cf72072ce27a6", "fetched_at": "2026-07-09 01:17:10.766167+00:00", "source": "oilprice", "ts": "2026-07-08 23:00:00+00:00", "title": "Dangote’s Next Move Could Create the World’s Largest Refinery"}
 {"id": "307c27415de46d61", "fetched_at": "2026-07-09 01:17:10.766167+00:00", "source": "decrypt", "ts": "2026-07-08 22:26:31+00:00", "title": "The New Grok 4.5 Is Out. Elon Musk Says It Competes With Last Year's Claude Opus"}
 {"id": "7cae0d77c56c93b9", "fetched_at": "2026-07-09 03:19:09.789460+00:00", "source": "cnbc_markets", "ts": "2026-07-09 02:31:37+00:00", "title": "China consumer price growth weakens in June while producer inflation rises to near 4-year high"}
+{"id": "a7616bf122a1b21f", "fetched_at": "2026-07-09 05:23:07.485642+00:00", "source": "coindesk", "ts": "2026-07-09 05:07:11+00:00", "title": "XRP holds near $1.10 as traders watch long-term breakout setup"}
+{"id": "ab1d4c1f8474aba9", "fetched_at": "2026-07-09 05:23:07.485642+00:00", "source": "coindesk", "ts": "2026-07-09 04:57:35+00:00", "title": "Bitcoin, ether steady, gold slides as US-Iran tensions escalate again"}
