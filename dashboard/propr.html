@@ -866,7 +866,8 @@ h1,h2,h3,h4,
         document.getElementById('propr-params').innerHTML = kv([
           ['Universo', det.universe.join(', ')],
           ['Orizzonti momentum', det.lookbacks_h.join('h, ')+'h'],
-          ['Ribilancio', det.rebalance_h+'h'],
+          ['Ribilancio', det.rebalance_h+'h'+(det.propr_tranches>1?
+                    ' <span style="opacity:.6;font-weight:400">(tranching: 1/'+det.propr_tranches+' del book al giorno)</span>':'')],
           ['Quantili long/short', (det.long_q*100).toFixed(0)+'% / '+(det.short_q*100).toFixed(0)+'%'],
           ['Gross', (det.propr_gross_override!=null?det.propr_gross_override:det.gross)+'x'+
                     (det.dollar_neutral?' (dollar-neutral)':'')+

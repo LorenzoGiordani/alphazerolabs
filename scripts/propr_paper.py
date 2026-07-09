@@ -43,6 +43,14 @@ PROPR_GROSS_OVERRIDE = 0.3
 # stesso tempo mediano. Latenza 1h del cron orario già modellata nella sim.
 # Il vol targeting è stato testato e FALSIFICATO (peggiora: vol clustering).
 PROPR_DAILY_STOP_PCT = 0.02
+# Tranching (portafogli sovrapposti alla Jegadeesh-Titman): il backtest reb168
+# è fragile alla FASE del rebalance (Sharpe 1.10-2.86, media 2.15, a seconda
+# dell'ora in cui cade il ribilancio settimanale). Fix: 7 sub-book da 1/7 del
+# capitale, ognuno ribilanciato settimanalmente ma in un giorno diverso (slot =
+# ordinale del giorno UTC % 7). Elimina la lotteria di fase e alza lo Sharpe
+# fase-mediato a 2.51 (test 2.57). Costi modellati per sub-book: il netting
+# reale degli ordini a livello asset può solo ridurli. Vedi daily 2026-07-09.
+PROPR_TRANCHE_H = 24
 
 # decimali quantità per prezzo — approssimazione conservativa, l'API rifiuta
 # (e logghiamo) se il tick size è più stretto di quanto assunto qui.
@@ -184,6 +192,7 @@ def _strategy_detail(spec: dict) -> dict:
         "rebalance_h": pf["rebalance_h"], "long_q": pf.get("long_q"), "short_q": pf.get("short_q"),
         "gross": pf.get("gross", 1.0), "propr_gross_override": PROPR_GROSS_OVERRIDE,
         "propr_daily_stop_pct": PROPR_DAILY_STOP_PCT,
+        "propr_tranches": max(1, int(pf["rebalance_h"]) // PROPR_TRANCHE_H),
         "dollar_neutral": pf.get("dollar_neutral", True),
         "max_leverage": spec.get("risk", {}).get("max_leverage"),
         "backtest_12m": {"sharpe": bt.get("sharpe"), "total_return": bt.get("total_return"),
@@ -261,8 +270,11 @@ def main() -> None:
     local_state = json.loads(STATE_PATH.read_text()) if STATE_PATH.exists() else {}
     last_rb = local_state.get("last_rebalance_ts", "")
     from datetime import timedelta
+    # con tranching il runner gira ogni PROPR_TRANCHE_H (sostituisce 1 tranche);
+    # la cadenza effettiva per sub-book resta rebalance_h dello spec
+    n_tranches = max(1, int(rebalance_h) // PROPR_TRANCHE_H)
     due = (not last_rb or
-           datetime.now(timezone.utc) - datetime.fromisoformat(last_rb) >= timedelta(hours=rebalance_h))
+           datetime.now(timezone.utc) - datetime.fromisoformat(last_rb) >= timedelta(hours=PROPR_TRANCHE_H))
 
     # --- circuit breaker giornaliero (vedi PROPR_DAILY_STOP_PCT) ---
     today = datetime.now(timezone.utc).date().isoformat()
@@ -306,18 +318,36 @@ def main() -> None:
             w = xs_momentum_weights(rets, long_q=float(pf.get("long_q", 0.66)),
                                      short_q=float(pf.get("short_q", 0.33)), gross=gross,
                                      dollar_neutral=bool(pf.get("dollar_neutral", True)))
-            target = {s: float(w[s]) * sizing_base for s in w.index if abs(w[s]) > 1e-9}
-            print(f"  REBALANCE dovuto: target {len(target)} gambe su {len(px)} prezzi")
+            tranche = {s: float(w[s]) * sizing_base / n_tranches
+                       for s in w.index if abs(w[s]) > 1e-9}
+            tranches = local_state.get("tranches") or {}
+            if not tranches:
+                # bootstrap: seed di tutte le tranche col segnale corrente — book
+                # subito pieno, la diversificazione di fase si costruisce in 7gg
+                tranches = {str(k): dict(tranche) for k in range(n_tranches)}
+                slot = "seed"
+            else:
+                slot = str(datetime.now(timezone.utc).toordinal() % n_tranches)
+                tranches[slot] = tranche
+            target: dict[str, float] = {}
+            for t in tranches.values():
+                for a, v in t.items():
+                    target[a] = target.get(a, 0.0) + float(v)
+            target = {a: v for a, v in target.items() if abs(v) > 1e-9}
+            print(f"  TRANCHE {slot}/{n_tranches}: target book {len(target)} gambe su {len(px)} prezzi")
             results = rebalance(client, target, px, positions)
             log_event({"type": "rebalance", "strategy": spec["id"], "account_id": account_id,
-                       "equity": round(equity, 2), "target": {k: round(v, 2) for k, v in target.items()},
+                       "equity": round(equity, 2), "tranche_slot": slot,
+                       "target": {k: round(v, 2) for k, v in target.items()},
                        "orders": results})
             last_rb = datetime.now(timezone.utc).isoformat()
             local_state["last_rebalance_ts"] = last_rb
+            local_state["tranches"] = {k: {a: round(v, 2) for a, v in t.items()}
+                                        for k, t in tranches.items()}
             local_state["last_target"] = {k: round(v, 2) for k, v in target.items()}
             positions = client.get_positions()
     else:
-        print(f"  no rebalance (prossimo tra <= {rebalance_h}h da {last_rb})")
+        print(f"  no rebalance (prossima tranche tra <= {PROPR_TRANCHE_H}h da {last_rb})")
     STATE_PATH.write_text(json.dumps(local_state, indent=1))
 
     write_status(client, spec, attempt, positions, last_rb)
