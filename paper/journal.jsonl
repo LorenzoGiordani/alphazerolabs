@@ -5117,3 +5117,14 @@
 {"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9659.84, "open_positions": 65, "logged_at": "2026-07-10T09:17:44.614278+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10095.07, "open_positions": 3, "logged_at": "2026-07-10T09:17:46.275906+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9953.7, "open_positions": 0, "logged_at": "2026-07-10T09:17:46.772681+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 8959.14, "open_positions": 0, "logged_at": "2026-07-10T10:16:02.171546+00:00"}
+{"type": "heartbeat", "strategy": "crypto-trend-flow-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-07-10T10:16:09.504988+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-aggressive-v1", "equity": 8735.89, "open_positions": 2, "logged_at": "2026-07-10T10:16:10.756613+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10095.07, "open_positions": 3, "logged_at": "2026-07-10T10:16:12.568063+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9953.7, "open_positions": 0, "logged_at": "2026-07-10T10:16:13.067190+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9447.08, "open_positions": 42, "logged_at": "2026-07-10T10:16:49.233049+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10322.26, "open_positions": 17, "logged_at": "2026-07-10T10:17:00.812935+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10630.25, "open_positions": 2, "logged_at": "2026-07-10T10:17:48.430819+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10095.07, "open_positions": 3, "logged_at": "2026-07-10T10:17:52.387934+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9953.7, "open_positions": 0, "logged_at": "2026-07-10T10:17:52.891508+00:00"}
+{"type": "close", "strategy": "agents-v1", "symbol": "SUI", "reason": "stopped", "exit_px": 0.7388259204469619, "frac": 1.0, "remaining": 0.0, "pnl_usd": -18.28, "equity": 10076.8, "ts": "2026-07-10 10:00:00+00:00", "logged_at": "2026-07-10T10:18:03.316758+00:00"}
