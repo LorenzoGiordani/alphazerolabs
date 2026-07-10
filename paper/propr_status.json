@@ -6,53 +6,53 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5028.86,
+ "equity": 5026.96,
  "balance": 5016.89,
  "high_water_mark": 5000.0,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.58,
+ "profit_target_progress_pct": 0.54,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.58,
+ "drawdown_room_pct": 6.54,
  "passed": false,
  "breached": false,
  "positions": [
   {
    "asset": "CRV",
    "side": "short",
-   "notional": 253.84,
-   "unrealized_pnl": -3.94
+   "notional": 254.4,
+   "unrealized_pnl": -4.5
   },
   {
    "asset": "SOL",
    "side": "long",
-   "notional": 252.38,
-   "unrealized_pnl": 1.67
+   "notional": 252.54,
+   "unrealized_pnl": 1.83
   },
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 250.35,
-   "unrealized_pnl": 10.08
+   "notional": 249.65,
+   "unrealized_pnl": 9.39
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 246.07,
-   "unrealized_pnl": 1.57
+   "notional": 247.36,
+   "unrealized_pnl": 0.28
   },
   {
    "asset": "SUI",
    "side": "short",
-   "notional": 251.47,
-   "unrealized_pnl": 0.71
+   "notional": 251.54,
+   "unrealized_pnl": 0.63
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 253.27,
-   "unrealized_pnl": 1.88
+   "notional": 253.82,
+   "unrealized_pnl": 2.42
   }
  ],
  "last_rebalance_ts": "2026-07-09T21:19:52.185500+00:00",
@@ -132,6 +132,10 @@
   {
    "ts": "2026-07-10T03:27:29.212604+00:00",
    "equity": 5028.86
+  },
+  {
+   "ts": "2026-07-10T04:25:37.659751+00:00",
+   "equity": 5026.96
   }
  ],
  "strategy_detail": {
@@ -178,5 +182,5 @@
    "promoted_at": "2026-07-06T13:28:01.419518+00:00"
   }
  },
- "updated_at": "2026-07-10T03:27:29.212836+00:00"
+ "updated_at": "2026-07-10T04:25:37.659946+00:00"
 }
