@@ -6,56 +6,68 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5029.14,
- "balance": 5016.85,
+ "equity": 5025.32,
+ "balance": 5014.82,
  "high_water_mark": 5000.0,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.58,
+ "profit_target_progress_pct": 0.51,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.58,
+ "drawdown_room_pct": 6.51,
  "passed": false,
  "breached": false,
  "positions": [
   {
+   "asset": "BTC",
+   "side": "long",
+   "notional": 64.01,
+   "unrealized_pnl": 0.0
+  },
+  {
+   "asset": "NEAR",
+   "side": "short",
+   "notional": 35.94,
+   "unrealized_pnl": 0.0
+  },
+  {
    "asset": "CRV",
    "side": "short",
-   "notional": 256.42,
-   "unrealized_pnl": -6.52
+   "notional": 214.3,
+   "unrealized_pnl": -6.09
   },
   {
    "asset": "SOL",
    "side": "long",
-   "notional": 249.28,
-   "unrealized_pnl": -1.43
+   "notional": 178.58,
+   "unrealized_pnl": -0.83
   },
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 257.27,
-   "unrealized_pnl": 17.0
+   "notional": 250.19,
+   "unrealized_pnl": 14.63
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 245.58,
-   "unrealized_pnl": 2.05
+   "notional": 245.88,
+   "unrealized_pnl": 1.76
   },
   {
    "asset": "SUI",
    "side": "short",
-   "notional": 255.82,
-   "unrealized_pnl": -3.65
+   "notional": 213.88,
+   "unrealized_pnl": -3.86
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 256.22,
-   "unrealized_pnl": 4.83
+   "notional": 249.25,
+   "unrealized_pnl": 4.89
   }
  ],
- "last_rebalance_ts": "2026-07-09T21:19:52.185500+00:00",
+ "last_rebalance_ts": "2026-07-10T22:23:24.334706+00:00",
  "equity_history": [
   {
    "ts": "2026-07-09T08:40:18.846362+00:00",
@@ -204,6 +216,10 @@
   {
    "ts": "2026-07-10T21:18:15.091458+00:00",
    "equity": 5029.14
+  },
+  {
+   "ts": "2026-07-10T22:23:25.658636+00:00",
+   "equity": 5025.32
   }
  ],
  "strategy_detail": {
@@ -250,5 +266,5 @@
    "promoted_at": "2026-07-06T13:28:01.419518+00:00"
   }
  },
- "updated_at": "2026-07-10T21:18:15.091716+00:00"
+ "updated_at": "2026-07-10T22:23:25.658859+00:00"
 }
