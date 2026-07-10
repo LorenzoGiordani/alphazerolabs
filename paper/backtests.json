@@ -3,7 +3,7 @@
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-10T15:20 UTC",
+ "generated_at": "2026-07-10T16:18 UTC",
  "strategies": [
   {
    "id": "commodities-trend-v1",
@@ -13,83 +13,85 @@
    "window": "2025-08-24 → 2026-07-10",
    "basket_size": 5,
    "aggregate": {
-    "mean_sharpe": -1.32,
-    "mean_return": -0.115,
-    "worst_drawdown": -0.1535,
+    "mean_sharpe": -1.1,
+    "mean_return": -0.1006,
+    "worst_drawdown": -0.1661,
     "positive_symbols": "0/5",
-    "consistency": "9/30"
+    "consistency": "10/30"
    },
    "per_symbol": [
     {
      "symbol": "xyz_GOLD",
-     "ret": -0.1302,
-     "sharpe": -1.5,
-     "max_dd": -0.1535,
-     "trades": 50,
-     "win_rate": 0.32,
-     "pf": 0.74,
+     "ret": -0.151,
+     "sharpe": -1.74,
+     "max_dd": -0.1661,
+     "trades": 51,
+     "win_rate": 0.294,
+     "pf": 0.69,
      "consistency": "1/6 fold positivi",
      "exits": {
-      "stopped": 34,
+      "stopped": 36,
       "target": 14,
-      "closed": 2
+      "closed": 1
      }
     },
     {
      "symbol": "xyz_SILVER",
-     "ret": -0.0626,
-     "sharpe": -0.79,
-     "max_dd": -0.12,
-     "trades": 42,
-     "win_rate": 0.333,
-     "pf": 0.84,
-     "consistency": "2/6 fold positivi",
+     "ret": -0.0513,
+     "sharpe": -0.6,
+     "max_dd": -0.0981,
+     "trades": 46,
+     "win_rate": 0.348,
+     "pf": 0.89,
+     "consistency": "3/6 fold positivi",
      "exits": {
-      "stopped": 28,
-      "target": 14
+      "stopped": 30,
+      "target": 16
      }
     },
     {
      "symbol": "xyz_CL",
-     "ret": -0.1372,
-     "sharpe": -1.48,
-     "max_dd": -0.153,
-     "trades": 61,
-     "win_rate": 0.311,
-     "pf": 0.76,
-     "consistency": "2/6 fold positivi",
+     "ret": -0.1148,
+     "sharpe": -1.17,
+     "max_dd": -0.1554,
+     "trades": 64,
+     "win_rate": 0.328,
+     "pf": 0.84,
+     "consistency": "1/6 fold positivi",
      "exits": {
       "stopped": 42,
-      "target": 19
+      "target": 21,
+      "closed": 1
      }
     },
     {
      "symbol": "xyz_BRENTOIL",
-     "ret": -0.1159,
-     "sharpe": -1.24,
-     "max_dd": -0.1388,
-     "trades": 54,
-     "win_rate": 0.333,
-     "pf": 0.75,
+     "ret": -0.0823,
+     "sharpe": -0.79,
+     "max_dd": -0.1318,
+     "trades": 55,
+     "win_rate": 0.364,
+     "pf": 0.86,
      "consistency": "2/6 fold positivi",
      "exits": {
       "stopped": 33,
-      "target": 15,
-      "closed": 6
+      "target": 17,
+      "closed": 5
      }
     },
     {
      "symbol": "xyz_NATGAS",
-     "ret": -0.1292,
-     "sharpe": -1.59,
-     "max_dd": -0.1467,
-     "trades": 44,
-     "win_rate": 0.295,
-     "pf": 0.65,
-     "consistency": "2/6 fold positivi",
+     "ret": -0.1034,
+     "sharpe": -1.2,
+     "max_dd": -0.1579,
+     "trades": 45,
+     "win_rate": 0.333,
+     "pf": 0.73,
+     "consistency": "3/6 fold positivi",
      "exits": {
-      "stopped": 31,
-      "target": 13
+      "stopped": 30,
+      "target": 14,
+      "closed": 1
      }
     }
    ]
@@ -99,7 +101,7 @@
    "status": "challenger",
    "thesis": "Momentum crypto CONFERMATO dal flusso aggressivo (taker buy/sell): il trend supportato da ordini a mercato è più robusto dei breakout in sottigliezza. rule tsmom AND taker_flow, direzione dal trend. Falsificata se non batte il TSMOM semplice su crypto.",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 9,
    "aggregate": {
     "mean_sharpe": 0.0,
@@ -216,13 +218,13 @@
    "engine": "portfolio",
    "thesis": "HIGH-VOL ANOMALY (inverso della classica low-vol anomaly). Nel basket crypto, gli asset PIU' VOLATILI delle ultime 72h sovraperformano i piu' calmi su orizzonti medi. E' ortogonale al momentum: ranka la VOLATILITA' (dev standard dei rendimenti), non il rendimento stesso. Tesi: il",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.45,
-    "mean_return": 0.0117,
-    "worst_drawdown": -0.1335,
+    "mean_sharpe": 0.2,
+    "mean_return": -0.0015,
+    "worst_drawdown": -0.1414,
     "positive_symbols": "market-neutral",
     "consistency": "2/6 fold positivi"
    },
@@ -234,15 +236,15 @@
    "engine": "portfolio",
    "thesis": "LIQUIDATION IMBALANCE cross-sectional a portafoglio: per ogni asset lo sbilancio (liq_short - liq_long)/oi medio degli ultimi 7 giorni; long il top-terzile (dove gli SHORT vengono squeezati), short il bottom, dollar-neutral, ribilancio 24h. E' la versione PORTFOLIO del segnale li",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.58,
-    "mean_return": 0.0155,
-    "worst_drawdown": -0.1066,
+    "mean_sharpe": 1.59,
+    "mean_return": 0.0534,
+    "worst_drawdown": -0.0915,
     "positive_symbols": "market-neutral",
-    "consistency": "2/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -251,21 +253,21 @@
    "status": "challenger",
    "thesis": "Profilo aggressivo sullo stesso edge TSMOM: leva 2x, stop largo, target esteso, più posizioni. Tesi: lasciar correre i trend con stop larghi cattura le code dei movimenti. Falsificata se il drawdown extra non è compensato dal rendimento (Sharpe non superiore a tsmom-v1).",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 8,
    "aggregate": {
-    "mean_sharpe": -1.31,
-    "mean_return": -0.0943,
-    "worst_drawdown": -0.223,
-    "positive_symbols": "0/8",
-    "consistency": "11/48"
+    "mean_sharpe": -0.91,
+    "mean_return": -0.0723,
+    "worst_drawdown": -0.2266,
+    "positive_symbols": "1/8",
+    "consistency": "12/48"
    },
    "per_symbol": [
     {
      "symbol": "BTC",
-     "ret": -0.0131,
-     "sharpe": -2.2,
-     "max_dd": -0.0264,
+     "ret": -0.0126,
+     "sharpe": -2.11,
+     "max_dd": -0.0267,
      "trades": 1,
      "win_rate": 0.0,
      "pf": 0.0,
@@ -276,9 +278,9 @@
     },
     {
      "symbol": "ETH",
-     "ret": -0.0121,
-     "sharpe": -1.75,
-     "max_dd": -0.0235,
+     "ret": -0.0114,
+     "sharpe": -1.63,
+     "max_dd": -0.0238,
      "trades": 1,
      "win_rate": 0.0,
      "pf": 0.0,
@@ -289,87 +291,88 @@
     },
     {
      "symbol": "xyz_GOLD",
-     "ret": -0.1725,
-     "sharpe": -1.37,
-     "max_dd": -0.2092,
-     "trades": 50,
-     "win_rate": 0.32,
-     "pf": 0.76,
+     "ret": -0.1991,
+     "sharpe": -1.6,
+     "max_dd": -0.2266,
+     "trades": 51,
+     "win_rate": 0.294,
+     "pf": 0.71,
      "consistency": "1/6 fold positivi",
      "exits": {
-      "stopped": 34,
+      "stopped": 36,
       "target": 14,
-      "closed": 2
+      "closed": 1
      }
     },
     {
      "symbol": "xyz_CL",
-     "ret": -0.1936,
-     "sharpe": -1.43,
-     "max_dd": -0.2152,
-     "trades": 61,
-     "win_rate": 0.311,
-     "pf": 0.77,
-     "consistency": "2/6 fold positivi",
+     "ret": -0.162,
+     "sharpe": -1.11,
+     "max_dd": -0.2187,
+     "trades": 64,
+     "win_rate": 0.328,
+     "pf": 0.84,
+     "consistency": "1/6 fold positivi",
      "exits": {
       "stopped": 42,
-      "target": 19
+      "target": 21,
+      "closed": 1
      }
     },
     {
      "symbol": "xyz_BRENTOIL",
-     "ret": -0.1942,
-     "sharpe": -1.42,
-     "max_dd": -0.223,
-     "trades": 55,
-     "win_rate": 0.327,
-     "pf": 0.7,
+     "ret": -0.1496,
+     "sharpe": -0.99,
+     "max_dd": -0.194,
+     "trades": 56,
+     "win_rate": 0.357,
+     "pf": 0.8,
      "consistency": "2/6 fold positivi",
      "exits": {
       "stopped": 34,
-      "target": 15,
-      "closed": 6
+      "target": 17,
+      "closed": 5
      }
     },
     {
      "symbol": "xyz_SILVER",
-     "ret": -0.0985,
-     "sharpe": -0.83,
-     "max_dd": -0.179,
-     "trades": 42,
-     "win_rate": 0.333,
-     "pf": 0.83,
-     "consistency": "2/6 fold positivi",
+     "ret": -0.0827,
+     "sharpe": -0.64,
+     "max_dd": -0.1459,
+     "trades": 46,
+     "win_rate": 0.348,
+     "pf": 0.88,
+     "consistency": "3/6 fold positivi",
      "exits": {
-      "stopped": 28,
-      "target": 14
+      "stopped": 30,
+      "target": 16
      }
     },
     {
      "symbol": "xyz_SP500",
-     "ret": -0.0546,
-     "sharpe": -1.06,
-     "max_dd": -0.0825,
+     "ret": 0.0393,
+     "sharpe": 0.77,
+     "max_dd": -0.0642,
      "trades": 16,
-     "win_rate": 0.375,
-     "pf": 0.8,
-     "consistency": "2/6 fold positivi",
+     "win_rate": 0.562,
+     "pf": 1.71,
+     "consistency": "3/6 fold positivi",
      "exits": {
-      "stopped": 10,
-      "target": 6
+      "target": 9,
+      "stopped": 7
      }
     },
     {
      "symbol": "xyz_MU",
-     "ret": -0.016,
-     "sharpe": -0.4,
-     "max_dd": -0.0677,
-     "trades": 6,
-     "win_rate": 0.333,
-     "pf": 0.77,
+     "ret": -0.0006,
+     "sharpe": 0.01,
+     "max_dd": -0.0531,
+     "trades": 5,
+     "win_rate": 0.4,
+     "pf": 1.04,
      "consistency": "1/6 fold positivi",
      "exits": {
-      "stopped": 4,
+      "stopped": 3,
       "target": 2
      }
     }
@@ -381,15 +384,15 @@
    "engine": "portfolio",
    "thesis": "TIME-SERIES momentum sign-based a portafoglio: long ogni asset con ritorno trailing 168h > 0, short se < 0, equal-weight per gamba, ribilancio 24h. A differenza di xsmom (rank RELATIVO, dollar-neutral by-construction) il book puo' diventare net-long/net-short quando i segni conco",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.28,
-    "mean_return": -0.0036,
-    "worst_drawdown": -0.1325,
+    "mean_sharpe": 1.15,
+    "mean_return": 0.0632,
+    "worst_drawdown": -0.1316,
     "positive_symbols": "market-neutral",
-    "consistency": "2/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -399,15 +402,15 @@
    "engine": "portfolio",
    "thesis": "COMBO dei DUE edge ortogonali forti del progetto: xsmom (momentum relativo, corr al beta comune nettato) + HIGH-VOL (risk premium crypto, long alt volatili). I due fattori hanno correlazione rendimenti +0.28 (diversificazione GENUINA, non ridondanza: le varianti xsmom erano corr ",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": -3.35,
-    "mean_return": -0.1136,
-    "worst_drawdown": -0.1574,
+    "mean_sharpe": -2.45,
+    "mean_return": -0.0872,
+    "worst_drawdown": -0.1365,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "2/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -417,15 +420,15 @@
    "engine": "portfolio",
    "thesis": "COMBO 50/50 dei due edge ortogonali (xsmom + highvol, corr 0.28) con VOL-TARGET OVERLAY (Moreira-Muir \"Volatility-Managed Portfolios\" 2017). Il blend-ratio sweep dell'audit di robustezza ha mostrato 50/50 marginalmente > del 70/30 scelto in xsmom-highvol-combo-v1 (Sharpe 2.75 vs ",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 9,
    "vol_target": "on (m medio 0.89)",
    "aggregate": {
-    "mean_sharpe": -3.51,
-    "mean_return": -0.1135,
-    "worst_drawdown": -0.1574,
+    "mean_sharpe": -2.58,
+    "mean_return": -0.0873,
+    "worst_drawdown": -0.1365,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "2/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -435,15 +438,15 @@
    "engine": "portfolio",
    "thesis": "CROSS-SECTIONAL MOMENTUM MULTI-ORIZZONTE. Stesso edge del parent xsmom-port-v1 (rank relativo nel basket, dollar-neutral) ma mediato su 3 orizzonti (lb 96/168/336h): il segnale a 96h cattura i movimenti di medio termine, 168h e' il core del parent, 336h il trend di fondo. La medi",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
     "mean_sharpe": -1.32,
-    "mean_return": -0.0361,
-    "worst_drawdown": -0.1018,
+    "mean_return": -0.0359,
+    "worst_drawdown": -0.0955,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "1/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -453,13 +456,13 @@
    "engine": "portfolio",
    "thesis": "Cross-sectional momentum a PORTAFOGLIO: long il top-terzile del basket per forza relativa (ultime 168h), short il bottom-terzile, dollar-neutral, ribilanciato ogni 168h. Lo stesso edge che da -14.5% nell'engine per-simbolo stop-based (l'IC e troppo sottile per trade discreti) ren",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": -3.66,
-    "mean_return": -0.1167,
-    "worst_drawdown": -0.1538,
+    "mean_sharpe": -2.45,
+    "mean_return": -0.0872,
+    "worst_drawdown": -0.1365,
     "positive_symbols": "market-neutral",
     "consistency": "2/6 fold positivi"
    },
@@ -471,15 +474,15 @@
    "engine": "portfolio",
    "thesis": "Cross-sectional momentum lb168 IDENTICO a xsmom-port-v1 ma ribilanciato ogni 48h invece di 168h. Motivazione dall'OOS split (robustness_portfolio.py, 04/07, train 8m / test 4m mai visti): il config canonico lb168/reb168 crolla OOS (Sharpe 4.18 train -> 0.88 test) mentre lb168/reb",
    "is_benchmark": false,
-   "window": "2026-05-29 → 2026-07-10",
+   "window": "2026-05-30 → 2026-07-10",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 3.3,
-    "mean_return": 0.1128,
-    "worst_drawdown": -0.0546,
+    "mean_sharpe": 3.16,
+    "mean_return": 0.1097,
+    "worst_drawdown": -0.0543,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   }
