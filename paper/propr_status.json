@@ -6,65 +6,65 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5017.73,
+ "equity": 5020.35,
  "balance": 5014.79,
  "high_water_mark": 5000.0,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.35,
+ "profit_target_progress_pct": 0.41,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.35,
+ "drawdown_room_pct": 6.41,
  "passed": false,
  "breached": false,
  "positions": [
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 64.21,
-   "unrealized_pnl": 0.2
+   "notional": 64.19,
+   "unrealized_pnl": 0.18
   },
   {
    "asset": "NEAR",
    "side": "short",
-   "notional": 36.22,
-   "unrealized_pnl": -0.28
+   "notional": 35.76,
+   "unrealized_pnl": 0.18
   },
   {
    "asset": "CRV",
    "side": "short",
-   "notional": 213.64,
-   "unrealized_pnl": -5.42
+   "notional": 212.24,
+   "unrealized_pnl": -4.02
   },
   {
    "asset": "SOL",
    "side": "long",
-   "notional": 178.43,
-   "unrealized_pnl": -0.99
+   "notional": 178.58,
+   "unrealized_pnl": -0.83
   },
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 250.57,
-   "unrealized_pnl": 15.01
+   "notional": 249.64,
+   "unrealized_pnl": 14.08
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 253.05,
-   "unrealized_pnl": -5.41
+   "notional": 251.76,
+   "unrealized_pnl": -4.12
   },
   {
    "asset": "SUI",
    "side": "short",
-   "notional": 215.94,
-   "unrealized_pnl": -5.92
+   "notional": 215.78,
+   "unrealized_pnl": -5.75
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 250.1,
-   "unrealized_pnl": 5.73
+   "notional": 250.21,
+   "unrealized_pnl": 5.84
   }
  ],
  "last_rebalance_ts": "2026-07-10T22:23:24.334706+00:00",
@@ -248,6 +248,10 @@
   {
    "ts": "2026-07-11T06:28:59.726337+00:00",
    "equity": 5017.73
+  },
+  {
+   "ts": "2026-07-11T07:24:50.013817+00:00",
+   "equity": 5020.35
   }
  ],
  "strategy_detail": {
@@ -294,5 +298,5 @@
    "promoted_at": "2026-07-06T13:28:01.419518+00:00"
   }
  },
- "updated_at": "2026-07-11T06:28:59.726575+00:00"
+ "updated_at": "2026-07-11T07:24:50.014077+00:00"
 }
