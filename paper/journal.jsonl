@@ -5321,3 +5321,16 @@
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9952.62, "open_positions": 0, "logged_at": "2026-07-11T04:18:57.559353+00:00"}
 {"type": "skip", "strategy": "geopolitics-v1", "symbol": "xyz:CL", "reason": "posizione esistente o max concorrenti", "logged_at": "2026-07-11T04:23:56.942861+00:00"}
 {"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9569.92, "open_positions": 2, "logged_at": "2026-07-11T04:23:56.947892+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 8956.54, "open_positions": 1, "logged_at": "2026-07-11T05:15:57.573216+00:00"}
+{"type": "heartbeat", "strategy": "crypto-trend-flow-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-07-11T05:16:06.344316+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-aggressive-v1", "equity": 8735.89, "open_positions": 2, "logged_at": "2026-07-11T05:16:07.601852+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10076.35, "open_positions": 3, "logged_at": "2026-07-11T05:16:09.910047+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9952.62, "open_positions": 0, "logged_at": "2026-07-11T05:16:10.434155+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9422.21, "open_positions": 59, "logged_at": "2026-07-11T05:16:55.570720+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 9966.55, "open_positions": 58, "logged_at": "2026-07-11T05:17:02.179338+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10370.49, "open_positions": 17, "logged_at": "2026-07-11T05:18:08.520604+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10666.79, "open_positions": 2, "logged_at": "2026-07-11T05:18:59.033909+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9626.09, "open_positions": 45, "logged_at": "2026-07-11T05:19:05.186707+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10076.35, "open_positions": 3, "logged_at": "2026-07-11T05:21:56.896386+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9952.62, "open_positions": 0, "logged_at": "2026-07-11T05:21:57.416167+00:00"}
+{"type": "heartbeat", "strategy": "geopolitics-v1", "equity": 9569.92, "open_positions": 2, "logged_at": "2026-07-11T05:29:45.300391+00:00"}
