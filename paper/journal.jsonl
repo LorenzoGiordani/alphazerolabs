@@ -5636,3 +5636,14 @@
 {"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10322.32, "open_positions": 17, "logged_at": "2026-07-12T10:17:40.862440+00:00"}
 {"type": "heartbeat", "strategy": "agents-v1", "equity": 10123.87, "open_positions": 2, "logged_at": "2026-07-12T10:17:46.738898+00:00"}
 {"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9952.62, "open_positions": 0, "logged_at": "2026-07-12T10:17:47.298794+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 8956.54, "open_positions": 1, "logged_at": "2026-07-12T11:16:14.365707+00:00"}
+{"type": "heartbeat", "strategy": "crypto-trend-flow-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-07-12T11:16:21.658855+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-aggressive-v1", "equity": 8735.89, "open_positions": 2, "logged_at": "2026-07-12T11:16:22.780673+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10123.87, "open_positions": 2, "logged_at": "2026-07-12T11:16:24.335527+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9952.62, "open_positions": 0, "logged_at": "2026-07-12T11:16:24.850614+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9460.68, "open_positions": 59, "logged_at": "2026-07-12T11:16:51.066027+00:00"}
+{"type": "rebalance", "strategy": "xsmom-multihorizon-v1", "equity": 10299.64, "weights": {"SUI": 2577.8141, "NEAR": -2577.8141, "WLD": -2577.8141, "ZEC": 2577.8141}, "logged_at": "2026-07-12T11:17:02.470156+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10299.64, "open_positions": 4, "logged_at": "2026-07-12T11:17:02.475071+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10513.06, "open_positions": 2, "logged_at": "2026-07-12T11:17:38.035393+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10123.87, "open_positions": 2, "logged_at": "2026-07-12T11:17:41.577938+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9952.62, "open_positions": 0, "logged_at": "2026-07-12T11:17:42.088398+00:00"}
