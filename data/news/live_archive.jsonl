@@ -2644,3 +2644,6 @@
 {"id": "be77b2dc1d45d8d1", "fetched_at": "2026-07-12 04:19:19.516484+00:00", "source": "oilprice", "ts": "2026-07-11 23:00:00+00:00", "title": "The Next Bull Market Could Be Built on Inventory Replenishment"}
 {"id": "7dfcc7a0f9a66bc9", "fetched_at": "2026-07-12 04:19:19.516484+00:00", "source": "oilprice", "ts": "2026-07-11 21:00:00+00:00", "title": "Kansas Becomes Testing Ground for a Radical Nuclear Reactor Design"}
 {"id": "aee09019c7a02829", "fetched_at": "2026-07-12 04:19:19.516484+00:00", "source": "oilprice", "ts": "2026-07-11 19:00:00+00:00", "title": "The Escalating Energy War Between California and the White House"}
+{"id": "94e5bf4bf86a51d4", "fetched_at": "2026-07-12 09:18:10.745137+00:00", "source": "coindesk", "ts": "2026-07-12 06:18:15+00:00", "title": "Bitcoin, ether little changed as U.S. launches fresh Iran strikes"}
+{"id": "3afe819296324583", "fetched_at": "2026-07-12 09:18:10.745137+00:00", "source": "coindesk", "ts": "2026-07-12 06:09:49+00:00", "title": "Ripple once weighed shutting down and handing XRP to shareholders, CEO says"}
+{"id": "d95330932946484f", "fetched_at": "2026-07-12 09:18:10.745137+00:00", "source": "coindesk", "ts": "2026-07-12 05:49:52+00:00", "title": "Bitcoin’s BIP 110 fork deadline nears with miner support at zero"}
