@@ -6,6 +6,10 @@ Ogni run (cron, insieme a paper_trade):
    action=trade) e apre le posizioni. CARTA BIANCA (paper research): il veto
    del Risk role e i cap di sizing/posizioni sono disattivati, vedi decide._hard_bypass.
 
+Con ``--manage-only`` esegue soltanto il punto 1: serve quando il generatore LLM
+è disattivato e impedisce che una vecchia decisione rimasta in coda apra una
+nuova posizione.
+
 Balance fittizio 10k$, dati e prezzi reali. Stesse fee/slippage dell'engine.
 """
 
@@ -106,6 +110,8 @@ def main() -> None:
                          "es. --source agents-v1 per riusare le decisioni del desk storico)")
     ap.add_argument("--target-r", type=float, default=None,
                     help="forza l'RR all'esecuzione (variante A/B; default = RR proposto dall'LLM)")
+    ap.add_argument("--manage-only", action="store_true",
+                    help="aggiorna/chiude le posizioni esistenti senza aprire nuove decisioni")
     args = ap.parse_args()
     ACCOUNT, TARGET_R = args.account, args.target_r
     SOURCE = args.source or ACCOUNT
@@ -139,7 +145,8 @@ def main() -> None:
             del st["positions"][symbol]
 
     # 2. esegui decisioni nuove
-    for d in pending_decisions(st["last_decision_ts"]):
+    decisions = [] if args.manage_only else pending_decisions(st["last_decision_ts"])
+    for d in decisions:
         st["last_decision_ts"] = max(st["last_decision_ts"], d["logged_at"])
         # ponytail: normalizza PRIMA del check, altrimenti "ETH/USD" non vede la
         # posizione "ETH" già aperta e la riapre come duplicato (bug latente:

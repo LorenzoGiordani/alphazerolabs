@@ -117,6 +117,9 @@ def _providers() -> list[dict]:
     ZAI_API_KEY manca, la catena resta OpenRouter-only (comportamento invariato),
     e viceversa. ask() prova i provider in ordine, degradando al successivo su
     qualsiasi errore."""
+    if os.environ.get("LLM_RUNTIME_DISABLED", "1").lower() not in {"0", "false", "no"}:
+        raise RuntimeError(
+            "runtime LLM disabilitato: usa una task Codex/GPT-5.6 revisionabile")
     chain: list[dict] = []
     zai_key = _config("ZAI_API_KEY")
     if zai_key:
