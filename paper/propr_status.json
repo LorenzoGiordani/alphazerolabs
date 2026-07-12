@@ -6,71 +6,71 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5012.94,
- "balance": 5010.98,
+ "equity": 5015.1,
+ "balance": 5010.97,
  "high_water_mark": 5000.0,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.26,
+ "profit_target_progress_pct": 0.3,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.26,
+ "drawdown_room_pct": 6.3,
  "passed": false,
  "breached": false,
  "positions": [
   {
    "asset": "XRP",
    "side": "short",
-   "notional": 35.4,
-   "unrealized_pnl": 0.21
+   "notional": 35.3,
+   "unrealized_pnl": 0.32
   },
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 64.02,
-   "unrealized_pnl": 0.01
+   "notional": 63.99,
+   "unrealized_pnl": -0.03
   },
   {
    "asset": "NEAR",
    "side": "short",
-   "notional": 71.26,
-   "unrealized_pnl": 0.08
+   "notional": 71.07,
+   "unrealized_pnl": 0.28
   },
   {
    "asset": "CRV",
    "side": "short",
-   "notional": 139.74,
-   "unrealized_pnl": -3.21
+   "notional": 138.88,
+   "unrealized_pnl": -2.36
   },
   {
    "asset": "SOL",
    "side": "long",
-   "notional": 142.14,
-   "unrealized_pnl": -2.01
+   "notional": 141.7,
+   "unrealized_pnl": -2.46
   },
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 253.85,
-   "unrealized_pnl": 27.71
+   "notional": 253.59,
+   "unrealized_pnl": 27.45
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 263.02,
-   "unrealized_pnl": -23.47
+   "notional": 261.63,
+   "unrealized_pnl": -22.08
   },
   {
    "asset": "SUI",
    "side": "short",
-   "notional": 180.08,
-   "unrealized_pnl": -4.21
+   "notional": 179.43,
+   "unrealized_pnl": -3.56
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 251.21,
-   "unrealized_pnl": 6.85
+   "notional": 250.92,
+   "unrealized_pnl": 6.55
   }
  ],
  "last_rebalance_ts": "2026-07-11T23:18:34.912052+00:00",
@@ -374,6 +374,10 @@
   {
    "ts": "2026-07-12T13:18:25.620359+00:00",
    "equity": 5012.94
+  },
+  {
+   "ts": "2026-07-12T14:22:44.470413+00:00",
+   "equity": 5015.1
   }
  ],
  "strategy_detail": {
@@ -420,5 +424,5 @@
    "promoted_at": "2026-07-06T13:28:01.419518+00:00"
   }
  },
- "updated_at": "2026-07-12T13:18:25.620593+00:00"
+ "updated_at": "2026-07-12T14:22:44.470668+00:00"
 }
