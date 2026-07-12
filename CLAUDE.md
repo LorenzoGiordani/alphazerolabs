@@ -64,20 +64,24 @@ retirement/promozione via `add_lesson()` (schema compatibile: `trade_key`,
 `symbol=basket`, `verdict`, `lesson`, `tags`). `recall_lessons` in decide.py
 legge entrambi.
 
-### 8. LLM backend con fallback
-Env `ANTHROPIC_*` strippato dal subprocess LLM (proxy DashScope scaduto in
-zshrc dirotta le chiamate). Backend primario: `claude -p` (piano Pro Claude
-Code). Fallback automatico: `opencode run -m opencode-go/glm-5.2` se claude
-fallisce (quota/429/CLI mancante). Trasparente per i chiamanti (`_ask` in
-`decide.py`). In cloud: `paper-run.yml` installa opencode + scrive `auth.json`
-da secret `OPENCODE_GO_API_KEY`.
+### 8. Operazioni LLM via Codex/GPT-5.6
+Dal 12/07/2026 ricerca, review, generazione ed evoluzione LLM vengono svolte in
+task Codex autenticati con la subscription ChatGPT. `scripts/llm.py` resta come
+layer HTTP storico e testabile, ma nei runtime schedulati non può raggiungere
+provider né fare chiamate di rete: la subscription Codex non è una credenziale
+API e non va esportata nel runtime.
+Il layer parte disabilitato e i runtime schedulati impostano esplicitamente
+`LLM_RUNTIME_DISABLED=1`, che prevale anche se sul Mac restano vecchie chiavi
+provider in `.env`.
+Ogni output LLM che può cambiare una strategia richiede artefatto verificabile,
+gate maker/checker e approvazione prima di entrare nel paper trading.
 
 ### 9. Architettura cloud-first
-Paper-run su GitHub Actions (orario via Cloudflare Worker = clock affidabile,
-scheduler nativo GitHub salta i repo privati). Dashboard statica su Cloudflare
-Pages (`lux-ai.pages.dev`, deploy da `paper-run.yml`). Mac = dev box, niente
-processi produttivi residenti. Precompute pesanti (Kronos, GDELT, xsection,
-HMM) in workflow dedicati fuori dall'hot path orario.
+Paper-run deterministico su GitHub Actions (orario via Cloudflare Worker = clock
+affidabile); dashboard statica su Cloudflare Pages (`lux-ai.pages.dev`). Il cloud
+gestisce dati, strategie meccaniche, uscite e pubblicazione. Codex/GPT-5.6 usa la
+subscription sul control plane locale per le sole operazioni LLM revisionabili.
+Precompute pesanti (Kronos, GDELT, xsection, HMM) restano in workflow dedicati.
 
 ### 10. Loop evolutivo: walk-forward + DSR + complessità penalty
 Mai promuovere su backtest solo — il paper trading è il gate finale

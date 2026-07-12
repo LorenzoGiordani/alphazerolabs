@@ -1,8 +1,8 @@
 name: paper-run
 
-# Run 24/7 in cloud: ogni ora anche a Mac spento. Paper trading; l'LLM è GLM-5.2
-# via catena provider: Z AI coding plan (secret ZAI_API_KEY) → fallback OpenRouter
-# (secret OPENROUTER_API_KEY), max effort reasoning.
+# Run 24/7 in cloud: ogni ora anche a Mac spento. Il runtime cloud resta
+# deterministico; ricerca, review ed evoluzione LLM passano da Codex/GPT-5.6
+# autenticato con la subscription ChatGPT e non vengono eseguite in Actions.
 # Trigger orario via Cloudflare Worker (lux-paper-cron) → workflow_dispatch: lo
 # scheduler nativo GitHub saltava le run su repo privato. Worker = clock affidabile.
 on:
@@ -20,11 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      LLM_RUNTIME_DISABLED: "1"
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
       PROPR_API_KEY: ${{ secrets.PROPR_API_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -46,27 +45,14 @@ jobs:
 
       - name: executor agenti
         run: |
-          uv run scripts/agents_paper.py
-          uv run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # A/B RR2: stesse decisioni, zero LLM extra
+          uv run scripts/agents_paper.py --manage-only
+          uv run scripts/agents_paper.py --manage-only --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true
 
       # xsmom-port RIPRESA 26/06: edge +79.8% a 12m, strumentazione paper fixata.
       # Gira tutte le engine:portfolio attive (champion + challenger) via active_specs:
       # niente più glob pattern — ogni futura portfolio viene inclusa automaticamente.
       - name: portfolio paper trading
         run: uv run scripts/portfolio_all.py
-
-      # gira solo se il secret OPENROUTER_API_KEY esiste (OpenRouter → GLM-5.2)
-      - name: pipeline LLM (review + decide)
-        if: env.OPENROUTER_API_KEY != ''
-        run: |
-          uv run scripts/review.py || true
-          uv run scripts/decide.py BTC,ETH,SOL,SUI,ZEC || true
-          uv run scripts/agents_paper.py || true
-          uv run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # variante RR2
-          # Claude Strategy RETIRATA 25/06 (layer LLM non aggiungeva valore): rimosso.
-          # glm-regime-confluence RETIRATA 26/06: zombie (0 trade in 3 giorni, gate sempre chiuso,
-          # non backtestabile desk LLM). Auditor/regime-filter LLM non produce alpha: rimosso.
-          uv run scripts/geopolitics_paper.py || true   # desk macro cross-asset, gated su burst GDELT
 
       # EVOLUZIONE SUL CAMPO — promozione/retrocessione AD OGNI RUN (cheap, LLM-free,
       # gate conservativi: no-op finché non ci sono abbastanza trade chiusi).
@@ -77,34 +63,16 @@ jobs:
       - name: exit-check (chiude retired + TP/SL)
         run: uv run scripts/paper_exits.py || true
 
-      # GENERAZIONE nuovi challenger — GIORNALIERA (00:xx UTC): mutazioni con
-      # expectancy>0 entrano SUBITO in paper, il forward test è il gate vero.
-      # continue-on-error (non `|| true`): un crash rende lo step rosso in Actions
-      # invece di morire muto (lezione: ImportError silenziato per settimane).
-      - name: evolve (genera challenger)
-        if: env.OPENROUTER_API_KEY != ''
-        continue-on-error: true
-        run: |
-          if [ "$(date -u +%H)" = "00" ]; then
-            uv run scripts/evolve_auto.py
-          else
-            echo "evolve: salta (gira alle 00:xx UTC)"
-          fi
-
       - name: propr — champion su onchain prop firm (F8, esecuzione reale su capitale virtuale)
         if: env.PROPR_API_KEY != ''
         continue-on-error: true
         run: uv run scripts/propr_paper.py
 
-      - name: polymarket forecast journal (F7 — calibrazione, non trading)
+      - name: polymarket forecast journal (F7 — risoluzione storico)
         if: always()
-        # predict 1×/giorno (07 UTC, blind sul prezzo, 3 LLM call); resolve ogni
-        # run (solo HTTP, computa i Brier dei mercati scaduti). Gate: N>=30.
-        run: |
-          if [ "$(date -u +%H)" = "07" ]; then
-            uv run scripts/polymarket_paper.py predict --n 3 || true
-          fi
-          uv run scripts/polymarket_paper.py resolve || true
+        # Nessuna nuova previsione LLM nel cloud; risolve soltanto il journal
+        # storico già esistente e mantiene comparabili i Brier score.
+        run: uv run scripts/polymarket_paper.py resolve || true
 
       - name: sync journal → Supabase (idempotente, gated su credenziali)
         if: env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''

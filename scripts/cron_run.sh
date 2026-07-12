@@ -1,10 +1,11 @@
 #!/bin/sh
 # Run periodico della piattaforma (cron ogni 4h).
-# Ordine: challenger segnale-based → executor decisioni agenti → reviewer
-# (solo se CLI claude installata) → dashboard.
+# Ordine: challenger signal-based → executor decisioni già registrate → dashboard.
+# Le nuove operazioni LLM avvengono in task Codex/GPT-5.6, non in questo cron.
 set -u
 ROOT="/Users/lorenzogiordani/PROGETTI/defi-ai-vault"
 UV="/opt/homebrew/bin/uv"
+export LLM_RUNTIME_DISABLED=1
 cd "$ROOT" || exit 1
 
 # log persistente nel progetto, auto-trim a 10k righe (Mac con poco disco)
@@ -19,25 +20,11 @@ stage() { echo "--- $1 [$(date -u '+%H:%M:%S')]"; }
 stage "paper trading strategie attive"
 "$UV" run scripts/paper_all.py
 stage "executor agenti"
-"$UV" run scripts/agents_paper.py || true
-"$UV" run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # A/B RR2, stesse decisioni
+"$UV" run scripts/agents_paper.py --manage-only || true
+"$UV" run scripts/agents_paper.py --manage-only --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true
 # strategie engine:portfolio (xsmom-port, xsmom-multihorizon, highvol-port, combo, voltarget):
 # runner dedicato via active_specs — niente più glob pattern (zombie multihorizon fixato).
 "$UV" run scripts/portfolio_all.py
-
-if command -v claude >/dev/null 2>&1; then
-    stage "reviewer"
-    "$UV" run scripts/review.py || true          # post-mortem trade chiusi
-    # decisione pipeline ogni run (4h) — solo con CLI: usa il piano Pro
-    stage "pipeline decide"
-    "$UV" run scripts/decide.py BTC,ETH,SOL,SUI,ZEC || true
-    "$UV" run scripts/agents_paper.py || true    # esegui subito l'eventuale decisione
-    "$UV" run scripts/agents_paper.py --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true   # variante RR2
-    # Claude Strategy RETIRATA 25/06 (layer LLM non aggiungeva valore): rimosso dal cron.
-    # desk geopolitico: gated su burst GDELT, chiama l'LLM solo se il gate è aperto
-    stage "geopolitics desk"
-    "$UV" run scripts/geopolitics_paper.py || true
-fi
 
 stage "brain"
 "$UV" run scripts/brain_gen.py || true        # rigenera wiki markdown dai dati paper/

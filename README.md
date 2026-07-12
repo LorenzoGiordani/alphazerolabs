@@ -48,14 +48,14 @@ Principi non negoziabili:
 | `backtest/walkforward.py` | Metriche per fold temporali e regime bull/bear/chop |
 | `strategies/FORMAT.md` | Schema artefatto strategia (tesi, segnali, exit, risk immutabile, lineage) |
 | `scripts/run_strategy.py` | Backtest singola strategia su un asset |
-| `scripts/evolve.py` | **Loop evolutivo**: LLM propone mutazioni → valutazione basket → leaderboard |
-| `scripts/decide.py` | **Pipeline agenti**: contesto live → ruoli LLM → hard limits → Risk Manager. LLM: GLM-5.2 (Z.ai Coding Plan) |
-| `scripts/agents_paper.py` | Executor paper delle decisioni pipeline |
+| `scripts/evolve.py` | Loop evolutivo storico/API; le nuove mutazioni LLM passano da task Codex revisionati |
+| `scripts/decide.py` | Pipeline agenti storica/API; non schedulata nel runtime cloud dal 12/07/2026 |
+| `scripts/agents_paper.py` | Gestisce i desk storici; lo scheduler usa `--manage-only` e non apre nuove decisioni LLM |
 | `scripts/claude_strategy.py` | Strategia ibrida: gate tsmom+liq_imbalance → PM LLM avverso |
 | `scripts/glm_strategy.py` | **Strategia glm-5.2**: gate tsmom+xsection (ortogonale) + veto event/crowding → auditor LLM correlazione |
 | `scripts/paper_trade.py` | Paper trading challenger segnale-based (cron) |
-| `scripts/review.py` | Reviewer: post-mortem trade chiusi → `paper/lessons.jsonl` |
-| `scripts/polymarket_paper.py` | **F7**: forecast journal Polymarket — LLM blind vs prezzo, Brier a risoluzione, gate N≥30. Calibrazione, non trading |
+| `scripts/review.py` | Reviewer storico/API; le nuove review LLM passano da Codex con checker |
+| `scripts/polymarket_paper.py` | **F7**: journal Polymarket storico; il cloud risolve le previsioni esistenti ma non ne genera di nuove |
 | `scripts/propr_paper.py` | **F8**: champion (`xsmom-multihorizon-v1`) eseguita via API su [Propr](https://propr.xyz) (onchain prop firm, Hyperliquid) — capitale virtuale ma enforcement regole reale/verificabile, non ledger interno. Pubblico su dashboard |
 | `scripts/dashboard.py` | Dashboard statica (HTML, zero dipendenze) — include sezione **Backtest** onesto || `scripts/backtest_report.py` | Backtest basket multi-asset delle strategie attive (funding storico + slippage size-aware) → `paper/backtests.json` → sezione Backtest |
 | `scripts/robustness_portfolio.py` | **Audit robustezza** edge portfolio: parameter stability + block bootstrap CI + true OOS (8m train / 4m test) |
@@ -247,27 +247,37 @@ in panchina per delisted/estimates a $20 se mai servisse).
 uv sync                                          # dipendenze
 uv run scripts/fetch_universe.py && uv run scripts/fetch_candles.py && uv run scripts/fetch_derivs.py
 uv run scripts/run_strategy.py strategies/tsmom-v1.yaml BTC 6   # backtest
-uv run scripts/decide.py BTC,ETH,SOL --pack      # pipeline (LLM in sessione)
+uv run scripts/decide.py BTC,ETH,SOL --pack      # genera il context pack per Codex
 uv run scripts/dashboard.py && open dashboard/index.html
 sh scripts/cron_run.sh                           # run completo (in crontab ogni 4h)
 ```
 
-**Backend LLM** — un solo modello, **GLM-5.2** via **Z.ai Coding Plan** (pinnato, **max effort** = extended thinking di default). Nessun claude, nessun opencode: il layer unificato `scripts/llm.py` parla l'endpoint Anthropic-Messages del coding plan (`https://api.z.ai/api/anthropic`, header `x-api-key`) con un client HTTP minuscolo (requests). Prompt centralizzati e versionati in `prompts/roles.yaml` (ruolo → system + effort + schema). Il tracing di ogni chiamata finisce in `paper/llm_calls.jsonl` (`uv run scripts/llm_stats.py` per il riepilogo, sezione **LLM** nella dashboard).
+**Operazioni LLM** — dal 12/07/2026 passano da **Codex/GPT-5.6** autenticato
+con la subscription ChatGPT. GitHub Actions e il cron locale non ricevono più
+credenziali Z.ai/OpenRouter e non generano decisioni, review, mutazioni o nuove
+previsioni Polymarket. Il cloud resta attivo per dati, strategie meccaniche,
+uscite, scoring, sincronizzazione e dashboard. La subscription Codex non è una
+API: `scripts/llm.py` resta nel repository come backend HTTP storico/testabile,
+ma è dormiente nei workflow schedulati. Il kill switch
+`LLM_RUNTIME_DISABLED=1` impedisce chiamate accidentali anche se il Mac conserva
+vecchie chiavi provider in `.env`; il valore predefinito è disabilitato.
 
-Capacità del layer:
+Capacità conservate nel layer HTTP storico:
 - **Effort differenziato per ruolo** — Strategist/Analyst/evolve a `max` thinking; Bull/Bear/Risk/Auditor a `low`/`medium` (sono veto, non serve 32k token) → risparmio ~60% token a parità di decisioni.
 - **Structured output nativo** — i ruoli con `schema` (strategist/risk/auditor/…) rispondono via Anthropic tool use forzato → JSON già validato, niente parsing regex fragile.
 - **Self-consistency** — la decisione finale dello Strategist è il majority vote di N=3 campioni (`GLM_SC_N`), riduce la varianza del flip-di-moneta di una singola chiamata LLM.
 - **Cache applicativo** (`GLM_CACHE_DIR`) — memoizza per hash(prompt): eval deterministici, dedup, test a costo zero.
 
-Credenziali (priorità): env `ZAI_API_KEY` → `.env` → config zcode locale (`~/.zcode/v2/config.json`, provider `builtin:zai-coding-plan`). In cloud il workflow legge il secret `ZAI_API_KEY`. Tunable: `GLM_MODEL` (default `GLM-5.2`), `ZAI_BASE_URL`, `GLM_THINKING_BUDGET`. `uv run scripts/llm.py` per lo smoke test. ⚠️ Il caching lato-API (`cache_control`) NON è supportato dal bridge Z.ai (verificato), quindi è tutto client-side.
+Ogni nuova proposta LLM viene quindi prodotta come artefatto Codex, verificata
+da un checker indipendente e soltanto dopo può essere ammessa al paper trading.
+Nessuna chiave della subscription viene copiata nel repository o in Actions.
 
 ## Roadmap
 
 Stato reale (audit giugno 2026, sessione di hardening). M1–M4 costruiti; l'unico gate rimasto prima dei fondi reali è il **track record paper nel tempo** (mesi, non ingegneria).
 
 - [x] M1 — dati, harness, registry, formato strategia, loop evolutivo (3 generazioni)
-- [x] M2 — paper trading live in cron, pipeline agenti end-to-end, reflection loop, **CLI nativa autonoma** in cloud (paper-run.yml: decide+review+promote+evolve orari)
+- [x] M2 — paper trading live; dal 12/07 il cloud esegue solo il runtime deterministico, mentre decide/review/evolve LLM passano da Codex con gate maker/checker
 - [x] COT report CFTC (posizionamento commodities = analogo del funding)
 - [x] Champion/challenger con gate statistico formale (**deflated Sharpe ≥0.95** enforced in `promote.py`)
 - [x] Journal → Supabase (schema + `sync_supabase.py` idempotente + workflow cloud gated; il recall semantico pgvector è cablato, l'embedding da popolare a progetto creato)
