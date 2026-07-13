@@ -75,6 +75,10 @@ Il layer parte disabilitato e i runtime schedulati impostano esplicitamente
 provider in `.env`.
 Ogni output LLM che può cambiare una strategia richiede artefatto verificabile,
 gate maker/checker e approvazione prima di entrare nel paper trading.
+Il Research OS L1 (`scripts/research_pack.py`, `scripts/research_ops.py` e
+`prompts/research_os/`) è ancora più stretto: report-only, census metadata
+all-dex, candele bounded core 24/7, 5–8 famiglie, massimo una candidata al solo
+gate `PREREG_REVIEW_ONLY`. Non modifica repo, vault, paper state o journal.
 
 ### 9. Architettura cloud-first
 Paper-run deterministico su GitHub Actions (orario via Cloudflare Worker = clock

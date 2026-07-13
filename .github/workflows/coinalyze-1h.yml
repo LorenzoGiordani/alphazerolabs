@@ -30,11 +30,27 @@ jobs:
       - name: accumula liquidazioni 1h
         run: uv run scripts/collect_coinalyze_1h.py --symbols BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
 
+      # Lo storico daily serve alla ricerca/backtest, non al paper runner orario.
+      # Il freshness gate evita di riscaricare sette mesi ogni 6h.
+      - name: aggiorna storico daily se scaduto
+        id: coinalyze_daily
+        continue-on-error: true
+        run: >-
+          uv run scripts/fetch_coinalyze.py
+          --symbols BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
+          --months 7
+          --if-fresh-hours 20
+
       - name: commit
         run: |
           git config user.name "coinalyze-1h-cron"
           git config user.email "actions@users.noreply.github.com"
           git add data/coinalyze_1h/
+          # Non pubblicare un daily parziale: continue-on-error mantiene il
+          # collector 1h vivo, ma lo snapshot storico entra solo se completo.
+          if [ "${{ steps.coinalyze_daily.outcome }}" = "success" ]; then
+            git add data/coinalyze/
+          fi
           if ! git diff --cached --quiet; then
             git commit -m "data: coinalyze 1h liq $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
             pushed=0
