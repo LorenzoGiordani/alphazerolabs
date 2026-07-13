@@ -16,6 +16,7 @@ Uso:  .venv/bin/python scripts/fetch_coinalyze.py --symbols BTC,ETH,SOL --months
 import argparse
 import json
 import os
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,8 +25,35 @@ import pandas as pd
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from pipeline.live import atomic_write_text
+
 OUT_DIR = ROOT / "data/coinalyze"
 BASE = "https://api.coinalyze.net/v1"
+
+
+def historical_snapshot_fresh(out_dir: Path, symbols: list[str], max_age_hours: float,
+                              *, months: int | None = None,
+                              now: datetime | None = None) -> bool:
+    """True solo se meta e parquet coprono tutti i simboli richiesti e sono freschi."""
+    if max_age_hours <= 0:
+        return False
+    try:
+        meta = json.loads((out_dir / "_meta.json").read_text(encoding="utf-8"))
+        asof = datetime.fromisoformat(str(meta["asof"]).replace("Z", "+00:00"))
+        if asof.tzinfo is None:
+            return False
+        age = ((now or datetime.now(timezone.utc)) - asof.astimezone(timezone.utc)).total_seconds()
+        covered = set(meta["symbols"])
+        covered_months = int(meta.get("months", 0))
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+    requested = set(symbols)
+    return (-300 <= age <= max_age_hours * 3600
+            and requested <= covered
+            and (months is None or covered_months >= months)
+            and all((out_dir / f"{symbol}.parquet").is_file() for symbol in requested))
 
 
 def api_key() -> str:
@@ -78,32 +106,49 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--symbols", required=True, help="coin crypto, es. BTC,ETH,SOL")
     ap.add_argument("--months", type=int, default=7)
+    ap.add_argument("--if-fresh-hours", type=float, default=0,
+                    help="salta rete e API key se lo snapshot completo e' piu recente")
     args = ap.parse_args()
+    symbols = [coin.strip().upper() for coin in args.symbols.split(",") if coin.strip()]
+    if not symbols:
+        raise SystemExit("--symbols non puo essere vuoto")
+    if args.months <= 0 or args.if_fresh_hours < 0:
+        raise SystemExit("--months deve essere >0 e --if-fresh-hours >=0")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    if historical_snapshot_fresh(OUT_DIR, symbols, args.if_fresh_hours, months=args.months):
+        print(f"  Coinalyze daily: snapshot fresco per {len(symbols)} simboli, skip")
+        return
     s = requests.Session(); s.headers["api_key"] = api_key()
     markets = get(s, "future-markets", None)
     to = int(time.time()); frm = to - (args.months * 31 + 5) * 86400
 
-    for coin in args.symbols.split(","):
-        coin = coin.strip()
+    completed, failed = [], []
+    for coin in symbols:
         syms = perp_symbols(markets, coin)
         if not syms:
-            print(f"  {coin}: nessun perp su Coinalyze"); continue
+            print(f"  {coin}: nessun perp su Coinalyze"); failed.append(coin); continue
         common = {"symbols": ",".join(syms), "interval": "daily", "from": frm, "to": to}
         liq = aggregate(get(s, "liquidation-history", {**common, "convert_to_usd": "true"}),
                         {"liq_long": "l", "liq_short": "s"})
         oi = aggregate(get(s, "open-interest-history", {**common, "convert_to_usd": "true"}),
                        {"oi": "c"})  # OHLC OI: 'c' = close
         if liq.empty:
-            print(f"  {coin}: nessuna liquidazione"); continue
+            print(f"  {coin}: nessuna liquidazione"); failed.append(coin); continue
         df = liq.merge(oi, on="ts", how="left") if not oi.empty else liq
         df.to_parquet(OUT_DIR / f"{coin}.parquet", index=False)
-        (OUT_DIR / "_meta.json").write_text(json.dumps(
-            {"source_url": BASE, "asof": datetime.now(timezone.utc).isoformat()}))
+        completed.append(coin)
         tot = df["liq_long"].sum() + df["liq_short"].sum()
         long_dom = df["liq_long"].sum() / tot * 100 if tot else 0
         print(f"  {coin}: {len(df)} giorni ({df.ts.min().date()}→{df.ts.max().date()}), "
               f"long-liq {long_dom:.0f}% del totale → data/coinalyze/{coin}.parquet")
+    if failed:
+        raise SystemExit(f"snapshot Coinalyze incompleto; simboli falliti: {','.join(failed)}")
+    atomic_write_text(OUT_DIR / "_meta.json", json.dumps({
+        "source_url": BASE,
+        "asof": datetime.now(timezone.utc).isoformat(),
+        "symbols": sorted(completed),
+        "months": args.months,
+    }, indent=2) + "\n")
 
 
 if __name__ == "__main__":

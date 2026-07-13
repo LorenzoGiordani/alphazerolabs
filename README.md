@@ -62,6 +62,9 @@ Principi non negoziabili:
 | `scripts/polymarket_paper.py` | **F7**: journal Polymarket storico; il cloud risolve le previsioni esistenti ma non ne genera di nuove |
 | `scripts/propr_paper.py` | **F8**: challenge virtuale Propr; i portfolio restano bloccati anche con evidence finché universo, sizing e ordini non replicano lo spec verificato |
 | `scripts/runtime_health.py` | Manifest `paper/health.json`, validazione freshness e gate `publish_allowed` |
+| `scripts/research_pack.py` | Census strict all-dex, shortlist candle bounded e contratti content-addressed Daily Maker/Hourly Checker L1 |
+| `scripts/research_ops.py` | Backpressure, kill switch e clean streak 14 giorni dello stato operativo locale report-only |
+| `prompts/research_os/` | Prompt e contratti GPT-5.6 per ricerca quotidiana source-first e review indipendente |
 | `scripts/dashboard.py` | Dashboard statica — include evidence status e endpoint pubblico `/health.json` |
 | `scripts/backtest_report.py` | Backtest basket multi-asset delle strategie attive → `paper/backtests.json` |
 | `scripts/robustness_portfolio.py` | **Audit robustezza** edge portfolio: parameter stability + block bootstrap CI + true OOS (8m train / 4m test) |
@@ -280,6 +283,13 @@ Capacità conservate nel layer HTTP storico:
 Ogni nuova proposta LLM viene quindi prodotta come artefatto Codex, verificata
 da un checker indipendente e soltanto dopo può essere ammessa al paper trading.
 Nessuna chiave della subscription viene copiata nel repository o in Actions.
+
+Il **Research OS L1** separa ulteriormente ricerca ed esecuzione: una task Daily
+Maker censisce via metadata tutti i perp core/HIP-3, arricchisce al massimo 20
+mercati core 24/7 e produce 5–8 famiglie source-first; una task Hourly Checker
+revisiona soltanto il nuovo hash. Al massimo una famiglia arriva a
+`PREREG_REVIEW_ONLY`; `NO_CANDIDATE` è valido. Nessun output L1 può creare una
+strategy spec, aprire P&L/holdout o modificare paper state e journal.
 
 ## Roadmap
 

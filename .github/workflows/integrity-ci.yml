@@ -32,5 +32,8 @@ jobs:
           tests/test_runtime_coverage.py
           tests/test_decide_universe.py
           tests/test_cloud_llm_disabled.py
+          tests/test_research_pack.py
+          tests/test_coinalyze_freshness.py
+          tests/test_research_ops.py
       - name: fatal Python checks
         run: uv run --frozen --with ruff==0.15.8 ruff check --select E9,F63,F7,F82 .

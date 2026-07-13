@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 import os
 import re
 import time
@@ -126,7 +127,17 @@ def canonical_symbol(symbol) -> str:
 
 def _perp_dexs() -> list[str]:
     dexs = _hl_post({"type": "perpDexs"}, timeout=20)
-    return [""] + [d["name"] for d in dexs if d and d.get("name")]
+    if not isinstance(dexs, list):
+        raise RuntimeError("HL perpDexs: expected list")
+    names = [""]
+    for item in dexs:
+        if item is None:  # il core dex e' gia rappresentato da ""
+            continue
+        if not isinstance(item, dict) or not isinstance(item.get("name"), str) or not item["name"]:
+            raise RuntimeError("HL perpDexs: invalid dex entry")
+        if item["name"] not in names:
+            names.append(item["name"])
+    return names
 
 
 def _hl_post(payload: dict, *, timeout: int = 30, attempts: int = 3):
@@ -157,6 +168,63 @@ def _hl_post(payload: dict, *, timeout: int = 30, attempts: int = 3):
                 # una finestra di rate limit gia parzialmente consumata.
                 time.sleep(2 ** attempt)
     raise RuntimeError(f"HL request fallita dopo {attempts} tentativi: {last}") from last
+
+
+def _finite_market_number(value, field: str) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError(f"HL metaAndAssetCtxs: invalid {field}") from exc
+    if not math.isfinite(number):
+        raise RuntimeError(f"HL metaAndAssetCtxs: invalid {field}")
+    return number
+
+
+def perp_market_snapshot() -> list[dict]:
+    """Snapshot strict di tutti i perp core e HIP-3.
+
+    A differenza di ``perp_universe`` non applica fallback: se manca una venue o
+    un context il census di ricerca e' incompleto e il chiamante deve fermarsi.
+    """
+    rows: list[dict] = []
+    for dex in _perp_dexs():
+        data = _hl_post({"type": "metaAndAssetCtxs", "dex": dex}, timeout=20)
+        if not isinstance(data, list) or len(data) != 2 or not isinstance(data[0], dict):
+            raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid response shape")
+        universe, contexts = data[0].get("universe"), data[1]
+        if not isinstance(universe, list) or not isinstance(contexts, list):
+            raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid lists")
+        if len(universe) != len(contexts):
+            raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: universe/context mismatch")
+        for asset, context in zip(universe, contexts):
+            if not isinstance(asset, dict) or not isinstance(context, dict):
+                raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid asset context")
+            name = asset.get("name")
+            if not isinstance(name, str) or not name:
+                raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid symbol")
+            if "isDelisted" in asset and not isinstance(asset["isDelisted"], bool):
+                raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid isDelisted")
+            mark = _finite_market_number(context.get("markPx"), "markPx")
+            prev_day_px = _finite_market_number(context.get("prevDayPx"), "prevDayPx")
+            volume = _finite_market_number(context.get("dayNtlVlm"), "dayNtlVlm")
+            open_interest = _finite_market_number(context.get("openInterest"), "openInterest")
+            max_leverage = _finite_market_number(asset.get("maxLeverage"), "maxLeverage")
+            funding = _finite_market_number(context.get("funding"), "funding")
+            if mark <= 0 or prev_day_px <= 0 or volume < 0 or open_interest < 0 or max_leverage <= 0:
+                raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid market values")
+            rows.append({
+                "symbol": name if not dex or ":" in name else f"{dex}:{name}",
+                "dex": dex,
+                "delisted": asset.get("isDelisted", False),
+                "mark": mark,
+                "prev_day_px": prev_day_px,
+                "change_24h": mark / prev_day_px - 1,
+                "volume_24h_usd": volume,
+                "open_interest_usd": open_interest * mark,
+                "funding": funding,
+                "max_leverage": max_leverage,
+            })
+    return rows
 
 
 def _dedup_by_underlying(rows: list[tuple[str, float]]) -> list[tuple[str, float]]:
@@ -436,7 +504,7 @@ def sanitize_headline(text, max_len: int = 240) -> str:
     return t[:max_len].strip()
 
 
-def news_headlines(max_age_h: int = 36) -> list[dict]:
+def news_headlines(max_age_h: int = 36, *, archive: bool = True) -> list[dict]:
     """Titoli RSS recenti, timestampati. Fonti gratuite e affidabili."""
     cutoff = datetime.now(timezone.utc) - timedelta(hours=max_age_h)
     out = []
@@ -456,7 +524,8 @@ def news_headlines(max_age_h: int = 36) -> list[dict]:
         except Exception:
             continue
     out = sorted(out, key=lambda x: x["ts"], reverse=True)
-    _archive_headlines(out)
+    if archive:
+        _archive_headlines(out)
     return out
 
 

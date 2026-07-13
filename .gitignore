@@ -4,6 +4,9 @@ data/*
 !data/hl_oi/
 # forward-collection liquidazioni 1h Coinalyze: accumula oltre la retention, NON rigenerabile
 !data/coinalyze_1h/
+# snapshot daily Coinalyze: piccolo, rigenerabile e versionato per il freshness gate dedicato
+!data/coinalyze/
+!data/coinalyze/**
 # cache forecast Kronos: versionata per il cloud (rigenerata dal workflow kronos-precompute)
 !data/kronos/
 # cache rank cross-sectional xsection_momentum: versionata per il cloud (workflow xsection-precompute)
