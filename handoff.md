@@ -1,4 +1,4 @@
-# Handoff — DeFi AI Vault (lux-ai)
+# Handoff — AlphaZero Labs
 
 > **Per chi entra ora nel progetto e non ha ancora letto il codice.**
 > Snapshot al 2026-06-29. Questo file è l'onboarding. La documentazione tecnica canonica resta `README.md`; le note narrative per strategia stanno in `brain/` (vedi §13).
@@ -20,7 +20,7 @@ Due prodotti, in sequenza:
 - **Prodotto 1 — "ricerca in pubblico" (ora).** Una dashboard one-page che mostra journal delle tesi, lezioni dagli errori, e l'albero genealogico delle strategie. Pubblico target: trader retail sofisticati che leggono numeri per mestiere. Riferimento concettuale: Alpha Arena / nof1, ma continuo. Tono: rigoroso, trasparente, zero hype. *Mostrare le perdite è il punto di forza, non un imbarazzo.*
 - **Prodotto 2 — vault on-chain (solo dopo track record dimostrato).** Un vault su Hyperliquid (HyperEVM, standard ERC-4626) dove utenti depositano fondi reali gestiti dalla strategia campione. **Questo è M5 e il gate per arrivarci è il TEMPO**, non il codice (vedi §11).
 
-Il design doc completo e le decisioni storiche stanno nel vault Obsidian (`Projects/Active/DeFi AI Vault`).
+Il design doc completo e le decisioni storiche stanno nel vault Obsidian (`Projects/Active/AlphaZero Labs`).
 
 ## 3. Glossario — i concetti che servono per leggere tutto il resto
 

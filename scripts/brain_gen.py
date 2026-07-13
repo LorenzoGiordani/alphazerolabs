@@ -175,7 +175,7 @@ def page_strategy(strat: str, data: dict) -> str:
 
 
 def page_index(data: dict, strats: list[str]) -> str:
-    L = ["# Brain — DeFi AI Vault", "",
+    L = ["# Brain — AlphaZero Labs", "",
          "_Wiki auto-generato da `scripts/brain_gen.py`. Non editare a mano: "
          "rigenerato a ogni paper run dai dati in `paper/`._", "",
          "Pagine: [[lessons]] · [[timeline]] · [[glossary]]", "",

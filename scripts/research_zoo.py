@@ -1,7 +1,7 @@
 """F2 piano integrazioni: sweep dei 456 fattori Alpha Zoo (Vibe-Trading, MIT)
 sul basket crypto, con gate pre-registrato PRIMA di guardare i risultati.
 
-Protocollo (Obsidian: "DeFi AI Vault — Piano test integrazioni esterne"):
+Protocollo (Obsidian: "AlphaZero Labs — Piano test integrazioni esterne"):
   1. panel daily (resample da candele 1h locali), fwd return 1g e 7g
   2. per fattore: IC + random-control (permutation, alpha_t) su entrambi gli
      orizzonti — soglia 3.5 (Harvey-Liu-Zhu: 456 prove = multiple testing)

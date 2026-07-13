@@ -1,4 +1,4 @@
-# Prompt per Claude (design) — interfaccia "DeFi AI Vault — ricerca in pubblico"
+# Prompt per Claude (design) — interfaccia "AlphaZero Labs — ricerca in pubblico"
 
 Progetta una landing/dashboard one-page per una piattaforma di trading research autonoma. Output: **un singolo file HTML statico** (CSS e JS inline, niente framework, niente backend, niente CDN) che io poi popolerò con dati reali iniettati come JSON in un tag `<script id="data" type="application/json">`.
 

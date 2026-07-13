@@ -1,4 +1,4 @@
--- DeFi AI Vault — trade journal + memoria (Supabase / Postgres + pgvector)
+-- AlphaZero Labs — trade journal + memoria (Supabase / Postgres + pgvector)
 -- Design doc: sezione 4 (memoria e auto-miglioramento)
 -- Applicazione una-tantum (vedi scripts/sync_supabase.py per il sync incrementale):
 --   supabase db push   (o:  psql "$DATABASE_URL" -f db/schema.sql)

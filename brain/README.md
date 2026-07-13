@@ -1,4 +1,4 @@
-# Brain — DeFi AI Vault
+# Brain — AlphaZero Labs
 
 _Wiki auto-generato da `scripts/brain_gen.py`. Non editare a mano: rigenerato a ogni paper run dai dati in `paper/`._
 

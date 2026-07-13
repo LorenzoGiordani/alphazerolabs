@@ -42,7 +42,7 @@ npx wrangler@4 tail lux-paper-cron   # vedi i dispatch live
 ```
 
 `dispatchGH(env, workflow)` è l'helper già usato dagli altri trigger nel Worker
-(POST `https://api.github.com/repos/LorenzoGiordani/lux-ai/actions/workflows/
+(POST `https://api.github.com/repos/LorenzoGiordani/alphazerolabs/actions/workflows/
 <workflow>/dispatches` con `GH_PAT` come bearer).
 
 ## Frequenza consigliata
