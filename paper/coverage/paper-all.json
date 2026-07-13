@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "run_id": "29252432146-1",
+  "generated_at": "2026-07-13T13:11:56.283475+00:00",
+  "component": "paper-all",
+  "critical": true,
+  "expected_count": 2,
+  "observed_count": 2,
+  "missing": [],
+  "status": "pass"
+}

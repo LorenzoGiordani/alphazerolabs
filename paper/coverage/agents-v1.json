@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "run_id": "29252432146-1",
+  "generated_at": "2026-07-13T13:11:56.817775+00:00",
+  "component": "agents-v1",
+  "critical": true,
+  "expected_count": 0,
+  "observed_count": 0,
+  "missing": [],
+  "status": "pass"
+}

@@ -584,6 +584,15 @@ footer .foot-mark b{ color:var(--amber); }
   border:1px solid var(--amber-dim); background:var(--amber-wash); border-radius:var(--r);
   padding:10px 14px; margin:16px 0 0; font-family:var(--mono); font-size:12px; }
 #change-banner .cb-x{ margin-left:auto; cursor:pointer; color:var(--text-3); }
+#health-banner{ display:flex; align-items:center; gap:10px; margin:16px 0 4px; padding:10px 14px;
+  border:1px solid var(--line-2); border-radius:var(--r); font-family:var(--mono); font-size:11px; }
+#health-banner .hb-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
+#health-banner.healthy{ color:var(--green); border-color:var(--green-dim); background:rgba(66,190,130,.06); }
+#health-banner.healthy .hb-dot{ background:var(--green); }
+#health-banner.degraded{ color:var(--amber); border-color:var(--amber-dim); background:var(--amber-wash); }
+#health-banner.degraded .hb-dot{ background:var(--amber); }
+#health-banner.critical,#health-banner.unknown{ color:var(--red); border-color:rgba(220,90,90,.45); background:rgba(220,90,90,.07); }
+#health-banner.critical .hb-dot,#health-banner.unknown .hb-dot{ background:var(--red); }
 @media (prefers-reduced-motion: reduce){
   /* drop movement (pulses, draw, chevron rotate); keep gentle opacity/color/border feedback */
   *{ animation:none !important; }
@@ -785,6 +794,7 @@ h1,h2,h3,h4,
 
 <main class="wrap">
 
+  <div id="health-banner" class="unknown"><span class="hb-dot"></span><span>Health non verificata</span></div>
   <div id="change-banner"></div>
 
 
@@ -853,7 +863,7 @@ h1,h2,h3,h4,
 
   const VERDICT_IT = { approve:'approva', reduce:'riduci', veto:'veto', sistema:'automatica' };
   const REASON_IT  = { stopped:'stop', target:'target', vetoed:'veto', manual:'manuale', time:'tempo' };
-  const STATUS_IT  = { candidate:'candidata', challenger:'sfidante', champion:'campione', retired:'ritirata' };
+  const STATUS_IT  = { candidate:'candidata', challenger:'sfidante', champion:'campione paper', retired:'ritirata' };
   const LVERD_IT   = { thesis_wrong:'tesi errata', execution_issue:'problema esecuzione', thesis_right:'tesi corretta' };
   const ACCT_SHORT = {};
 
@@ -1495,7 +1505,7 @@ h1,h2,h3,h4,
   /* ---------- render: strategie spiegate ---------- */
   function renderStrats(){
     const host=$('#strats'); if(!host) return; host.innerHTML='';
-    const ST_IT={champion:'campione',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata'};
+    const ST_IT={champion:'campione paper',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata'};
     const all=DATA.strategies||[];
     // il badge #1/#2/#3 è un counter CSS: senza sort mostrava l'ordine dei FILE.
     // Ordina per PnL paper realizzato (il numero visibile sulla card).
@@ -1507,6 +1517,8 @@ h1,h2,h3,h4,
       const tags=[s.asset_class,s.risk_profile].filter(Boolean)
         .map(t=>'<span class="s-tag">'+escHtml(t)+'</span>').join('');
       const stat=s.status?'<span class="s-stat '+escHtml(s.status)+'">'+escHtml(ST_IT[s.status]||s.status)+'</span>':'';
+      const evidence=s.evidence?'<span class="s-stat '+(s.evidence.verified?'champion':'retired')+'">'+
+        (s.evidence.verified?'evidenza verificata':'evidenza bloccata')+'</span>':'';
       const paper=((s.stats&&s.stats.n_closed)?'<div class="s-row" style="margin-top:6px"><span class="s-k">Paper</span><span class="num">'+
         s.stats.n_closed+'t · WR '+Math.round((s.stats.win_rate||0)*100)+'% · <span class="'+clsOf(s.stats.total_pnl||0)+'">'+signedUsd(s.stats.total_pnl||0)+'</span></span></div>':'');
       // motivo dal lifecycle.jsonl (evento retire reale); euristica solo come fallback
@@ -1520,7 +1532,7 @@ h1,h2,h3,h4,
         (s.stats.n_closed?'<span><b>Trade</b> '+s.stats.n_closed+'</span>':'')+
         '<span><b>Motivo</b> '+escHtml(motivo)+'</span></div>':'';
       card.innerHTML =
-        '<div class="s-head"><h3>'+escHtml(s.nome)+'</h3>'+stat+'</div>'+
+        '<div class="s-head"><h3>'+escHtml(s.nome)+'</h3>'+stat+evidence+'</div>'+
         (tags?'<div class="s-tags">'+tags+'</div>':'')+
         '<p class="s-cosa">'+glossify(escHtml(s.cosa))+'</p>'+
         '<div class="s-row"><span class="s-k">Entra</span><span>'+glossify(escHtml(s.entra))+'</span></div>'+
@@ -1602,7 +1614,7 @@ h1,h2,h3,h4,
     });
     if(foot) foot.innerHTML='Backtest onesto: media per-simbolo (mai pooled), fee+funding storico+slippage size-aware inclusi. Le barre mostrano la dispersione — l\'edge reale è nel numero di asset positivi, non nel picco su uno solo.';
   }
-  const ST_IT_B={champion:'campione',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata',paper:'paper'};
+  const ST_IT_B={champion:'campione paper',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata',paper:'paper'};
 
   function renderStrategyDetail(id){
     const host=$('#strat-detail'); if(!host) return;
@@ -1611,7 +1623,7 @@ h1,h2,h3,h4,
     const trades=(DATA.tradebook||[]).filter(t=>t.strategy===id);
     const title=$('#sd-title'); if(title) title.textContent=s?s.nome:(a?a.label:id);
     if(!s&&!a){ host.innerHTML=emptyBox('Strategia non trovata','Questo ID non corrisponde ad alcuna strategia o conto registrato. Torna all\'elenco con il link in alto per vedere tutti i conti attivi.', false); return; }
-    const ST_IT={champion:'campione',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata'};
+    const ST_IT={champion:'campione paper',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata'};
     let html='';
     // scheda spiegazione
     if(s){
@@ -2009,11 +2021,11 @@ h1,h2,h3,h4,
     });
   }
   // feed eventi del ciclo di vita: promozioni / retrocessioni automatiche (evoluzione sul campo)
-  const EV_IT={promote:'promossa a champion', retire:'ritirata', dethrone:'spodestata'};
+  const EV_IT={promote:'promossa a campione paper', retire:'ritirata', dethrone:'spodestata'};
   function renderLifecycle(){
     const host=$('#lifecycle'); if(!host) return;
     const evs=DATA.lifecycle||[];
-    if(!evs.length){ host.innerHTML=emptyBox('Nessuna mossa evolutiva ancora','Quando uno sfidante supera il campione per N trade chiusi con DSR ≥ 0,95, il sistema lo promuove in automatico. Le retrocessioni scattano sul drawdown. Qui appariranno entrambe.', false); return; }
+    if(!evs.length){ host.innerHTML=emptyBox('Nessuna mossa evolutiva ancora','La promozione richiede performance paper, DSR ≥ 0,95, holdout OOS e approvazione di un checker indipendente. Le retrocessioni scattano sul drawdown. Qui appariranno entrambe.', false); return; }
     host.innerHTML=evs.map(e=>{
       const cls=e.event==='promote'?'pos':'neg';
       return '<div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px">'+
@@ -2098,6 +2110,26 @@ h1,h2,h3,h4,
     rows.forEach(r=>{ h+='<tr><td><span class="s-tick">'+r.symbol+'</span></td>'+cols.map(c=>cell(r.signals[c])).join('')+
       '<td style="text-align:center">'+(r.aligned?'<span class="status champion">'+(r.direction==='long'?'▲ LONG':'▼ SHORT')+'</span>':'<span style="color:var(--text-4)">—</span>')+'</td></tr>'; });
     host.innerHTML=h+'</tbody></table></div>';
+  }
+
+  function renderHealth(){
+    const host=$('#health-banner'); if(!host) return;
+    const h=DATA.health||{};
+    let status=h.status||'unknown';
+    const generated=Date.parse(h.generated_at||'');
+    const stale=!isFinite(generated)||(Date.now()-generated)>2*60*60*1000||(generated-Date.now())>5*60*1000;
+    if(stale) status='unknown';
+    if(h.publish_allowed===false && status!=='unknown') status='critical';
+    const problems=(h.validation_reasons||[]).concat(h.errors||[],h.warnings||[]);
+    const labels={
+      healthy:'Pipeline verificata: tutti i controlli critici sono verdi.',
+      degraded:'Pipeline verificata con avvisi non critici.',
+      critical:'Pubblicazione bloccata: almeno un controllo critico è fallito.',
+      unknown:'Health assente o scaduta: i dati visibili sono l’ultimo snapshot verificato.'
+    };
+    host.className=status;
+    host.innerHTML='<span class="hb-dot"></span><span>'+escHtml(labels[status]||labels.unknown)+
+      (problems.length?' <b>'+escHtml(problems.join(', '))+'</b>':'')+'</span>';
   }
 
   // banner "cosa è cambiato dall'ultimo accesso" (localStorage)
@@ -2186,7 +2218,7 @@ h1,h2,h3,h4,
     [renderDigest,renderSummary,renderVerdict,renderAccounts,renderPositions,renderFeed,renderLessons,
      renderTree,renderLifecycle,renderEvents,renderNews,renderStrats,renderBook,
      renderPortfolioKpi,renderRiskPanel,renderSignalsMatrix,
-     renderBacktests,renderPortfoliosLive,renderChangeBanner
+     renderBacktests,renderPortfoliosLive,renderHealth,renderChangeBanner
     ].forEach(function(fn){ try{ fn(); }catch(e){ console.warn('render', fn.name, e); } });
   }
   // ricarica i dati pipeline (eventi/decisioni/trade chiusi) senza reload pagina
@@ -2235,6 +2267,7 @@ h1,h2,h3,h4,
     window.addEventListener('hashchange', showRoute);
     startLive();
     setInterval(refreshData, 240000);  // dati pipeline ogni 4 min (no-op se nulla è cambiato)
+    setInterval(renderHealth, 60000);  // una tab aperta passa a stale anche senza nuovi dati
   }
   boot();
 

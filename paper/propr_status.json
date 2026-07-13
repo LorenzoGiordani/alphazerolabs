@@ -512,5 +512,19 @@
    "promoted_at": "2026-07-06T13:28:01.419518+00:00"
   }
  },
- "updated_at": "2026-07-13T12:17:00.387969+00:00"
+ "updated_at": "2026-07-13T13:14:58.713173+00:00",
+ "trading_blocked": true,
+ "trading_block_reason": "evidence_not_verified",
+ "evidence": {
+  "verified": false,
+  "status": "blocked",
+  "reasons": [
+   "manifest_missing",
+   "checker_missing",
+   "portfolio_execution_contract_not_verified"
+  ],
+  "dsr": null,
+  "maker_run_id": null,
+  "checker_run_id": null
+ }
 }
