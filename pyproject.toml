@@ -1,7 +1,7 @@
 [project]
 name = "defi-ai-vault"
 version = "0.1.0"
-description = "Add your description here"
+description = "AlphaZero Labs — ricerca quantitativa e paper trading trasparente con agenti AI"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

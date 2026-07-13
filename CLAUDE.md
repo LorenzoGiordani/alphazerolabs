@@ -1,4 +1,4 @@
-# defi-ai-vault — istruzioni progetto
+# AlphaZero Labs — istruzioni progetto
 
 ## Documentazione — SEMPRE aggiornata
 A fine di ogni sessione di lavoro (o dopo ogni milestone): aggiorna README.md

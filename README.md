@@ -1,4 +1,4 @@
-# DeFi AI Vault — trading research autonoma con agenti AI
+# AlphaZero Labs — trading research autonoma con agenti AI
 
 Piattaforma di trading research che **impara in pubblico**: agenti LLM propongono trade con tesi falsificabili, li eseguono su un conto paper (balance fittizio, prezzi reali), scrivono post-mortem degli errori, e fanno evolvere le strategie di generazione in generazione. Il prodotto è la trasparenza: ogni tesi, errore e lezione è tracciata.
 
@@ -10,7 +10,7 @@ Piattaforma di trading research che **impara in pubblico**: agenti LLM propongon
 - **Prodotto 1**: "ricerca in pubblico" — journal tesi + lezioni + lineage evolutivo pubblici (stile Alpha Arena/nof1, ma continuo)
 - **Prodotto 2** (solo a track record dimostrato): vault on-chain su Hyperliquid (HyperEVM ERC-4626), depositi pubblici gestiti dal champion
 
-Design doc completo in Obsidian (`Projects/Active/DeFi AI Vault`).
+Design doc completo in Obsidian (`Projects/Active/AlphaZero Labs`).
 
 ## Architettura — due loop
 
