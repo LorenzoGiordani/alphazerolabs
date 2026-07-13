@@ -1,7 +1,8 @@
 # TODO: sizing clamp invece di hard_veto (design approvato, da implementare)
 
-Stato: **approvato**, bloccato temporaneamente da bypass di test (vedi sotto).
-Implementare quando il bypass verrà rimosso.
+Stato: **approvato, P1**. Dal 13/07 il bypass storico e' OFF di default e il
+percorso Codex forza i cap; il clamp resta un miglioramento separato, non un
+prerequisito per il desk fail-closed.
 
 ## Contesto
 69 trade su 69 bloccati (storico) lo erano SOLO per sizing: leva 31, risk_pct 22,

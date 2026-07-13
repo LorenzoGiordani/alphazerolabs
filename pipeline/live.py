@@ -1,5 +1,6 @@
 """Dati live per pipeline e paper trading (Binance fapi + RSS news, gratis)."""
 
+import math
 import re
 import time
 from datetime import datetime, timedelta, timezone
@@ -119,9 +120,109 @@ def canonical_symbol(symbol) -> str:
     return _COMMODITY_VENUE.get(base, base)
 
 
+def _hl_post(payload: dict, timeout: int = 30):
+    """POST Hyperliquid con errori diagnostici e retry solo su 429/5xx."""
+    request_type = str(payload.get("type", "unknown"))
+    for attempt in range(3):
+        response = None
+        try:
+            response = requests.post(_INFO, json=payload, timeout=timeout)
+            response.raise_for_status()
+        except requests.HTTPError as exc:
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status is None:
+                status = getattr(response, "status_code", None)
+            if status is not None and (status == 429 or 500 <= status <= 599) and attempt < 2:
+                retry_after = getattr(response, "headers", {}).get("Retry-After")
+                try:
+                    delay = min(max(float(retry_after), 0.0), 2.0)
+                except (TypeError, ValueError):
+                    delay = 0.25 * (2 ** attempt)
+                time.sleep(delay)
+                continue
+            body = str(getattr(response, "text", ""))[:160].replace("\n", " ")
+            detail = f" body={body!r}" if body else ""
+            raise RuntimeError(f"HL {request_type}: HTTP {status or 'unavailable'}{detail}") from exc
+        except requests.RequestException as exc:
+            raise RuntimeError(f"HL {request_type}: HTTP unavailable ({exc})") from exc
+
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise RuntimeError(
+                f"HL {request_type}: invalid JSON (HTTP {response.status_code})"
+            ) from exc
+        if not isinstance(data, (dict, list)):
+            raise RuntimeError(
+                f"HL {request_type}: invalid JSON shape (HTTP {response.status_code})"
+            )
+        return data
+    raise AssertionError("unreachable")
+
+
 def _perp_dexs() -> list[str]:
-    dexs = requests.post(_INFO, json={"type": "perpDexs"}, timeout=20).json()
-    return [""] + [d["name"] for d in dexs if d and d.get("name")]
+    data = _hl_post({"type": "perpDexs"}, timeout=20)
+    if not isinstance(data, list):
+        raise RuntimeError("HL perpDexs: expected list")
+    names = [""]
+    for item in data:
+        if item is None:  # core dex e' gia rappresentato da ""
+            continue
+        if not isinstance(item, dict) or not isinstance(item.get("name"), str) or not item["name"]:
+            raise RuntimeError("HL perpDexs: invalid dex entry")
+        if item["name"] not in names:
+            names.append(item["name"])
+    return names
+
+
+def _finite_number(value, field: str) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError(f"HL metaAndAssetCtxs: invalid {field}") from exc
+    if not math.isfinite(number):
+        raise RuntimeError(f"HL metaAndAssetCtxs: invalid {field}")
+    return number
+
+
+def perp_market_snapshot() -> list[dict]:
+    """Snapshot strict di tutti i perp core e HIP-3; ogni errore invalida il tutto."""
+    rows: list[dict] = []
+    for dex in _perp_dexs():
+        data = _hl_post({"type": "metaAndAssetCtxs", "dex": dex}, timeout=20)
+        if not isinstance(data, list) or len(data) != 2 or not isinstance(data[0], dict):
+            raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid response shape")
+        universe, contexts = data[0].get("universe"), data[1]
+        if not isinstance(universe, list) or not isinstance(contexts, list) or len(universe) != len(contexts):
+            raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: universe/context mismatch")
+        for asset, context in zip(universe, contexts):
+            if not isinstance(asset, dict) or not isinstance(context, dict):
+                raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid asset context")
+            name = asset.get("name")
+            if not isinstance(name, str) or not name:
+                raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid symbol")
+            if "isDelisted" in asset and not isinstance(asset["isDelisted"], bool):
+                raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid isDelisted")
+            mark = _finite_number(context.get("markPx"), "markPx")
+            prev_day_px = _finite_number(context.get("prevDayPx"), "prevDayPx")
+            volume = _finite_number(context.get("dayNtlVlm"), "dayNtlVlm")
+            open_interest = _finite_number(context.get("openInterest"), "openInterest")
+            max_leverage = _finite_number(asset.get("maxLeverage"), "maxLeverage")
+            if mark <= 0 or prev_day_px <= 0 or volume < 0 or open_interest < 0 or max_leverage <= 0:
+                raise RuntimeError(f"HL metaAndAssetCtxs[{dex or 'core'}]: invalid market values")
+            rows.append({
+                "symbol": name if not dex or ":" in name else f"{dex}:{name}",
+                "dex": dex,
+                "delisted": asset.get("isDelisted", False),
+                "mark": mark,
+                "prev_day_px": prev_day_px,
+                "change_24h": mark / prev_day_px - 1,
+                "volume_24h_usd": volume,
+                "open_interest_usd": open_interest * mark,
+                "funding": _finite_number(context.get("funding"), "funding"),
+                "max_leverage": max_leverage,
+            })
+    return rows
 
 
 def _dedup_by_underlying(rows: list[tuple[str, float]]) -> list[tuple[str, float]]:
@@ -148,11 +249,8 @@ def perp_universe(min_vol_usd: float = 250_000) -> list[tuple[str, float]]:
         return _PERP_CACHE[key]
     rows: list[tuple[str, float]] = []
     try:
-        for dex in _perp_dexs():
-            meta, ctxs = requests.post(_INFO,
-                json={"type": "metaAndAssetCtxs", "dex": dex}, timeout=20).json()
-            rows += [(a["name"], float(c["dayNtlVlm"]))
-                     for a, c in zip(meta["universe"], ctxs) if not a.get("isDelisted")]
+        rows = [(r["symbol"], r["volume_24h_usd"])
+                for r in perp_market_snapshot() if not r["delisted"]]
     except Exception:
         return []
     rows = _dedup_by_underlying(sorted((t for t in rows if t[1] >= min_vol_usd), key=lambda t: -t[1]))
@@ -175,25 +273,34 @@ import tempfile  # noqa: E402
 _LIVE_CACHE_DIR = Path(tempfile.gettempdir()) / "luxai_live_cache"
 
 
-def fetch_live_cached(symbol: str, lookback_h: int = 1000) -> dict:
+def fetch_live_cached(symbol: str, lookback_h: int = 1000, with_funding: bool = True) -> dict:
     hr = int(time.time() // 3600)
     safe = symbol.replace(":", "_").replace("/", "_")
-    fp = _LIVE_CACHE_DIR / f"{safe}.{hr}.pkl"
+    fp = _LIVE_CACHE_DIR / f"{safe}.{int(lookback_h)}.{int(with_funding)}.{hr}.pkl"
     if fp.exists():
         try:
             return pickle.loads(fp.read_bytes())
         except Exception:
             pass
-    data = fetch_live(symbol, lookback_h)
+    data = fetch_live(symbol, lookback_h, with_funding=with_funding)
+    tmp_path = None
     try:
-        _LIVE_CACHE_DIR.mkdir(exist_ok=True)
-        fp.write_bytes(pickle.dumps(data))
+        _LIVE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(dir=_LIVE_CACHE_DIR, prefix=fp.name + ".", delete=False) as tmp:
+            tmp_path = Path(tmp.name)
+            pickle.dump(data, tmp)
+        tmp_path.replace(fp)
     except Exception:
+        try:
+            if tmp_path is not None:
+                tmp_path.unlink(missing_ok=True)
+        except OSError:
+            pass
         pass
     return data
 
 
-def fetch_live(symbol: str, lookback_h: int = 1000) -> dict:
+def fetch_live(symbol: str, lookback_h: int = 1000, with_funding: bool = True) -> dict:
     """Candele 1h chiuse + funding da HYPERLIQUID — fonte UNICA. Niente Binance:
     geo-blocca i runner cloud US e ogni tanto restituisce dati corrotti che
     facevano crashare il run intero. Stesso formato del backtest. xyz_* (vecchie
@@ -202,7 +309,7 @@ def fetch_live(symbol: str, lookback_h: int = 1000) -> dict:
     strategia attiva lo usa)."""
     if symbol.startswith("xyz_"):
         return _fetch_yf(symbol)
-    return _fetch_hl(symbol, lookback_h)   # crypto core + HIP-3 (xyz:/builder-dex): tutto da HL
+    return _fetch_hl(symbol, lookback_h, with_funding=with_funding)  # core + HIP-3 da HL
 
 
 HL_INFO = "https://api.hyperliquid.xyz/info"
@@ -259,14 +366,13 @@ def atomic_write_parquet(df, path) -> None:
         raise
 
 
-def _fetch_hl(symbol: str, lookback_h: int) -> dict:
+def _fetch_hl(symbol: str, lookback_h: int, with_funding: bool = True) -> dict:
     """Hyperliquid public info API: candele + funding. Niente taker flow
     (il segnale taker_flow resta neutro — degradazione esplicita, non errore)."""
     end_ms = int(time.time() * 1000)
     start_ms = end_ms - min(lookback_h, 5000) * 3_600_000
-    kl = requests.post(HL_INFO, json={"type": "candleSnapshot", "req": {
-        "coin": symbol, "interval": "1h", "startTime": start_ms, "endTime": end_ms}},
-        timeout=30).json()
+    kl = _hl_post({"type": "candleSnapshot", "req": {
+        "coin": symbol, "interval": "1h", "startTime": start_ms, "endTime": end_ms}})
     if not isinstance(kl, list) or not kl:   # risposta vuota/errore → errore pulito, il chiamante salta il simbolo
         raise RuntimeError(f"HL: candele assenti per {symbol}")
     candles = pd.DataFrame({
@@ -275,16 +381,15 @@ def _fetch_hl(symbol: str, lookback_h: int) -> dict:
         "low": [float(k["l"]) for k in kl], "close": [float(k["c"]) for k in kl],
         "volume": [float(k["v"]) for k in kl]})
     funding = None
-    try:
-        fr = requests.post(HL_INFO, json={"type": "fundingHistory", "coin": symbol,
-                                          "startTime": start_ms}, timeout=30).json()
+    if with_funding:
+        fr = _hl_post({"type": "fundingHistory", "coin": symbol, "startTime": start_ms})
+        if not isinstance(fr, list):
+            raise RuntimeError(f"HL fundingHistory: invalid response shape for {symbol}")
         if fr:
             funding = pd.DataFrame({
                 "ts": pd.to_datetime([f["time"] for f in fr], unit="ms", utc=True),
                 "rate": [float(f["fundingRate"]) for f in fr]})
-    except Exception:
-        pass
-    return {"candles": candles.iloc[:-1].reset_index(drop=True),
+    return {"symbol": symbol, "candles": candles.iloc[:-1].reset_index(drop=True),
             "forming": candles.iloc[-1], "flow": None, "funding": funding}
 
 
@@ -299,7 +404,7 @@ def _fetch_yf(symbol: str) -> dict:
     df = from_yfinance(symbol.removeprefix("xyz_"), start)
     if df is None or df.empty:
         raise RuntimeError(f"yfinance vuoto per {symbol}")
-    return {"candles": df.iloc[:-1].reset_index(drop=True),
+    return {"symbol": symbol, "candles": df.iloc[:-1].reset_index(drop=True),
             "forming": df.iloc[-1], "flow": None, "funding": None}
 
 
@@ -330,7 +435,7 @@ def sanitize_headline(text, max_len: int = 240) -> str:
     return t[:max_len].strip()
 
 
-def news_headlines(max_age_h: int = 36) -> list[dict]:
+def news_headlines(max_age_h: int = 36, archive: bool = True) -> list[dict]:
     """Titoli RSS recenti, timestampati. Fonti gratuite e affidabili."""
     cutoff = datetime.now(timezone.utc) - timedelta(hours=max_age_h)
     out = []
@@ -350,7 +455,8 @@ def news_headlines(max_age_h: int = 36) -> list[dict]:
         except Exception:
             continue
     out = sorted(out, key=lambda x: x["ts"], reverse=True)
-    _archive_headlines(out)
+    if archive:
+        _archive_headlines(out)
     return out
 
 

@@ -45,6 +45,19 @@ def test_no_trade_passes():
     assert hard_check({"action": "no_trade"}, atr_by_symbol={"WLD": 9.0}) == []
 
 
+def test_sizing_limits_are_fail_closed_by_default(monkeypatch):
+    monkeypatch.delenv("HARD_LIMITS_BYPASS", raising=False)
+    errs = hard_check({**BASE, "leverage": 3.0})
+    assert any("leva" in e for e in errs)
+
+
+def test_historical_bypass_requires_explicit_one(monkeypatch):
+    monkeypatch.setenv("HARD_LIMITS_BYPASS", "1")
+    proposal = {**BASE, "leverage": 3.0}
+    assert hard_check(proposal) == []
+    assert proposal["_hard_bypass"]
+
+
 def test_universe_exclude_filters():
     spec = {"universe": {"exclude": ["WLD", "CRV"]}, "paper_symbols": "BTC,ETH,WLD,CRV,SOL"}
     assert paper_symbols(spec) == "BTC,ETH,SOL"

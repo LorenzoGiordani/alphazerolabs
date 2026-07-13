@@ -50,6 +50,7 @@ Principi non negoziabili:
 | `scripts/run_strategy.py` | Backtest singola strategia su un asset |
 | `scripts/evolve.py` | Loop evolutivo storico/API; le nuove mutazioni LLM passano da task Codex revisionati |
 | `scripts/decide.py` | Pipeline agenti storica/API; non schedulata nel runtime cloud dal 12/07/2026 |
+| `scripts/codex_desk.py` | Desk subscription-only: census all-symbol, shortlist bounded, pack/hash, checker e ingest fail-closed |
 | `scripts/agents_paper.py` | Gestisce i desk storici; lo scheduler usa `--manage-only` e non apre nuove decisioni LLM |
 | `scripts/claude_strategy.py` | Strategia ibrida: gate tsmom+liq_imbalance → PM LLM avverso |
 | `scripts/glm_strategy.py` | **Strategia glm-5.2**: gate tsmom+xsection (ortogonale) + veto event/crowding → auditor LLM correlazione |
@@ -61,7 +62,7 @@ Principi non negoziabili:
 | `scripts/robustness_portfolio.py` | **Audit robustezza** edge portfolio: parameter stability + block bootstrap CI + true OOS (8m train / 4m test) |
 | `scripts/voltarget_portfolio.py` | **Vol-target overlay** (Moreira-Muir): scala gross inverso a vol realizzata del book, abbatte la coda DD |
 | `scripts/cron_run.sh` | Run unificato ogni 4h (crontab) |
-| `pipeline/live.py` | Dati live: Binance (crypto), yfinance (xyz_*), OI, news RSS 6 fonti |
+| `pipeline/live.py` | Dati live + census perp all-dex; retry/status HL, cache lookback-aware, candele/funding fail-closed |
 | `paper/*.jsonl` | Journal: trade, decisioni con tesi, lezioni — il "prodotto pubblico" |
 | `db/schema.sql` | Schema Postgres/Supabase: trades, decisions, lessons (pgvector), equity_snapshots |
 | `scripts/sync_supabase.py` | Sync incrementale journal→Supabase (idempotente via source_key, no-op senza credenziali) |
@@ -247,7 +248,8 @@ in panchina per delisted/estimates a $20 se mai servisse).
 uv sync                                          # dipendenze
 uv run scripts/fetch_universe.py && uv run scripts/fetch_candles.py && uv run scripts/fetch_derivs.py
 uv run scripts/run_strategy.py strategies/tsmom-v1.yaml BTC 6   # backtest
-uv run scripts/decide.py BTC,ETH,SOL --pack      # genera il context pack per Codex
+uv run scripts/codex_desk.py pack --out /tmp/decision-pack.json  # census all-symbol + shortlist
+uv run scripts/codex_desk.py prompt --pack /tmp/decision-pack.json
 uv run scripts/dashboard.py && open dashboard/index.html
 sh scripts/cron_run.sh                           # run completo (in crontab ogni 4h)
 ```
@@ -271,6 +273,25 @@ Capacità conservate nel layer HTTP storico:
 Ogni nuova proposta LLM viene quindi prodotta come artefatto Codex, verificata
 da un checker indipendente e soltanto dopo può essere ammessa al paper trading.
 Nessuna chiave della subscription viene copiata nel repository o in Actions.
+
+### Desk GPT-5.6 all-symbol
+
+Il nuovo percorso `scripts/codex_desk.py` non effettua chiamate LLM. Censisce in
+modo fail-closed **tutti i perp di tutti i dex Hyperliquid**, conserva il census
+completo e il suo SHA-256 nel pack, poi passa a GPT-5.6 al massimo 12 candidati.
+La shortlist nasce da liquidità/OI e da TSMOM 168/720; la direzione è congelata,
+quindi GPT giudica correlazione, funding, liquidità e rischio ma non predice il
+prezzo. I mercati HIP-3 sono censiti ma restano non ammissibili finché il loro
+calendario a sessione non avrà un gate specifico validato.
+
+Il budget REST è esplicito: massimo 1000 dei 1200 weight/min ufficiali, niente
+`fundingHistory` per ogni simbolo e cache distinta per lookback. Un pack dura due
+ore, contiene commit/prompt version/posizioni aperte e fallisce sotto il 90% di
+coverage dell'enrichment. `check` è read-only; `ingest` richiede una receipt
+`APPROVE` legata agli hash di pack e decisione. L'executor accetta soltanto questi
+record ammessi, rispetta `risk.veto`, massimo 3 posizioni, leva <=2, rischio <=1%,
+stop >= ATR, price drift e size <=0,5% del volume 24h. Il cloud resta comunque in
+`--manage-only`: riattivare nuove entry è un gate separato.
 
 ## Roadmap
 

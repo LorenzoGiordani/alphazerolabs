@@ -24,7 +24,9 @@ esiste ma non è in nessun workflow. Separazione paper/live = gate più importan
 Due sistemi di limiti, deliberately separati per tipo di strategia:
 - **Desk LLM** (`agents-v1`, `claude-strategy-v1`, `glm-regime-confluence-v1`,
   `geopolitics-v1`): `HARD_LIMITS` in `scripts/decide.py` (leva ≤2, risk ≤1%,
-  max 3 posizioni). Enforced da `hard_check()` — insindacabile dall'LLM.
+  max 3 posizioni). Enforced da `hard_check()` — insindacabile dall'LLM. Il
+  bypass storico e' OFF di default e il percorso Codex/executor lo forza OFF
+  anche se una shell locale imposta `HARD_LIMITS_BYPASS=1`.
 - **Strategie meccaniche** (tsmom, xsmom, funding-squeeze, ecc.): blocco
   `risk:` nello YAML, per-strategy. Validato da `validate_spec_risk()` in
   `backtest/lifecycle.py` contro global caps (leva ≤4 con justification,
@@ -75,6 +77,13 @@ Il layer parte disabilitato e i runtime schedulati impostano esplicitamente
 provider in `.env`.
 Ogni output LLM che può cambiare una strategia richiede artefatto verificabile,
 gate maker/checker e approvazione prima di entrare nel paper trading.
+
+Per le decisioni desk usare `scripts/codex_desk.py`: census metadata di tutti i
+perp/dex, shortlist massima 12, direzione TSMOM congelata, pack content-addressed
+con scadenza, decisione GPT-5.6 e receipt di checker indipendente. `check` non
+scrive; solo `ingest` con receipt APPROVE può appendere. L'executor rifiuta record
+legacy/non ammessi, veto Risk, receipt scadute, drift prezzo e size illiquide.
+HIP-3 resta census-only finché non esiste un gate session-aware validato.
 
 ### 9. Architettura cloud-first
 Paper-run deterministico su GitHub Actions (orario via Cloudflare Worker = clock

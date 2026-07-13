@@ -2,9 +2,8 @@
 
 Ogni run (cron, insieme a paper_trade):
 1. aggiorna le posizioni aperte (stop/target/time-stop su candele reali)
-2. ingerisce le decisioni nuove da paper/decisions.jsonl (stage final,
-   action=trade) e apre le posizioni. CARTA BIANCA (paper research): il veto
-   del Risk role e i cap di sizing/posizioni sono disattivati, vedi decide._hard_bypass.
+2. ingerisce soltanto decisioni Codex ammesse (receipt checker, non scadute,
+   risk approve/reduce) e apre le posizioni entro i limiti deterministici.
 
 Con ``--manage-only`` esegue soltanto il punto 1: serve quando il generatore LLM
 è disattivato e impedisce che una vecchia decisione rimasta in coda apra una
@@ -22,7 +21,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
+from backtest.risk import atr_pct
 from pipeline.live import atomic_write_text, canonical_symbol, fetch_live
+from scripts.decide import HARD_LIMITS, hard_check
 from scripts.paper_trade import STATE_FILE, log_event, update_position
 
 # Account che esegue + SORGENTE delle decisioni che consuma. Le decisioni del desk
@@ -35,9 +36,7 @@ ACCOUNT = "agents-v1"
 SOURCE = "agents-v1"        # da quale strategia provengono le decisioni da eseguire
 TARGET_R = None             # None = usa il target_r proposto dall'LLM (comportamento storico)
 DECISIONS = ROOT / "paper/decisions.jsonl"
-# CARTA BIANCA (paper research): nessun cap sul numero di posizioni concorrenti.
-# Voglio vedere quante ne aprono gli LLM senza limite; il cap si taro' dopo.
-MAX_CONCURRENT = 10**9
+MAX_CONCURRENT = HARD_LIMITS["max_concurrent_positions"]
 
 
 def _matches_source(d: dict, source: str) -> bool:
@@ -58,34 +57,91 @@ def pending_decisions(after_ts: str) -> list[dict]:
         if not _matches_source(d, SOURCE):
             continue
         p = d.get("proposal", {})
-        # CARTA BIANCA: il veto del Risk role NON blocca piu' l'esecuzione. Passa
-        # ogni proposta di trade; il size_multiplier di un eventuale "reduce" resta
-        # applicato in open_from_decision (clamp [0,1]). Solo l'action conta.
         if p.get("action") != "trade":
+            continue
+        admission = d.get("admission") or {}
+        provenance = d.get("provenance") or {}
+        if admission.get("status") != "approved" or admission.get("executable") is not True:
+            continue
+        if not provenance.get("pack_id") or not provenance.get("decision_sha256") \
+                or not provenance.get("checker_run_id"):
+            continue
+        try:
+            expiry = datetime.fromisoformat(str(admission["expires_at"]).replace("Z", "+00:00"))
+            if expiry.tzinfo is None or expiry.astimezone(timezone.utc) < datetime.now(timezone.utc):
+                continue
+        except (KeyError, TypeError, ValueError):
+            continue
+        risk = d.get("risk") or {}
+        verdict = risk.get("verdict")
+        try:
+            mult = float(risk.get("size_multiplier"))
+        except (TypeError, ValueError):
+            continue
+        if verdict == "approve" and mult != 1.0:
+            continue
+        if verdict == "reduce" and not 0.0 < mult < 1.0:
+            continue
+        if verdict not in ("approve", "reduce"):
             continue
         out.append(d)
     return out
 
 
-def open_from_decision(d: dict, equity: float) -> dict | None:
+def open_from_decision(d: dict, equity: float, open_positions: int = 0) -> dict | None:
     p = d["proposal"]
     symbol = canonical_symbol(p["symbol"])
+    admission = d.get("admission") or {}
+    provenance = d.get("provenance") or {}
+    if (admission.get("status") != "approved" or admission.get("executable") is not True
+            or not provenance.get("pack_id") or not provenance.get("decision_sha256")
+            or not provenance.get("checker_run_id")):
+        log_event({"type": "skip", "strategy": ACCOUNT, "symbol": symbol,
+                   "reason": "decisione priva di admission Codex approvata"})
+        return None
+    try:
+        expiry = datetime.fromisoformat(str(admission["expires_at"]).replace("Z", "+00:00"))
+        if expiry.tzinfo is None or expiry.astimezone(timezone.utc) < datetime.now(timezone.utc):
+            raise ValueError("expired")
+    except (KeyError, TypeError, ValueError):
+        log_event({"type": "skip", "strategy": ACCOUNT, "symbol": symbol,
+                   "reason": "admission Codex scaduta o senza timezone"})
+        return None
     try:
         data = fetch_live(symbol, lookback_h=50)
     except Exception as e:
         print(f"  {symbol}: fetch fallito ({e})", file=sys.stderr)
         return None
     last = data["candles"].iloc[-1]
+    errs = hard_check(dict(p), open_positions=open_positions,
+                      atr_by_symbol={symbol: float(atr_pct(data["candles"]).iloc[-1]) * 100},
+                      allow_sizing_bypass=False)
+    if errs:
+        log_event({"type": "skip", "strategy": ACCOUNT, "symbol": symbol,
+                   "reason": f"hard limits: {errs}"})
+        return None
     sign = 1 if p["direction"] == "long" else -1
     stop_pct = float(p["stop_pct"]) / 100
-    # clamp [0,1]: multiplier emesso via LLM — un "reduce" con 3.0 aumenterebbe la size
-    mult = max(0.0, min(1.0, float(d["risk"].get("size_multiplier", 1.0))))
+    mult = float(d["risk"]["size_multiplier"])
     exposure = min(float(p["leverage"]), float(p["risk_pct"]) * mult / float(p["stop_pct"]))
     px = float(last.close) * (1 + sign * DEFAULT_SLIPPAGE)
+    reference = float(admission.get("reference_price") or 0)
+    max_drift = float(admission.get("max_price_drift_pct") or 0)
+    drift_pct = abs(float(last.close) / reference - 1) * 100 if reference > 0 else float("inf")
+    if not 0 < max_drift <= 8 or drift_pct > max_drift:
+        log_event({"type": "skip", "strategy": ACCOUNT, "symbol": symbol,
+                   "reason": f"price drift {drift_pct:.2f}% > {max_drift:.2f}%"})
+        return None
+    size_usd = round(exposure * equity, 2)
+    volume = float(admission.get("volume_24h_usd") or 0)
+    if volume <= 0 or size_usd > 0.005 * volume:
+        log_event({"type": "skip", "strategy": ACCOUNT, "symbol": symbol,
+                   "reason": "size oltre 0.5% del volume 24h congelato"})
+        return None
     target_r = TARGET_R if TARGET_R is not None else float(p["target_r"])   # override RR (variante A/B)
     pos = {
         "strategy": ACCOUNT, "symbol": symbol, "direction": p["direction"],
-        "entry_px": px, "size_usd": round(exposure * equity, 2),
+        "entry_px": px, "size_usd": size_usd,
         "stop_px": px * (1 - sign * stop_pct),
         "target_px": px * (1 + sign * stop_pct * target_r),
         "opened_at": str(last.ts), "checked_until": str(last.ts),
@@ -94,6 +150,8 @@ def open_from_decision(d: dict, equity: float) -> dict | None:
         "time_stop_h": int(p.get("time_stop_h") or 96),
         "thesis": p["thesis"], "invalidation": p["invalidation"],
         "decision_ts": d["logged_at"],
+        "pack_id": provenance["pack_id"],
+        "decision_sha256": provenance["decision_sha256"],
     }
     log_event({"type": "open", **pos})
     print(f"  OPEN {symbol} {p['direction']} @ {px:.4g}, size {pos['size_usd']}$ "
@@ -156,7 +214,7 @@ def main() -> None:
             log_event({"type": "skip", "strategy": ACCOUNT, "symbol": symbol,
                        "reason": "posizione esistente o max concorrenti"})
             continue
-        pos = open_from_decision(d, st["equity"])
+        pos = open_from_decision(d, st["equity"], open_positions=len(st["positions"]))
         if pos:
             st["equity"] -= pos["size_usd"] * HL_TAKER_FEE
             st["positions"][symbol] = pos

@@ -4,15 +4,13 @@ Ruoli: Research+Analyst (brief) → Bull vs Bear (debate) → Strategist (propos
 JSON) → hard limit nel codice (veto deterministico, insindacabile) → Risk
 Manager LLM (veto qualitativo). Output: decisione nel journal.
 
-Modi:
-  uv run scripts/decide.py BTC,ETH,SOL              # full auto via GLM-5.2 (Z.ai Coding Plan)
-  uv run scripts/decide.py BTC,ETH,SOL --pack       # stampa contesto+prompt (per ispezione, LLM esterno)
-  uv run scripts/decide.py BTC,ETH,SOL --check p.json  # valida proposta Strategist e logga
+Modi legacy (il nuovo flusso subscription-only e' in scripts/codex_desk.py):
+  uv run scripts/decide.py BTC,ETH,SOL --pack       # context pack storico
+  uv run scripts/decide.py BTC,ETH,SOL --check p.json  # controllo read-only storico
 
-CARTA BIANCA (paper research, default): i limiti di SIZING (leva ≤2, rischio ≤1%,
-stop ≤8%) sono DISATTIVATI — gli LLM propongono senza cap, le violazioni restano
-tracciate. Restano i soli check STRUTTURALI (stop nel rumore/<0.5%, direction,
-tesi/invalidazione). Riattivare i cap deterministici: HARD_LIMITS_BYPASS=0.
+I limiti di sizing sono attivi per default. Il vecchio esperimento carta bianca
+puo essere riprodotto solo con HARD_LIMITS_BYPASS=1 esplicito e non e' ammesso
+dal nuovo protocollo Codex.
 """
 
 import json
@@ -23,16 +21,10 @@ from pathlib import Path
 
 import numpy as np
 
-# CARTA BIANCA (paper research desk, scelta consapevole): i veto di SIZING
-# (leva/risk/stop-largo) sono OFF DI DEFAULT. Siamo in paper e vogliamo osservare
-# cosa propongono gli LLM senza cap deterministici, per poi tarare i limiti sul
-# comportamento reale (draw-down osservato). Le violazioni restano tracciate in
-# `bypassed` sul record. I check STRUTTURALI di hard_check (stop nel rumore, campi
-# mancanti) restano SEMPRE attivi: non fanno crashare il runner.
-# Per riattivare i limiti deterministici: export HARD_LIMITS_BYPASS=0.
+# Il bypass resta soltanto per riprodurre lo storico di ricerca. Fail-closed per
+# default: deve essere richiesto con il valore esatto "1".
 def _hard_bypass() -> bool:
-    # valutato a runtime (non a import). Default ON: solo HARD_LIMITS_BYPASS=0 riattiva i cap.
-    return os.environ.get("HARD_LIMITS_BYPASS", "1") != "0"
+    return os.environ.get("HARD_LIMITS_BYPASS", "0") == "1"
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -189,7 +181,8 @@ def recall_lessons(symbols: list[str], k: int = 10) -> list[dict]:
              "lesson": r.get("lesson"), "tags": r.get("tags", [])} for r in rows[:k]]
 
 
-def hard_check(p: dict, open_positions: int = 0, atr_by_symbol: dict | None = None) -> list[str]:
+def hard_check(p: dict, open_positions: int = 0, atr_by_symbol: dict | None = None,
+               allow_sizing_bypass: bool | None = None) -> list[str]:
     """Strato 1: limiti deterministici. Una violazione = veto, l'LLM non può discutere.
 
     BYPASS TEMPORANEO (env HARD_LIMITS_BYPASS): le violazioni di SIZING (leva,
@@ -204,7 +197,8 @@ def hard_check(p: dict, open_positions: int = 0, atr_by_symbol: dict | None = No
 
     def _sizing_violation(msg: str):
         """Registra una violazione di sizing: veto normale, bypass se attivo."""
-        if _hard_bypass():
+        bypass = _hard_bypass() if allow_sizing_bypass is None else allow_sizing_bypass
+        if bypass:
             bypassed.append(msg)
         else:
             errs.append(msg)
@@ -279,8 +273,6 @@ def main() -> None:
         errs = hard_check(proposal)
         verdict = "hard_veto" if errs else "passed_hard_limits"
         print(f"{verdict}" + (f": {errs}" if errs else ""))
-        log_decision({"stage": "hard_check", "proposal": proposal,
-                      "verdict": verdict, "violations": errs})
         return
 
     ctx = build_context(symbols)

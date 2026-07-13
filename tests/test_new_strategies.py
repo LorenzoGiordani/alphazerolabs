@@ -503,7 +503,14 @@ def test_agents_time_stop_fallback(monkeypatch, tmp_path):
     d = {"proposal": {"symbol": "BTC", "direction": "long", "leverage": 1,
                       "risk_pct": 1.0, "stop_pct": 4.0, "target_r": 2.0,
                       "time_stop_h": 0, "thesis": "t", "invalidation": "i"},
-         "risk": {"size_multiplier": 1.0, "verdict": "approve"}, "logged_at": "2026-06-25T00:00:00+00:00"}
+         "risk": {"size_multiplier": 1.0, "verdict": "approve"},
+         "admission": {"status": "approved", "executable": True,
+                       "expires_at": "2099-01-01T00:00:00+00:00",
+                       "reference_price": 130.0, "max_price_drift_pct": 2.0,
+                       "volume_24h_usd": 10_000_000.0},
+         "provenance": {"pack_id": "test-pack", "decision_sha256": "test-decision",
+                        "checker_run_id": "test-checker"},
+         "logged_at": "2026-06-25T00:00:00+00:00"}
     monkeypatch.setattr(ag, "fetch_live", lambda sym, lookback_h=50: {"candles": _candles()})
     pos = ag.open_from_decision(d, 10000.0)
     assert pos is not None

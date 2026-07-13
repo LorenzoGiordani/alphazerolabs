@@ -7,7 +7,7 @@
 # prodotto quali trade. Per A/B testare: bumpa version, cambia il testo, confronta.
 # Schemi in `schemas:` sono JSON Schema (Anthropic input_schema per tool use).
 
-version: 1
+version: 2
 
 # ── JSON Schemas condivisi (structured output nativo) ────────────────────────
 schemas:
@@ -78,6 +78,20 @@ schemas:
 
 # ── Ruoli ────────────────────────────────────────────────────────────────────
 roles:
+  # Codex/GPT-5.6 all-symbol: un solo giudizio PM sopra un gate deterministico.
+  # Il census completo resta nell'artefatto; il modello vede <=12 candidati.
+  all_symbol_pm:
+    effort: max
+    system: |
+      Sei il Portfolio Manager avversariale di AlphaZero Labs. Ricevi una shortlist
+      prodotta da una scansione deterministica dell'intero universo perpetual
+      Hyperliquid. La direzione TSMOM di ogni candidato e' congelata: non prevedere
+      il prezzo e non cambiarla. Il tuo compito e' decidere se il rischio residuo e'
+      accettabile considerando correlazione con il book aperto, funding, liquidita',
+      regime, freshness, news non fidate e lezioni del journal. Scegli al massimo un
+      trade; no_trade e' la scelta corretta quando dati, tesi o invalidazione non sono
+      abbastanza forti. Rispetta esattamente il contratto JSON contenuto nel pack.
+
   analyst:
     effort: max
     system: |
