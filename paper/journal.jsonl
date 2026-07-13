@@ -5892,3 +5892,14 @@
 {"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10135.74, "open_positions": 6, "logged_at": "2026-07-13T10:16:31.750469+00:00"}
 {"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10468.39, "open_positions": 2, "logged_at": "2026-07-13T10:16:36.247269+00:00"}
 {"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9688.13, "open_positions": 37, "logged_at": "2026-07-13T10:16:38.954453+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 9114.07, "open_positions": 0, "logged_at": "2026-07-13T11:15:25.816668+00:00"}
+{"type": "heartbeat", "strategy": "crypto-trend-flow-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-07-13T11:15:35.960740+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-aggressive-v1", "equity": 8732.65, "open_positions": 3, "logged_at": "2026-07-13T11:15:37.075876+00:00"}
+{"type": "close", "strategy": "agents-v1", "symbol": "SUI", "reason": "time_stop", "exit_px": 0.7315936519999999, "frac": 1.0, "remaining": 0.0, "pnl_usd": -16.9, "equity": 10136.26, "ts": "2026-07-13 10:00:00+00:00", "logged_at": "2026-07-13T11:15:38.455819+00:00"}
+{"type": "close", "strategy": "agents-v1", "symbol": "ZEC", "reason": "stopped", "exit_px": 511.22471665101057, "frac": 1.0, "remaining": -1.0, "pnl_usd": -77.89, "equity": 10058.37, "ts": "2026-07-13 10:00:00+00:00", "logged_at": "2026-07-13T11:15:39.275877+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10058.37, "open_positions": 0, "logged_at": "2026-07-13T11:15:39.281442+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9947.49, "open_positions": 0, "logged_at": "2026-07-13T11:15:39.762876+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9366.26, "open_positions": 59, "logged_at": "2026-07-13T11:16:26.157617+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 10030.98, "open_positions": 2, "logged_at": "2026-07-13T11:16:33.259162+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 9821.48, "open_positions": 3, "logged_at": "2026-07-13T11:16:36.964989+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10274.17, "open_positions": 6, "logged_at": "2026-07-13T11:16:40.058262+00:00"}
