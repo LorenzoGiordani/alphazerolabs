@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29281309566-1",
-  "generated_at": "2026-07-13T20:13:34.991122+00:00",
+  "run_id": "29285289713-1",
+  "generated_at": "2026-07-13T21:13:29.597210+00:00",
   "component": "tsmom-neutral-v1-signal-eligible",
   "critical": false,
-  "expected_count": 129,
-  "observed_count": 127,
+  "expected_count": 128,
+  "observed_count": 126,
   "missing": [
     "CASHCAT",
     "xyz:SKHY"
