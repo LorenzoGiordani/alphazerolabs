@@ -12,7 +12,8 @@ error and lesson is tracked and published here.
 
 ## How to read the data
 
-All published state lives in one file: `https://lux-ai.pages.dev/data.js`
+Published state lives in `https://lux-ai.pages.dev/data.js`; machine-readable
+pipeline freshness also lives at `https://lux-ai.pages.dev/health.json`.
 — JavaScript wrapper, strip the `window.__DATA__ = ` prefix and parse the
 rest as JSON. Top-level keys:
 
@@ -20,7 +21,7 @@ rest as JSON. Top-level keys:
 |---|---|
 | `updated_utc` | Last build timestamp (site rebuilds every ~1h from GitHub Actions) |
 | `accounts` | One paper account per strategy: `equity`, `pnl_realized`, `trades_closed`, `wins`, full `equity_curve` |
-| `strategies` | List of strategies, fields in Italian: `id`, `nome` (friendly name), `cosa` (the thesis in plain language), `entra`/`esce` (entry/exit rules), `rischio` (risk limits), `status` (`champion` / `challenger` / `retired`), `asset_class` |
+| `strategies` | Strategies with paper lifecycle `status`, separate `evidence` verification and derived `evidence_ready` |
 | `tradebook` | Every closed trade: entry/exit, PnL, R-multiple, exit reason |
 | `decisions` | LLM desk decisions with **thesis and invalidation** (falsifiable, always) |
 | `lessons` | Post-mortem lessons journal — including honestly falsified research |
@@ -29,6 +30,7 @@ rest as JSON. Top-level keys:
 | `benchmark` | Buy-and-hold BTC comparison over the same period |
 | `portfolio_live` | Current open positions of the portfolio engines |
 | `digest` | Plain-language summary of what happened today |
+| `health` | Runtime manifest: critical/optional outcomes, freshness and `publish_allowed` |
 
 ## Ground rules of this platform (context for interpretation)
 
@@ -40,13 +42,18 @@ rest as JSON. Top-level keys:
    Failed ideas are published in `lessons`, not hidden.
 3. **Hard risk limits in code** — leverage ≤ 2, risk ≤ 1%/trade, max 3
    positions for LLM desks; the LLM cannot override them.
-4. **Paper track record is the gate** — nothing goes on-chain until the
-   paper record proves the edge over months.
+4. **Paper status is not readiness** — external execution additionally requires
+   DSR ≥ 0.95, OOS PASS and an independent content-addressed checker receipt.
+5. **Fail-closed publication** — missing, invalid or stale health blocks a new
+   deploy; the site labels the last verified snapshot instead of showing false green.
+6. **All-ticker coverage is explicit** — every declared ticker needs a fresh
+   price. Newly listed assets without enough lookback are shown as signal-ineligible,
+   not silently discarded or treated as feed failures.
 
 ## Example questions you can answer from data.js
 
-- "What is the current champion strategy and its thesis?" →
-  `strategies` where `status == "champion"`; the thesis is the `cosa` field
+- "What is the current paper champion and its thesis?" → `strategies` where
+  `status == "champion"`; inspect `evidence.verified` separately
 - "What was the last lesson learned?" → `lessons` (most recent entry)
 - "What is the live track record?" → `accounts` (equity vs 10k start,
   win rate = wins/trades_closed) + `benchmark` for context

@@ -214,19 +214,104 @@ def test_append_lesson_unified_channel(tmp_path, monkeypatch):
     assert "logged_at" in written   # append_lesson aggiunge timestamp
 
 
-def test_promote_dsr_gate_blocks_overfit(tmp_path, monkeypatch):
-    """promote.py non promuove challenger con DSR < MIN_DSR anche se basket_sharpe alto."""
-    import backtest.lifecycle as lc
-    lc.ROOT = tmp_path
-    paper_dir = tmp_path / "paper"
-    paper_dir.mkdir(exist_ok=True)
-    monkeypatch.setattr("backtest.lifecycle.ROOT", tmp_path)
-    monkeypatch.setattr("backtest.lifecycle.JOURNAL", paper_dir / "journal.jsonl")
-    # spec fittizio con DSR basso salvato nel backtest
-    from backtest.lifecycle import backtest_dsr
-    spec = {"backtest": {"basket_6m": {"aggregate": {"dsr": 0.50}}}}
-    assert backtest_dsr(spec) == 0.50
-    # DSR 0.50 < MIN_DSR 0.95 → gate deve bloccare (verificato nella logica promote)
+def test_promote_blocks_without_verified_evidence(tmp_path, monkeypatch):
+    """Il gate viene eseguito davvero: performance paper da sola non promuove."""
+    import scripts.promote as promote
+
+    path = tmp_path / "alpha-g2.yaml"
+    spec = {"id": "alpha-g2", "status": "challenger", "risk": {}}
+    stats = {"n_closed": 40, "basket_mean_r": 0.1, "basket_sharpe_r": 1.2,
+             "sharpe_r": 1.2, "mean_r": 0.1, "win_rate": 0.6,
+             "total_pnl": 100.0, "equity_dd_pct": -1.0, "symbols_traded": 9}
+    changed = []
+    monkeypatch.setattr(promote, "all_specs", lambda: [(path, spec)])
+    monkeypatch.setattr(promote, "paper_stats", lambda _sid: stats)
+    monkeypatch.setattr(promote, "verify_evidence",
+                        lambda _spec, _root: {"verified": False, "reasons": ["manifest_missing"]})
+    monkeypatch.setattr(promote, "set_status", lambda p, status: changed.append((p, status)))
+    monkeypatch.setattr(promote, "log_event", lambda _rec: None)
+    monkeypatch.setattr(promote, "add_lesson", lambda *_args: None)
+    monkeypatch.setattr("sys.argv", ["promote.py", "--min-trades", "20"])
+    promote.main()
+    assert changed == []
+
+
+def test_promote_accepts_verified_independent_evidence(tmp_path, monkeypatch):
+    import scripts.promote as promote
+
+    path = tmp_path / "alpha-g2.yaml"
+    spec = {"id": "alpha-g2", "status": "challenger", "risk": {}}
+    stats = {"n_closed": 40, "basket_mean_r": 0.1, "basket_sharpe_r": 1.2,
+             "sharpe_r": 1.2, "mean_r": 0.1, "win_rate": 0.6,
+             "total_pnl": 100.0, "equity_dd_pct": -1.0, "symbols_traded": 9}
+    changed = []
+    monkeypatch.setattr(promote, "all_specs", lambda: [(path, spec)])
+    monkeypatch.setattr(promote, "paper_stats", lambda _sid: stats)
+    monkeypatch.setattr(promote, "verify_evidence", lambda _spec, _root: {
+        "verified": True, "reasons": [], "dsr": 0.97,
+        "maker_run_id": "maker-1", "checker_run_id": "checker-1"})
+    monkeypatch.setattr(promote, "set_status", lambda p, status: changed.append((p, status)))
+    monkeypatch.setattr(promote, "log_event", lambda _rec: None)
+    monkeypatch.setattr(promote, "add_lesson", lambda *_args: None)
+    monkeypatch.setattr("sys.argv", ["promote.py", "--min-trades", "20"])
+    promote.main()
+    assert changed == [(path, "champion")]
+
+
+def test_promote_never_counts_portfolio_heartbeats_as_trade_gate(tmp_path, monkeypatch):
+    import scripts.promote as promote
+
+    path = tmp_path / "alpha-port-g2.yaml"
+    spec = {"id": "alpha-port-g2", "status": "challenger", "engine": "portfolio"}
+    stats = {"n_closed": 200, "basket_mean_r": 0.1, "basket_sharpe_r": 1.2,
+             "sharpe_r": 1.2, "mean_r": 0.1, "win_rate": 0.6,
+             "total_pnl": 100.0, "equity_dd_pct": -1.0, "symbols_traded": 100}
+    changed = []
+    monkeypatch.setattr(promote, "all_specs", lambda: [(path, spec)])
+    monkeypatch.setattr(promote, "paper_stats", lambda _sid: stats)
+    monkeypatch.setattr(promote, "verify_evidence", lambda *_args: (_ for _ in ()).throw(
+        AssertionError("portfolio must not reach evidence promotion gate")))
+    monkeypatch.setattr(promote, "set_status", lambda p, status: changed.append((p, status)))
+    monkeypatch.setattr("sys.argv", ["promote.py", "--min-trades", "20"])
+
+    promote.main()
+
+    assert changed == []
+
+
+def test_promote_never_repromotes_retired_same_run(tmp_path, monkeypatch):
+    """Regression: la lista challenger non deve restare stale dopo un retire."""
+    import scripts.promote as promote
+
+    path = tmp_path / "alpha-g2.yaml"
+    spec = {"id": "alpha-g2", "status": "challenger", "risk": {}}
+    stats = {"n_closed": 40, "basket_mean_r": 0.1, "basket_sharpe_r": 1.2,
+             "sharpe_r": 1.2, "mean_r": 0.1, "win_rate": 0.6,
+             "total_pnl": -100.0, "equity_dd_pct": -20.0, "symbols_traded": 9}
+    changed = []
+    monkeypatch.setattr(promote, "all_specs", lambda: [(path, spec)])
+    monkeypatch.setattr(promote, "paper_stats", lambda _sid: stats)
+    monkeypatch.setattr(promote, "verify_evidence", lambda _spec, _root: {
+        "verified": True, "reasons": [], "dsr": 0.97,
+        "maker_run_id": "maker-1", "checker_run_id": "checker-1"})
+    monkeypatch.setattr(promote, "set_status", lambda p, status: changed.append((p, status)))
+    monkeypatch.setattr(promote, "log_event", lambda _rec: None)
+    monkeypatch.setattr(promote, "add_lesson", lambda *_args: None)
+    monkeypatch.setattr("sys.argv", ["promote.py", "--min-trades", "20"])
+    promote.main()
+    assert changed == [(path, "retired")]
+
+
+def test_all_specs_rejects_malformed_yaml_instead_of_hiding_it(tmp_path, monkeypatch):
+    import pytest
+    import backtest.lifecycle as lifecycle
+
+    strategies = tmp_path / "strategies"
+    strategies.mkdir()
+    (strategies / "broken.yaml").write_text("id: [unterminated")
+    monkeypatch.setattr(lifecycle, "STRAT_DIRS", [strategies])
+    with pytest.raises(ValueError, match="broken.yaml"):
+        lifecycle.all_specs()
 
 
 def test_paper_exits_closes_retired_positions(tmp_path, monkeypatch):
@@ -268,7 +353,7 @@ def test_paper_exits_closes_retired_positions(tmp_path, monkeypatch):
     import pandas as pd
     candles = pd.DataFrame({"ts": pd.to_datetime(["2026-06-24 12:00"]), "close": [72000.0],
                             "high": [72500.0], "low": [71500.0], "open": [71800.0]})
-    monkeypatch.setattr("scripts.paper_exits.fetch_live",
+    monkeypatch.setattr("scripts.paper_exits.fetch_live_cached",
                         lambda sym: {"candles": candles, "forming": None})
 
     pe.main()

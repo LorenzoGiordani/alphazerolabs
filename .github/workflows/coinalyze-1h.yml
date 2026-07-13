@@ -24,8 +24,10 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
 
+      - name: verifica credenziale collector
+        run: test -n "$COINALYZE_API_KEY"
+
       - name: accumula liquidazioni 1h
-        if: env.COINALYZE_API_KEY != ''
         run: uv run scripts/collect_coinalyze_1h.py --symbols BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
 
       - name: commit
@@ -35,8 +37,13 @@ jobs:
           git add data/coinalyze_1h/
           if ! git diff --cached --quiet; then
             git commit -m "data: coinalyze 1h liq $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+            pushed=0
             for i in 1 2 3; do
-              git pull --rebase -X theirs origin main && git push origin main && break
+              if git pull --rebase -X theirs origin main && git push origin main; then
+                pushed=1
+                break
+              fi
               sleep 5
             done
+            test "$pushed" -eq 1
           fi

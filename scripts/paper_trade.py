@@ -21,9 +21,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
 from backtest.risk import (atr_pct, effective_stop_pct, exposure_for, open_levels,
                            resolve_exit, step_exit)
-from backtest.signals import SIGNALS
+from backtest.signals import (RUNTIME_SOURCE_SIGNALS, SIGNALS,
+                              runtime_source_available)
 from backtest.strategy import _direction, _eval_rule, load
-from pipeline.live import fetch_live_cached
+from pipeline.live import atomic_write_text, fetch_live_cached
+from scripts.runtime_health import write_coverage
 
 ROOT = Path(__file__).resolve().parent.parent  # indipendente dal cwd (cron)
 STATE_FILE = ROOT / "paper/state.json"
@@ -159,7 +161,12 @@ def main() -> None:
     # universe corrente + eventuali posizioni aperte fuori universe (es. dopo un
     # cambio di selection): vanno comunque gestite a exit, mai lasciate orfane
     held_outside = [s for s in st["positions"] if s not in symbols]
-    for symbol in symbols + held_outside:
+    observed: dict[str, dict] = {}
+    failures = []
+    # Prefetch completo prima di qualsiasi fill/apertura. Così una copertura
+    # parziale non produce journal senza il corrispondente state persistito.
+    universe = list(dict.fromkeys(s for s in symbols + held_outside if s))
+    for symbol in universe:
         try:
             data = fetch_live_cached(symbol)
             data["symbol"] = symbol  # serve ai segnali cache-reader (liq/kronos/hmm/smart-money)
@@ -168,9 +175,31 @@ def main() -> None:
             data["cot"] = pd.read_parquet(cot) if cot.exists() else None
             ep = ROOT / f"data/edgar/eps_{symbol.split(':')[-1].split('_')[-1]}.parquet"
             data["earnings"] = pd.read_parquet(ep) if ep.exists() else None
+            observed[symbol] = data
         except Exception as e:
             print(f"  {symbol}: fetch fallito ({e})", file=sys.stderr)
+            failures.append(symbol)
+    write_coverage(sid, universe, observed, output_dir=STATE_FILE.parent / "coverage")
+    if failures:
+        raise SystemExit(f"copertura ticker incompleta: {len(observed)}/{len(universe)}; "
+                         f"mancano {','.join(failures[:20])}")
+
+    declared = list(dict.fromkeys(symbol for symbol in symbols if symbol))
+    source_failures = []
+    for signal_name in dict.fromkeys(signal["name"] for signal in spec.get("signals", [])):
+        if signal_name not in RUNTIME_SOURCE_SIGNALS:
             continue
+        source_observed = [symbol for symbol in declared
+                           if runtime_source_available(signal_name, observed[symbol])]
+        write_coverage(f"{sid}-source-{signal_name.replace('_', '-')}", declared,
+                       source_observed, output_dir=STATE_FILE.parent / "coverage")
+        if len(source_observed) != len(declared):
+            source_failures.append(f"{signal_name}={len(source_observed)}/{len(declared)}")
+    if source_failures:
+        raise SystemExit("copertura fonti segnale incompleta: " + ", ".join(source_failures))
+
+    for symbol in universe:
+        data = observed[symbol]
         pos = st["positions"].get(symbol)
         closed_this_run = False
         if pos:
@@ -190,7 +219,7 @@ def main() -> None:
 
     open_syms = list(st["positions"]) or "nessuna"
     print(f"fine run: equity {st['equity']:.2f}$, posizioni aperte: {open_syms}")
-    STATE_FILE.write_text(json.dumps(state, indent=1, default=str))
+    atomic_write_text(STATE_FILE, json.dumps(state, indent=1, default=str))
     log_event({"type": "heartbeat", "strategy": sid, "equity": round(st["equity"], 2),
                "open_positions": len(st["positions"])})
 

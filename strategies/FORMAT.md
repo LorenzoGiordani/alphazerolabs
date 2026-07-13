@@ -1,8 +1,8 @@
 # Formato artefatto strategia
 
 Una strategia è un file YAML versionato in `strategies/`. È l'unità su cui opera
-il loop evolutivo: l'LLM la genera/muta, l'harness la valuta, il champion va in
-paper trading e poi live. Mai logica di trading sepolta nei prompt.
+il loop evolutivo: l'LLM la genera/muta, l'harness la valuta e il campione resta
+nel lifecycle paper. Mai logica di trading sepolta nei prompt.
 
 Principi:
 - **Tesi obbligatoria e falsificabile** — perché l'edge dovrebbe esistere. Senza tesi, no test.
@@ -17,7 +17,7 @@ Principi:
 ```yaml
 id: funding-squeeze-breakout-v1
 parent: null                      # id del genitore se mutazione
-status: candidate                 # candidate | challenger | champion | retired
+status: candidate                 # lifecycle paper: candidate | challenger | champion | retired
 created: 2026-06-11
 thesis: >
   Quando il funding è a un estremo (crowding) e il prezzo rompe un range
@@ -79,10 +79,40 @@ backtest: {}                      # compilato dall'harness: metriche per periodo
 ```
 LLM genera/muta → candidate → harness (walk-forward, split per regime,
 bootstrap) → sopravvive? → challenger (paper trading dati live) → batte il
-champion con significatività? → champion → live. Altrimenti → retired (con
+campione con significatività? → champion paper. Altrimenti → retired (con
 post-mortem nel journal — anche i fallimenti insegnano).
 ```
 
 Anti-overfitting (non negoziabile): walk-forward sempre, mai promozione su
 backtest solo (il paper trading è il gate), penalità per complessità (n. segnali
 e parametri), deflated Sharpe quando i candidati testati diventano tanti.
+
+Per `engine: portfolio`, `universe.selection: all_perps` significa davvero tutti
+i perp sopra il floor di liquidità nella snapshot del run. Il runtime separa:
+
+- `*-prices` (critico): prezzo Hyperliquid fresco per ogni ticker e posizione;
+- `*-signal-eligible` (informativo): storico sufficiente per calcolare il factor.
+
+Un listing nuovo viene quindi monitorato ma non rankato finché non matura il
+lookback. Il default richiede almeno l'80% di universo eleggibile, configurabile
+con `portfolio.min_signal_coverage_ratio`. Le fonti esterne obbligatorie (oggi
+LIQIMB/Coinalyze 1h) non usano questa tolleranza: schema e freshness devono
+passare per tutti i ticker espliciti.
+
+Anche il runner per-simbolo registra coverage critica per ogni segnale che usa
+una fonte esterna (funding, taker flow, COT, news, cache precompute, earnings).
+La funzione del segnale può restare neutra negli esperimenti offline, ma nel
+paper live una fonte assente interrompe il runner prima di qualunque mutazione.
+
+## Contratto di evidenza
+
+`champion` non significa “pronta per capitale” né autorizza esecuzione esterna.
+Una promozione richiede anche un manifest maker e una receipt di checker
+indipendente in `evidence/`, verificati da `backtest/evidence.py`: DSR ≥ 0,95,
+holdout OOS `PASS`, hash degli artefatti coerenti e run ID maker/checker distinti.
+Assenza, formato invalido o mismatch bloccano sempre. Il formato completo è in
+`evidence/README.md`.
+
+Gli heartbeat di un portfolio non sono osservazioni indipendenti: per questo
+`promote.py` non auto-promuove `engine: portfolio`. Serve un futuro gate
+temporale/rebalance esplicito, separato dall'evidence backtest.

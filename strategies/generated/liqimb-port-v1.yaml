@@ -20,7 +20,9 @@ thesis: 'LIQUIDATION IMBALANCE cross-sectional a portafoglio: per ogni asset lo 
 
   '
 universe:
-  selection: all_perps
+  # Coinalyze 1h copre oggi questo basket: dichiararlo esplicitamente evita di
+  # etichettare come monitorato l'intero universo quando il fattore non esiste.
+  selection: explicit
 paper_symbols: BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV
 portfolio:
   liq_lookback_d: 7
@@ -46,8 +48,8 @@ evolution:
   - portfolio
   notes: 'v1 seed: liqimb 7d reb24. Mutazioni: lookback (3/7/14g), rebalance, combo
     con xsmom. Dipendenza operativa: data/coinalyze_1h/ dal cron cloud (6h) — se il
-    collector si ferma il segnale degrada a stale (il runner salta i simboli sotto
-    min_bars, con <3 simboli il rebalance viene saltato).
+  collector si ferma il run fallisce chiuso (con <3 simboli nessun rebalance e
+  nessun deploy), invece di degradare silenziosamente.
 
     '
 backtest:

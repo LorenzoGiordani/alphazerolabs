@@ -11,6 +11,7 @@ Stesse fee/slippage dell'engine. Account fittizio 10k$, prezzi reali HL.
 Uso: uv run scripts/portfolio_paper.py strategies/generated/xsmom-port-v1.yaml
 """
 import json
+import math
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,8 +25,13 @@ from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
 from backtest.portfolio import sign_weights, xs_momentum_weights
 from backtest.lifecycle import paper_symbols
 from backtest.strategy import load
-from pipeline.live import atomic_write_text, fetch_live
+from pipeline.live import atomic_write_text, fetch_candles_cached
 from scripts.paper_trade import STATE_FILE, log_event
+from scripts.runtime_health import write_coverage
+
+# Cache-backed candle-only seam kept as ``fetch_live`` for deterministic unit
+# tests. I factor portfolio non usano funding: evitarlo dimezza richieste/peso API.
+fetch_live = fetch_candles_cached
 
 COST = HL_TAKER_FEE + DEFAULT_SLIPPAGE
 
@@ -71,15 +77,20 @@ def trailing_returns(symbols: list[str], lookback_h: int,
             except Exception as e:
                 print(f"  {s}: fetch fallito ({e})", file=sys.stderr)
                 continue
-            px[s] = float(c.close.iloc[-1])
+            if c.empty:
+                continue
+            last = float(c.close.iloc[-1])
+            if not math.isfinite(last) or last <= 0:
+                continue
+            px[s] = last
+            if len(c) <= max(multi_horizon):
+                continue
             rank_acc[s] = []
             for lb in multi_horizon:
-                if len(c) > lb:
-                    rank_acc[s].append(float(c.close.iloc[-1] / c.close.iloc[-1 - lb] - 1.0))
-        if len(rank_acc) < 3:
-            return pd.Series(dtype=float), px
+                rank_acc[s].append(float(c.close.iloc[-1] / c.close.iloc[-1 - lb] - 1.0))
         # media dei ritorni trailing normalizzati per asset (proxy multi-orizzonte onesto)
-        rets = {s: float(np.mean(rs)) for s, rs in rank_acc.items() if rs}
+        rets = {s: float(np.mean(rs)) for s, rs in rank_acc.items()
+                if rs and math.isfinite(float(np.mean(rs)))}
         return pd.Series(rets), px
     rets, px = {}, {}
     for s in symbols:
@@ -88,12 +99,19 @@ def trailing_returns(symbols: list[str], lookback_h: int,
         except Exception as e:
             print(f"  {s}: fetch fallito ({e})", file=sys.stderr)
             continue
+        if c.empty:
+            continue
+        last = float(c.close.iloc[-1])
+        if not math.isfinite(last) or last <= 0:
+            continue
+        px[s] = last
         if len(c) <= lookback_h:
             continue
-        last, base = float(c.close.iloc[-1]), float(c.close.iloc[-1 - lookback_h])
+        base = float(c.close.iloc[-1 - lookback_h])
         if base > 0:
-            rets[s] = last / base - 1.0
-            px[s] = last
+            value = last / base - 1.0
+            if math.isfinite(value):
+                rets[s] = value
     return pd.Series(rets), px
 
 
@@ -108,11 +126,18 @@ def vol_signal(symbols: list[str], lookback_h: int) -> tuple[pd.Series, dict]:
         except Exception as e:
             print(f"  {s}: fetch fallito ({e})", file=sys.stderr)
             continue
+        if c.empty:
+            continue
+        last = float(c.close.iloc[-1])
+        if not math.isfinite(last) or last <= 0:
+            continue
+        px[s] = last
         if len(c) <= lookback_h:
             continue
         r = c.close.pct_change().iloc[-lookback_h:]
-        vols[s] = float(r.std())
-        px[s] = float(c.close.iloc[-1])
+        value = float(r.std())
+        if math.isfinite(value):
+            vols[s] = value
     return pd.Series(vols), px
 
 
@@ -123,26 +148,44 @@ def liqimb_signal(symbols: list[str], lookback_d: int) -> tuple[pd.Series, dict]
     6h) — solo barre passate, anti-lookahead by-construction. Prezzi live HL."""
     sigs, px = {}, {}
     min_bars = lookback_d * 12                     # tolleranza buchi del collector
+    required_columns = {"ts", "liq_short", "liq_long", "oi"}
     for s in symbols:
+        try:
+            candles = fetch_live(s, lookback_h=8)["candles"]
+            last = float(candles.close.iloc[-1])
+            if not math.isfinite(last) or last <= 0:
+                raise ValueError("prezzo non valido")
+            px[s] = last
+        except Exception as e:
+            print(f"  {s}: prezzo live fallito ({e})", file=sys.stderr)
+            continue
         p = ROOT / f"data/coinalyze_1h/{s}.parquet"
         if not p.exists():
+            print(f"  {s}: sorgente Coinalyze assente", file=sys.stderr)
             continue
         try:
             c = pd.read_parquet(p).drop_duplicates("ts").sort_values("ts")
         except Exception as e:
             print(f"  {s}: coinalyze_1h illeggibile ({e})", file=sys.stderr)
             continue
+        if not required_columns.issubset(c.columns):
+            print(f"  {s}: colonne Coinalyze incomplete", file=sys.stderr)
+            continue
         tail = c.tail(lookback_d * 24)
         if len(tail) < min_bars:
+            print(f"  {s}: storico Coinalyze insufficiente", file=sys.stderr)
+            continue
+        last_source_ts = pd.to_datetime(tail.ts.iloc[-1], utc=True, errors="coerce")
+        age_h = (pd.Timestamp.now(tz="UTC") - last_source_ts).total_seconds() / 3600
+        if pd.isna(last_source_ts) or age_h < -1 or age_h > 8:
+            print(f"  {s}: sorgente Coinalyze stale ({age_h:.1f}h)", file=sys.stderr)
             continue
         imb = ((tail.liq_short - tail.liq_long) / tail.oi.replace(0, np.nan)).mean()
         if pd.isna(imb):
             continue
-        try:
-            px[s] = float(fetch_live(s, lookback_h=8)["candles"].close.iloc[-1])
-            sigs[s] = float(imb)
-        except Exception as e:
-            print(f"  {s}: fetch fallito ({e})", file=sys.stderr)
+        value = float(imb)
+        if math.isfinite(value):
+            sigs[s] = value
     return pd.Series(sigs), px
 
 
@@ -160,7 +203,16 @@ def combo_signal(symbols: list[str], factors: list[str], weights: list[float],
         except Exception as e:
             print(f"  {s}: fetch fallito ({e})", file=sys.stderr)
             continue
-        px[s] = float(c.close.iloc[-1])
+        if c.empty:
+            continue
+        last = float(c.close.iloc[-1])
+        if not math.isfinite(last) or last <= 0:
+            continue
+        px[s] = last
+        needed = max((lookback_h if f == "xsmom" else vol_lookback_h)
+                     for f in factors)
+        if len(c) <= needed:
+            continue
         parts = []
         for f, w in zip(factors, weights):
             if f == "xsmom":
@@ -169,7 +221,9 @@ def combo_signal(symbols: list[str], factors: list[str], weights: list[float],
             elif f == "highvol":
                 v = c.close.pct_change().iloc[-vol_lookback_h:].std()
                 parts.append(float(v) * w)   # segno +: long i volatili
-        sigs[s] = sum(parts)
+        value = sum(parts)
+        if parts and math.isfinite(value):
+            sigs[s] = value
     # normalizza per cross-section comparabilita' (z-score)
     s = pd.Series(sigs)
     if len(s) >= 3 and s.std() > 0:
@@ -209,8 +263,47 @@ def main() -> None:
         rets, px = liqimb_signal(symbols, int(pf.get("liq_lookback_d", 7)))
     else:                                        # xsmom E tsmom: ritorno trailing
         rets, px = trailing_returns(symbols, lookback_h, multi_horizon)
-    if not px:
-        print("  nessun prezzo: skip"); return
+    # Prezzo osservato e segnale eleggibile sono contratti distinti. Un listing
+    # nuovo con 56 candele deve essere monitorato, ma non puo inventarsi un
+    # momentum 168/336h: resta esplicitamente ineleggibile finche matura lo storico.
+    for held in st["positions"]:
+        if held in px:
+            continue
+        try:
+            candles = fetch_live(held, lookback_h=8)["candles"]
+            px[held] = float(candles.close.iloc[-1])
+        except Exception as exc:
+            print(f"  {held}: posizione detenuta senza prezzo ({exc})", file=sys.stderr)
+    price_expected = set(symbols) | set(st["positions"])
+    price_observed = set(px) & price_expected
+    write_coverage(f"{acct}-prices", price_expected, price_observed,
+                   output_dir=STATE_FILE.parent / "coverage")
+    missing_prices = sorted(price_expected - price_observed)
+    if missing_prices:
+        raise SystemExit(f"copertura prezzi incompleta: {len(price_observed)}/{len(price_expected)}; "
+                         f"mancano {','.join(missing_prices[:20])}")
+
+    rets = rets[rets.map(lambda value: math.isfinite(float(value)))]
+    signal_expected = set(symbols)
+    signal_observed = set(rets.index) & signal_expected
+    signal_critical = factor == "liqimb"
+    write_coverage(f"{acct}-signal-eligible", signal_expected, signal_observed,
+                   critical=signal_critical, output_dir=STATE_FILE.parent / "coverage")
+    missing_signals = sorted(signal_expected - signal_observed)
+    if signal_critical and missing_signals:
+        raise SystemExit(f"copertura sorgente segnale incompleta: "
+                         f"{len(signal_observed)}/{len(signal_expected)}; "
+                         f"mancano {','.join(missing_signals[:20])}")
+    try:
+        min_ratio = float(pf.get("min_signal_coverage_ratio", 0.8))
+    except (TypeError, ValueError) as exc:
+        raise SystemExit("min_signal_coverage_ratio non valido") from exc
+    if not 0 < min_ratio <= 1:
+        raise SystemExit("min_signal_coverage_ratio deve essere in (0,1]")
+    min_eligible = max(3, math.ceil(len(symbols) * min_ratio))
+    if len(signal_observed) < min_eligible:
+        raise SystemExit(f"segnali eleggibili insufficienti: {len(signal_observed)}/{len(symbols)}; "
+                         f"minimo {min_eligible} ({min_ratio:.0%})")
 
     # 1. mark-to-market del book esistente
     for s, pos in list(st["positions"].items()):
@@ -225,7 +318,9 @@ def main() -> None:
     # 2. ribilanciamento se è ora (o book vuoto)
     due = (not st["last_rebalance_ts"] or
            now - datetime.fromisoformat(st["last_rebalance_ts"]) >= pd.Timedelta(hours=rebalance_h).to_pytimedelta())
-    if due and len(rets) >= 3:
+    if due and len(rets) < 3:
+        raise SystemExit(f"rebalance dovuto ma solo {len(rets)} segnali utilizzabili")
+    if due:
         m = _vol_target_multiplier(st.get("equity_history", []), vt)   # anti-lookahead: solo passato
         gross_eff = gross * m
         if vt and vt.get("enabled") and abs(m - 1.0) > 1e-6:

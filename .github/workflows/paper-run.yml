@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 30
     env:
       LLM_RUNTIME_DISABLED: "1"
+      RUNTIME_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
@@ -31,50 +32,77 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
 
-      - name: dati COT CFTC (settimanali)
-        run: uv run scripts/fetch_cot.py || true
+      - name: inizializza coverage del run
+        run: rm -rf paper/coverage && mkdir -p paper/coverage
 
-      # liquidazioni reali per il segnale liq_imbalance (challenger tsmom-liq). Gira solo col secret.
-      - name: liquidazioni Coinalyze
+      - name: dati COT CFTC (settimanali)
+        id: cot
+        continue-on-error: true
+        run: uv run scripts/fetch_cot.py
+
+      # Dataset daily storico/backtest. LIQIMB live consuma invece coinalyze_1h,
+      # validato 9/9 dal portfolio runner e dal workflow collector dedicato.
+      - name: liquidazioni Coinalyze daily (storico)
+        id: coinalyze_daily
         if: env.COINALYZE_API_KEY != ''
-        run: uv run scripts/fetch_coinalyze.py --symbols BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV --months 7 || true
+        continue-on-error: true
+        run: uv run scripts/fetch_coinalyze.py --symbols BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV --months 7
 
       # trada dinamicamente tutte le strategie attive (champion + challenger)
       - name: paper trading strategie attive
+        id: paper_all
+        continue-on-error: true
         run: uv run scripts/paper_all.py
 
-      - name: executor agenti
-        run: |
-          uv run scripts/agents_paper.py --manage-only
-          uv run scripts/agents_paper.py --manage-only --account agents-rr2-v1 --source agents-v1 --target-r 2.0 || true
+      - name: executor agenti — primario
+        id: agents_primary
+        continue-on-error: true
+        run: uv run scripts/agents_paper.py --manage-only
+
+      - name: executor agenti — variante RR2
+        id: agents_rr2
+        continue-on-error: true
+        run: uv run scripts/agents_paper.py --manage-only --account agents-rr2-v1 --source agents-v1 --target-r 2.0
 
       # xsmom-port RIPRESA 26/06: edge +79.8% a 12m, strumentazione paper fixata.
       # Gira tutte le engine:portfolio attive (champion + challenger) via active_specs:
       # niente più glob pattern — ogni futura portfolio viene inclusa automaticamente.
       - name: portfolio paper trading
+        id: portfolio_all
+        continue-on-error: true
         run: uv run scripts/portfolio_all.py
 
       # EVOLUZIONE SUL CAMPO — promozione/retrocessione AD OGNI RUN (cheap, LLM-free,
       # gate conservativi: no-op finché non ci sono abbastanza trade chiusi).
       - name: promote/retire continuo
-        run: uv run scripts/promote.py || true
+        id: promote
+        if: steps.paper_all.outcome == 'success' && steps.portfolio_all.outcome == 'success'
+        continue-on-error: true
+        run: uv run scripts/promote.py
 
       # chiude le posizioni delle strategie appena ritirate + exit-check TP/SL
       - name: exit-check (chiude retired + TP/SL)
-        run: uv run scripts/paper_exits.py || true
+        id: exits
+        if: always()
+        continue-on-error: true
+        run: uv run scripts/paper_exits.py
 
       - name: propr — champion su onchain prop firm (F8, esecuzione reale su capitale virtuale)
-        if: env.PROPR_API_KEY != ''
+        id: propr
+        if: env.PROPR_API_KEY != '' && steps.paper_all.outcome == 'success' && steps.portfolio_all.outcome == 'success' && steps.promote.outcome == 'success'
         continue-on-error: true
         run: uv run scripts/propr_paper.py
 
       - name: polymarket forecast journal (F7 — risoluzione storico)
+        id: polymarket
         if: always()
         # Nessuna nuova previsione LLM nel cloud; risolve soltanto il journal
         # storico già esistente e mantiene comparabili i Brier score.
-        run: uv run scripts/polymarket_paper.py resolve || true
+        continue-on-error: true
+        run: uv run scripts/polymarket_paper.py resolve
 
       - name: sync journal → Supabase (idempotente, gated su credenziali)
+        id: supabase
         if: env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
         # continue-on-error invece di `|| true`: il run prosegue ma lo step
         # diventa rosso in Actions se righe non sincronizzano (prima: exit 0 muto)
@@ -82,40 +110,70 @@ jobs:
         run: uv run scripts/sync_supabase.py
 
       - name: backtest report (basket multi-asset, honest engine)
+        id: report
+        if: always()
+        continue-on-error: true
         run: uv run scripts/backtest_report.py
+
+      - name: runtime health manifest
+        id: health
+        if: always()
+        run: >-
+          uv run scripts/runtime_health.py record
+          --run-id "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          --commit "$GITHUB_SHA"
+          --require-coverage "paper-all"
+          --require-coverage "agents-v1"
+          --require-coverage "portfolio-all"
+          --require-coverage "exit-check"
+          --critical "paper_all=${{ steps.paper_all.outcome }}"
+          --critical "agents_primary=${{ steps.agents_primary.outcome }}"
+          --critical "portfolio_all=${{ steps.portfolio_all.outcome }}"
+          --critical "promote=${{ steps.promote.outcome }}"
+          --critical "exits=${{ steps.exits.outcome }}"
+          --optional "cot=${{ steps.cot.outcome }}"
+          --optional "coinalyze_daily=${{ steps.coinalyze_daily.outcome }}"
+          --optional "agents_rr2=${{ steps.agents_rr2.outcome }}"
+          --optional "propr=${{ steps.propr.outcome }}"
+          --optional "polymarket=${{ steps.polymarket.outcome }}"
+          --optional "supabase=${{ steps.supabase.outcome }}"
+          --optional "report=${{ steps.report.outcome }}"
 
       - name: dashboard
         id: dashboard
-        if: always()
-        # frontend più recente PRIMA di rigenerare (checkout mirato: il working
-        # tree ha i dati del run non ancora committati, un pull fallirebbe):
-        # un fix UI pushato a run in corso veniva sovrascritto dal deploy di
-        # questo job e restava offline fino al run successivo
-        run: |
-          git fetch origin main || true
-          git checkout origin/main -- dashboard/template.html scripts/dashboard.py || true
-          uv run scripts/dashboard.py
+        if: always() && steps.health.outcome == 'success'
+        run: uv run scripts/dashboard.py
 
       - name: deploy dashboard pubblica (lux-ai.pages.dev)
-        if: always() && env.CLOUDFLARE_API_TOKEN != '' && steps.dashboard.outcome == 'success'
+        id: deploy
+        if: always() && env.CLOUDFLARE_API_TOKEN != '' && steps.health.outcome == 'success' && steps.dashboard.outcome == 'success'
         run: |
-          mkdir -p /tmp/lux-deploy && cp dashboard/*.html dashboard/data.js dashboard/SKILL.md /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
+          mkdir -p /tmp/lux-deploy && cp dashboard/*.html dashboard/data.js dashboard/health.json dashboard/SKILL.md /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
           rm -f /tmp/lux-deploy/template.html   # sorgente, non si pubblica
           npx -y wrangler@4.107.0 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
 
       - name: publish
+        if: always() && (steps.health.outcome == 'success' || steps.health.outcome == 'failure')
         run: |
           git config user.name "lux-ai-cron"
           git config user.email "actions@users.noreply.github.com"
           # SOLO i file news di cui questo run è owner: gdelt_events/timeline e
           # x_live appartengono ai workflow precompute (concurrency group diversi);
           # committare tutta data/news/ + rebase -X theirs scartava i loro dati freschi
-          git add paper/ dashboard/*.html dashboard/data.js strategies/ \
+          git add paper/ strategies/ \
                   data/news/gdelt_live.parquet data/news/live_archive.jsonl
+          if [ "${{ steps.health.outcome }}" = "success" ] && [ "${{ steps.dashboard.outcome }}" = "success" ]; then
+            git add dashboard/*.html dashboard/data.js dashboard/health.json
+          fi
           if ! git diff --cached --quiet; then
             git commit -m "chore: paper run $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+            pushed=false
             for i in 1 2 3; do
-              git pull --rebase -X theirs origin main && git push origin main && break
+              if git pull --rebase -X theirs origin main && git push origin main; then
+                pushed=true
+                break
+              fi
               sleep 5
             done
+            [ "$pushed" = true ] || exit 1
           fi

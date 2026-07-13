@@ -8,7 +8,7 @@ Piattaforma di trading research che **impara in pubblico**: agenti LLM propongon
 
 - **Fase 1 (ora)**: validare il sistema — backtest onesti, paper trading live, learning loop dimostrabile
 - **Prodotto 1**: "ricerca in pubblico" — journal tesi + lezioni + lineage evolutivo pubblici (stile Alpha Arena/nof1, ma continuo)
-- **Prodotto 2** (solo a track record dimostrato): vault on-chain su Hyperliquid (HyperEVM ERC-4626), depositi pubblici gestiti dal champion
+- **Prodotto 2** (ipotesi futura, non autorizzata): vault on-chain solo dopo evidenza verificata, track record plurimensile e approvazione umana separata
 
 Design doc completo in Obsidian (`Projects/Active/AlphaZero Labs`).
 
@@ -22,7 +22,7 @@ contesto live (prezzi/funding/OI/news)        strategia = artefatto YAML version
    → Strategist (tesi falsificabile)             → harness valuta su basket multi-asset
    → HARD LIMITS nel codice (insindacabili)      → walk-forward per fold e regime
    → Risk Manager LLM (approve/reduce/veto)      → selezione → challenger → paper
-   → executor paper → stop/target reali          → champion (gate statistico)
+   → executor paper → stop/target reali          → campione paper → evidence gate
    → Reviewer post-mortem → LEZIONI
    → recall lezioni nei prompt  ←── il loop si chiude
 ```
@@ -33,6 +33,9 @@ Principi non negoziabili:
 - **Backtest solo su dati post-cutoff** del modello o forward test (lezione: FINSABER, Profit Mirage — i backtest LLM pubblicati sono contaminati)
 - **Niente indicatori mainstream/lagging** (no SMA/RSI/MACD): solo segnali leading/strutturali da registry chiuso
 - **Selezione multi-asset** (mean Sharpe su basket): mai promuovere su singolo asset
+- **Paper status ≠ readiness**: DSR ≥0,95, holdout OOS e checker indipendente sono obbligatori; qualsiasi artefatto assente blocca
+- **Publish fail-closed**: errori critici o health scaduta impediscono un nuovo deploy della dashboard
+- **Coverage misurata**: ogni ticker dichiarato deve avere un prezzo HL fresco; listing con storico insufficiente restano visibili ma ineleggibili al ranking (warning, minimo 80% eleggibile). Le fonti di segnale obbligatorie come LIQIMB restano 9/9 fail-closed
 
 ## Componenti
 
@@ -46,6 +49,7 @@ Principi non negoziabili:
 | `backtest/signals.py` | **Registry segnali** (chiuso, l'LLM compone ma non inventa codice) |
 | `backtest/strategy.py` | Artefatto YAML → callback engine (rule AND/OR, direction, sizing) |
 | `backtest/walkforward.py` | Metriche per fold temporali e regime bull/bear/chop |
+| `backtest/evidence.py` | Verifica content-addressed di DSR, holdout OOS e receipt checker indipendente |
 | `strategies/FORMAT.md` | Schema artefatto strategia (tesi, segnali, exit, risk immutabile, lineage) |
 | `scripts/run_strategy.py` | Backtest singola strategia su un asset |
 | `scripts/evolve.py` | Loop evolutivo storico/API; le nuove mutazioni LLM passano da task Codex revisionati |
@@ -56,12 +60,14 @@ Principi non negoziabili:
 | `scripts/paper_trade.py` | Paper trading challenger segnale-based (cron) |
 | `scripts/review.py` | Reviewer storico/API; le nuove review LLM passano da Codex con checker |
 | `scripts/polymarket_paper.py` | **F7**: journal Polymarket storico; il cloud risolve le previsioni esistenti ma non ne genera di nuove |
-| `scripts/propr_paper.py` | **F8**: champion (`xsmom-multihorizon-v1`) eseguita via API su [Propr](https://propr.xyz) (onchain prop firm, Hyperliquid) — capitale virtuale ma enforcement regole reale/verificabile, non ledger interno. Pubblico su dashboard |
-| `scripts/dashboard.py` | Dashboard statica (HTML, zero dipendenze) — include sezione **Backtest** onesto || `scripts/backtest_report.py` | Backtest basket multi-asset delle strategie attive (funding storico + slippage size-aware) → `paper/backtests.json` → sezione Backtest |
+| `scripts/propr_paper.py` | **F8**: challenge virtuale Propr; i portfolio restano bloccati anche con evidence finché universo, sizing e ordini non replicano lo spec verificato |
+| `scripts/runtime_health.py` | Manifest `paper/health.json`, validazione freshness e gate `publish_allowed` |
+| `scripts/dashboard.py` | Dashboard statica — include evidence status e endpoint pubblico `/health.json` |
+| `scripts/backtest_report.py` | Backtest basket multi-asset delle strategie attive → `paper/backtests.json` |
 | `scripts/robustness_portfolio.py` | **Audit robustezza** edge portfolio: parameter stability + block bootstrap CI + true OOS (8m train / 4m test) |
 | `scripts/voltarget_portfolio.py` | **Vol-target overlay** (Moreira-Muir): scala gross inverso a vol realizzata del book, abbatte la coda DD |
 | `scripts/cron_run.sh` | Run unificato ogni 4h (crontab) |
-| `pipeline/live.py` | Dati live: Binance (crypto), yfinance (xyz_*), OI, news RSS 6 fonti |
+| `pipeline/live.py` | Dati live: Hyperliquid/HIP-3, yfinance solo per posizioni legacy `xyz_*`, cache candle-only e pacing all-perps, OI e news RSS |
 | `paper/*.jsonl` | Journal: trade, decisioni con tesi, lezioni — il "prodotto pubblico" |
 | `db/schema.sql` | Schema Postgres/Supabase: trades, decisions, lessons (pgvector), equity_snapshots |
 | `scripts/sync_supabase.py` | Sync incrementale journal→Supabase (idempotente via source_key, no-op senza credenziali) |
@@ -73,7 +79,7 @@ I dati storici (`data/`) non sono nel repo: si rigenerano con i 3 script fetch (
 | Segnale | Tipo | Asset | Note |
 |---|---|---|---|
 | `funding_percentile` | posizionamento | solo crypto | estremi di crowding |
-| `taker_flow` | flusso aggressori | solo crypto | soglia calibrata su dati reali (p90≈0.02) |
+| `taker_flow` | flusso aggressori | solo crypto | disponibile nei dataset storici Binance; non su HL live, quindi una spec che lo richiede viene bloccata dal source-coverage gate |
 | `range_breakout` | struttura | tutti | rottura range con conferma volume |
 | `vol_compression` | regime | tutti | setup pre-espansione |
 | `tsmom` | momentum | tutti | Moskowitz-Ooi-Pedersen, orizzonti 7g+30g |
@@ -96,15 +102,18 @@ integrazioni (Obsidian, Fase 2).
 
 ## Risultati finora (backtest 12 mesi, fee/slippage inclusi; paper live dal 11/06/2026)
 
-**🏆 Primi CHAMPION del sistema (promossi dal cron promote.py su performance paper)**
-- `xsmom-multihorizon-v1` — champion dal 06/07: 108 trade paper, basket_sharpe 0.818, DSR 0.7
-- `xsmom-port-v1` — champion dal 07/07: 193 trade paper, basket_sharpe 0.427, DSR 0.91
+**Campioni paper storici (non evidence-ready)**
+- `xsmom-multihorizon-v1` — campione paper dal 06/07: 108 heartbeat/trade paper, basket_sharpe 0.818, DSR 0.7
+- `xsmom-port-v1` — campione paper dal 07/07: 193 heartbeat/trade paper, basket_sharpe 0.427, DSR 0.91
 
-Gate DSR 0.95 soft by design: con campione forward ≥ 2×min_trades l'evidenza paper prevale sul DSR backtest.
+Dal rilascio Integrity P0 il gate è hard e fail-closed: DSR ≥0,95, holdout OOS
+`PASS`, hash coerenti e checker indipendente. Gli artefatti legacy non soddisfano
+il contratto, quindi nessuna strategia corrente è evidence-ready.
 
-**F8 — validazione su onchain prop firm (dal 09/07)**: `xsmom-multihorizon-v1` eseguita
-via API su Propr (account Free Trial $5.000, esecuzione reale su Hyperliquid, capitale
-virtuale). Verifica se la strategia già champion sul ledger interno avrebbe superato
+**F8 — validazione storica su onchain prop firm (dal 09/07)**: `xsmom-multihorizon-v1`
+ha prodotto uno storico su Propr (account Free Trial $5.000, capitale virtuale).
+Le nuove chiamate API sono ora bloccate prima del client finché la strategia non
+supera il contratto di evidenza. Lo storico verifica se il campione paper avrebbe superato
 anche una vera challenge prop firm (target profitto 10%, daily loss max 3%, drawdown
 max 6% statico). Stato live e pass/fail pubblici sulla dashboard, sezione **Propr**.
 Risk overlay Propr-aware nel runner (sera 09/07, da simulazione esatta challenge +
@@ -274,18 +283,22 @@ Nessuna chiave della subscription viene copiata nel repository o in Actions.
 
 ## Roadmap
 
-Stato reale (audit giugno 2026, sessione di hardening). M1–M4 costruiti; l'unico gate rimasto prima dei fondi reali è il **track record paper nel tempo** (mesi, non ingegneria).
+Stato reale: M1–M4 costruiti. Prima di qualsiasi ipotesi su fondi reali servono
+evidenza riproducibile, track record plurimensile, affidabilità operativa e un gate umano separato.
 
 - [x] M1 — dati, harness, registry, formato strategia, loop evolutivo (3 generazioni)
 - [x] M2 — paper trading live; dal 12/07 il cloud esegue solo il runtime deterministico, mentre decide/review/evolve LLM passano da Codex con gate maker/checker
 - [x] COT report CFTC (posizionamento commodities = analogo del funding)
-- [x] Champion/challenger con gate statistico formale (**deflated Sharpe ≥0.95** enforced in `promote.py`)
+- [x] Champion/challenger per-trade con gate formale (**deflated Sharpe ≥0.95**); i portfolio non sono auto-promovibili perché gli heartbeat non sono trade indipendenti
+- [x] Integrity P0 — maker/checker evidence contract, runtime health fail-closed, endpoint pubblico e CI mirata
 - [x] Journal → Supabase (schema + `sync_supabase.py` idempotente + workflow cloud gated; il recall semantico pgvector è cablato, l'embedding da popolare a progetto creato)
 - [x] Interfaccia v2 → Cloudflare Pages (`lux-ai.pages.dev`, deploy nel workflow)
 - [x] M4 — testnet Hyperliquid (`execute_testnet.py` dry-run sicuro, isolato per regola #2 — va in cron solo con `HL_API_SECRET` configurato)
 - [ ] **M5 — vault HyperEVM** (ERC-4626, solo a track record paper dimostrato su mesi). Gate di tempo, non di codice.
 
-**Cosa manca a M5**: niente ingegneria — serve che le strategie paper accumulate dimostrino nel tempo un edge robusto (deflated Sharpe, basket multi-asset) prima di muovere un euro reale on-chain. `promote.py` è il gate formale che decide quando il track record è "dimostrato".
+**Cosa manca a M5**: mesi di edge paper robusto, receipt OOS indipendenti, SLO operativi,
+policy di rischio/custodia e approvazioni legali e umane. `promote.py` decide soltanto
+il lifecycle paper/evidence; non autorizza capitale.
 
 ### Hardening & audit (25/06)
 Suite di test verde (**98 pass**). Sessione di audit + bugfix:

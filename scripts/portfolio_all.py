@@ -15,25 +15,48 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backtest.lifecycle import portfolio_active_specs
+from scripts.runtime_health import write_coverage
 
 ROOT = Path(__file__).resolve().parent.parent
+COVERAGE_DIR = ROOT / "paper" / "coverage"
+
+
+def required_lookback(spec: dict) -> int:
+    """Barre necessarie; il child piu esigente scalda per primo la cache run."""
+    pf = spec.get("portfolio", {})
+    if pf.get("factor") == "liqimb":
+        return 8
+    values = list(pf.get("lookbacks_h") or [])
+    values.extend(pf.get(name) for name in ("lookback_h", "vol_lookback_h")
+                  if pf.get(name) is not None)
+    return max([int(value) for value in values] or [8]) + 5
 
 
 def main() -> None:
-    active = portfolio_active_specs()
+    active = sorted(portfolio_active_specs(), key=lambda item: required_lookback(item[1]),
+                    reverse=True)
     if not active:
         print("nessuna strategia portfolio attiva (champion/challenger)")
+        write_coverage("portfolio-all", [], [], output_dir=COVERAGE_DIR)
         return
     print(f"strategie portfolio attive: {len(active)}")
+    failures = []
+    successes = []
     for path, spec in active:
         sid = spec["id"]
         print(f"\n→ {sid} [{spec['status']}]")
-        # una strategia che fallisce non ferma le altre (come backtest_report):
-        # niente sys.exit — il deploy della dashboard non deve dipendere da un'unica
-        # spec rotta.
+        # Continua per osservare tutti i book, ma propaga il risultato aggregato:
+        # la health gate deve poter bloccare un deploy parziale.
         r = subprocess.run([sys.executable, str(ROOT / "scripts" / "portfolio_paper.py"), str(path)])
         if r.returncode != 0:
             print(f"  ⚠ {sid} uscito con codice {r.returncode}", file=sys.stderr)
+            failures.append(sid)
+        else:
+            successes.append(sid)
+    write_coverage("portfolio-all", [spec["id"] for _, spec in active], successes,
+                   output_dir=COVERAGE_DIR)
+    if failures:
+        raise SystemExit(f"portfolio runner falliti: {', '.join(failures)}")
 
 
 if __name__ == "__main__":

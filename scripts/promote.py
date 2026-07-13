@@ -5,9 +5,10 @@ Per ogni famiglia (ceppo evolutivo):
   - vecchio champion battuto → retired (resta visibile: è la storia)
   - challenger in perdita con campione sufficiente → retired
 
-Gate conservativi (anti-rumore): servono MIN_CLOSED trade chiusi prima di
-qualsiasi mossa. Con pochi dati NON promuove nulla — comportamento corretto.
-Il paper trading è il gate finale (cfr. FORMAT.md): mai promuovere su backtest.
+Gate conservativi (anti-rumore): per le strategie per-trade servono MIN_CLOSED
+trade chiusi e un contratto di evidenza verificato (DSR, OOS, checker
+indipendente). I portfolio non sono auto-promovibili: i loro heartbeat sono
+autocorrelati e non equivalgono a osservazioni indipendenti.
 
 Uso: .venv/bin/python scripts/promote.py [--min-trades 20] [--dry-run]
 """
@@ -19,7 +20,8 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from backtest.lifecycle import (ROOT, all_specs, backtest_dsr, family,
+from backtest.evidence import verify_evidence
+from backtest.lifecycle import (ROOT, all_specs, family,
                                 paper_stats, set_status)
 from scripts.review import append_lesson
 
@@ -29,7 +31,6 @@ LESSONS = ROOT / "paper" / "lessons.jsonl"
 MIN_SHARPE = 0.3   # sharpe_r minimo per essere "champion material"
 MARGIN = 0.2       # il challenger deve battere il champion di questo margine (sharpe_r)
 MAX_DD_PCT = 15.0  # drawdown equity oltre il quale ritira anche con pochi trade chiusi
-MIN_DSR = 0.95     # deflated Sharpe minimo per promozione (gate anti-overfitting, regola 10)
 ZOMBIE_DAYS = 14   # challenger evolutivo con 0 trade chiusi dopo N giorni → retired
                    # (libera slot nel cap famiglia di evolve_auto; precedente:
                    # glm-regime-confluence ritirata come zombie, gate sempre chiuso)
@@ -93,6 +94,7 @@ def main() -> None:
         # e' uno Sharpe lento su MESI; non si falsifica da poche letture. Per i
         # portfolio vale SOLO il breach di drawdown (hard risk limit); oltre quello
         # serve tempo (cfr. README: il gate M5 e' TEMPO non codice).
+        retired_ids: set[str] = set()
         for f, s, st in challengers:
             is_portfolio = s.get("engine") == "portfolio"
             dd = st.get("equity_dd_pct", 0.0)
@@ -115,6 +117,7 @@ def main() -> None:
                                (["lifecycle", "retire", "paper", "drawdown"]
                                 + (["portfolio"] if is_portfolio else [])))
                 changes += 1
+                retired_ids.add(s["id"])
             elif (s.get("parent") and st["n_closed"] == 0
                   and _age_days(s) is not None and _age_days(s) >= ZOMBIE_DAYS):
                 # zombie: mutazione evolutiva che non ha MAI tradato — gate d'ingresso
@@ -131,6 +134,7 @@ def main() -> None:
                                f"sterile, nessun dato raccolto.",
                                ["lifecycle", "retire", "paper", "zombie"])
                 changes += 1
+                retired_ids.add(s["id"])
             elif not is_portfolio and st["n_closed"] >= args.min_trades and bmr < 0:
                 # per-simbolo: n_closed sono trade discreti, mean_r negativo = edge falsificato
                 print(f"    → RETIRE (perdente con {st['n_closed']} trade, basket_meanR<0)")
@@ -144,12 +148,18 @@ def main() -> None:
                                f"Il paper trading ha falsificato l'edge.",
                                ["lifecycle", "retire", "paper"])
                 changes += 1
+                retired_ids.add(s["id"])
 
         # 2. miglior challenger qualificato (basket_sharpe_r + DSR gate, regole 5 + 10)
         # DSR: gate anti-overfitting. Il challenger deve avere DSR >= MIN_DSR dal
         # backtest (salvato in spec.backtest.aggregate.dsr da evolve.py). Promuovere
         # senza DSR = promuovere rumore selezionato (lezione FINSABER/Profit Mirage).
-        qual = [(f, s, st) for f, s, st in challengers
+        for _, strategy, _ in challengers:
+            if strategy.get("engine") == "portfolio" and strategy["id"] not in retired_ids:
+                print(f"  {strategy['id']}: portfolio — auto-promozione bloccata; "
+                      "richiede gate temporale/rebalance indipendente")
+        qual = [(f, s, st) for f, s, st in challengers if s["id"] not in retired_ids
+                if s.get("engine") != "portfolio"
                 if st["n_closed"] >= args.min_trades and st.get("basket_mean_r", 0) > 0
                 and st.get("basket_sharpe_r", 0) >= MIN_SHARPE]
         if not qual:
@@ -157,19 +167,12 @@ def main() -> None:
         best = max(qual, key=lambda m: m[2].get("basket_sharpe_r", 0.0))
         bf, bs, bst = best
 
-        # gate DSR SOFT: DSR basso = il backtest non distingue skill da rumore, ma
-        # il paper è il gate finale (FORMAT.md) — con un campione forward doppio
-        # (2×min_trades chiusi, out-of-sample per costruzione) l'evidenza paper
-        # supera lo scetticismo sul backtest. Prima era gate duro: nessuna
-        # mutazione (DSR tipici 0.0-0.45) sarebbe mai potuta diventare champion.
-        dsr = backtest_dsr(bs)
-        if dsr is not None and dsr < MIN_DSR and bst["n_closed"] < 2 * args.min_trades:
-            print(f"  {bs['id']} (basket_sharpe {bst.get('basket_sharpe_r', 0.0)}) "
-                  f"DSR {dsr} < {MIN_DSR} e solo {bst['n_closed']} trade forward "
-                  f"(<{2 * args.min_trades}): aspetto più dati paper")
+        evidence = verify_evidence(bs, ROOT)
+        if not evidence["verified"]:
+            print(f"  {bs['id']}: evidenza non verificata — promozione bloccata "
+                  f"({', '.join(evidence['reasons'])})")
             continue
-        if dsr is None:
-            print(f"  ⚠ {bs['id']}: DSR backtest mancante — promozione senza gate anti-overfitting")
+        dsr = evidence["dsr"]
 
         beats = champ_sharpe is None or bst.get("basket_sharpe_r", 0.0) >= champ_sharpe + MARGIN
         if not beats:
@@ -186,7 +189,9 @@ def main() -> None:
                            "by": bs["id"], "stats": champ[2]})
             set_status(bf, "champion")
             log_event({"event": "promote", "strategy": bs["id"], "family": fam, "stats": bst,
-                       "dsr": dsr})
+                       "dsr": dsr, "evidence_status": "verified",
+                       "maker_run_id": evidence["maker_run_id"],
+                       "checker_run_id": evidence["checker_run_id"]})
             add_lesson(bs["id"], "thesis_right",
                        f"Promossa a CHAMPION: {bst['n_closed']} trade paper, basket_sharpe "
                        f"{bst.get('basket_sharpe_r', 0.0)}, DSR {dsr}, win {bst['win_rate']}, "
