@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29288964299-1",
-  "generated_at": "2026-07-13T22:10:21.814828+00:00",
+  "run_id": "29292198811-1",
+  "generated_at": "2026-07-13T23:10:28.045015+00:00",
   "component": "tsmom-aggressive-v1",
   "critical": true,
   "expected_count": 8,
