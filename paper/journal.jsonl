@@ -5861,3 +5861,14 @@
 {"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9340.3, "open_positions": 59, "logged_at": "2026-07-13T07:16:27.424825+00:00"}
 {"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 10136.44, "open_positions": 2, "logged_at": "2026-07-13T07:16:34.003044+00:00"}
 {"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 9894.02, "open_positions": 3, "logged_at": "2026-07-13T07:16:37.117729+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 9114.07, "open_positions": 0, "logged_at": "2026-07-13T08:15:33.068198+00:00"}
+{"type": "heartbeat", "strategy": "crypto-trend-flow-v1", "equity": 10000.0, "open_positions": 0, "logged_at": "2026-07-13T08:15:41.072871+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-aggressive-v1", "equity": 8732.65, "open_positions": 3, "logged_at": "2026-07-13T08:15:42.209326+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10153.16, "open_positions": 2, "logged_at": "2026-07-13T08:15:43.583040+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9947.49, "open_positions": 0, "logged_at": "2026-07-13T08:15:44.088222+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9342.58, "open_positions": 59, "logged_at": "2026-07-13T08:16:20.065114+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 10098.16, "open_positions": 2, "logged_at": "2026-07-13T08:16:24.599219+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 9844.26, "open_positions": 3, "logged_at": "2026-07-13T08:16:27.248006+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10317.8, "open_positions": 6, "logged_at": "2026-07-13T08:16:30.950715+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10174.41, "open_positions": 6, "logged_at": "2026-07-13T08:16:33.349746+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10227.01, "open_positions": 4, "logged_at": "2026-07-13T08:16:36.257828+00:00"}
