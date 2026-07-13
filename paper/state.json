@@ -25,7 +25,7 @@
   "positions": {}
  },
  "geopolitics-v1": {
-  "equity": 9569.919724442987,
+  "equity": 9666.210303085487,
   "positions": {
    "xyz:CL": {
     "strategy": "geopolitics-v1",
@@ -36,7 +36,7 @@
     "stop_px": 68.88233291184,
     "target_px": 80.6847357204,
     "opened_at": "2026-07-09 14:00:00+00:00",
-    "checked_until": "2026-07-12 19:00:00+00:00",
+    "checked_until": "2026-07-13 22:00:00+00:00",
     "time_stop_h": 80,
     "thesis": "Edge fisico-strutturale pulito: attacchi a petroliere russe e cancellazione cargo LNG rimuovono offerta reale dal mercato globale. Il -4% intraday odierno \u00e8 profit-taking su un trend rialzista di 7 giorni (+6-8%), non un'inversione fondamentale. Compro la paura sfruttando il discount di volatilit\u00e0. La scarsit\u00e0 fisica comanda finch\u00e9 le navi sono nel mirino. A differenza dell'Oro (gi\u00e0 esausto a 4.129$) o delle Crypto (scollegate dall'evento), l'equazione del greggio \u00e8 incontestabile: hardware logistico distrutto = meno barri globali. Target 2.5R riflette il potenziale di ricostruzione del premio geopolitico sui prezzi dopo il washout odierno.",
     "invalidation": "De-escalazione geopolitica rapida con ripristino dei corridoi energetici logistici, OPPURE shock negativo sulla domanda globale (es. dati macro deboli/Cina) che sovrasta il fattore offerta. Se il prezzo chiude sotto il minimo della sessione di profit-taking entro 24h, la tesi di accumulo sul dip \u00e8 invalidata.",
@@ -48,30 +48,7 @@
     "tp1_px": null,
     "tp1_frac": 0.0,
     "trail_dist": null,
-    "_last_ts": "2026-07-12 19:00:00+00:00"
-   },
-   "xyz:BRENTOIL": {
-    "strategy": "geopolitics-v1",
-    "symbol": "xyz:BRENTOIL",
-    "direction": "long",
-    "entry_px": 75.9361842,
-    "size_usd": 906.66,
-    "stop_px": 72.3292154505,
-    "target_px": 84.051863886375,
-    "opened_at": "2026-07-10 13:00:00+00:00",
-    "checked_until": "2026-07-12 19:00:00+00:00",
-    "time_stop_h": 84,
-    "thesis": "Proxy single-leg dello spread LONG BRENT/SHORT WTI raccomandato dal brief. BRENT \u00e8 il recettore causale diretto del rischio Hormuz (~20% greggio marittimo globale) + declassamento produzione russa. Nonostante +5% recente (exhaustion warning), il funding fortemente negativo (-7.6bps) indica shorts in trappola: qualsiasi nuova escalation USA-Iran o attacco a infrastrutture russe innesca uno short-squeeze spietato. Size ridotta (0.7x) per rispettare il warning di exhaustion sull'outright \u2014 il brief raccomanda lo spread, ma come singola gamba BRENT long \u00e8 la scelta direzionale pi\u00f9 pulita. SHORT WTI scartato: il bear stesso ammette short crowding e rischio squeeze.",
-    "invalidation": "Breakthrough diplomatico US-Iran con descalation concreta su Hormuz, OARCOLlasso dei dati domanda globale, o Brent che breach -4.5% dal entry (stop fuori ATR noise). Se entro 96h nessuna nuova escalation materializza il squeeze, il risk premium gi\u00e0 pricing evapora e il trade diventa stale.",
-    "decision_ts": "2026-07-10T14:34:02.680949+00:00",
-    "sign": 1,
-    "remaining": 1.0,
-    "partial_done": false,
-    "hi_water": 75.9361842,
-    "tp1_px": null,
-    "tp1_frac": 0.0,
-    "trail_dist": null,
-    "_last_ts": "2026-07-12 19:00:00+00:00"
+    "_last_ts": "2026-07-13 22:00:00+00:00"
    }
   },
   "last_decision_ts": "2026-07-11T16:26:27.803845+00:00"
@@ -6882,8 +6859,8 @@
     "direction": "short",
     "size_usd": 5644.38,
     "opened_at": "2026-07-13 12:00:00+00:00",
-    "checked_until": "2026-07-13 20:00:00+00:00",
-    "_last_ts": "2026-07-13 20:00:00+00:00"
+    "checked_until": "2026-07-13 22:00:00+00:00",
+    "_last_ts": "2026-07-13 22:00:00+00:00"
    },
    "xyz_GOLD": {
     "sign": -1,
@@ -6967,8 +6944,8 @@
     "direction": "short",
     "size_usd": 7187.5,
     "opened_at": "2026-07-13 01:00:00+00:00",
-    "checked_until": "2026-07-13 20:00:00+00:00",
-    "_last_ts": "2026-07-13 20:00:00+00:00"
+    "checked_until": "2026-07-13 22:00:00+00:00",
+    "_last_ts": "2026-07-13 22:00:00+00:00"
    },
    "xyz_GOLD": {
     "sign": -1,
