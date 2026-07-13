@@ -13,16 +13,21 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backtest.lifecycle import active_specs, paper_symbols, validate_spec_risk
+from scripts.runtime_health import write_coverage
 
 ROOT = Path(__file__).resolve().parent.parent
+COVERAGE_DIR = ROOT / "paper" / "coverage"
 
 
 def main() -> None:
     active = active_specs()
     if not active:
         print("nessuna strategia attiva (champion/challenger)")
+        write_coverage("paper-all", [], [], output_dir=COVERAGE_DIR)
         return
     print(f"strategie attive: {len(active)}")
+    failures = []
+    successes = []
     for path, spec in active:
         sid = spec["id"]
         warns = validate_spec_risk(spec)
@@ -34,6 +39,13 @@ def main() -> None:
                             str(path), syms])
         if r.returncode != 0:
             print(f"  ⚠ {sid} uscito con codice {r.returncode}", file=sys.stderr)
+            failures.append(sid)
+        else:
+            successes.append(sid)
+    write_coverage("paper-all", [spec["id"] for _, spec in active], successes,
+                   output_dir=COVERAGE_DIR)
+    if failures:
+        raise SystemExit(f"paper runner falliti: {', '.join(failures)}")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,8 @@
-"""Dati live per pipeline e paper trading (Binance fapi + RSS news, gratis)."""
+"""Dati live per pipeline e paper trading (Hyperliquid + RSS news, gratis)."""
 
+import hashlib
+import json
+import os
 import re
 import time
 from datetime import datetime, timedelta, timezone
@@ -27,6 +30,8 @@ RSS_FEEDS = {
 # (es. "xyz:SP500", "hyna:HYPE"); HL li serve via candleSnapshot. Cache di modulo.
 _INFO = "https://api.hyperliquid.xyz/info"
 _PERP_CACHE: dict = {}
+_LAST_CANDLE_REQUEST_AT = 0.0
+_CANDLE_MIN_INTERVAL_SECONDS = 1.4
 
 
 # Pattern per riconoscere un qualificatore di venue HIP-3 (es. "xyz:NATGAS",
@@ -120,8 +125,38 @@ def canonical_symbol(symbol) -> str:
 
 
 def _perp_dexs() -> list[str]:
-    dexs = requests.post(_INFO, json={"type": "perpDexs"}, timeout=20).json()
+    dexs = _hl_post({"type": "perpDexs"}, timeout=20)
     return [""] + [d["name"] for d in dexs if d and d.get("name")]
+
+
+def _hl_post(payload: dict, *, timeout: int = 30, attempts: int = 3):
+    """Bounded retry for the shared Hyperliquid public endpoint."""
+    global _LAST_CANDLE_REQUEST_AT
+    last = None
+    for attempt in range(attempts):
+        if payload.get("type") == "candleSnapshot":
+            # candleSnapshot costa circa 20 + una unita ogni 60 barre sul limite
+            # IP (1200/min). Un ritmo esplicito evita che il census all-perps
+            # esploda in 429 pur restando ben dentro il timeout del workflow.
+            wait = _CANDLE_MIN_INTERVAL_SECONDS - (time.monotonic() - _LAST_CANDLE_REQUEST_AT)
+            if wait > 0:
+                time.sleep(wait)
+            _LAST_CANDLE_REQUEST_AT = time.monotonic()
+        try:
+            response = requests.post(_INFO, json=payload, timeout=timeout)
+            status = getattr(response, "status_code", 200)
+            if status == 429 or status >= 500:
+                raise RuntimeError(f"HL HTTP {status}")
+            if hasattr(response, "raise_for_status"):
+                response.raise_for_status()
+            return response.json()
+        except Exception as exc:
+            last = exc
+            if attempt + 1 < attempts:
+                # 1+2+4+8+16s: bounded, ma abbastanza lungo da attraversare
+                # una finestra di rate limit gia parzialmente consumata.
+                time.sleep(2 ** attempt)
+    raise RuntimeError(f"HL request fallita dopo {attempts} tentativi: {last}") from last
 
 
 def _dedup_by_underlying(rows: list[tuple[str, float]]) -> list[tuple[str, float]]:
@@ -146,17 +181,40 @@ def perp_universe(min_vol_usd: float = 250_000) -> list[tuple[str, float]]:
     key = round(min_vol_usd)
     if key in _PERP_CACHE:
         return _PERP_CACHE[key]
+    # I portfolio girano in subprocess separati ma condividono RUNTIME_RUN_ID.
+    # Una snapshot per run evita di riscaricare metadati da ogni child e, piu
+    # importante, garantisce a tutte le strategie lo stesso universo atteso.
+    import tempfile as _tempfile
+    scope = os.getenv("RUNTIME_RUN_ID") or f"hour-{int(time.time() // 3600)}"
+    scope_key = hashlib.sha256(f"{scope}|{key}".encode()).hexdigest()
+    cache_dir = Path(_tempfile.gettempdir()) / "luxai_perp_universe"
+    cache_path = cache_dir / f"{scope_key}.json"
+    try:
+        cached = json.loads(cache_path.read_text())
+        rows = [(str(name), float(volume)) for name, volume in cached]
+        if rows:
+            _PERP_CACHE[key] = rows
+            return rows
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        pass
     rows: list[tuple[str, float]] = []
     try:
         for dex in _perp_dexs():
-            meta, ctxs = requests.post(_INFO,
-                json={"type": "metaAndAssetCtxs", "dex": dex}, timeout=20).json()
+            meta, ctxs = _hl_post({"type": "metaAndAssetCtxs", "dex": dex}, timeout=20)
             rows += [(a["name"], float(c["dayNtlVlm"]))
                      for a, c in zip(meta["universe"], ctxs) if not a.get("isDelisted")]
     except Exception:
         return []
     rows = _dedup_by_underlying(sorted((t for t in rows if t[1] >= min_vol_usd), key=lambda t: -t[1]))
     _PERP_CACHE[key] = rows
+    if rows:
+        try:
+            cache_dir.mkdir(exist_ok=True)
+            temp_path = cache_path.with_suffix(f".{os.getpid()}.tmp")
+            temp_path.write_text(json.dumps(rows))
+            os.replace(temp_path, cache_path)
+        except OSError:
+            pass
     return rows
 
 
@@ -177,17 +235,58 @@ _LIVE_CACHE_DIR = Path(tempfile.gettempdir()) / "luxai_live_cache"
 
 def fetch_live_cached(symbol: str, lookback_h: int = 1000) -> dict:
     hr = int(time.time() // 3600)
-    safe = symbol.replace(":", "_").replace("/", "_")
-    fp = _LIVE_CACHE_DIR / f"{safe}.{hr}.pkl"
+    # Hash del simbolo raw: sanitizzare ':' e '/' in '_' faceva collidere venue
+    # diverse (xyz_CL legacy/yfinance vs xyz:CL HIP-3/Hyperliquid).
+    key = hashlib.sha256(symbol.encode("utf-8")).hexdigest()
+    fp = _LIVE_CACHE_DIR / f"{key}.{hr}.pkl"
     if fp.exists():
         try:
-            return pickle.loads(fp.read_bytes())
+            cached = pickle.loads(fp.read_bytes())
+            if (isinstance(cached, dict) and cached.get("cache_schema") == 1
+                    and int(cached.get("lookback_h", 0)) >= lookback_h):
+                return cached["data"]
         except Exception:
             pass
     data = fetch_live(symbol, lookback_h)
     try:
         _LIVE_CACHE_DIR.mkdir(exist_ok=True)
-        fp.write_bytes(pickle.dumps(data))
+        payload = {"cache_schema": 1, "lookback_h": lookback_h, "data": data}
+        # Un replace atomico evita pickle troncati quando workflow/processi
+        # concorrenti scaldano la stessa cache.
+        tmp = fp.with_suffix(f"{fp.suffix}.{os.getpid()}.tmp")
+        tmp.write_bytes(pickle.dumps(payload))
+        os.replace(tmp, fp)
+    except Exception:
+        pass
+    return data
+
+
+def fetch_candles_cached(symbol: str, lookback_h: int = 1000) -> dict:
+    """Cache candle-only per i census ampi che non usano il funding.
+
+    Separare questo path evita una seconda richiesta fundingHistory per ognuno
+    dei 100+ perp. Il namespace distinto impedisce di spacciare funding assente
+    per un risultato completo ai chiamanti di ``fetch_live_cached``.
+    """
+    hr = int(time.time() // 3600)
+    key = hashlib.sha256(symbol.encode("utf-8")).hexdigest()
+    fp = _LIVE_CACHE_DIR / f"{key}.{hr}.candles.pkl"
+    if fp.exists():
+        try:
+            cached = pickle.loads(fp.read_bytes())
+            if (isinstance(cached, dict) and cached.get("cache_schema") == 1
+                    and int(cached.get("lookback_h", 0)) >= lookback_h):
+                return cached["data"]
+        except Exception:
+            pass
+    data = (_fetch_yf(symbol) if symbol.startswith("xyz_")
+            else _fetch_hl(symbol, lookback_h, include_funding=False))
+    try:
+        _LIVE_CACHE_DIR.mkdir(exist_ok=True)
+        payload = {"cache_schema": 1, "lookback_h": lookback_h, "data": data}
+        tmp = fp.with_suffix(f"{fp.suffix}.{os.getpid()}.tmp")
+        tmp.write_bytes(pickle.dumps(payload))
+        os.replace(tmp, fp)
     except Exception:
         pass
     return data
@@ -198,8 +297,8 @@ def fetch_live(symbol: str, lookback_h: int = 1000) -> dict:
     geo-blocca i runner cloud US e ogni tanto restituisce dati corrotti che
     facevano crashare il run intero. Stesso formato del backtest. xyz_* (vecchie
     posizioni commodity, solo in uscita) → yfinance, l'unica fonte per quei nomi.
-    HL non espone taker flow → il segnale taker_flow degrada a neutro (nessuna
-    strategia attiva lo usa)."""
+    HL non espone taker flow: una strategia live che lo dichiara viene bloccata
+    dal source-coverage gate, mai degradata silenziosamente a neutro."""
     if symbol.startswith("xyz_"):
         return _fetch_yf(symbol)
     return _fetch_hl(symbol, lookback_h)   # crypto core + HIP-3 (xyz:/builder-dex): tutto da HL
@@ -259,31 +358,38 @@ def atomic_write_parquet(df, path) -> None:
         raise
 
 
-def _fetch_hl(symbol: str, lookback_h: int) -> dict:
+def _fetch_hl(symbol: str, lookback_h: int, *, include_funding: bool = True) -> dict:
     """Hyperliquid public info API: candele + funding. Niente taker flow
     (il segnale taker_flow resta neutro — degradazione esplicita, non errore)."""
     end_ms = int(time.time() * 1000)
     start_ms = end_ms - min(lookback_h, 5000) * 3_600_000
-    kl = requests.post(HL_INFO, json={"type": "candleSnapshot", "req": {
-        "coin": symbol, "interval": "1h", "startTime": start_ms, "endTime": end_ms}},
-        timeout=30).json()
-    if not isinstance(kl, list) or not kl:   # risposta vuota/errore → errore pulito, il chiamante salta il simbolo
+    payload = {"type": "candleSnapshot", "req": {
+        "coin": symbol, "interval": "1h", "startTime": start_ms, "endTime": end_ms}}
+    kl = _hl_post(payload, attempts=6)
+    if not isinstance(kl, list) or not kl:
         raise RuntimeError(f"HL: candele assenti per {symbol}")
     candles = pd.DataFrame({
         "ts": pd.to_datetime([k["t"] for k in kl], unit="ms", utc=True),
         "open": [float(k["o"]) for k in kl], "high": [float(k["h"]) for k in kl],
         "low": [float(k["l"]) for k in kl], "close": [float(k["c"]) for k in kl],
         "volume": [float(k["v"]) for k in kl]})
+    last_ts = candles.ts.max()
+    age_h = (pd.Timestamp(end_ms, unit="ms", tz="UTC") - last_ts).total_seconds() / 3600
+    if pd.isna(last_ts) or age_h < -1 or age_h > 3:
+        raise RuntimeError(f"HL: candele stale/future per {symbol} ({age_h:.1f}h)")
+    if len(candles) < 2:
+        raise RuntimeError(f"HL: storico chiuso assente per {symbol}")
     funding = None
-    try:
-        fr = requests.post(HL_INFO, json={"type": "fundingHistory", "coin": symbol,
-                                          "startTime": start_ms}, timeout=30).json()
-        if fr:
-            funding = pd.DataFrame({
-                "ts": pd.to_datetime([f["time"] for f in fr], unit="ms", utc=True),
-                "rate": [float(f["fundingRate"]) for f in fr]})
-    except Exception:
-        pass
+    if include_funding:
+        try:
+            fr = _hl_post({"type": "fundingHistory", "coin": symbol,
+                           "startTime": start_ms}, attempts=2)
+            if fr:
+                funding = pd.DataFrame({
+                    "ts": pd.to_datetime([f["time"] for f in fr], unit="ms", utc=True),
+                    "rate": [float(f["fundingRate"]) for f in fr]})
+        except Exception:
+            pass
     return {"candles": candles.iloc[:-1].reset_index(drop=True),
             "forming": candles.iloc[-1], "flow": None, "funding": funding}
 

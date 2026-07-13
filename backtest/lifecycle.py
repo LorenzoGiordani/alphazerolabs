@@ -34,9 +34,12 @@ def all_specs() -> list[tuple[Path, dict]]:
             if "candidates" in f.name:
                 continue
             try:
-                out.append((f, yaml.safe_load(f.read_text())))
-            except Exception:
-                continue
+                spec = yaml.safe_load(f.read_text())
+            except Exception as exc:
+                raise ValueError(f"spec YAML invalida: {f}: {exc}") from exc
+            if not isinstance(spec, dict) or not isinstance(spec.get("id"), str):
+                raise ValueError(f"spec YAML invalida: {f}: id mancante")
+            out.append((f, spec))
     return out
 
 
@@ -87,7 +90,9 @@ def paper_symbols(spec: dict) -> str:
         syms = all_perp_symbols(uni.get("min_day_volume_usd", 1_000_000))
         if syms:
             return _filter(syms)
-        # API HL muta: fallback su esplicito/default sotto, mai trade-su-niente
+        # Nessun fallback silenzioso al basket di default: dichiarare all_perps
+        # e monitorarne soltanto nove produrrebbe un falso verde di coverage.
+        raise RuntimeError("universo Hyperliquid all_perps non disponibile")
     if spec.get("paper_symbols"):
         ps = spec["paper_symbols"]
         return _filter(",".join(ps) if isinstance(ps, list) else ps)

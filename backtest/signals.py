@@ -521,6 +521,56 @@ def earnings_window(data, days_before: int = 3, days_after: int = 1) -> pd.Serie
     return pd.Series(active.fillna(False).astype(int).to_numpy(), index=c.index)
 
 
+RUNTIME_SOURCE_SIGNALS = frozenset({
+    "funding_percentile", "taker_flow", "news_event", "cot_percentile",
+    "kronos_forecast", "kronos_vol", "hmm_regime", "smart_money_ratio",
+    "oi_buildup", "liq_imbalance", "oi_trend", "xsection_momentum",
+    "earnings_window",
+})
+
+
+def runtime_source_available(signal_name: str, data: dict) -> bool:
+    """True only when an external source required by a signal is usable.
+
+    Signal functions remain neutral on missing data for offline experiments, but
+    the live runner uses this metadata as a critical coverage gate so neutral
+    cannot masquerade as an operational strategy.
+    """
+    try:
+        if signal_name == "funding_percentile":
+            source, columns = data.get("funding"), {"ts", "rate"}
+        elif signal_name == "taker_flow":
+            source, columns = data.get("flow"), {"ts", "volume", "taker_buy"}
+        elif signal_name == "news_event":
+            # Nessun evento e una risposta valida; None indica fetch fallito.
+            return data.get("news_events") is not None
+        elif signal_name == "cot_percentile":
+            source, columns = data.get("cot"), {"ts", "net_pct_oi"}
+        elif signal_name in ("kronos_forecast", "kronos_vol"):
+            source = _kronos_load(data.get("symbol"))
+            columns = {"ts", "pred_vol"} if signal_name == "kronos_vol" else {"ts"}
+        elif signal_name == "hmm_regime":
+            source, columns = _hmm_load(data.get("symbol")), {"ts", "regime"}
+        elif signal_name in ("smart_money_ratio", "oi_buildup"):
+            source = _metrics_load(data.get("symbol"))
+            columns = ({"ts", "toptrader_pos_ratio"} if signal_name == "smart_money_ratio"
+                       else {"ts", "oi_value"})
+        elif signal_name in ("liq_imbalance", "oi_trend"):
+            source = _coinalyze_load(data.get("symbol"))
+            columns = ({"ts", "liq_long", "liq_short"} if signal_name == "liq_imbalance"
+                       else {"ts", "oi"})
+        elif signal_name == "xsection_momentum":
+            source, columns = _xsection_load(data.get("symbol")), {"ts", "rank_pct"}
+        elif signal_name == "earnings_window":
+            source, columns = data.get("earnings"), {"filed"}
+        else:
+            return True
+        return (isinstance(source, pd.DataFrame) and not source.empty
+                and columns.issubset(source.columns))
+    except Exception:
+        return False
+
+
 SIGNALS = {
     "funding_percentile": funding_percentile,
     "range_breakout": range_breakout,

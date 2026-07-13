@@ -25,6 +25,31 @@ from pipeline.live import atomic_write_parquet  # noqa: E402
 from scripts.fetch_coinalyze import api_key, perp_symbols, aggregate, get  # noqa: E402
 
 OUT_DIR = ROOT / "data/coinalyze_1h"
+REQUIRED_COLUMNS = {"ts", "liq_long", "liq_short", "oi"}
+
+
+def validate_output(symbols: list[str], *, out_dir: Path = OUT_DIR,
+                    max_age_h: float = 8, now=None) -> list[str]:
+    """Controlla il contratto realmente consumato da LIQIMB."""
+    now = pd.Timestamp.now(tz="UTC") if now is None else pd.Timestamp(now)
+    if now.tzinfo is None:
+        now = now.tz_localize("UTC")
+    errors = []
+    for coin in symbols:
+        path = out_dir / f"{coin}.parquet"
+        try:
+            df = pd.read_parquet(path)
+        except Exception as exc:
+            errors.append(f"{coin}: parquet assente/illeggibile ({exc})")
+            continue
+        if not REQUIRED_COLUMNS.issubset(df.columns) or df.empty:
+            errors.append(f"{coin}: schema/storico incompleto")
+            continue
+        last = pd.to_datetime(df.ts, utc=True, errors="coerce").max()
+        age_h = (now - last).total_seconds() / 3600
+        if pd.isna(last) or age_h < -1 or age_h > max_age_h:
+            errors.append(f"{coin}: stale ({age_h:.1f}h > {max_age_h:g}h)")
+    return errors
 
 
 def main() -> None:
@@ -32,13 +57,13 @@ def main() -> None:
     ap.add_argument("--symbols", required=True)
     ap.add_argument("--lookback-days", type=int, default=75, help="finestra da ripullire (≤ retention 1h)")
     args = ap.parse_args()
+    requested = [coin.strip() for coin in args.symbols.split(",") if coin.strip()]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     s = requests.Session(); s.headers["api_key"] = api_key()
     markets = get(s, "future-markets", None)
     to = int(time.time()); frm = to - args.lookback_days * 86400
 
-    for coin in args.symbols.split(","):
-        coin = coin.strip()
+    for coin in requested:
         syms = perp_symbols(markets, coin)
         if not syms:
             print(f"  {coin}: nessun perp"); continue
@@ -57,6 +82,12 @@ def main() -> None:
         atomic_write_parquet(df, path)   # storico non rigenerabile: mai troncato a metà scrittura
         span = f"{df.ts.min():%Y-%m-%d}→{df.ts.max():%Y-%m-%d}"
         print(f"  {coin}: {len(df)} ore accumulate ({span}) → data/coinalyze_1h/{coin}.parquet")
+
+    errors = validate_output(requested)
+    if errors:
+        for error in errors:
+            print(f"  ERRORE {error}", file=sys.stderr)
+        raise SystemExit(f"coverage Coinalyze 1h fallita: {len(errors)}/{len(requested)}")
 
 
 if __name__ == "__main__":

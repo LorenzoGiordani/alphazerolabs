@@ -22,8 +22,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
-from pipeline.live import atomic_write_text, canonical_symbol, fetch_live
+from pipeline.live import atomic_write_text, canonical_symbol, fetch_live_cached
 from scripts.paper_trade import STATE_FILE, log_event, update_position
+from scripts.runtime_health import write_coverage
+
+# Cache-backed seam kept as ``fetch_live`` for the existing deterministic tests.
+fetch_live = fetch_live_cached
 
 # Account che esegue + SORGENTE delle decisioni che consuma. Le decisioni del desk
 # agents storico NON portano campo "strategy" → appartengono per default a "agents-v1".
@@ -129,14 +133,25 @@ def main() -> None:
             print(f"  migro chiave posizione {k!r} → {ck!r}")
             st["positions"][ck] = st["positions"].pop(k)
 
-    # 1. aggiorna posizioni aperte
-    for symbol in list(st["positions"]):
-        pos = st["positions"][symbol]
+    # 1. prefetch di tutte le posizioni prima di qualsiasi fill: una posizione
+    # non prezzata rende il run critico e non può restare zombie in silenzio.
+    observed = {}
+    failed = []
+    for symbol in st["positions"]:
         try:
-            data = fetch_live(symbol, lookback_h=200)
+            observed[symbol] = fetch_live(symbol, lookback_h=200)
         except Exception as e:
             print(f"  {symbol}: fetch fallito ({e})", file=sys.stderr)
-            continue
+            failed.append(symbol)
+    write_coverage(ACCOUNT, st["positions"], observed, critical=ACCOUNT == "agents-v1",
+                   output_dir=STATE_FILE.parent / "coverage")
+    if failed:
+        raise SystemExit(f"posizioni agenti senza prezzo: {','.join(failed)}")
+
+    # 2. aggiorna posizioni aperte
+    for symbol in list(st["positions"]):
+        pos = st["positions"][symbol]
+        data = observed[symbol]
         pos, st["equity"] = update_position(pos, data["candles"], pos["time_stop_h"],
                                             st["equity"], data.get("forming"))
         if pos:
@@ -144,7 +159,7 @@ def main() -> None:
         else:
             del st["positions"][symbol]
 
-    # 2. esegui decisioni nuove
+    # 3. esegui decisioni nuove
     decisions = [] if args.manage_only else pending_decisions(st["last_decision_ts"])
     for d in decisions:
         st["last_decision_ts"] = max(st["last_decision_ts"], d["logged_at"])

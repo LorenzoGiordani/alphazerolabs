@@ -28,6 +28,7 @@ jobs:
     timeout-minutes: 8
     env:
       LLM_RUNTIME_DISABLED: "1"
+      RUNTIME_COVERAGE_DISABLED: "1"
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       COINALYZE_API_KEY: ${{ secrets.COINALYZE_API_KEY }}
@@ -36,33 +37,44 @@ jobs:
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
 
       - name: exit-check TP/SL
+        id: exits
         run: uv run scripts/paper_exits.py
 
+      - name: valida runtime health (fail-closed, max 2h)
+        id: health
+        if: always()
+        run: uv run scripts/runtime_health.py validate paper/health.json --max-age-seconds 7200
+
       - name: dashboard
-        # frontend più recente prima di rigenerare (stessa guardia di
-        # paper-run.yml): senza, un fix UI pushato a run in corso veniva
-        # sovrascritto dal deploy di questo job
-        run: |
-          git fetch origin main || true
-          git checkout origin/main -- dashboard/template.html scripts/dashboard.py || true
-          uv run scripts/dashboard.py
+        id: dashboard
+        if: steps.exits.outcome == 'success' && steps.health.outcome == 'success'
+        run: uv run scripts/dashboard.py
 
       - name: deploy dashboard pubblica (lux-ai.pages.dev)
-        if: env.CLOUDFLARE_API_TOKEN != ''
+        if: env.CLOUDFLARE_API_TOKEN != '' && steps.exits.outcome == 'success' && steps.health.outcome == 'success' && steps.dashboard.outcome == 'success'
         run: |
-          mkdir -p /tmp/lux-deploy && cp dashboard/*.html dashboard/data.js /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
+          mkdir -p /tmp/lux-deploy && cp dashboard/*.html dashboard/data.js dashboard/health.json dashboard/SKILL.md /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
           rm -f /tmp/lux-deploy/template.html   # sorgente, non si pubblica
           npx -y wrangler@4.107.0 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
 
       - name: publish
+        if: always()
         run: |
           git config user.name "lux-ai-cron"
           git config user.email "actions@users.noreply.github.com"
-          git add paper/ dashboard/*.html dashboard/data.js
+          git add paper/
+          if [ "${{ steps.dashboard.outcome }}" = "success" ]; then
+            git add dashboard/*.html dashboard/data.js dashboard/health.json
+          fi
           if ! git diff --cached --quiet; then
             git commit -m "chore: exit-check $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+            pushed=false
             for i in 1 2 3; do
-              git pull --rebase -X theirs origin main && git push origin main && break
+              if git pull --rebase -X theirs origin main && git push origin main; then
+                pushed=true
+                break
+              fi
               sleep 5
             done
+            [ "$pushed" = true ] || exit 1
           fi

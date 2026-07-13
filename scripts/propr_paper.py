@@ -1,4 +1,4 @@
-"""Esegue la strategia champion (xsmom-multihorizon-v1) sull'account paper Propr.
+"""Esegue una champion paper verificata sull'account virtuale Propr.
 
 A differenza di portfolio_paper.py (ledger interno finto) qui gli ordini sono
 REALI sull'account Free Trial di Propr (app.propr.xyz): tipo `paper` lato loro,
@@ -19,8 +19,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from backtest.evidence import verify_evidence
 from backtest.portfolio import xs_momentum_weights
 from backtest.strategy import load
+from pipeline.live import atomic_write_text
 from scripts.portfolio_paper import trailing_returns
 from scripts.propr_client import ProprClient, ProprError
 
@@ -238,13 +240,46 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
         "last_rebalance_ts": last_rebalance_ts,
         "equity_history": history,
         "strategy_detail": _strategy_detail(spec),
+        "trading_blocked": False,
+        "evidence": verify_evidence(spec, ROOT),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
-    STATUS_PATH.write_text(json.dumps(status, indent=1))
+    atomic_write_text(STATUS_PATH, json.dumps(status, indent=1))
 
 
 def main() -> None:
     spec = load(SPEC_PATH)
+    evidence = verify_evidence(spec, ROOT)
+    evidence_was_verified = evidence["verified"]
+    if spec.get("status") != "champion":
+        evidence["reasons"].append("paper_status_not_champion")
+    # Questo executor implementa solo una variante xsmom hard-coded (universo,
+    # tranching e gross override): non e ancora una replica verificata di uno
+    # spec portfolio generico. Anche con receipt valida resta irraggiungibile.
+    if spec.get("engine") == "portfolio":
+        evidence["reasons"].append("portfolio_execution_contract_not_verified")
+    if evidence["reasons"]:
+        evidence.update(verified=False, status="blocked")
+    if not evidence["verified"]:
+        # Gate before ProprClient: no account, market-data or order endpoint is
+        # reachable while the maker/checker evidence pair is absent or invalid.
+        try:
+            previous = json.loads(STATUS_PATH.read_text()) if STATUS_PATH.exists() else {}
+        except (OSError, json.JSONDecodeError):
+            previous = {}
+        previous.update({
+            "strategy": spec.get("id"),
+            "trading_blocked": True,
+            "trading_block_reason": ("portfolio_execution_contract_not_verified"
+                                      if evidence_was_verified and spec.get("engine") == "portfolio"
+                                      else "evidence_not_verified"),
+            "evidence": evidence,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        })
+        atomic_write_text(STATUS_PATH, json.dumps(previous, indent=1))
+        print(f"propr bloccato: evidenza non verificata ({', '.join(evidence['reasons'])})",
+              file=sys.stderr)
+        raise SystemExit(2)
     pf = spec["portfolio"]
     symbols = [s for s in spec["paper_symbols"].split(",") if s]
     multi_horizon = pf.get("lookbacks_h")

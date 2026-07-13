@@ -37,6 +37,33 @@ def test_scheduled_runtime_has_no_llm_calls_or_credentials():
     assert cron.count("agents_paper.py --manage-only") == 2
 
 
+def test_cloud_publish_is_gated_by_runtime_health():
+    workflow = (ROOT / ".github/workflows/paper-run.yml").read_text()
+    exits = (ROOT / ".github/workflows/paper-exits.yml").read_text()
+    deploy = (ROOT / ".github/workflows/deploy-dashboard.yml").read_text()
+
+    for critical in ("paper_all", "agents_primary", "portfolio_all", "promote", "exits"):
+        assert f'--critical "{critical}=${{{{ steps.{critical}.outcome }}}}"' in workflow
+    assert "steps.health.outcome == 'success'" in workflow
+    for coverage in ("paper-all", "agents-v1", "portfolio-all", "exit-check"):
+        assert f'--require-coverage "{coverage}"' in workflow
+    assert "dashboard/health.json" in workflow
+    assert "dashboard/health.json" in exits
+    assert "dashboard/health.json" in deploy
+    assert "runtime_health.py validate paper/health.json" in exits
+    assert "runtime_health.py validate paper/health.json" in deploy
+    assert "run: uv run scripts/promote.py || true" not in workflow
+    assert "run: uv run scripts/paper_exits.py || true" not in workflow
+
+
+def test_coinalyze_hourly_collector_cannot_skip_or_fake_push_success():
+    workflow = (ROOT / ".github/workflows/coinalyze-1h.yml").read_text()
+    assert 'run: test -n "$COINALYZE_API_KEY"' in workflow
+    assert "if: env.COINALYZE_API_KEY != ''" not in workflow
+    assert 'test "$pushed" -eq 1' in workflow
+    assert "collect_coinalyze_1h.py" in workflow
+
+
 def test_manage_only_does_not_consume_pending_decisions(monkeypatch, tmp_path):
     monkeypatch.syspath_prepend(str(ROOT))
     from scripts import agents_paper

@@ -302,6 +302,7 @@ def build_strategies(state: dict) -> list[dict]:
     curata se disponibile (STRATEGY_INFO) altrimenti derivata dalla tesi nello YAML.
     Auto-include i nuovi ceppi e quelli che il loop evolutivo promuoverà."""
     sys.path.insert(0, str(ROOT))
+    from backtest.evidence import verify_evidence
     from backtest.lifecycle import all_specs, paper_stats, paper_symbols
     out = []
     seen = set()
@@ -335,6 +336,10 @@ def build_strategies(state: dict) -> list[dict]:
                            f"{spec['risk'].get('risk_per_trade_pct')}% a rischio per operazione",
             }
         entry["status"] = spec.get("status", "challenger")
+        entry["paper_status"] = entry["status"]
+        entry["evidence"] = verify_evidence(spec, ROOT)
+        entry["evidence_ready"] = (entry["status"] == "champion"
+                                   and entry["evidence"]["verified"])
         entry["asset_class"] = asset_class(syms)
         entry["risk_profile"] = risk_profile(spec.get("risk", {}))
         try:
@@ -352,6 +357,12 @@ def build_strategies(state: dict) -> list[dict]:
     return out
 
 
+def load_runtime_health(root: Path = ROOT) -> dict:
+    """Manifest pubblico, fail-closed se assente, invalido o più vecchio di 2h."""
+    from scripts.runtime_health import load_health
+    return load_health(root / "paper" / "health.json")
+
+
 LUX_MATRIX_SIGNALS = ["tsmom", "liq_imbalance", "kronos_forecast", "smart_money_ratio", "oi_trend"]
 LUX_MATRIX_CORE = ["tsmom", "liq_imbalance", "kronos_forecast"]
 
@@ -359,13 +370,13 @@ LUX_MATRIX_CORE = ["tsmom", "liq_imbalance", "kronos_forecast"]
 def signals_matrix(symbols: list[str]) -> list[dict]:
     """Stato live dei segnali LUX per asset + confluenza (aligned). Trasparenza dell'edge."""
     from backtest.signals import SIGNALS
-    from pipeline.live import fetch_live
+    from pipeline.live import fetch_live_cached
     rows = []
     for s in symbols:
         if s.startswith("xyz_"):
             continue
         try:
-            d = fetch_live(s)
+            d = fetch_live_cached(s)
             d["symbol"] = s
             vals = {n: int(SIGNALS[n](d).iloc[-1]) for n in LUX_MATRIX_SIGNALS}
         except Exception:
@@ -386,8 +397,8 @@ def chart_series(symbol: str, opened_at: str, pre_h: int = 72) -> list | None:
     candles = None
     try:
         sys.path.insert(0, str(ROOT))
-        from pipeline.live import fetch_live
-        candles = fetch_live(symbol, lookback_h=500)["candles"]
+        from pipeline.live import fetch_live_cached
+        candles = fetch_live_cached(symbol, lookback_h=500)["candles"]
     except Exception:
         p = ROOT / f"data/candles/{symbol}.parquet"
         if p.exists():
@@ -1105,6 +1116,7 @@ def build_data() -> dict:
         "backtests": backtests,
         "llm_stats": llm_stats(),
         "portfolio_live": portfolio_live_view(state),
+        "health": load_runtime_health(),
     }
     # mappa unica id -> nome amichevole (punto 3): il JS la usa ovunque un id
     # tecnico comparirebbe nudo (albero evolutivo, backtest, lifecycle).
@@ -1177,6 +1189,8 @@ def main() -> None:
                       "window.__DATA__ = "
                       + json.dumps(data, ensure_ascii=False, separators=(",", ":"))
                       + ";\n")
+    atomic_write_text(out_dir / "health.json",
+                      json.dumps(data["health"], ensure_ascii=False, indent=2) + "\n")
 
     html = TEMPLATE.read_text()
     # il blob #data del template (placeholder) → riferimento esterno a data.js
@@ -1208,7 +1222,7 @@ def main() -> None:
         page = page_head + "".join(sections[i] for i in ids) + tail
         atomic_write_text(out_dir / fn, page)
 
-    print(f"dashboard AlphaZero Labs → {len(PAGES)} pagine + data.js in {out_dir}")
+    print(f"dashboard AlphaZero Labs → {len(PAGES)} pagine + data.js + health.json in {out_dir}")
 
 
 if __name__ == "__main__":

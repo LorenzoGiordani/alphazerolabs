@@ -16,6 +16,9 @@ on:
       - 'paper/state.json'
       - 'paper/*.jsonl'
       - 'paper/backtests.json'
+      - 'paper/health.json'
+      - 'evidence/**'
+      - 'strategies/**'
 
 concurrency:
   group: deploy-dashboard
@@ -48,13 +51,16 @@ jobs:
       - name: sync deps (uv)
         run: uv sync --frozen 2>/dev/null || uv sync
 
+      - name: valida runtime health (fail-closed, max 2h)
+        run: uv run scripts/runtime_health.py validate paper/health.json --max-age-seconds 7200
+
       - name: rigenera le pagine dai dati correnti
         run: uv run scripts/dashboard.py
 
       - name: deploy dashboard pubblica (lux-ai.pages.dev)
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: |
-          mkdir -p /tmp/lux-deploy && cp dashboard/*.html dashboard/data.js /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
+          mkdir -p /tmp/lux-deploy && cp dashboard/*.html dashboard/data.js dashboard/health.json dashboard/SKILL.md /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
           rm -f /tmp/lux-deploy/template.html   # sorgente, non si pubblica
           npx -y wrangler@4.107.0 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
 
@@ -62,11 +68,16 @@ jobs:
         run: |
           git config user.name "lux-ai-cron"
           git config user.email "actions@users.noreply.github.com"
-          git add dashboard/*.html dashboard/data.js
+          git add dashboard/*.html dashboard/data.js dashboard/health.json
           if ! git diff --cached --quiet; then
             git commit -m "chore: dashboard rebuild [deploy-dashboard]"
+            pushed=false
             for i in 1 2 3; do
-              git pull --rebase -X theirs origin main && git push origin main && break
+              if git pull --rebase -X theirs origin main && git push origin main; then
+                pushed=true
+                break
+              fi
               sleep 5
             done
+            [ "$pushed" = true ] || exit 1
           fi

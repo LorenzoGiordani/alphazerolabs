@@ -19,14 +19,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backtest.lifecycle import all_specs
-from pipeline.live import atomic_write_text, fetch_live
+from pipeline.live import atomic_write_text, fetch_live_cached
 from scripts.paper_trade import STATE_FILE, _book_fill, update_position
+from scripts.runtime_health import write_coverage
 
 NO_TIME_STOP = 10_000_000  # ore: le uscite a tempo le gestisce l'hourly run, non questo check
 
 
 def main() -> None:
     if not STATE_FILE.exists():
+        write_coverage("exit-check", [], [], output_dir=STATE_FILE.parent / "coverage")
         print("nessuno stato")
         return
     state = json.loads(STATE_FILE.read_text())
@@ -34,17 +36,32 @@ def main() -> None:
     closed = 0
     dirty = 0  # fill bookati nel journal (anche partial): lo state DEVE seguire,
                # altrimenti al run dopo la stessa candela viene riprocessata → PnL doppio
+    observed = {}
+    failed = []
+    for sid, st in state.items():
+        for sym, pos in st.get("positions", {}).items():
+            if "notional" in pos or "stop_px" not in pos:
+                continue
+            try:
+                observed[(sid, sym)] = fetch_live_cached(sym)
+            except Exception as e:
+                print(f"  {sid}/{sym}: fetch fallito ({e})", file=sys.stderr)
+                failed.append(f"{sid}/{sym}")
+    expected = [f"{sid}/{sym}" for sid, st in state.items()
+                for sym, pos in st.get("positions", {}).items()
+                if "notional" not in pos and "stop_px" in pos]
+    write_coverage("exit-check", expected, (f"{sid}/{sym}" for sid, sym in observed),
+                   output_dir=STATE_FILE.parent / "coverage")
+    if failed:
+        raise SystemExit(f"exit-check senza prezzo per: {','.join(failed)}")
+
     for sid, st in state.items():
         is_retired = sid in retired_ids
         for sym in list(st.get("positions", {})):
             pos = st["positions"][sym]
             if "notional" in pos or "stop_px" not in pos:
                 continue   # gamba book a portafoglio (engine:portfolio): la gestisce il rebalance, non lo stop/target
-            try:
-                data = fetch_live(sym)
-            except Exception as e:
-                print(f"  {sid}/{sym}: fetch fallito ({e})", file=sys.stderr)
-                continue
+            data = observed[(sid, sym)]
             if is_retired:
                 # strategia ritirata: chiudi al mercato, niente più gestione
                 if "sign" not in pos:

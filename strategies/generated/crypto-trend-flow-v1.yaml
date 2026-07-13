@@ -1,6 +1,6 @@
 id: crypto-trend-flow-v1
 parent: null
-status: challenger
+status: retired
 created: '2026-06-13'
 thesis: 'Momentum crypto CONFERMATO dal flusso aggressivo (taker buy/sell): il trend
   supportato da ordini a mercato è più robusto dei breakout in sottigliezza. rule
@@ -38,7 +38,10 @@ evolution:
   - signals
   - entry
   - exit
-  notes: seed di ricerca
+  notes: >-
+    Seed di ricerca. Ritirata il 2026-07-13: Hyperliquid non espone taker flow
+    e il runtime lo degradava a neutro; una strategia non operativa non puo
+    restare challenger. Il source-coverage gate ora impedisce la regressione.
 backtest:
   basket_6m:
     aggregate:

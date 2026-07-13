@@ -60,6 +60,17 @@ def test_no_exclude_keeps_all():
     assert paper_symbols(spec) == "BTC,ETH,SOL"
 
 
+def test_all_perps_discovery_failure_is_fail_closed(monkeypatch):
+    import pytest
+    import pipeline.live as live
+
+    monkeypatch.setattr(live, "all_perp_symbols", lambda _floor: "")
+    spec = {"universe": {"selection": "all_perps", "min_day_volume_usd": 1_000_000},
+            "paper_symbols": "BTC,ETH,SOL"}
+    with pytest.raises(RuntimeError, match="all_perps non disponibile"):
+        paper_symbols(spec)
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
