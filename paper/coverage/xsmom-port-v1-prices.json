@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29305291791-1",
-  "generated_at": "2026-07-14T04:13:32.040204+00:00",
+  "run_id": "29307813040-1",
+  "generated_at": "2026-07-14T05:13:30.887670+00:00",
   "component": "xsmom-port-v1-prices",
   "critical": true,
-  "expected_count": 128,
-  "observed_count": 128,
+  "expected_count": 130,
+  "observed_count": 130,
   "missing": [],
   "status": "pass"
 }

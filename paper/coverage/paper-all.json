@@ -1,11 +1,13 @@
 {
   "schema_version": 1,
-  "run_id": "29305291791-1",
-  "generated_at": "2026-07-14T04:10:27.246904+00:00",
+  "run_id": "29307813040-1",
+  "generated_at": "2026-07-14T05:10:22.359394+00:00",
   "component": "paper-all",
   "critical": true,
   "expected_count": 2,
-  "observed_count": 2,
-  "missing": [],
-  "status": "pass"
+  "observed_count": 1,
+  "missing": [
+    "commodities-trend-v1"
+  ],
+  "status": "fail"
 }
