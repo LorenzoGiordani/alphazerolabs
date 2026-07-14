@@ -1,0 +1,99 @@
+name: research-checker
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: research-checker
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  checker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: preflight pack pendente
+        id: preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/research-maker /tmp/research-checker
+          artifact_id=""
+          for offset in 0 1; do
+            local_date=$(TZ=Europe/Rome date -d "-${offset} day" +%F)
+            artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=research-maker-${local_date}" \
+              --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main")] | sort_by(.created_at) | reverse | .[0] // empty')
+            artifact_id=$(jq -r '.id // empty' <<< "$artifact")
+            [ -n "$artifact_id" ] && break
+          done
+          if [ -z "$artifact_id" ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "NO-OP: nessun Maker recente"
+            exit 0
+          fi
+          producer_run_id=$(jq -r '.workflow_run.id // empty' <<< "$artifact")
+          producer_sha=$(jq -r '.workflow_run.head_sha // empty' <<< "$artifact")
+          producer=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${producer_run_id}")
+          [ "$(jq -r '.path' <<< "$producer")" = ".github/workflows/research-maker.yml" ] || {
+            echo "artefatto non prodotto da research-maker.yml" >&2; exit 1;
+          }
+          [ "$(jq -r '.head_branch' <<< "$producer")" = "main" ] || {
+            echo "artefatto Maker non proveniente da main" >&2; exit 1;
+          }
+          [ "$(jq -r '.conclusion' <<< "$producer")" = "success" ] || {
+            echo "run Maker non conclusa con successo" >&2; exit 1;
+          }
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" > /tmp/research-maker.zip
+          unzip -q /tmp/research-maker.zip -d /tmp/research-maker
+          [ "$(jq -r '.repo_commit' /tmp/research-maker/pack.json)" = "$producer_sha" ] || {
+            echo "repo_commit del pack non coincide con head_sha del Maker" >&2; exit 1;
+          }
+          pack_id=$(jq -r '.pack_id' /tmp/research-maker/pack.json)
+          [[ "$pack_id" =~ ^[a-f0-9]{64}$ ]] || { echo "pack_id invalido" >&2; exit 1; }
+          expires_at=$(jq -r '.expires_at' /tmp/research-maker/pack.json)
+          if [ "$(date -d "$expires_at" +%s)" -lt "$(date +%s)" ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "NO-OP: pack ${pack_id} scaduto"
+            exit 0
+          fi
+          existing=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=research-checker-${pack_id}" \
+            --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main")] | length')
+          echo "pack_id=${pack_id}" >> "$GITHUB_OUTPUT"
+          if [ "$existing" -gt 0 ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "NO-OP: pack ${pack_id} gia verificato"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        if: steps.preflight.outputs.should_run == 'true'
+
+      - name: Independent Checker L1 via Z.AI
+        if: steps.preflight.outputs.should_run == 'true'
+        env:
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+        run: >-
+          uv run --frozen python -m scripts.research_cloud checker
+          --input-dir /tmp/research-maker
+          --out-dir /tmp/research-checker
+
+      - name: verifica checkout immutato
+        if: steps.preflight.outputs.should_run == 'true'
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.preflight.outputs.should_run == 'true'
+        with:
+          name: research-checker-${{ steps.preflight.outputs.pack_id }}
+          path: /tmp/research-checker/
+          retention-days: 30
+          if-no-files-found: error

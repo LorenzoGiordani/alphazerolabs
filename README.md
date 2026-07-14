@@ -264,8 +264,8 @@ uv run scripts/dashboard.py && open dashboard/index.html
 sh scripts/cron_run.sh                           # run completo (in crontab ogni 4h)
 ```
 
-**Operazioni LLM** — dal 12/07/2026 passano da **Codex/GPT-5.6** autenticato
-con la subscription ChatGPT. GitHub Actions e il cron locale non ricevono più
+**Operazioni LLM di execution** — dal 12/07/2026 passano da **Codex/GPT-5.6** autenticato
+con la subscription ChatGPT. I workflow di execution e il cron locale non ricevono
 credenziali Z.ai/OpenRouter e non generano decisioni, review, mutazioni o nuove
 previsioni Polymarket. Il cloud resta attivo per dati, strategie meccaniche,
 uscite, scoring, sincronizzazione e dashboard. La subscription Codex non è una
@@ -280,16 +280,21 @@ Capacità conservate nel layer HTTP storico:
 - **Self-consistency** — la decisione finale dello Strategist è il majority vote di N=3 campioni (`GLM_SC_N`), riduce la varianza del flip-di-moneta di una singola chiamata LLM.
 - **Cache applicativo** (`GLM_CACHE_DIR`) — memoizza per hash(prompt): eval deterministici, dedup, test a costo zero.
 
-Ogni nuova proposta LLM viene quindi prodotta come artefatto Codex, verificata
-da un checker indipendente e soltanto dopo può essere ammessa al paper trading.
+Ogni nuova proposta LLM di execution viene quindi prodotta come artefatto Codex,
+verificata da un checker indipendente e soltanto dopo può essere ammessa al paper trading.
 Nessuna chiave della subscription viene copiata nel repository o in Actions.
 
-Il **Research OS L1** separa ulteriormente ricerca ed esecuzione: una task Daily
-Maker censisce via metadata tutti i perp core/HIP-3, arricchisce al massimo 20
-mercati core 24/7 e produce 5–8 famiglie source-first; una task Hourly Checker
+Il **Research OS L1** è la sola eccezione cloud: Cloudflare schedula
+`research-maker.yml` alle 07:15 Europe/Rome e `research-checker.yml` ogni ora;
+GitHub Actions usa esclusivamente `ZAI_API_KEY` sull'endpoint API generale con
+web search e JSON validato. Pack e receipt restano artefatti GitHub per 30 giorni,
+mai commit. Il Maker censisce via metadata tutti i perp core/HIP-3, arricchisce
+al massimo 20 mercati core 24/7 e produce 5–8 famiglie source-first; il Checker
 revisiona soltanto il nuovo hash. Al massimo una famiglia arriva a
 `PREREG_REVIEW_ONLY`; `NO_CANDIDATE` è valido. Nessun output L1 può creare una
 strategy spec, aprire P&L/holdout o modificare paper state e journal.
+Il Worker non espone endpoint HTTP di dispatch: le esecuzioni manuali passano
+solo da `workflow_dispatch` autenticato nell'interfaccia o API di GitHub.
 
 ## Roadmap
 
@@ -297,7 +302,7 @@ Stato reale: M1–M4 costruiti. Prima di qualsiasi ipotesi su fondi reali servon
 evidenza riproducibile, track record plurimensile, affidabilità operativa e un gate umano separato.
 
 - [x] M1 — dati, harness, registry, formato strategia, loop evolutivo (3 generazioni)
-- [x] M2 — paper trading live; dal 12/07 il cloud esegue solo il runtime deterministico, mentre decide/review/evolve LLM passano da Codex con gate maker/checker
+- [x] M2 — paper trading live; decide/review/evolve restano su Codex, Research OS L1 gira report-only su Z.AI via Cloudflare e GitHub Actions
 - [x] COT report CFTC (posizionamento commodities = analogo del funding)
 - [x] Champion/challenger per-trade con gate formale (**deflated Sharpe ≥0.95**); i portfolio non sono auto-promovibili perché gli heartbeat non sono trade indipendenti
 - [x] Integrity P0 — maker/checker evidence contract, runtime health fail-closed, endpoint pubblico e CI mirata

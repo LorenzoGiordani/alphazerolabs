@@ -11,7 +11,7 @@ solo la forma leggibile dei due output LLM. Non aggiungere chiavi.
   "pack_id": "sha256 copiato dal pack",
   "created_at": "ISO-8601 con timezone, entro expires_at",
   "maker_run_id": "identità univoca di questa task",
-  "model": "gpt-5.6-sol",
+  "model": "gpt-5.6-sol oppure zai:<modello effettivo>",
   "outcome": "NO_CANDIDATE oppure CANDIDATE",
   "inventory": {
     "note_path": "wiki/Registry Segnali.md",
@@ -43,6 +43,10 @@ solo la forma leggibile dei due output LLM. Non aggiungere chiavi.
   }
 }
 ```
+
+Nel runtime cloud, `inventory.note_path` identifica lo snapshot versionato in
+`brain/` e `strategies/`; Obsidian resta canonico ma non viene copiato né scritto
+da GitHub Actions.
 
 Servono 5–8 famiglie con meccanismi distinti. Se `outcome` è `CANDIDATE`,
 `candidate` è un solo oggetto con le chiavi seguenti:
