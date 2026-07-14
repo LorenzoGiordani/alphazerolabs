@@ -141,6 +141,22 @@ def test_pack_fails_closed_below_enrichment_coverage(tmp_path, monkeypatch):
         rp.build_pack(state_file=state, top=5, prefilter=10)
 
 
+def test_pack_tolerates_one_new_market_when_three_contexts_remain(tmp_path, monkeypatch):
+    census = [_row(f"COIN{index}") for index in range(4)]
+
+    def fetch(symbol, _lookback):
+        if symbol == "COIN0":
+            raise RuntimeError("storia insufficiente: 80 barre")
+        return _candles()
+
+    _patch_pack(monkeypatch, census, fetch=fetch)
+    state = tmp_path / "state.json"; state.write_text("{}")
+    pack = rp.build_pack(state_file=state, top=4, prefilter=4)
+    assert pack["universe"]["enrichment_coverage"] == 0.75
+    assert pack["universe"]["excluded_counts"]["enrichment_failed"] == 1
+    assert len(pack["research_markets"]) == 3
+
+
 def test_pack_tampering_and_contract_scope_fail_closed(tmp_path, monkeypatch):
     _patch_pack(monkeypatch, [_row(f"COIN{index}") for index in range(5)])
     state = tmp_path / "state.json"; state.write_text("{}")
