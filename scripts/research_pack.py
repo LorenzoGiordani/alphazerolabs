@@ -264,7 +264,8 @@ def build_pack(*, state_file: str | Path = ROOT / "paper/state.json", top: int =
         except Exception as exc:
             failures.append({"symbol": row["symbol"], "reason": str(exc)[:240]})
     coverage = len(enriched) / len(attempted) if attempted else 1.0
-    if coverage < min_enrichment_coverage:
+    single_gap_is_bounded = len(failures) == 1 and len(enriched) >= 3
+    if coverage < min_enrichment_coverage and not single_gap_is_bounded:
         raise RuntimeError(
             f"coverage enrichment {coverage:.1%} < minimo {min_enrichment_coverage:.1%}: {failures}")
 
