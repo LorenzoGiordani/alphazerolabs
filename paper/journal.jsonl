@@ -6198,3 +6198,15 @@
 {"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9718.84, "open_positions": 37, "logged_at": "2026-07-14T11:13:39.590638+00:00"}
 {"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9372.36, "open_positions": 59, "logged_at": "2026-07-14T11:13:45.935379+00:00"}
 {"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9698.18, "open_positions": 6, "logged_at": "2026-07-14T11:13:46.458036+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 9165.99, "open_positions": 2, "logged_at": "2026-07-14T12:10:37.726305+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-aggressive-v1", "equity": 8726.62, "open_positions": 4, "logged_at": "2026-07-14T12:10:41.264359+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10058.37, "open_positions": 0, "logged_at": "2026-07-14T12:10:41.934570+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9947.49, "open_positions": 0, "logged_at": "2026-07-14T12:10:42.506367+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10159.75, "open_positions": 4, "logged_at": "2026-07-14T12:13:51.721101+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 9430.91, "open_positions": 128, "logged_at": "2026-07-14T12:13:52.320124+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10291.37, "open_positions": 6, "logged_at": "2026-07-14T12:13:52.952856+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10060.78, "open_positions": 6, "logged_at": "2026-07-14T12:13:53.584528+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10459.05, "open_positions": 78, "logged_at": "2026-07-14T12:13:54.179903+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9712.04, "open_positions": 37, "logged_at": "2026-07-14T12:13:55.011389+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9393.27, "open_positions": 59, "logged_at": "2026-07-14T12:14:01.416528+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9696.23, "open_positions": 6, "logged_at": "2026-07-14T12:14:01.979624+00:00"}
