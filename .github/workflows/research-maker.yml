@@ -1,0 +1,61 @@
+name: research-maker
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: research-maker
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  maker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: preflight giornaliero Europe/Rome
+        id: preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          local_date=$(TZ=Europe/Rome date +%F)
+          existing=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=research-maker-${local_date}" \
+            --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main")] | length')
+          echo "local_date=${local_date}" >> "$GITHUB_OUTPUT"
+          if [ "$existing" -gt 0 ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "NO-OP: Maker gia pubblicato per ${local_date} Europe/Rome"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        if: steps.preflight.outputs.should_run == 'true'
+
+      - name: Daily Maker L1 via Z.AI
+        if: steps.preflight.outputs.should_run == 'true'
+        env:
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+        run: >-
+          uv run --frozen python -m scripts.research_cloud maker
+          --state-file paper/state.json
+          --out-dir /tmp/research-maker
+
+      - name: verifica checkout immutato
+        if: steps.preflight.outputs.should_run == 'true'
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.preflight.outputs.should_run == 'true'
+        with:
+          name: research-maker-${{ steps.preflight.outputs.local_date }}
+          path: /tmp/research-maker/
+          retention-days: 30
+          if-no-files-found: error

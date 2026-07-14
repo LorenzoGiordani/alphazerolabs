@@ -64,7 +64,7 @@ retirement/promozione via `add_lesson()` (schema compatibile: `trade_key`,
 `symbol=basket`, `verdict`, `lesson`, `tags`). `recall_lessons` in decide.py
 legge entrambi.
 
-### 8. Operazioni LLM via Codex/GPT-5.6
+### 8. Operazioni LLM: Codex per execution, Z.AI per Research OS L1
 Dal 12/07/2026 ricerca, review, generazione ed evoluzione LLM vengono svolte in
 task Codex autenticati con la subscription ChatGPT. `scripts/llm.py` resta come
 layer HTTP storico e testabile, ma nei runtime schedulati non può raggiungere
@@ -80,11 +80,21 @@ Il Research OS L1 (`scripts/research_pack.py`, `scripts/research_ops.py` e
 all-dex, candele bounded core 24/7, 5–8 famiglie, massimo una candidata al solo
 gate `PREREG_REVIEW_ONLY`. Non modifica repo, vault, paper state o journal.
 
+Eccezione esplicita dal 14/07/2026: soltanto Daily Maker e Hourly Checker L1
+girano come workflow GitHub dedicati, schedulati dal Worker Cloudflare. Usano
+`ZAI_API_KEY` sull'endpoint Z.AI generale, con web search e JSON validato; non
+usano `scripts/llm.py`, OpenRouter o la subscription Codex. Pack e receipt sono
+artefatti GitHub a retention 30 giorni e non vengono committati. Lo snapshot di
+novelty deriva da `brain/` e `strategies/`; Obsidian resta canonico e read-only.
+Il Worker non espone un handler HTTP pubblico; le run manuali usano soltanto il
+`workflow_dispatch` autenticato di GitHub Actions.
+
 ### 9. Architettura cloud-first
 Paper-run deterministico su GitHub Actions (orario via Cloudflare Worker = clock
 affidabile); dashboard statica su Cloudflare Pages (`lux-ai.pages.dev`). Il cloud
-gestisce dati, strategie meccaniche, uscite e pubblicazione. Codex/GPT-5.6 usa la
-subscription sul control plane locale per le sole operazioni LLM revisionabili.
+gestisce dati, strategie meccaniche, uscite, pubblicazione e il Research OS L1
+report-only via Z.AI. Codex/GPT-5.6 resta il control plane revisionabile per le
+altre operazioni LLM e per qualsiasi passaggio oltre `PREREG_REVIEW_ONLY`.
 Precompute pesanti (Kronos, GDELT, xsection, HMM) restano in workflow dedicati.
 
 ### 10. Loop evolutivo: walk-forward + DSR + complessità penalty

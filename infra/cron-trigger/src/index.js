@@ -1,11 +1,12 @@
 // Cron Worker per il paper trading di GitHub Actions (lo scheduler nativo GitHub
 // salta/ritarda le run su repo privato; questo Worker è il clock affidabile).
 //
-// Due compiti:
+// Compiti principali:
 //  1) HOURLY (cron "10 * * * *") → dispatch del paper-run completo (segnali, LLM, dashboard)
 //  2) MONITOR (cron "*/3 * * * *") → legge le posizioni aperte, controlla i mid HL e,
 //     SOLO se uno stop/target è sfiorato, dispatcha paper-exits.yml → uscite ~real-time
 //     con minuti Actions quasi nulli (GitHub gira solo sui breach reali).
+//  3) RESEARCH OS L1 → Maker alle 07:15 Europe/Rome e Checker ogni ora.
 //
 // Secret richiesto: GH_PAT — PAT fine-grained con permesso Actions: write sul repo.
 
@@ -13,6 +14,24 @@ const REPO = "LorenzoGiordani/alphazerolabs"; // nome attuale (ex lux-ai / defi-
 const HOURLY_CRON = "10 * * * *";
 const KRONOS_CRON = "30 5 * * *"; // 1x/giorno: rigenera la cache forecast Kronos (lux-0.1-beta)
 const GDELT_CRON = "45 */6 * * *"; // 4x/giorno: rinfresca la cache eventi GDELT (desk geopolitics-v1)
+
+export function isRomeMakerTime(scheduledTime) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Rome",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(scheduledTime));
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return value.hour === "07" && value.minute === "15";
+}
+
+export function workflowsForCron(cron, scheduledTime) {
+  if (cron === HOURLY_CRON) return ["paper-run.yml", "hl-snapshot.yml", "research-checker.yml"];
+  if (cron === KRONOS_CRON) return ["kronos-precompute.yml"];
+  if (cron === GDELT_CRON) return ["gdelt-precompute.yml", "coinalyze-1h.yml"];
+  return null;
+}
 
 async function dispatch(env, workflow) {
   const res = await fetch(
@@ -106,28 +125,22 @@ async function monitor(env) {
   return dispatch(env, "paper-exits.yml");
 }
 
-export default {
+// Nessun handler fetch: il vecchio endpoint HTTP pubblico poteva provocare dispatch
+// non autenticati. Le run manuali restano disponibili via workflow_dispatch GitHub.
+const worker = {
   async scheduled(event, env, ctx) {
     // hl-snapshot e coinalyze-1h raccolgono dati forward-only non rigenerabili:
     // lo scheduler nativo GitHub li throttlava a ~3.5h invece che orari → buchi
     // negli storici. Piggyback sui cron già attivi (il clock affidabile è questo).
-    if (event.cron === HOURLY_CRON) {
-      ctx.waitUntil(dispatch(env, "paper-run.yml"));
-      ctx.waitUntil(dispatch(env, "hl-snapshot.yml"));
-    } else if (event.cron === KRONOS_CRON) ctx.waitUntil(dispatch(env, "kronos-precompute.yml"));
-    else if (event.cron === GDELT_CRON) {
-      ctx.waitUntil(dispatch(env, "gdelt-precompute.yml"));
-      ctx.waitUntil(dispatch(env, "coinalyze-1h.yml"));
-    } else ctx.waitUntil(monitor(env));
-  },
-  // GET manuale: ?run forza il paper-run, default = esegue il monitor (utile per test)
-  async fetch(request, env) {
-    const url = new URL(request.url);
-    if (url.searchParams.has("run")) {
-      const ok = await dispatch(env, "paper-run.yml");
-      return new Response(ok ? "paper-run dispatched\n" : "dispatch failed\n", { status: ok ? 200 : 502 });
+    const workflows = workflowsForCron(event.cron, event.scheduledTime);
+    if (workflows !== null) {
+      ctx.waitUntil(Promise.all(workflows.map((workflow) => dispatch(env, workflow))));
+      return;
     }
-    const fired = await monitor(env);
-    return new Response(fired ? "breach → paper-exits dispatched\n" : "monitor ok, nessun breach\n", { status: 200 });
+    const tasks = [monitor(env)];
+    if (isRomeMakerTime(event.scheduledTime)) tasks.push(dispatch(env, "research-maker.yml"));
+    ctx.waitUntil(Promise.all(tasks));
   },
 };
+
+export default worker;

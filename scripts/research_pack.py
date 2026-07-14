@@ -277,7 +277,7 @@ def build_pack(*, state_file: str | Path = ROOT / "paper/state.json", top: int =
         "generated_at": _iso(now),
         "expires_at": _iso(now + timedelta(hours=expires_h)),
         "repo_commit": _repo_commit(),
-        "model_target": "gpt-5.6",
+        "model_target": "zai:glm-5.1",
         "universe": {
             "source": "Hyperliquid metaAndAssetCtxs, all perp dexs",
             "raw_symbols": len(census_rows),
@@ -356,8 +356,8 @@ def validate_maker(pack: dict, maker: dict, *, now: datetime | None = None) -> d
     if maker["kind"] != MAKER_KIND or maker["pack_id"] != pack["pack_id"]:
         raise ValueError("maker kind o pack_id non corrispondente")
     _text(maker["maker_run_id"], "maker.maker_run_id")
-    if not _text(maker["model"], "maker.model").startswith("gpt-5.6"):
-        raise ValueError("maker.model deve identificare GPT-5.6")
+    if not _text(maker["model"], "maker.model").startswith(("gpt-5.6", "zai:")):
+        raise ValueError("maker.model deve identificare GPT-5.6 oppure Z.AI")
     created = _parse_ts(maker["created_at"], "maker.created_at")
     generated = _parse_ts(pack["generated_at"], "pack.generated_at")
     expires = _parse_ts(pack["expires_at"], "pack.expires_at")
