@@ -6,7 +6,8 @@ name: x-news-precompute
 # percorso caldo. Richiede il secret X_BEARER_TOKEN (app-only bearer, tier che
 # abilita /2/tweets/counts/recent). Senza secret il fetch degrada a vuoto: il gate
 # geo resta su GDELT, nessun blocco.
-# Trigger via Cloudflare Worker (lux-paper-cron) come gli altri precompute.
+# Manuale finche non viene autorizzato e configurato X_BEARER_TOKEN; senza
+# secret il desk usa GDELT e questo workflow non va schedulato a vuoto.
 on:
   workflow_dispatch:
 

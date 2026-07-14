@@ -10,6 +10,10 @@ test("routes deterministic and checker schedules", () => {
     ["paper-run.yml", "hl-snapshot.yml", "research-checker.yml"],
   );
   assert.equal(workflowsForCron("*/3 * * * *", 0), null);
+  assert.deepEqual(
+    workflowsForCron("30 5 * * *", 0),
+    ["kronos-precompute.yml", "xsection-precompute.yml"],
+  );
 });
 
 test("dispatches maker at 07:15 Rome across DST", () => {
