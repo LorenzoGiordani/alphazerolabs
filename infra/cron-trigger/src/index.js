@@ -12,7 +12,7 @@
 
 const REPO = "LorenzoGiordani/alphazerolabs"; // nome attuale (ex lux-ai / defi-ai-vault)
 const HOURLY_CRON = "10 * * * *";
-const KRONOS_CRON = "30 5 * * *"; // 1x/giorno: rigenera la cache forecast Kronos (lux-0.1-beta)
+const KRONOS_CRON = "30 5 * * *"; // 1x/giorno: rigenera le cache Kronos e xsection
 const GDELT_CRON = "45 */6 * * *"; // 4x/giorno: rinfresca la cache eventi GDELT (desk geopolitics-v1)
 
 export function isRomeMakerTime(scheduledTime) {
@@ -28,7 +28,7 @@ export function isRomeMakerTime(scheduledTime) {
 
 export function workflowsForCron(cron, scheduledTime) {
   if (cron === HOURLY_CRON) return ["paper-run.yml", "hl-snapshot.yml", "research-checker.yml"];
-  if (cron === KRONOS_CRON) return ["kronos-precompute.yml"];
+  if (cron === KRONOS_CRON) return ["kronos-precompute.yml", "xsection-precompute.yml"];
   if (cron === GDELT_CRON) return ["gdelt-precompute.yml", "coinalyze-1h.yml"];
   return null;
 }

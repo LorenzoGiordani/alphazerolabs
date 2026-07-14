@@ -6,7 +6,7 @@
   "observability": { "enabled": true },
   // "10 * * * *" = paper-run completo orario; "*/3 * * * *" = monitor TP/SL real-time
   // (dispatcha paper-exits SOLO se un livello è sfiorato); "30 5 * * *" = precompute
-  // Kronos giornaliero (cache forecast per lux-0.1-beta); "45 */6 * * *" = refresh
+  // Kronos + xsection giornalieri; "45 */6 * * *" = refresh
   // cache eventi GDELT 4x/giorno (desk geopolitics-v1). Research Checker usa il
   // trigger orario esistente; Research Maker usa il monitor */3 con guard
   // Europe/Rome alle 07:15. Restano 4 trigger: il piano Free consente 5/account.
