@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29344152700-1",
-  "generated_at": "2026-07-14T15:13:53.944526+00:00",
+  "run_id": "29348521366-1",
+  "generated_at": "2026-07-14T16:13:59.413838+00:00",
   "component": "xsmom-highvol-voltarget-v1-signal-eligible",
   "critical": false,
-  "expected_count": 135,
-  "observed_count": 133,
+  "expected_count": 136,
+  "observed_count": 134,
   "missing": [
     "CASHCAT",
     "xyz:SKHY"
