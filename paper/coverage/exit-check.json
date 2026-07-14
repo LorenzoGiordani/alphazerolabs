@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29307813040-1",
-  "generated_at": "2026-07-14T05:13:41.921365+00:00",
+  "run_id": "29310545275-1",
+  "generated_at": "2026-07-14T06:13:46.433934+00:00",
   "component": "exit-check",
   "critical": true,
-  "expected_count": 7,
-  "observed_count": 7,
+  "expected_count": 6,
+  "observed_count": 6,
   "missing": [],
   "status": "pass"
 }

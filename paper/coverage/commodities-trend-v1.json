@@ -1,13 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29307813040-1",
-  "generated_at": "2026-07-14T05:10:18.366201+00:00",
+  "run_id": "29310545275-1",
+  "generated_at": "2026-07-14T06:10:21.640281+00:00",
   "component": "commodities-trend-v1",
   "critical": true,
   "expected_count": 5,
-  "observed_count": 4,
-  "missing": [
-    "xyz_GOLD"
-  ],
-  "status": "fail"
+  "observed_count": 5,
+  "missing": [],
+  "status": "pass"
 }
