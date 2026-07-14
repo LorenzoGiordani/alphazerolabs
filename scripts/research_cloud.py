@@ -87,6 +87,7 @@ def _zai_chat(prompt: str, *, search_prompt: str, timeout: int) -> tuple[dict, l
             "type": "web_search",
             "web_search": {
                 "enable": True,
+                "search_engine": "search_pro_jina",
                 "search_result": True,
                 "count": 24,
                 "content_size": "high",
@@ -125,9 +126,14 @@ def _zai_chat(prompt: str, *, search_prompt: str, timeout: int) -> tuple[dict, l
                 raise RuntimeError("Z.AI non ha restituito un oggetto JSON")
             return value, body.get("web_search") or [], body.get("usage") or {}, body.get("model", model)
         message = (response.text or "")[:300]
+        try:
+            error_code = str((response.json().get("error") or {}).get("code") or "").strip()
+        except (AttributeError, TypeError, ValueError):
+            error_code = ""
+        error_suffix = f" (code {error_code})" if error_code else ""
         if response.status_code in (401, 402, 403) or "insufficient" in message.lower():
-            raise RuntimeError(f"Z.AI auth/quota non disponibile: HTTP {response.status_code}")
-        last_error = f"HTTP {response.status_code}"
+            raise RuntimeError(f"Z.AI auth/quota non disponibile: HTTP {response.status_code}{error_suffix}")
+        last_error = f"HTTP {response.status_code}{error_suffix}"
         if response.status_code != 429 and response.status_code < 500:
             raise RuntimeError(f"Z.AI richiesta rifiutata: {last_error}")
         if attempt + 1 < MAX_ATTEMPTS:
