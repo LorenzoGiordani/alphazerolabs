@@ -143,5 +143,26 @@ def test_zai_request_uses_general_api_and_web_search(monkeypatch):
     cloud._zai_chat("prompt", search_prompt="primary", timeout=10)
     assert captured["url"].startswith("https://api.z.ai/api/paas/v4/")
     assert captured["json"]["tools"][0]["type"] == "web_search"
+    assert captured["json"]["tools"][0]["web_search"]["search_engine"] == "search_pro_jina"
     assert captured["json"]["max_tokens"] == 16_000
     assert "test-only" not in json.dumps(captured["json"])
+
+
+def test_zai_error_surfaces_business_code_without_message(monkeypatch):
+    class Response:
+        status_code = 429
+        text = '{"error":{"code":"1113","message":"Insufficient balance: private detail"}}'
+
+        def json(self):
+            return json.loads(self.text)
+
+    monkeypatch.setenv("ZAI_API_KEY", "test-only")
+    monkeypatch.setattr(cloud.requests, "post", lambda *_args, **_kwargs: Response())
+
+    try:
+        cloud._zai_chat("prompt", search_prompt="primary", timeout=10)
+    except RuntimeError as exc:
+        assert "HTTP 429 (code 1113)" in str(exc)
+        assert "private detail" not in str(exc)
+    else:
+        raise AssertionError("Z.AI doveva fallire chiuso sul saldo insufficiente")
