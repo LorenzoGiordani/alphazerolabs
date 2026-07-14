@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29295173342-1",
-  "generated_at": "2026-07-14T00:13:27.579853+00:00",
+  "run_id": "29297868592-1",
+  "generated_at": "2026-07-14T01:13:34.339837+00:00",
   "component": "xsmom-multihorizon-v1-signal-eligible",
   "critical": false,
   "expected_count": 128,
