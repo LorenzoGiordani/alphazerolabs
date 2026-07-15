@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29410697620-1",
-  "generated_at": "2026-07-15T11:13:52.140268+00:00",
+  "run_id": "29414229293-1",
+  "generated_at": "2026-07-15T12:13:57.021479+00:00",
   "component": "xsmom-highvol-combo-v1-signal-eligible",
   "critical": false,
-  "expected_count": 133,
-  "observed_count": 130,
+  "expected_count": 134,
+  "observed_count": 131,
   "missing": [
     "CASHCAT",
     "xyz:CXMT",
