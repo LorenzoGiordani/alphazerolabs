@@ -6390,3 +6390,14 @@
 {"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9670.23, "open_positions": 88, "logged_at": "2026-07-15T03:13:52.619318+00:00"}
 {"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9443.99, "open_positions": 59, "logged_at": "2026-07-15T03:13:57.642238+00:00"}
 {"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9787.37, "open_positions": 6, "logged_at": "2026-07-15T03:13:58.195552+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 8966.3, "open_positions": 2, "logged_at": "2026-07-15T04:10:44.511269+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10058.37, "open_positions": 0, "logged_at": "2026-07-15T04:10:45.086561+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9947.49, "open_positions": 0, "logged_at": "2026-07-15T04:10:45.574352+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10358.23, "open_positions": 4, "logged_at": "2026-07-15T04:13:54.883301+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 9404.17, "open_positions": 128, "logged_at": "2026-07-15T04:13:58.373634+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10448.68, "open_positions": 6, "logged_at": "2026-07-15T04:13:58.918299+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10215.83, "open_positions": 6, "logged_at": "2026-07-15T04:13:59.479115+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10361.14, "open_positions": 78, "logged_at": "2026-07-15T04:13:59.995913+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9662.27, "open_positions": 88, "logged_at": "2026-07-15T04:14:00.508035+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9471.53, "open_positions": 59, "logged_at": "2026-07-15T04:14:04.016025+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9798.36, "open_positions": 6, "logged_at": "2026-07-15T04:14:04.529168+00:00"}
