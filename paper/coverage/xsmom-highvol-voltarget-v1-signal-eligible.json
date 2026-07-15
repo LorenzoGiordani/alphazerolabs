@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29435402649-1",
-  "generated_at": "2026-07-15T17:13:58.909127+00:00",
+  "run_id": "29439454741-1",
+  "generated_at": "2026-07-15T18:13:56.502908+00:00",
   "component": "xsmom-highvol-voltarget-v1-signal-eligible",
   "critical": false,
   "expected_count": 132,
