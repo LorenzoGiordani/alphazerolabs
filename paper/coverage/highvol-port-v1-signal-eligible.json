@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29414229293-1",
-  "generated_at": "2026-07-15T12:14:01.408025+00:00",
+  "run_id": "29418089258-1",
+  "generated_at": "2026-07-15T13:14:00.126062+00:00",
   "component": "highvol-port-v1-signal-eligible",
   "critical": false,
-  "expected_count": 134,
-  "observed_count": 133,
+  "expected_count": 135,
+  "observed_count": 134,
   "missing": [
     "xyz:CXMT"
   ],
