@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29447283554-1",
-  "generated_at": "2026-07-15T20:13:57.757057+00:00",
+  "run_id": "29450972216-1",
+  "generated_at": "2026-07-15T21:13:58.271058+00:00",
   "component": "xsmom-reb48-v1-signal-eligible",
   "critical": false,
   "expected_count": 134,
