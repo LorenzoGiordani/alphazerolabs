@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29407178477-1",
-  "generated_at": "2026-07-15T10:13:52.518893+00:00",
+  "run_id": "29410697620-1",
+  "generated_at": "2026-07-15T11:13:51.502833+00:00",
   "component": "tsmom-neutral-v1-signal-eligible",
   "critical": false,
   "expected_count": 133,
