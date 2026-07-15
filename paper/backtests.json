@@ -1,80 +1,80 @@
 {
- "months": 11,
+ "months": 10,
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-14T23:14 UTC",
+ "generated_at": "2026-07-15T00:14 UTC",
  "strategies": [
   {
    "id": "commodities-trend-v1",
    "status": "challenger",
    "thesis": "I trend sulle commodities sono persistenti (driver macro/COT, cicli lunghi). Un book dedicato alle sole commodities con TSMOM dovrebbe essere più pulito del basket misto. Falsificata se non batte buy-and-hold risk-adjusted sulle commodities a 6 mesi.",
    "is_benchmark": false,
-   "window": "2025-08-28 → 2026-07-14",
+   "window": "2025-08-29 → 2026-07-14",
    "basket_size": 5,
    "aggregate": {
-    "mean_sharpe": -1.27,
-    "mean_return": -0.111,
-    "worst_drawdown": -0.153,
+    "mean_sharpe": -1.26,
+    "mean_return": -0.1107,
+    "worst_drawdown": -0.161,
     "positive_symbols": "0/5",
     "consistency": "10/30"
    },
    "per_symbol": [
     {
      "symbol": "xyz_GOLD",
-     "ret": -0.1334,
-     "sharpe": -1.53,
-     "max_dd": -0.1456,
+     "ret": -0.11,
+     "sharpe": -1.23,
+     "max_dd": -0.1437,
      "trades": 51,
-     "win_rate": 0.314,
-     "pf": 0.72,
-     "consistency": "1/6 fold positivi",
+     "win_rate": 0.333,
+     "pf": 0.8,
+     "consistency": "2/6 fold positivi",
      "exits": {
-      "stopped": 35,
-      "target": 14,
+      "stopped": 34,
+      "target": 15,
       "closed": 2
      }
     },
     {
      "symbol": "xyz_SILVER",
-     "ret": -0.0724,
-     "sharpe": -0.92,
-     "max_dd": -0.1209,
+     "ret": -0.0467,
+     "sharpe": -0.56,
+     "max_dd": -0.12,
      "trades": 43,
-     "win_rate": 0.326,
-     "pf": 0.8,
-     "consistency": "2/6 fold positivi",
+     "win_rate": 0.349,
+     "pf": 0.89,
+     "consistency": "3/6 fold positivi",
      "exits": {
-      "stopped": 29,
-      "target": 14
+      "stopped": 28,
+      "target": 15
      }
     },
     {
      "symbol": "xyz_CL",
-     "ret": -0.1378,
-     "sharpe": -1.5,
-     "max_dd": -0.153,
+     "ret": -0.161,
+     "sharpe": -1.8,
+     "max_dd": -0.161,
      "trades": 61,
-     "win_rate": 0.311,
-     "pf": 0.76,
-     "consistency": "2/6 fold positivi",
+     "win_rate": 0.295,
+     "pf": 0.7,
+     "consistency": "1/6 fold positivi",
      "exits": {
-      "stopped": 42,
-      "target": 19
+      "stopped": 43,
+      "target": 18
      }
     },
     {
      "symbol": "xyz_BRENTOIL",
-     "ret": -0.0919,
-     "sharpe": -0.95,
-     "max_dd": -0.139,
+     "ret": -0.1162,
+     "sharpe": -1.24,
+     "max_dd": -0.1388,
      "trades": 54,
-     "win_rate": 0.352,
-     "pf": 0.82,
-     "consistency": "3/6 fold positivi",
+     "win_rate": 0.333,
+     "pf": 0.75,
+     "consistency": "2/6 fold positivi",
      "exits": {
-      "stopped": 32,
-      "target": 16,
+      "stopped": 33,
+      "target": 15,
       "closed": 6
      }
     },
@@ -104,8 +104,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.71,
-    "mean_return": 0.3235,
+    "mean_sharpe": 1.78,
+    "mean_return": 0.3403,
     "worst_drawdown": -0.1335,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
@@ -122,9 +122,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": -0.73,
-    "mean_return": -0.1107,
-    "worst_drawdown": -0.2029,
+    "mean_sharpe": -0.27,
+    "mean_return": -0.0546,
+    "worst_drawdown": -0.178,
     "positive_symbols": "market-neutral",
     "consistency": "1/6 fold positivi"
    },
@@ -140,11 +140,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.88,
-    "mean_return": 0.2032,
-    "worst_drawdown": -0.39,
+    "mean_sharpe": 1.78,
+    "mean_return": 0.5856,
+    "worst_drawdown": -0.2565,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -158,9 +158,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.69,
-    "mean_return": 0.0937,
-    "worst_drawdown": -0.1825,
+    "mean_sharpe": 0.79,
+    "mean_return": 0.1123,
+    "worst_drawdown": -0.21,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -177,8 +177,8 @@
    "vol_target": "on (m medio 0.82)",
    "aggregate": {
     "mean_sharpe": 1.09,
-    "mean_return": 0.1252,
-    "worst_drawdown": -0.1146,
+    "mean_return": 0.1244,
+    "worst_drawdown": -0.1254,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -194,11 +194,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.29,
-    "mean_return": 0.0245,
-    "worst_drawdown": -0.2263,
+    "mean_sharpe": 0.74,
+    "mean_return": 0.1011,
+    "worst_drawdown": -0.1816,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -212,9 +212,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.69,
-    "mean_return": 0.0937,
-    "worst_drawdown": -0.1825,
+    "mean_sharpe": 0.9,
+    "mean_return": 0.1327,
+    "worst_drawdown": -0.21,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -230,11 +230,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.98,
-    "mean_return": 0.1453,
-    "worst_drawdown": -0.1765,
+    "mean_sharpe": 1.46,
+    "mean_return": 0.24,
+    "worst_drawdown": -0.1604,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "5/6 fold positivi"
    },
    "per_symbol": []
   }
