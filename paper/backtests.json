@@ -1,20 +1,20 @@
 {
- "months": 10,
+ "months": 11,
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-15T04:14 UTC",
+ "generated_at": "2026-07-15T05:14 UTC",
  "strategies": [
   {
    "id": "commodities-trend-v1",
    "status": "challenger",
    "thesis": "I trend sulle commodities sono persistenti (driver macro/COT, cicli lunghi). Un book dedicato alle sole commodities con TSMOM dovrebbe essere più pulito del basket misto. Falsificata se non batte buy-and-hold risk-adjusted sulle commodities a 6 mesi.",
    "is_benchmark": false,
-   "window": "2025-08-29 → 2026-07-14",
+   "window": "2025-08-29 → 2026-07-15",
    "basket_size": 5,
    "aggregate": {
-    "mean_sharpe": -1.26,
-    "mean_return": -0.1099,
+    "mean_sharpe": -1.25,
+    "mean_return": -0.1097,
     "worst_drawdown": -0.161,
     "positive_symbols": "0/5",
     "consistency": "10/30"
@@ -22,15 +22,15 @@
    "per_symbol": [
     {
      "symbol": "xyz_GOLD",
-     "ret": -0.1062,
-     "sharpe": -1.2,
+     "ret": -0.1052,
+     "sharpe": -1.17,
      "max_dd": -0.1437,
-     "trades": 50,
-     "win_rate": 0.34,
-     "pf": 0.82,
+     "trades": 51,
+     "win_rate": 0.333,
+     "pf": 0.8,
      "consistency": "2/6 fold positivi",
      "exits": {
-      "stopped": 33,
+      "stopped": 34,
       "target": 15,
       "closed": 2
      }
@@ -66,7 +66,7 @@
     {
      "symbol": "xyz_BRENTOIL",
      "ret": -0.1162,
-     "sharpe": -1.25,
+     "sharpe": -1.24,
      "max_dd": -0.1388,
      "trades": 54,
      "win_rate": 0.333,
@@ -81,7 +81,7 @@
     {
      "symbol": "xyz_NATGAS",
      "ret": -0.1195,
-     "sharpe": -1.47,
+     "sharpe": -1.46,
      "max_dd": -0.1462,
      "trades": 43,
      "win_rate": 0.302,
@@ -104,8 +104,8 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.47,
-    "mean_return": 0.2649,
+    "mean_sharpe": 1.56,
+    "mean_return": 0.2887,
     "worst_drawdown": -0.1335,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
@@ -122,9 +122,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": -1.38,
-    "mean_return": -0.1849,
-    "worst_drawdown": -0.2646,
+    "mean_sharpe": -1.28,
+    "mean_return": -0.1699,
+    "worst_drawdown": -0.2564,
     "positive_symbols": "market-neutral",
     "consistency": "0/6 fold positivi"
    },
@@ -140,11 +140,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.94,
-    "mean_return": 0.6652,
-    "worst_drawdown": -0.224,
+    "mean_sharpe": 2.1,
+    "mean_return": 0.7451,
+    "worst_drawdown": -0.2294,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "6/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -158,11 +158,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.25,
-    "mean_return": 0.017,
-    "worst_drawdown": -0.189,
+    "mean_sharpe": 1.94,
+    "mean_return": 0.3226,
+    "worst_drawdown": -0.1137,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -174,13 +174,13 @@
    "is_benchmark": false,
    "window": "2025-12-18 → 2026-07-15",
    "basket_size": 9,
-   "vol_target": "on (m medio 0.82)",
+   "vol_target": "on (m medio 0.83)",
    "aggregate": {
-    "mean_sharpe": 0.74,
-    "mean_return": 0.0781,
-    "worst_drawdown": -0.1144,
+    "mean_sharpe": 1.9,
+    "mean_return": 0.2351,
+    "worst_drawdown": -0.1122,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -194,9 +194,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.88,
-    "mean_return": 0.1263,
-    "worst_drawdown": -0.1657,
+    "mean_sharpe": 1.17,
+    "mean_return": 0.1752,
+    "worst_drawdown": -0.1761,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
    },
@@ -212,11 +212,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.15,
-    "mean_return": 0.0012,
-    "worst_drawdown": -0.189,
+    "mean_sharpe": 1.99,
+    "mean_return": 0.3335,
+    "worst_drawdown": -0.1137,
     "positive_symbols": "market-neutral",
-    "consistency": "3/6 fold positivi"
+    "consistency": "4/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -230,9 +230,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.97,
-    "mean_return": 0.3359,
-    "worst_drawdown": -0.1216,
+    "mean_sharpe": 1.54,
+    "mean_return": 0.2506,
+    "worst_drawdown": -0.1334,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
    },
