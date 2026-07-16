@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29493447526-1",
-  "generated_at": "2026-07-16T11:13:45.295825+00:00",
+  "run_id": "29497121447-1",
+  "generated_at": "2026-07-16T12:13:45.762371+00:00",
   "component": "tsmom-neutral-v1-prices",
   "critical": true,
-  "expected_count": 131,
-  "observed_count": 131,
+  "expected_count": 133,
+  "observed_count": 133,
   "missing": [],
   "status": "pass"
 }
