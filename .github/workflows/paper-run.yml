@@ -78,11 +78,11 @@ jobs:
         continue-on-error: true
         run: uv run scripts/paper_exits.py
 
-      - name: propr — champion su onchain prop firm (F8, esecuzione reale su capitale virtuale)
+      - name: propr — snapshot live account paper (sola lettura)
         id: propr
         if: env.PROPR_API_KEY != '' && steps.paper_all.outcome == 'success' && steps.portfolio_all.outcome == 'success' && steps.promote.outcome == 'success'
         continue-on-error: true
-        run: uv run scripts/propr_paper.py
+        run: uv run scripts/propr_paper.py --snapshot-only
 
       - name: polymarket forecast journal (F7 — risoluzione storico)
         id: polymarket

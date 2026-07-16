@@ -33,3 +33,4 @@ def test_dashboard_health_missing_is_fail_closed(tmp_path):
 def test_open_dashboard_rechecks_health_freshness():
     template = (Path(__file__).resolve().parent.parent / "dashboard/template.html").read_text()
     assert "setInterval(renderHealth, 60000)" in template
+    assert "host.hidden=status==='healthy'||status==='degraded'" in template
