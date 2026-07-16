@@ -2142,6 +2142,8 @@ h1,h2,h3,h4,
     const stale=!isFinite(generated)||(Date.now()-generated)>2*60*60*1000||(generated-Date.now())>5*60*1000;
     if(stale) status='unknown';
     if(h.publish_allowed===false && status!=='unknown') status='critical';
+    host.hidden=status==='healthy'||status==='degraded';
+    if(host.hidden) return;
     const problems=(h.validation_reasons||[]).concat(h.errors||[],h.warnings||[]);
     const labels={
       healthy:'Pipeline verificata: tutti i controlli critici sono verdi.',
