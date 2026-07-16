@@ -1,11 +1,13 @@
 {
   "schema_version": 1,
-  "run_id": "29457729761-1",
-  "generated_at": "2026-07-15T23:14:04.675753+00:00",
+  "run_id": "29460691994-1",
+  "generated_at": "2026-07-16T00:14:02.450960+00:00",
   "component": "liqimb-port-v1-signal-eligible",
   "critical": true,
   "expected_count": 9,
-  "observed_count": 9,
-  "missing": [],
-  "status": "pass"
+  "observed_count": 8,
+  "missing": [
+    "CRV"
+  ],
+  "status": "fail"
 }
