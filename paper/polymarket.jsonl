@@ -16,3 +16,4 @@
 {"type": "resolution", "ts": "2026-07-14T22:14:06.268665+00:00", "market_id": "2879968", "outcome_yes": 0.0, "brier_llm": 0.2209, "brier_market": 0.1806}
 {"type": "resolution", "ts": "2026-07-14T22:14:06.268665+00:00", "market_id": "2880028", "outcome_yes": 0.0, "brier_llm": 0.0042, "brier_market": 0.011}
 {"type": "resolution", "ts": "2026-07-14T22:14:06.268665+00:00", "market_id": "2880294", "outcome_yes": 0.0, "brier_llm": 0.3025, "brier_market": 0.354}
+{"type": "resolution", "ts": "2026-07-16T06:14:04.043479+00:00", "market_id": "2686769", "outcome_yes": 0.0, "brier_llm": 0.0484, "brier_market": 0.0089}
