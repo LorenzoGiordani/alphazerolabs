@@ -205,7 +205,8 @@ def _strategy_detail(spec: dict) -> dict:
 
 
 def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list[dict],
-                 last_rebalance_ts: str) -> None:
+                 last_rebalance_ts: str, *, discretionary: bool = False,
+                 evidence: dict | None = None) -> None:
     """Snapshot pubblico per la dashboard: stato challenge Propr vs le sue stesse
     regole (target/daily-loss/drawdown), letto dal server — non ricalcolato qui."""
     acct = client.get_account()
@@ -224,7 +225,12 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
                [{"ts": datetime.now(timezone.utc).isoformat(), "equity": round(equity, 2)}])[-1000:]
 
     status = {
-        "strategy": spec["id"], "account_id": attempt["accountId"],
+        "strategy": "llm-discretionary-v1" if discretionary else spec["id"],
+        "execution_mode": "llm-discretionary" if discretionary else "systematic",
+        "management_note": ("Gestione discrezionale LLM sul solo account paper; "
+                            "snapshot API in sola lettura."
+                            if discretionary else ""),
+        "account_id": attempt["accountId"],
         "challenge": ch["name"], "challenge_slug": ch["slug"],
         "attempt_status": attempt["status"], "started_at": attempt["startedAt"],
         "start_balance": start_bal, "equity": round(equity, 2), "balance": round(float(acct["balance"]), 2),
@@ -239,15 +245,15 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
                        "unrealized_pnl": round(float(p["unrealizedPnl"]), 2)} for p in positions],
         "last_rebalance_ts": last_rebalance_ts,
         "equity_history": history,
-        "strategy_detail": _strategy_detail(spec),
+        "strategy_detail": None if discretionary else _strategy_detail(spec),
         "trading_blocked": False,
-        "evidence": verify_evidence(spec, ROOT),
+        "evidence": evidence or verify_evidence(spec, ROOT),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     atomic_write_text(STATUS_PATH, json.dumps(status, indent=1))
 
 
-def main() -> None:
+def main(snapshot_only: bool = False) -> None:
     spec = load(SPEC_PATH)
     evidence = verify_evidence(spec, ROOT)
     evidence_was_verified = evidence["verified"]
@@ -260,6 +266,15 @@ def main() -> None:
         evidence["reasons"].append("portfolio_execution_contract_not_verified")
     if evidence["reasons"]:
         evidence.update(verified=False, status="blocked")
+    if snapshot_only:
+        client = ProprClient(read_only=True)
+        client.setup()
+        attempt = client._req("GET", "/challenge-attempts", params={"status": "active"})["data"][0]
+        positions = client.get_positions()
+        write_status(client, spec, attempt, positions, "",
+                     discretionary=True, evidence=evidence)
+        print("propr snapshot read-only aggiornato; nessun ordine automatico")
+        return
     if not evidence["verified"]:
         # Gate before ProprClient: no account, market-data or order endpoint is
         # reachable while the maker/checker evidence pair is absent or invalid.
@@ -391,4 +406,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(snapshot_only="--snapshot-only" in sys.argv[1:])

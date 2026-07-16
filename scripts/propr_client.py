@@ -15,16 +15,19 @@ class ProprError(RuntimeError):
 
 
 class ProprClient:
-    def __init__(self, api_key: str | None = None):
+    def __init__(self, api_key: str | None = None, *, read_only: bool = False):
         self.api_key = api_key or os.environ.get("PROPR_API_KEY")
         if not self.api_key:
             raise ProprError("PROPR_API_KEY non impostata")
+        self.read_only = read_only
         self.account_id: str | None = None
 
     def _headers(self) -> dict:
         return {"X-API-Key": self.api_key, "Content-Type": "application/json"}
 
     def _req(self, method: str, path: str, **kw) -> dict:
+        if self.read_only and method.upper() != "GET":
+            raise ProprError(f"client read-only: {method.upper()} {path} bloccato")
         r = requests.request(method, f"{BASE_URL}{path}", headers=self._headers(), timeout=20, **kw)
         if r.status_code not in (200, 201):
             raise ProprError(f"{method} {path} -> {r.status_code}: {r.text[:300]}")

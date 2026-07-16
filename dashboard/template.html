@@ -916,14 +916,14 @@ h1,h2,h3,h4,
   <section id="propr">
     <div class="sec-head">
       <span class="kicker">F8 · Challenge virtuale verificabile</span>
-      <h2>Propr — il campione paper supera la challenge?</h2>
-      <p class="note">Una strategia campione paper (<code id="propr-strategy">—</code>) può essere eseguita su <a href="https://propr.xyz" target="_blank" rel="noopener">Propr</a> soltanto dopo DSR, holdout OOS e checker indipendente verificati. Il capitale resta virtuale; regole ed enforcement sono osservabili via API. <span id="propr-empty" style="display:none">Nessuno snapshot ancora.</span></p>
+      <h2>Propr — gestione paper pubblica</h2>
+      <p class="note">Il conto Free Trial da $5.000 è gestito su <a href="https://propr.xyz" target="_blank" rel="noopener">Propr</a> e pubblicato qui tramite snapshot API in sola lettura. Strategia corrente: <code id="propr-strategy">—</code>. Il capitale resta virtuale. <span id="propr-empty" style="display:none">Nessuno snapshot ancora.</span></p>
     </div>
     <div id="propr-summary" style="display:flex;gap:22px;flex-wrap:wrap;margin-bottom:18px;font-size:13px"></div>
     <div id="propr-bars" style="margin-bottom:22px"></div>
     <h3 style="font-family:var(--serif);margin:8px 0 10px">Book corrente</h3>
     <table id="propr-positions" style="width:100%;border-collapse:collapse;font-size:13px"></table>
-    <p class="note" style="margin-top:14px;font-size:11px;opacity:.7">Account Free Trial $5.000 · target profitto 10% · daily loss max 3% · drawdown max 6% statico. Le API vengono chiamate soltanto quando il contratto di evidenza è verificato.</p>
+    <p class="note" style="margin-top:14px;font-size:11px;opacity:.7">Account Free Trial $5.000 · target profitto 10% · daily loss max 3% · drawdown max 6% statico. Lo snapshot è sola lettura e non può inviare ordini.</p>
 
     <h3 style="font-family:var(--serif);margin:28px 0 10px">Breakdown strategia</h3>
     <p class="note" id="propr-thesis" style="margin-bottom:16px"></p>
@@ -960,7 +960,8 @@ h1,h2,h3,h4,
         ['Equity', '$'+p.equity.toFixed(2)],
         ['Progresso target ('+p.profit_target_pct+'%)', p.profit_target_progress_pct.toFixed(2)+'%'],
         ['Margine da drawdown', p.drawdown_room_pct.toFixed(2)+'%'],
-        ['Stato challenge', statusLabel]
+        ['Stato challenge', statusLabel],
+        ['Gestione', p.execution_mode==='llm-discretionary'?'LLM discrezionale':'sistematica']
       ].map(function(r,i){ var col = i===3 ? statusColor : 'var(--text-1)';
         return '<div><b style="color:'+col+'">'+r[1]+'</b><br><span style="opacity:.6">'+r[0]+'</span></div>'; }).join('');
       var barsWrap=document.getElementById('propr-bars');
@@ -987,8 +988,8 @@ h1,h2,h3,h4,
       t.innerHTML=h+b;
 
       var det=p.strategy_detail;
+      document.getElementById('propr-thesis').textContent=det?det.thesis:(p.management_note||'');
       if(det){
-        document.getElementById('propr-thesis').textContent=det.thesis;
         function kv(rows){
           return '<tbody>'+rows.map(function(r){
             return '<tr><td style="padding:5px 10px 5px 0;border-bottom:1px solid var(--line);opacity:.65">'+r[0]+'</td>'+
@@ -2635,6 +2636,8 @@ h1,h2,h3,h4,
     const stale=!isFinite(generated)||(Date.now()-generated)>2*60*60*1000||(generated-Date.now())>5*60*1000;
     if(stale) status='unknown';
     if(h.publish_allowed===false && status!=='unknown') status='critical';
+    host.hidden=status==='healthy'||status==='degraded';
+    if(host.hidden) return;
     const problems=(h.validation_reasons||[]).concat(h.errors||[],h.warnings||[]);
     const labels={
       healthy:'Pipeline verificata: tutti i controlli critici sono verdi.',
