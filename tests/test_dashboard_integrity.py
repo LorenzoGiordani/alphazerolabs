@@ -34,3 +34,4 @@ def test_open_dashboard_rechecks_health_freshness():
     template = (Path(__file__).resolve().parent.parent / "dashboard/template.html").read_text()
     assert "setInterval(renderHealth, 60000)" in template
     assert "host.hidden=status==='healthy'||status==='degraded'" in template
+    assert "#health-banner[hidden]{ display:none; }" in template
