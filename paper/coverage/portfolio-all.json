@@ -1,13 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29460691994-1",
-  "generated_at": "2026-07-16T00:14:02.518137+00:00",
+  "run_id": "29463443115-1",
+  "generated_at": "2026-07-16T01:14:00.440440+00:00",
   "component": "portfolio-all",
   "critical": true,
   "expected_count": 8,
-  "observed_count": 7,
-  "missing": [
-    "liqimb-port-v1"
-  ],
-  "status": "fail"
+  "observed_count": 8,
+  "missing": [],
+  "status": "pass"
 }
