@@ -1,4 +1,5 @@
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -25,6 +26,15 @@ def _position(asset="BTC", position_id="pos-1", side="long", mark="100", quantit
         "quantity": quantity,
         "createdAt": "2026-07-17T10:00:00Z",
     }
+
+
+def test_guard_cli_imports_from_repo_root():
+    root = Path(__file__).resolve().parent.parent
+    result = subprocess.run(
+        [sys.executable, str(root / "scripts/propr_guard.py"), "--help"],
+        cwd=root, capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_client_pins_exact_active_account_and_challenge(monkeypatch):

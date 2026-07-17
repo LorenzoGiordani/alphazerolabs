@@ -11,14 +11,17 @@ import argparse
 import hashlib
 import json
 import os
+import sys
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
 from scripts.propr_client import ProprClient, ProprError
 
 
-ROOT = Path(__file__).resolve().parent.parent
 JOURNAL = ROOT / "paper/propr_guard_journal.jsonl"
 EXPECTED_CHALLENGE_SLUG = "free-trial"
 EXPECTED_INITIAL_BALANCE = Decimal("5000")
