@@ -161,8 +161,111 @@ def test_zai_error_surfaces_business_code_without_message(monkeypatch):
 
     try:
         cloud._zai_chat("prompt", search_prompt="primary", timeout=10)
-    except RuntimeError as exc:
+    except cloud.ZaiQuotaUnavailable as exc:
         assert "HTTP 429 (code 1113)" in str(exc)
         assert "private detail" not in str(exc)
     else:
         raise AssertionError("Z.AI doveva fallire chiuso sul saldo insufficiente")
+
+
+def test_zai_quota_falls_back_to_openrouter_deepseek_v4_pro(monkeypatch):
+    captured = {}
+
+    class Response:
+        status_code = 200
+
+        def json(self):
+            return {
+                "model": "deepseek/deepseek-v4-pro",
+                "choices": [{"message": {
+                    "content": json.dumps(_maker_value()),
+                    "annotations": [{"type": "url_citation", "url_citation": {
+                        "url": SOURCE, "title": "Primary", "content": "Source text",
+                    }}],
+                }}],
+                "usage": {"total_tokens": 321},
+            }
+
+    def zai_quota(*_args, **_kwargs):
+        raise cloud.ZaiQuotaUnavailable("Z.AI auth/quota non disponibile: HTTP 429 (code 1113)")
+
+    def fake_post(url, **kwargs):
+        captured.update(url=url, **kwargs)
+        return Response()
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-only")
+    monkeypatch.setattr(cloud, "_zai_chat", zai_quota)
+    monkeypatch.setattr(cloud.requests, "post", fake_post)
+    value, sources, usage, model = cloud._research_chat("prompt", search_prompt="primary", timeout=10)
+
+    assert value == _maker_value()
+    assert sources == [{"link": SOURCE, "title": "Primary", "content": "Source text"}]
+    assert usage == {"total_tokens": 321}
+    assert model == "openrouter:deepseek/deepseek-v4-pro"
+    assert captured["url"] == "https://openrouter.ai/api/v1/chat/completions"
+    assert captured["json"]["model"] == "deepseek/deepseek-v4-pro"
+    assert captured["json"]["tools"] == [{
+        "type": "openrouter:web_search",
+        "parameters": {
+            "engine": "exa", "max_results": 24, "max_total_results": 24,
+            "search_context_size": "high",
+        },
+    }]
+    assert "test-only" not in json.dumps(captured["json"])
+
+
+def test_openrouter_fallback_without_citations_fails_closed(tmp_path, monkeypatch):
+    _patch_common(monkeypatch)
+    monkeypatch.setattr(rp, "build_pack", lambda **_kwargs: _pack())
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-only")
+    monkeypatch.setattr(
+        cloud, "_zai_chat",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            cloud.ZaiQuotaUnavailable("Z.AI auth/quota non disponibile: HTTP 429 (code 1113)")),
+    )
+    monkeypatch.setattr(
+        cloud, "_openrouter_chat",
+        lambda *_args, **_kwargs: (_maker_value(), [], {}, cloud.OPENROUTER_MODEL),
+    )
+
+    try:
+        cloud.run_maker(tmp_path / "state.json", tmp_path / "out")
+    except RuntimeError as exc:
+        assert "fonti verificabili" in str(exc)
+    else:
+        raise AssertionError("Il fallback OpenRouter deve fallire senza citation del web search")
+
+
+def test_regular_zai_429_does_not_use_openrouter(monkeypatch):
+    calls = []
+
+    class Response:
+        status_code = 429
+        text = '{"error":{"code":"rate_limit"}}'
+
+        def json(self):
+            return json.loads(self.text)
+
+    def fake_post(url, **_kwargs):
+        calls.append(url)
+        return Response()
+
+    monkeypatch.setenv("ZAI_API_KEY", "test-only")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-only")
+    monkeypatch.setattr(cloud.requests, "post", fake_post)
+    monkeypatch.setattr(cloud.time, "sleep", lambda *_args: None)
+
+    try:
+        cloud._research_chat("prompt", search_prompt="primary", timeout=10)
+    except RuntimeError as exc:
+        assert "Z.AI fallita" in str(exc)
+    else:
+        raise AssertionError("Un rate limit non-quota Z.AI non deve cambiare provider")
+    assert calls == ["https://api.z.ai/api/paas/v4/chat/completions"] * cloud.MAX_ATTEMPTS
+
+
+def test_research_workflows_pass_openrouter_fallback_secret():
+    root = Path(__file__).resolve().parent.parent
+    for workflow_name in ("research-maker.yml", "research-checker.yml"):
+        workflow = (root / ".github/workflows" / workflow_name).read_text()
+        assert "OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}" in workflow

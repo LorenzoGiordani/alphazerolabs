@@ -1,7 +1,7 @@
 """Research OS L1: census all-dex e contratti Maker/Checker report-only.
 
 Il modulo non crea strategie, non esegue backtest e non tocca paper state o
-journal. Produce un pack content-addressed per GPT-5.6, valida il report del
+journal. Produce un pack content-addressed per i modelli Research OS approvati, valida il report del
 Daily Maker e la receipt di un Hourly Checker con identita distinta.
 """
 
@@ -278,7 +278,7 @@ def build_pack(*, state_file: str | Path = ROOT / "paper/state.json", top: int =
         "generated_at": _iso(now),
         "expires_at": _iso(now + timedelta(hours=expires_h)),
         "repo_commit": _repo_commit(),
-        "model_target": "zai:glm-5.1",
+        "model_target": "zai:glm-5.1 primary; openrouter:deepseek/deepseek-v4-pro fallback-on-zai-quota",
         "universe": {
             "source": "Hyperliquid metaAndAssetCtxs, all perp dexs",
             "raw_symbols": len(census_rows),
@@ -357,8 +357,9 @@ def validate_maker(pack: dict, maker: dict, *, now: datetime | None = None) -> d
     if maker["kind"] != MAKER_KIND or maker["pack_id"] != pack["pack_id"]:
         raise ValueError("maker kind o pack_id non corrispondente")
     _text(maker["maker_run_id"], "maker.maker_run_id")
-    if not _text(maker["model"], "maker.model").startswith(("gpt-5.6", "zai:")):
-        raise ValueError("maker.model deve identificare GPT-5.6 oppure Z.AI")
+    model = _text(maker["model"], "maker.model")
+    if not model.startswith(("gpt-5.6", "zai:")) and model != "openrouter:deepseek/deepseek-v4-pro":
+        raise ValueError("maker.model deve identificare GPT-5.6, Z.AI o OpenRouter DeepSeek V4 Pro")
     created = _parse_ts(maker["created_at"], "maker.created_at")
     generated = _parse_ts(pack["generated_at"], "pack.generated_at")
     expires = _parse_ts(pack["expires_at"], "pack.expires_at")

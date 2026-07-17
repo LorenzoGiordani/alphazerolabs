@@ -75,10 +75,11 @@ jobs:
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         if: steps.preflight.outputs.should_run == 'true'
 
-      - name: Independent Checker L1 via Z.AI
+      - name: Independent Checker L1 (Z.AI primary, OpenRouter fallback)
         if: steps.preflight.outputs.should_run == 'true'
         env:
           ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: >-
           uv run --frozen python -m scripts.research_cloud checker
           --input-dir /tmp/research-maker

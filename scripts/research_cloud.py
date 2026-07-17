@@ -1,4 +1,4 @@
-"""Research OS L1 cloud runner: Z.AI Maker and independent Checker.
+"""Research OS L1 cloud runner: Z.AI primary with bounded OpenRouter fallback.
 
 The runner is report-only. It writes only to an explicit output directory;
 GitHub Actions publishes that directory as an immutable, expiring artifact.
@@ -24,6 +24,8 @@ from scripts import research_pack
 ROOT = Path(__file__).resolve().parent.parent
 ZAI_BASE_URL = "https://api.z.ai/api/paas/v4"
 ZAI_MODEL = "glm-5.1"
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+OPENROUTER_MODEL = "deepseek/deepseek-v4-pro"
 MAX_ATTEMPTS = 2
 
 
@@ -67,6 +69,10 @@ def _repo_inventory() -> dict:
         "lessons_excerpt": lessons_path.read_text(encoding="utf-8")[:16_000]
         if lessons_path.exists() else "",
     }
+
+
+class ZaiQuotaUnavailable(RuntimeError):
+    """Z.AI errors for which the approved OpenRouter fallback may run."""
 
 
 def _zai_chat(prompt: str, *, search_prompt: str, timeout: int) -> tuple[dict, list, dict, str]:
@@ -131,14 +137,117 @@ def _zai_chat(prompt: str, *, search_prompt: str, timeout: int) -> tuple[dict, l
         except (AttributeError, TypeError, ValueError):
             error_code = ""
         error_suffix = f" (code {error_code})" if error_code else ""
-        if response.status_code in (401, 402, 403) or "insufficient" in message.lower():
-            raise RuntimeError(f"Z.AI auth/quota non disponibile: HTTP {response.status_code}{error_suffix}")
+        if (response.status_code in (401, 402, 403) or error_code == "1113"
+                or "insufficient" in message.lower()):
+            raise ZaiQuotaUnavailable(
+                f"Z.AI auth/quota non disponibile: HTTP {response.status_code}{error_suffix}")
         last_error = f"HTTP {response.status_code}{error_suffix}"
         if response.status_code != 429 and response.status_code < 500:
             raise RuntimeError(f"Z.AI richiesta rifiutata: {last_error}")
         if attempt + 1 < MAX_ATTEMPTS:
             time.sleep(2**attempt)
     raise RuntimeError(f"Z.AI fallita dopo {MAX_ATTEMPTS} tentativi: {last_error}")
+
+
+def _openrouter_search_results(message: dict) -> list[dict]:
+    results = []
+    for annotation in message.get("annotations") or []:
+        if not isinstance(annotation, dict) or annotation.get("type") != "url_citation":
+            continue
+        citation = annotation.get("url_citation")
+        if not isinstance(citation, dict) or not isinstance(citation.get("url"), str):
+            continue
+        result = {"link": citation["url"]}
+        for key in ("title", "content"):
+            if isinstance(citation.get(key), str):
+                result[key] = citation[key]
+        results.append(result)
+    return results
+
+
+def _openrouter_chat(prompt: str, *, search_prompt: str, timeout: int) -> tuple[dict, list, dict, str]:
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        raise RuntimeError("OpenRouter fallback richiesto ma OPENROUTER_API_KEY mancante")
+    payload = {
+        "model": OPENROUTER_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "Restituisci esclusivamente un oggetto JSON conforme al contratto richiesto. "
+                    "Usa il tool web search prima di citare fonti."
+                ),
+            },
+            {"role": "user", "content": f"{prompt}\n\nDIRETTIVA DI RICERCA:\n{search_prompt}"},
+        ],
+        "response_format": {"type": "json_object"},
+        "tools": [{
+            "type": "openrouter:web_search",
+            "parameters": {
+                "engine": "exa",
+                "max_results": 24,
+                "max_total_results": 24,
+                "search_context_size": "high",
+            },
+        }],
+        "stream": False,
+        "temperature": 0.2,
+        "max_tokens": 16_000,
+    }
+    last_error = None
+    for attempt in range(MAX_ATTEMPTS):
+        try:
+            response = requests.post(
+                f"{OPENROUTER_BASE_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=(15, timeout),
+            )
+        except requests.RequestException as exc:
+            last_error = f"rete: {type(exc).__name__}"
+            if attempt + 1 < MAX_ATTEMPTS:
+                time.sleep(2**attempt)
+                continue
+            raise RuntimeError(f"OpenRouter non raggiungibile: {last_error}") from exc
+        if response.status_code == 200:
+            try:
+                body = response.json()
+                message = body["choices"][0]["message"]
+                content = message["content"]
+            except (AttributeError, IndexError, KeyError, TypeError, ValueError) as exc:
+                raise RuntimeError("OpenRouter ha restituito una risposta non valida") from exc
+            value = json.loads(content) if isinstance(content, str) else content
+            if not isinstance(value, dict):
+                raise RuntimeError("OpenRouter non ha restituito un oggetto JSON")
+            return value, _openrouter_search_results(message), body.get("usage") or {}, body.get("model", OPENROUTER_MODEL)
+        try:
+            error_code = str((response.json().get("error") or {}).get("code") or "").strip()
+        except (AttributeError, TypeError, ValueError):
+            error_code = ""
+        error_suffix = f" (code {error_code})" if error_code else ""
+        last_error = f"HTTP {response.status_code}{error_suffix}"
+        if response.status_code != 429 and response.status_code < 500:
+            raise RuntimeError(f"OpenRouter richiesta rifiutata: {last_error}")
+        if attempt + 1 < MAX_ATTEMPTS:
+            time.sleep(2**attempt)
+    raise RuntimeError(f"OpenRouter fallita dopo {MAX_ATTEMPTS} tentativi: {last_error}")
+
+
+def _research_chat(prompt: str, *, search_prompt: str, timeout: int) -> tuple[dict, list, dict, str]:
+    try:
+        value, search_results, usage, model = _zai_chat(
+            prompt, search_prompt=search_prompt, timeout=timeout)
+        return value, search_results, usage, f"zai:{model}"
+    except ZaiQuotaUnavailable as exc:
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            raise RuntimeError(f"{exc}; OPENROUTER_API_KEY mancante") from exc
+        value, search_results, usage, model = _openrouter_chat(
+            prompt, search_prompt=search_prompt, timeout=timeout)
+        return value, search_results, usage, f"openrouter:{model}"
 
 
 def _normalized_url(url: str) -> str:
@@ -152,14 +261,14 @@ def _validate_search_provenance(maker: dict, search_results: list) -> None:
         for result in search_results if isinstance(result, dict) and result.get("link")
     }
     if not surfaced:
-        raise ValueError("Z.AI web search non ha restituito fonti verificabili")
+        raise ValueError("web search non ha restituito fonti verificabili")
     missing = sorted({
         url for family in maker.get("research_families", [])
         for url in family.get("source_urls", [])
         if _normalized_url(url) not in surfaced
     })
     if missing:
-        raise ValueError(f"fonti non presenti nei risultati Z.AI web search: {missing[:3]}")
+        raise ValueError(f"fonti non presenti nei risultati web search: {missing[:3]}")
 
 
 def _maker_fixed(value: dict, pack: dict, run_id: str, model: str) -> dict:
@@ -169,7 +278,7 @@ def _maker_fixed(value: dict, pack: dict, run_id: str, model: str) -> dict:
         "pack_id": pack["pack_id"],
         "created_at": _now().isoformat(),
         "maker_run_id": run_id,
-        "model": f"zai:{model}",
+        "model": model,
         "guardrails": dict(research_pack.GUARDRAILS),
     })
     inventory = dict(value.get("inventory") or {})
@@ -196,7 +305,7 @@ def _metadata(role: str, run_id: str, model: str, usage: dict, search_results: l
     return {
         "role": role,
         "run_id": run_id,
-        "model": f"zai:{model}",
+        "model": model,
         "created_at": _now().isoformat(),
         "usage": usage,
         "search_result_count": len(search_results),
@@ -211,7 +320,7 @@ def run_maker(state_file: str | Path, out_dir: str | Path) -> dict:
     contract = (ROOT / "prompts/research_os/contracts.md").read_text(encoding="utf-8")
     base_prompt = (
         "Esegui un Daily Research Maker L1 source-first e report-only. Esplora 5-8 famiglie "
-        "distinte. Usa soltanto fonti primarie realmente restituite dal web search Z.AI; copia "
+        "distinte. Usa soltanto fonti primarie realmente restituite dal web search; copia "
         "gli URL esatti. NO_CANDIDATE e il default quando novelty o dati point-in-time non "
         "reggono. Non calcolare P&L, non creare strategie e non proporre operazioni.\n\n"
         f"CONTRATTO:\n{contract}\n\nPACK:\n{research_pack.render_prompt(pack)}\n\n"
@@ -220,7 +329,7 @@ def run_maker(state_file: str | Path, out_dir: str | Path) -> dict:
     error = None
     for attempt in range(MAX_ATTEMPTS):
         prompt = base_prompt if error is None else f"{base_prompt}\n\nCorreggi questo errore del validatore: {error}"
-        value, search_results, usage, model = _zai_chat(
+        value, search_results, usage, model = _research_chat(
             prompt,
             search_prompt=(
                 "Cerca fonti primarie correnti: paper originali, documentazione exchange/protocollo, "
@@ -262,7 +371,7 @@ def run_checker(input_dir: str | Path, out_dir: str | Path) -> dict:
     error = None
     for attempt in range(MAX_ATTEMPTS):
         prompt = base_prompt if error is None else f"{base_prompt}\n\nCorreggi questo errore del validatore: {error}"
-        value, search_results, usage, model = _zai_chat(
+        value, search_results, usage, model = _research_chat(
             prompt,
             search_prompt="Verifica gli URL citati dal Maker e cerca fonti primarie che confermino o falsifichino i meccanismi.",
             timeout=480,
