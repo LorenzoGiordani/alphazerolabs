@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29582973295-1",
-  "generated_at": "2026-07-17T13:14:22.140475+00:00",
+  "run_id": "29586914987-1",
+  "generated_at": "2026-07-17T14:14:19.969941+00:00",
   "component": "xsmom-multihorizon-v1-prices",
   "critical": true,
   "expected_count": 131,
