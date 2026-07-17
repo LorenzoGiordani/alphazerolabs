@@ -214,6 +214,91 @@ def test_zai_quota_falls_back_to_openrouter_deepseek_v4_pro(monkeypatch):
     assert "test-only" not in json.dumps(captured["json"])
 
 
+def test_openrouter_retries_empty_content_then_returns_valid_json(monkeypatch):
+    calls = []
+
+    class Response:
+        status_code = 200
+
+        def __init__(self, content):
+            self.content = content
+
+        def json(self):
+            return {
+                "model": cloud.OPENROUTER_MODEL,
+                "choices": [{"message": {
+                    "content": self.content,
+                    "annotations": [{"type": "url_citation", "url_citation": {"url": SOURCE}}],
+                }}],
+            }
+
+    responses = iter([Response(""), Response(json.dumps(_maker_value()))])
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-only")
+    monkeypatch.setattr(cloud.requests, "post", lambda *_args, **_kwargs: calls.append(1) or next(responses))
+    monkeypatch.setattr(cloud.time, "sleep", lambda *_args: None)
+
+    value, sources, _usage, model = cloud._openrouter_chat("prompt", search_prompt="primary", timeout=10)
+
+    assert value == _maker_value()
+    assert sources == [{"link": SOURCE}]
+    assert model == cloud.OPENROUTER_MODEL
+    assert calls == [1, 1]
+
+
+def test_openrouter_tool_call_without_final_json_fails_closed(monkeypatch):
+    class Response:
+        status_code = 200
+
+        def json(self):
+            return {
+                "choices": [{"message": {
+                    "content": None,
+                    "tool_calls": [{"type": "function", "function": {"name": "search"}}],
+                }}],
+            }
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-only")
+    monkeypatch.setattr(cloud.requests, "post", lambda *_args, **_kwargs: Response())
+    monkeypatch.setattr(cloud.time, "sleep", lambda *_args: None)
+
+    try:
+        cloud._openrouter_chat("prompt", search_prompt="primary", timeout=10)
+    except RuntimeError as exc:
+        assert str(exc) == "OpenRouter fallita dopo 2 tentativi: HTTP 200 senza oggetto JSON valido"
+    else:
+        raise AssertionError("Una tool call senza risposta finale deve fallire chiuso")
+
+
+def test_maker_writes_no_artifact_after_repeated_malformed_openrouter_response(tmp_path, monkeypatch):
+    _patch_common(monkeypatch)
+    monkeypatch.setattr(rp, "build_pack", lambda **_kwargs: _pack())
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-only")
+    monkeypatch.setattr(
+        cloud, "_zai_chat",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            cloud.ZaiQuotaUnavailable("Z.AI auth/quota non disponibile: HTTP 429 (code 1113)")),
+    )
+
+    class Response:
+        status_code = 200
+
+        def json(self):
+            return {"choices": [{"message": {"content": "not-json"}}]}
+
+    monkeypatch.setattr(cloud.requests, "post", lambda *_args, **_kwargs: Response())
+    monkeypatch.setattr(cloud.time, "sleep", lambda *_args: None)
+
+    try:
+        cloud.run_maker(tmp_path / "state.json", tmp_path / "out")
+    except RuntimeError as exc:
+        assert "OpenRouter fallita dopo 2 tentativi" in str(exc)
+        assert "not-json" not in str(exc)
+    else:
+        raise AssertionError("Maker deve fallire chiuso su risposta OpenRouter non valida")
+    assert not (tmp_path / "out/maker.json").exists()
+    assert not (tmp_path / "out/pack.json").exists()
+
+
 def test_openrouter_fallback_without_citations_fails_closed(tmp_path, monkeypatch):
     _patch_common(monkeypatch)
     monkeypatch.setattr(rp, "build_pack", lambda **_kwargs: _pack())

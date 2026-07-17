@@ -218,11 +218,16 @@ def _openrouter_chat(prompt: str, *, search_prompt: str, timeout: int) -> tuple[
                 body = response.json()
                 message = body["choices"][0]["message"]
                 content = message["content"]
+                value = json.loads(content) if isinstance(content, str) else content
+                if not isinstance(value, dict):
+                    raise ValueError("contenuto non JSON object")
             except (AttributeError, IndexError, KeyError, TypeError, ValueError) as exc:
-                raise RuntimeError("OpenRouter ha restituito una risposta non valida") from exc
-            value = json.loads(content) if isinstance(content, str) else content
-            if not isinstance(value, dict):
-                raise RuntimeError("OpenRouter non ha restituito un oggetto JSON")
+                last_error = "HTTP 200 senza oggetto JSON valido"
+                if attempt + 1 < MAX_ATTEMPTS:
+                    time.sleep(2**attempt)
+                    continue
+                raise RuntimeError(
+                    f"OpenRouter fallita dopo {MAX_ATTEMPTS} tentativi: {last_error}") from exc
             return value, _openrouter_search_results(message), body.get("usage") or {}, body.get("model", OPENROUTER_MODEL)
         try:
             error_code = str((response.json().get("error") or {}).get("code") or "").strip()
