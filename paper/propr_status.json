@@ -15,29 +15,29 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5031.69,
- "balance": 4991.52,
+ "equity": 5030.03,
+ "balance": 4991.49,
  "high_water_mark": 5000.0,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.63,
+ "profit_target_progress_pct": 0.6,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.63,
+ "drawdown_room_pct": 6.6,
  "passed": false,
  "breached": false,
  "positions": [
   {
    "asset": "XRP",
    "side": "short",
-   "notional": 71.72,
-   "unrealized_pnl": 0.35
+   "notional": 71.17,
+   "unrealized_pnl": 0.91
   },
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 63.44,
-   "unrealized_pnl": -0.58
+   "notional": 62.81,
+   "unrealized_pnl": -1.2
   },
   {
    "asset": "CRV",
@@ -48,32 +48,32 @@
   {
    "asset": "SOL",
    "side": "long",
-   "notional": 69.9,
-   "unrealized_pnl": -2.96
+   "notional": 69.29,
+   "unrealized_pnl": -3.57
   },
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 253.63,
-   "unrealized_pnl": 32.21
+   "notional": 251.46,
+   "unrealized_pnl": 30.03
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 195.89,
-   "unrealized_pnl": 1.68
+   "notional": 193.61,
+   "unrealized_pnl": 3.97
   },
   {
    "asset": "SUI",
    "side": "short",
-   "notional": 144.04,
-   "unrealized_pnl": -3.05
+   "notional": 142.09,
+   "unrealized_pnl": -1.11
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 256.84,
-   "unrealized_pnl": 12.48
+   "notional": 253.89,
+   "unrealized_pnl": 9.53
   }
  ],
  "last_rebalance_ts": "2026-07-12T23:20:36.773723+00:00",
@@ -509,6 +509,10 @@
   {
    "ts": "2026-07-17T05:14:47.783474+00:00",
    "equity": 5031.69
+  },
+  {
+   "ts": "2026-07-17T06:14:54.391184+00:00",
+   "equity": 5030.03
   }
  ],
  "strategy_detail": null,
@@ -525,5 +529,5 @@
   "maker_run_id": null,
   "checker_run_id": null
  },
- "updated_at": "2026-07-17T05:14:47.783524+00:00"
+ "updated_at": "2026-07-17T06:14:54.391239+00:00"
 }
