@@ -15,29 +15,29 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5026.3,
+ "equity": 5024.84,
  "balance": 4991.58,
  "high_water_mark": 5000.0,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.53,
+ "profit_target_progress_pct": 0.5,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.53,
+ "drawdown_room_pct": 6.5,
  "passed": false,
  "breached": false,
  "positions": [
   {
    "asset": "XRP",
    "side": "short",
-   "notional": 71.51,
-   "unrealized_pnl": 0.56
+   "notional": 71.46,
+   "unrealized_pnl": 0.62
   },
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 63.81,
-   "unrealized_pnl": -0.21
+   "notional": 63.77,
+   "unrealized_pnl": -0.25
   },
   {
    "asset": "CRV",
@@ -48,32 +48,32 @@
   {
    "asset": "SOL",
    "side": "long",
-   "notional": 70.0,
-   "unrealized_pnl": -2.86
+   "notional": 70.01,
+   "unrealized_pnl": -2.85
   },
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 248.83,
-   "unrealized_pnl": 27.41
+   "notional": 247.64,
+   "unrealized_pnl": 26.21
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 200.18,
-   "unrealized_pnl": -2.61
+   "notional": 199.96,
+   "unrealized_pnl": -2.39
   },
   {
    "asset": "SUI",
    "side": "short",
-   "notional": 143.43,
+   "notional": 143.44,
    "unrealized_pnl": -2.45
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 259.1,
-   "unrealized_pnl": 14.74
+   "notional": 258.74,
+   "unrealized_pnl": 14.38
   }
  ],
  "last_rebalance_ts": "2026-07-12T23:20:36.773723+00:00",
@@ -481,6 +481,10 @@
   {
    "ts": "2026-07-17T00:19:11.901784+00:00",
    "equity": 5026.3
+  },
+  {
+   "ts": "2026-07-17T00:27:33.296265+00:00",
+   "equity": 5024.84
   }
  ],
  "strategy_detail": null,
@@ -497,5 +501,5 @@
   "maker_run_id": null,
   "checker_run_id": null
  },
- "updated_at": "2026-07-17T00:19:11.901832+00:00"
+ "updated_at": "2026-07-17T00:27:33.296315+00:00"
 }
