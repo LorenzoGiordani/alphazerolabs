@@ -294,8 +294,10 @@ Nessuna chiave della subscription viene copiata nel repository o in Actions.
 
 Il **Research OS L1** è la sola eccezione cloud: Cloudflare schedula
 `research-maker.yml` alle 07:15 Europe/Rome e `research-checker.yml` ogni ora;
-GitHub Actions usa esclusivamente `ZAI_API_KEY` sull'endpoint API generale con
-web search e JSON validato. Pack e receipt restano artefatti GitHub per 30 giorni,
+GitHub Actions usa Z.AI come primario sull'endpoint API generale con web search e
+JSON validato. Solo sugli errori di quota/autorizzazione Z.AI (incluso `429` code
+`1113`) usa il fallback OpenRouter `deepseek/deepseek-v4-pro`, sempre con web
+search e la stessa validazione di provenance. Pack e receipt restano artefatti GitHub per 30 giorni,
 mai commit. Il Maker censisce via metadata tutti i perp core/HIP-3, arricchisce
 al massimo 20 mercati core 24/7 e produce 5–8 famiglie source-first; il Checker
 revisiona soltanto il nuovo hash. Al massimo una famiglia arriva a
@@ -310,7 +312,7 @@ Stato reale: M1–M4 costruiti. Prima di qualsiasi ipotesi su fondi reali servon
 evidenza riproducibile, track record plurimensile, affidabilità operativa e un gate umano separato.
 
 - [x] M1 — dati, harness, registry, formato strategia, loop evolutivo (3 generazioni)
-- [x] M2 — paper trading live; decide/review/evolve restano su Codex, Research OS L1 gira report-only su Z.AI via Cloudflare e GitHub Actions
+- [x] M2 — paper trading live; decide/review/evolve restano su Codex, Research OS L1 gira report-only con Z.AI primario e fallback quota su OpenRouter via Cloudflare e GitHub Actions
 - [x] COT report CFTC (posizionamento commodities = analogo del funding)
 - [x] Champion/challenger per-trade con gate formale (**deflated Sharpe ≥0.95**); i portfolio non sono auto-promovibili perché gli heartbeat non sono trade indipendenti
 - [x] Integrity P0 — maker/checker evidence contract, runtime health fail-closed, endpoint pubblico e CI mirata

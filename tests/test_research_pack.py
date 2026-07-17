@@ -174,6 +174,18 @@ def test_pack_tampering_and_contract_scope_fail_closed(tmp_path, monkeypatch):
     assert (state.read_bytes(), journal.read_bytes()) == before
 
 
+def test_maker_allows_only_the_approved_openrouter_fallback(tmp_path, monkeypatch):
+    _patch_pack(monkeypatch, [_row(f"COIN{index}") for index in range(5)])
+    state = tmp_path / "state.json"; state.write_text("{}")
+    pack = rp.build_pack(state_file=state, top=5, prefilter=5)
+    maker = _maker(pack)
+    maker["model"] = "openrouter:deepseek/deepseek-v4-pro"
+    assert rp.validate_maker(pack, maker, now=NOW + timedelta(minutes=20))["valid"] is True
+    maker["model"] = "openrouter:unapproved/model"
+    with pytest.raises(ValueError, match="OpenRouter DeepSeek V4 Pro"):
+        rp.validate_maker(pack, maker, now=NOW + timedelta(minutes=20))
+
+
 @pytest.mark.parametrize("outcome,verdict", [
     ("NO_CANDIDATE", "APPROVE_NO_CANDIDATE"),
     ("CANDIDATE", "APPROVE_PREREG_ONLY"),

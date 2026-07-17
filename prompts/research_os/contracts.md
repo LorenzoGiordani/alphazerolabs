@@ -11,7 +11,7 @@ solo la forma leggibile dei due output LLM. Non aggiungere chiavi.
   "pack_id": "sha256 copiato dal pack",
   "created_at": "ISO-8601 con timezone, entro expires_at",
   "maker_run_id": "identità univoca di questa task",
-  "model": "gpt-5.6-sol oppure zai:<modello effettivo>",
+  "model": "gpt-5.6-sol, zai:<modello effettivo> oppure openrouter:deepseek/deepseek-v4-pro",
   "outcome": "NO_CANDIDATE oppure CANDIDATE",
   "inventory": {
     "note_path": "wiki/Registry Segnali.md",

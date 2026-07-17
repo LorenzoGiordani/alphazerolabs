@@ -82,8 +82,11 @@ gate `PREREG_REVIEW_ONLY`. Non modifica repo, vault, paper state o journal.
 
 Eccezione esplicita dal 14/07/2026: soltanto Daily Maker e Hourly Checker L1
 girano come workflow GitHub dedicati, schedulati dal Worker Cloudflare. Usano
-`ZAI_API_KEY` sull'endpoint Z.AI generale, con web search e JSON validato; non
-usano `scripts/llm.py`, OpenRouter o la subscription Codex. Pack e receipt sono
+`ZAI_API_KEY` sull'endpoint Z.AI generale come primario, con web search e JSON
+validato. Solo un errore Z.AI di quota/autorizzazione (incluso `429` code `1113`)
+può attivare `OPENROUTER_API_KEY` sul solo modello
+`deepseek/deepseek-v4-pro`, con le stesse fonti verificate; non usano
+`scripts/llm.py` o la subscription Codex. Pack e receipt sono
 artefatti GitHub a retention 30 giorni e non vengono committati. Lo snapshot di
 novelty deriva da `brain/` e `strategies/`; Obsidian resta canonico e read-only.
 Il Worker non espone un handler HTTP pubblico; le run manuali usano soltanto il
@@ -93,8 +96,9 @@ Il Worker non espone un handler HTTP pubblico; le run manuali usano soltanto il
 Paper-run deterministico su GitHub Actions (orario via Cloudflare Worker = clock
 affidabile); dashboard statica su Cloudflare Pages (`lux-ai.pages.dev`). Il cloud
 gestisce dati, strategie meccaniche, uscite, pubblicazione e il Research OS L1
-report-only via Z.AI. Codex/GPT-5.6 resta il control plane revisionabile per le
-altre operazioni LLM e per qualsiasi passaggio oltre `PREREG_REVIEW_ONLY`.
+report-only con Z.AI primario e fallback quota OpenRouter delimitato. Codex/GPT-5.6
+resta il control plane revisionabile per le altre operazioni LLM e per qualsiasi
+passaggio oltre `PREREG_REVIEW_ONLY`.
 Precompute pesanti (Kronos, GDELT, xsection, HMM) restano in workflow dedicati.
 
 ### 10. Loop evolutivo: walk-forward + DSR + complessità penalty
