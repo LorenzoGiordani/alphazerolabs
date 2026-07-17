@@ -399,6 +399,9 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
     if manage_paper and not _enabled("PROPR_AUTOMANAGE_ENABLED"):
         print("propr automanage disabilitato dal kill switch")
         return
+    if manage_paper and not _enabled("PROPR_GUARD_ENABLED"):
+        print("propr automanage bloccato: guard native disabilitato")
+        return
     if manage_paper and not os.environ.get("PROPR_EXPECTED_ACCOUNT_ID", "").strip():
         raise SystemExit("PROPR_EXPECTED_ACCOUNT_ID obbligatorio con --manage-paper")
     if not manage_paper and not evidence["verified"]:

@@ -84,7 +84,7 @@ jobs:
 
       - name: propr — gestione sistematica Free Trial paper
         id: propr_manage
-        if: always() && env.PROPR_API_KEY != ''
+        if: always() && env.PROPR_API_KEY != '' && env.PROPR_AUTOMANAGE_ENABLED == 'true' && env.PROPR_GUARD_ENABLED == 'true'
         continue-on-error: true
         run: uv run scripts/propr_paper.py --manage-paper
 

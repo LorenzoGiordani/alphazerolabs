@@ -113,10 +113,27 @@ def test_propr_manage_kill_switch_blocks_before_client(monkeypatch):
     propr.main(manage_paper=True)
 
 
+def test_propr_manage_requires_guard_kill_switch_before_client(monkeypatch):
+    import scripts.propr_paper as propr
+
+    monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "false")
+    monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
+    monkeypatch.setattr(propr, "load", lambda _path: {"id": "alpha-port-v1", "status": "champion"})
+    monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
+        "verified": False, "status": "blocked", "reasons": ["checker_missing"]})
+    monkeypatch.setattr(propr, "ProprClient",
+                        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+                            AssertionError("client reached while guard kill switch disabled")))
+
+    propr.main(manage_paper=True)
+
+
 def test_propr_manage_requires_account_pin_before_client(monkeypatch):
     import scripts.propr_paper as propr
 
     monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.delenv("PROPR_EXPECTED_ACCOUNT_ID", raising=False)
     monkeypatch.setattr(propr, "load", lambda _path: {"id": "alpha-port-v1", "status": "champion"})
     monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
@@ -231,6 +248,7 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
     monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
         "verified": False, "status": "blocked", "reasons": ["checker_missing"]})
     monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
 
     class PaperClient:
@@ -259,6 +277,13 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
     assert saved["management_mode"] == propr.AUTOMANAGE_VERSION
     assert "OLD" not in json.dumps(saved)
     assert captured["target"] == pytest.approx({"BTC": 750.0, "ETH": -750.0})
+
+
+def test_paper_run_requires_both_propr_kill_switches_for_management():
+    workflow = (Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml").read_text()
+    assert ("if: always() && env.PROPR_API_KEY != '' && "
+            "env.PROPR_AUTOMANAGE_ENABLED == 'true' && "
+            "env.PROPR_GUARD_ENABLED == 'true'") in workflow
 
 
 @pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])
