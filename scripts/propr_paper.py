@@ -12,6 +12,8 @@ multi-orizzonte + xs_momentum_weights) per restare fedele allo spec.
 Uso: uv run scripts/propr_paper.py
 """
 import json
+import math
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -53,6 +55,67 @@ PROPR_DAILY_STOP_PCT = 0.02
 # fase-mediato a 2.51 (test 2.57). Costi modellati per sub-book: il netting
 # reale degli ordini a livello asset può solo ridurli. Vedi daily 2026-07-09.
 PROPR_TRANCHE_H = 24
+AUTOMANAGE_VERSION = "systematic-paper-automanage-v1"
+MAX_ORDERS_PER_ACTION = 12
+
+
+def _enabled(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() == "true"
+
+
+def _read_state() -> dict:
+    try:
+        return json.loads(STATE_PATH.read_text()) if STATE_PATH.exists() else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _fresh_management_state(equity: float, now: datetime) -> dict:
+    """Non riusa target o tranche prodotti prima dell'autorizzazione esplicita."""
+    return {
+        "management_mode": AUTOMANAGE_VERSION,
+        "activated_at": now.isoformat(),
+        "day_date": now.date().isoformat(),
+        "day_start_equity": equity,
+        "halted_today": False,
+    }
+
+
+def _validate_paper_attempt(attempt: dict, expected_account_id: str) -> None:
+    challenge = attempt.get("challenge") or {}
+    if attempt.get("accountId") != expected_account_id:
+        raise ProprError("account Propr diverso dal Free Trial autorizzato")
+    if attempt.get("status") != "active":
+        raise ProprError(f"challenge non attiva (status={attempt.get('status')})")
+    if challenge.get("slug") != "free-trial":
+        raise ProprError("challenge Propr non free-trial")
+    if float(challenge.get("initialBalance", 0)) != 5000.0:
+        raise ProprError("balance iniziale Propr diverso da $5.000 paper")
+
+
+def _protection_summary(positions: list[dict], open_orders: list[dict]) -> dict:
+    position_by_id = {str(p["positionId"]): p for p in positions if p.get("positionId")}
+    position_ids = set(position_by_id)
+    protected_ids = set()
+    for order in open_orders:
+        position_id = str(order.get("positionId", ""))
+        position = position_by_id.get(position_id)
+        if not position:
+            continue
+        position_side = str(position.get("positionSide", "")).lower()
+        closing_side = "sell" if position_side == "long" else "buy" if position_side == "short" else ""
+        if (order.get("type") == "stop_market" and closing_side
+                and str(order.get("side", "")).lower() == closing_side
+                and str(order.get("positionSide", "")).lower() == position_side
+                and order.get("reduceOnly") is True and order.get("closePosition") is True):
+            protected_ids.add(position_id)
+    covered = position_ids & protected_ids
+    return {
+        "mode": "native-stop-market",
+        "open_positions": len(position_ids),
+        "protected_positions": len(covered),
+        "fully_protected": covered == position_ids,
+    }
 
 # decimali quantità per prezzo — approssimazione conservativa, l'API rifiuta
 # (e logghiamo) se il tick size è più stretto di quanto assunto qui.
@@ -85,32 +148,43 @@ def rebalance(client: ProprClient, target: dict[str, float], px: dict[str, float
     esistente). Qui basta calcolare il delta con segno e scegliere side di
     conseguenza — niente bucket long/short separati da gestire."""
     current: dict[str, float] = {}
+    position_prices: dict[str, float] = {}
     for p in positions:
         sign = 1.0 if p["positionSide"] == "long" else -1.0
         current[p["base"]] = current.get(p["base"], 0.0) + sign * float(p["notionalValue"])
+        if p.get("markPrice") is not None:
+            position_prices[p["base"]] = float(p["markPrice"])
 
-    assets = set(target) | set(current)
-    results = []
+    assets = sorted(set(target) | set(current))
+    plan = []
+    preflight_errors = []
     for asset in assets:
         want = target.get(asset, 0.0)
         have = current.get(asset, 0.0)
         delta = want - have
         if abs(delta) < 5.0:
             continue
-        price = px.get(asset)
-        if not price:
-            print(f"  {asset}: no prezzo, skip", file=sys.stderr)
+        price = px.get(asset, position_prices.get(asset))
+        if price is None or not math.isfinite(float(price)) or float(price) <= 0:
+            preflight_errors.append(asset)
             continue
+        price = float(price)
         dec = _qty_decimals(price)
         qty = round(abs(delta) / price, dec)
         if qty <= 0:
             continue
-
         side = "buy" if delta > 0 else "sell"
         position_side = "long" if delta > 0 else "short"
-        # reduceOnly solo se stiamo restringendo verso zero senza cambiare segno
-        # (stesso segno di have e |want| < |have|, oppure target flat)
         reduce_only = have != 0 and (want == 0 or (want * have > 0 and abs(want) < abs(have)))
+        plan.append((asset, delta, qty, side, position_side, reduce_only))
+    if preflight_errors:
+        raise ProprError("rebalance preflight: prezzo mancante/non valido per "
+                         + ", ".join(preflight_errors))
+    if len(plan) > MAX_ORDERS_PER_ACTION:
+        raise ProprError(f"rebalance rifiutato: {len(plan)} ordini > cap {MAX_ORDERS_PER_ACTION}")
+
+    results = []
+    for asset, delta, qty, side, position_side, reduce_only in plan:
         try:
             r = client.create_order(side=side, position_side=position_side, order_type="market",
                                      asset=asset, quantity=str(qty),
@@ -120,6 +194,7 @@ def rebalance(client: ProprClient, target: dict[str, float], px: dict[str, float
             print(f"  {asset}: {side} {qty} (reduceOnly={reduce_only}) delta {delta:+.0f}$")
         except ProprError as e:
             print(f"  {asset}: ordine fallito: {e}", file=sys.stderr)
+            results.append({"asset": asset, "action": "error", "error": str(e)})
     return results
 
 
@@ -127,8 +202,11 @@ def flatten(client: ProprClient, positions: list[dict]) -> list[dict]:
     """Chiude tutte le posizioni aperte. Pairing OPPOSTO al segno corrente con
     reduceOnly (semantica netted one-way: buy+long chiude short, sell+short
     chiude long); quantity presa dalla posizione, nessun prezzo necessario."""
+    plan = sorted(positions, key=lambda p: p["base"])
+    if len(plan) > MAX_ORDERS_PER_ACTION:
+        raise ProprError(f"flatten rifiutato: {len(plan)} ordini > cap {MAX_ORDERS_PER_ACTION}")
     results = []
-    for p in positions:
+    for p in plan:
         is_short = p["positionSide"] == "short"
         side, pos_side = ("buy", "long") if is_short else ("sell", "short")
         qty = str(abs(float(p["quantity"])))
@@ -141,7 +219,14 @@ def flatten(client: ProprClient, positions: list[dict]) -> list[dict]:
             print(f"  {p['base']}: flatten {side} {qty}")
         except ProprError as e:
             print(f"  {p['base']}: flatten fallito: {e}", file=sys.stderr)
+            results.append({"asset": p["base"], "action": "error", "error": str(e)})
     return results
+
+
+def _raise_on_order_errors(results: list[dict]) -> None:
+    failed = [str(r.get("asset")) for r in results if r.get("action") == "error"]
+    if failed:
+        raise ProprError(f"azione Propr parziale; ordini falliti: {', '.join(failed)}")
 
 
 def _set_leverage(client: ProprClient, symbols: list[str], want: int) -> None:
@@ -206,6 +291,7 @@ def _strategy_detail(spec: dict) -> dict:
 
 def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list[dict],
                  last_rebalance_ts: str, *, discretionary: bool = False,
+                 automanage: bool = False, protection: dict | None = None,
                  evidence: dict | None = None) -> None:
     """Snapshot pubblico per la dashboard: stato challenge Propr vs le sue stesse
     regole (target/daily-loss/drawdown), letto dal server — non ricalcolato qui."""
@@ -224,12 +310,31 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
     history = (prev.get("equity_history", []) +
                [{"ts": datetime.now(timezone.utc).isoformat(), "equity": round(equity, 2)}])[-1000:]
 
+    if automanage:
+        execution_mode = "systematic-paper-automanage"
+        guard_note = ("stop nativi server-side verificati"
+                      if protection and protection.get("fully_protected")
+                      else "copertura stop in verifica o incompleta")
+        management_note = ("Gestione automatica del solo Free Trial paper: account e rischio "
+                           "verificati ogni ora, target aggiornato per tranche ogni 24h, "
+                           f"{guard_note}.")
+    elif discretionary:
+        execution_mode = "llm-discretionary"
+        management_note = ("Gestione discrezionale LLM sul solo account paper; "
+                           "snapshot API in sola lettura.")
+    else:
+        execution_mode = "systematic"
+        management_note = ""
+
     status = {
         "strategy": "llm-discretionary-v1" if discretionary else spec["id"],
-        "execution_mode": "llm-discretionary" if discretionary else "systematic",
-        "management_note": ("Gestione discrezionale LLM sul solo account paper; "
-                            "snapshot API in sola lettura."
-                            if discretionary else ""),
+        "execution_mode": execution_mode,
+        "management_note": management_note,
+        "automanage_enabled": automanage,
+        "paper_only": True,
+        "official_candidate": False,
+        "realtime_protection": (protection or {"mode": "pending-guard", "fully_protected": False}
+                                if automanage else {"mode": "none", "fully_protected": False}),
         "account_id": attempt["accountId"],
         "challenge": ch["name"], "challenge_slug": ch["slug"],
         "attempt_status": attempt["status"], "started_at": attempt["startedAt"],
@@ -253,7 +358,9 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
     atomic_write_text(STATUS_PATH, json.dumps(status, indent=1))
 
 
-def main(snapshot_only: bool = False) -> None:
+def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
+    if snapshot_only and manage_paper:
+        raise SystemExit("scegliere solo uno tra --snapshot-only e --manage-paper")
     spec = load(SPEC_PATH)
     evidence = verify_evidence(spec, ROOT)
     evidence_was_verified = evidence["verified"]
@@ -267,15 +374,33 @@ def main(snapshot_only: bool = False) -> None:
     if evidence["reasons"]:
         evidence.update(verified=False, status="blocked")
     if snapshot_only:
+        automanage_requested = _enabled("PROPR_AUTOMANAGE_ENABLED")
+        expected_account_id = os.environ.get("PROPR_EXPECTED_ACCOUNT_ID", "").strip()
+        if automanage_requested and not expected_account_id:
+            raise SystemExit("PROPR_EXPECTED_ACCOUNT_ID obbligatorio con automanage")
         client = ProprClient(read_only=True)
-        client.setup()
-        attempt = client._req("GET", "/challenge-attempts", params={"status": "active"})["data"][0]
+        client.setup(expected_account_id=expected_account_id or None,
+                     expected_challenge_slug="free-trial" if automanage_requested else None)
+        attempt = client.active_attempt
+        if automanage_requested:
+            _validate_paper_attempt(attempt, expected_account_id)
         positions = client.get_positions()
-        write_status(client, spec, attempt, positions, "",
-                     discretionary=True, evidence=evidence)
+        state = _read_state()
+        automanage = (automanage_requested and
+                      state.get("management_mode") == AUTOMANAGE_VERSION)
+        protection = (_protection_summary(positions, client.get_orders(status="open"))
+                      if automanage else None)
+        write_status(client, spec, attempt, positions, state.get("last_rebalance_ts", ""),
+                     discretionary=not automanage, automanage=automanage,
+                     protection=protection, evidence=evidence)
         print("propr snapshot read-only aggiornato; nessun ordine automatico")
         return
-    if not evidence["verified"]:
+    if manage_paper and not _enabled("PROPR_AUTOMANAGE_ENABLED"):
+        print("propr automanage disabilitato dal kill switch")
+        return
+    if manage_paper and not os.environ.get("PROPR_EXPECTED_ACCOUNT_ID", "").strip():
+        raise SystemExit("PROPR_EXPECTED_ACCOUNT_ID obbligatorio con --manage-paper")
+    if not manage_paper and not evidence["verified"]:
         # Gate before ProprClient: no account, market-data or order endpoint is
         # reachable while the maker/checker evidence pair is absent or invalid.
         try:
@@ -303,12 +428,15 @@ def main(snapshot_only: bool = False) -> None:
     gross = PROPR_GROSS_OVERRIDE
 
     client = ProprClient()
-    account_id = client.setup()
-    attempt = client._req("GET", "/challenge-attempts", params={"status": "active"})["data"][0]
+    expected_account_id = os.environ.get("PROPR_EXPECTED_ACCOUNT_ID", "").strip()
+    account_id = client.setup(expected_account_id=expected_account_id if manage_paper else None,
+                              expected_challenge_slug="free-trial" if manage_paper else None)
+    attempt = client.active_attempt
+    if manage_paper:
+        _validate_paper_attempt(attempt, expected_account_id)
     if attempt["status"] != "active":
         print(f"challenge non attiva (status={attempt['status']}), skip trading")
         return
-    _set_leverage(client, symbols, int(spec.get("risk", {}).get("max_leverage", 2)))
     acct = client.get_account()
     equity = float(acct["balance"]) + float(acct.get("totalUnrealizedPnl", 0.0))
     # sizing fisso su balance iniziale della challenge (non su equity compounded) —
@@ -317,7 +445,10 @@ def main(snapshot_only: bool = False) -> None:
     print(f"propr paper {spec['id']} account={account_id} equity={equity:.2f}$ "
           f"sizing_base={sizing_base:.2f}$ gross_override={gross}")
 
-    local_state = json.loads(STATE_PATH.read_text()) if STATE_PATH.exists() else {}
+    local_state = _read_state()
+    if manage_paper and local_state.get("management_mode") != AUTOMANAGE_VERSION:
+        local_state = _fresh_management_state(equity, datetime.now(timezone.utc))
+        print("  stato automanage inizializzato; target e tranche legacy ignorati")
     last_rb = local_state.get("last_rebalance_ts", "")
     from datetime import timedelta
     # con tranching il runner gira ogni PROPR_TRANCHE_H (sostituisce 1 tranche);
@@ -345,6 +476,8 @@ def main(snapshot_only: bool = False) -> None:
         log_event({"type": "circuit_breaker", "strategy": spec["id"], "account_id": account_id,
                    "equity": round(equity, 2), "day_start_equity": round(day_start_eq, 2),
                    "day_pnl": round(equity - day_start_eq, 2), "orders": results})
+        if manage_paper:
+            _raise_on_order_errors(results)
         local_state["halted_today"] = True
         halted = True
         positions = client.get_positions()
@@ -352,6 +485,7 @@ def main(snapshot_only: bool = False) -> None:
     if halted:
         print("  halted da circuit breaker, no trading fino a mezzanotte UTC")
     elif due or reenter:
+        _set_leverage(client, symbols, int(spec.get("risk", {}).get("max_leverage", 2)))
         rets, px = trailing_returns(symbols, lookback_h, multi_horizon)
         if not px:
             print("nessun prezzo disponibile, skip rebalance")
@@ -363,6 +497,8 @@ def main(snapshot_only: bool = False) -> None:
             log_event({"type": "reentry", "strategy": spec["id"], "account_id": account_id,
                        "equity": round(equity, 2), "target": {k: round(v, 2) for k, v in target.items()},
                        "orders": results})
+            if manage_paper:
+                _raise_on_order_errors(results)
             positions = client.get_positions()
         else:
             w = xs_momentum_weights(rets, long_q=float(pf.get("long_q", 0.66)),
@@ -390,6 +526,8 @@ def main(snapshot_only: bool = False) -> None:
                        "equity": round(equity, 2), "tranche_slot": slot,
                        "target": {k: round(v, 2) for k, v in target.items()},
                        "orders": results})
+            if manage_paper:
+                _raise_on_order_errors(results)
             last_rb = datetime.now(timezone.utc).isoformat()
             local_state["last_rebalance_ts"] = last_rb
             local_state["tranches"] = {k: {a: round(v, 2) for a, v in t.items()}
@@ -398,12 +536,15 @@ def main(snapshot_only: bool = False) -> None:
             positions = client.get_positions()
     else:
         print(f"  no rebalance (prossima tranche tra <= {PROPR_TRANCHE_H}h da {last_rb})")
-    STATE_PATH.write_text(json.dumps(local_state, indent=1))
+    local_state["last_manage_check_ts"] = datetime.now(timezone.utc).isoformat()
+    atomic_write_text(STATE_PATH, json.dumps(local_state, indent=1))
 
-    write_status(client, spec, attempt, positions, last_rb)
+    write_status(client, spec, attempt, positions, last_rb, automanage=manage_paper,
+                 evidence=evidence)
     acct_after = client.get_account()
     print(f"fine: balance {acct_after['balance']}$, hwm {acct_after.get('highWaterMark')}$")
 
 
 if __name__ == "__main__":
-    main(snapshot_only="--snapshot-only" in sys.argv[1:])
+    main(snapshot_only="--snapshot-only" in sys.argv[1:],
+         manage_paper="--manage-paper" in sys.argv[1:])

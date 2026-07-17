@@ -918,13 +918,13 @@ h1,h2,h3,h4,
     <div class="sec-head">
       <span class="kicker">F8 · Challenge virtuale verificabile</span>
       <h2>Propr — gestione paper pubblica</h2>
-      <p class="note">Il conto Free Trial da $5.000 è gestito su <a href="https://propr.xyz" target="_blank" rel="noopener">Propr</a> e pubblicato qui tramite snapshot API in sola lettura. Strategia corrente: <code id="propr-strategy">—</code>. Il capitale resta virtuale. <span id="propr-empty" style="display:none">Nessuno snapshot ancora.</span></p>
+      <p class="note">Il conto Free Trial da $5.000 vive su <a href="https://propr.xyz" target="_blank" rel="noopener">Propr</a>. <span id="propr-mode-copy">Lo stato della gestione viene letto dallo snapshot pubblico.</span> Strategia corrente: <code id="propr-strategy">—</code>. Il capitale resta virtuale. <span id="propr-empty" style="display:none">Nessuno snapshot ancora.</span></p>
     </div>
     <div id="propr-summary" style="display:flex;gap:22px;flex-wrap:wrap;margin-bottom:18px;font-size:13px"></div>
     <div id="propr-bars" style="margin-bottom:22px"></div>
     <h3 style="font-family:var(--serif);margin:8px 0 10px">Book corrente</h3>
     <table id="propr-positions" style="width:100%;border-collapse:collapse;font-size:13px"></table>
-    <p class="note" style="margin-top:14px;font-size:11px;opacity:.7">Account Free Trial $5.000 · target profitto 10% · daily loss max 3% · drawdown max 6% statico. Lo snapshot è sola lettura e non può inviare ordini.</p>
+    <p class="note" style="margin-top:14px;font-size:11px;opacity:.7">Account Free Trial $5.000 · capitale solo paper · target profitto 10% · daily loss max 3% · drawdown max 6% statico. Questa corsia sperimentale non è un candidato ufficiale e non abilita account paid o capitale reale.</p>
 
     <h3 style="font-family:var(--serif);margin:28px 0 10px">Breakdown strategia</h3>
     <p class="note" id="propr-thesis" style="margin-bottom:16px"></p>
@@ -945,6 +945,12 @@ h1,h2,h3,h4,
       var D=window.__DATA__; if(!D) return;
       var p=D.propr; if(!p){ document.getElementById('propr-empty').style.display='inline'; return; }
       document.getElementById('propr-strategy').textContent=p.strategy;
+      document.getElementById('propr-mode-copy').textContent =
+        p.execution_mode==='systematic-paper-automanage'
+          ? ((p.realtime_protection||{}).fully_protected
+            ? 'Book e rischio sono verificati ogni ora; gli stop protettivi restano sul server e reagiscono al prezzo senza attendere il prossimo run.'
+            : 'Book e rischio sono verificati ogni ora; la copertura degli stop risulta incompleta o ancora in verifica.')
+          : 'Lo snapshot è in sola lettura; la gestione automatica non risulta attiva.';
       if(p.trading_blocked){
         var blocked=document.getElementById('propr-summary');
         var reasons=((p.evidence||{}).reasons||[]).join(', ');
@@ -962,7 +968,9 @@ h1,h2,h3,h4,
         ['Progresso target ('+p.profit_target_pct+'%)', p.profit_target_progress_pct.toFixed(2)+'%'],
         ['Margine da drawdown', p.drawdown_room_pct.toFixed(2)+'%'],
         ['Stato challenge', statusLabel],
-        ['Gestione', p.execution_mode==='llm-discretionary'?'LLM discrezionale':'sistematica']
+        ['Gestione', p.execution_mode==='systematic-paper-automanage'
+          ? ((p.realtime_protection||{}).fully_protected?'automatica · stop realtime':'automatica · stop incompleti')
+          : (p.execution_mode==='llm-discretionary'?'LLM discrezionale':'sistematica')]
       ].map(function(r,i){ var col = i===3 ? statusColor : 'var(--text-1)';
         return '<div><b style="color:'+col+'">'+r[1]+'</b><br><span style="opacity:.6">'+r[0]+'</span></div>'; }).join('');
       var barsWrap=document.getElementById('propr-bars');

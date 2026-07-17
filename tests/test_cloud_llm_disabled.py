@@ -35,6 +35,14 @@ def test_scheduled_runtime_has_no_llm_calls_or_credentials():
 
     assert workflow.count("agents_paper.py --manage-only") == 2
     assert cron.count("agents_paper.py --manage-only") == 2
+    assert "scripts/propr_paper.py --manage-paper" in workflow
+    assert "scripts/propr_guard.py --execute" in workflow
+    assert "scripts/propr_paper.py --snapshot-only" in workflow
+    for variable in (
+        "PROPR_AUTOMANAGE_ENABLED", "PROPR_GUARD_ENABLED",
+        "PROPR_EXPECTED_ACCOUNT_ID", "PROPR_GUARD_CANARY_ASSET",
+    ):
+        assert f"{variable}: ${{{{ vars.{variable} }}}}" in workflow
 
 
 def test_cloud_publish_is_gated_by_runtime_health():

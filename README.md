@@ -60,7 +60,8 @@ Principi non negoziabili:
 | `scripts/paper_trade.py` | Paper trading challenger segnale-based (cron) |
 | `scripts/review.py` | Reviewer storico/API; le nuove review LLM passano da Codex con checker |
 | `scripts/polymarket_paper.py` | **F7**: journal Polymarket storico; il cloud risolve le previsioni esistenti ma non ne genera di nuove |
-| `scripts/propr_paper.py` | **F8**: challenge virtuale Propr; i portfolio restano bloccati anche con evidence finché universo, sizing e ordini non replicano lo spec verificato |
+| `scripts/propr_paper.py` | **F8**: challenge virtuale Propr; gate ufficiale invariato, più corsia `--manage-paper` sperimentale e paper-only con kill switch e account pin |
+| `scripts/propr_guard.py` | Stop protettivi nativi server-side sul solo Free Trial autorizzato; default read-only, execute con doppio consenso |
 | `scripts/runtime_health.py` | Manifest `paper/health.json`, validazione freshness e gate `publish_allowed` |
 | `scripts/research_pack.py` | Census strict all-dex, shortlist candle bounded e contratti content-addressed Daily Maker/Hourly Checker L1 |
 | `scripts/research_ops.py` | Backpressure, kill switch e clean streak 14 giorni dello stato operativo locale report-only |
@@ -115,10 +116,17 @@ il contratto, quindi nessuna strategia corrente è evidence-ready.
 
 **F8 — validazione storica su onchain prop firm (dal 09/07)**: `xsmom-multihorizon-v1`
 ha prodotto uno storico su Propr (account Free Trial $5.000, capitale virtuale).
-Le nuove chiamate API sono ora bloccate prima del client finché la strategia non
-supera il contratto di evidenza. Lo storico verifica se il campione paper avrebbe superato
-anche una vera challenge prop firm (target profitto 10%, daily loss max 3%, drawdown
-max 6% statico). Stato live e pass/fail pubblici sulla dashboard, sezione **Propr**.
+Il percorso ufficiale resta bloccato prima del client finché la strategia non supera
+il contratto di evidenza. Dal 17/07 esiste inoltre una corsia sperimentale esplicitamente
+autorizzata per il solo paper: `--manage-paper` richiede `PROPR_AUTOMANAGE_ENABLED=true`,
+pin esatto `PROPR_EXPECTED_ACCOUNT_ID` e challenge `free-trial` attiva da $5.000.
+Il runner verifica account e rischio ogni ora, aggiorna una tranche ogni 24h e non
+riusa lo stato legacy alla prima attivazione. `propr_guard.py --execute` richiede il
+secondo kill switch `PROPR_GUARD_ENABLED=true` e mantiene stop `stop_market`
+reduce-only/close-position sul server Propr; `PROPR_GUARD_CANARY_ASSET` limita il
+bootstrap a un asset (`*` = tutti). Questa eccezione non promuove la strategia,
+non crea un candidato ufficiale e non abilita account paid o capitale reale.
+Stato live e pass/fail sono pubblici sulla dashboard, sezione **Propr**.
 Risk overlay Propr-aware nel runner (sera 09/07, da simulazione esatta challenge +
 Monte Carlo bootstrap 1000 path): **gross 0.3** sizing fisso su balance iniziale
 (a gross 1.0 breach daily-loss certo entro l'anno), **circuit breaker** giornaliero

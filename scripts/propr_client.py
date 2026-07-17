@@ -21,6 +21,7 @@ class ProprClient:
             raise ProprError("PROPR_API_KEY non impostata")
         self.read_only = read_only
         self.account_id: str | None = None
+        self.active_attempt: dict | None = None
 
     def _headers(self) -> dict:
         return {"X-API-Key": self.api_key, "Content-Type": "application/json"}
@@ -33,12 +34,30 @@ class ProprClient:
             raise ProprError(f"{method} {path} -> {r.status_code}: {r.text[:300]}")
         return r.json()
 
-    def setup(self) -> str:
-        """Trova l'accountId dalla challenge attempt attiva."""
+    def setup(self, *, expected_account_id: str | None = None,
+              expected_challenge_slug: str | None = None) -> str:
+        """Trova e, quando richiesto, vincola la challenge attempt attiva."""
         attempts = self._req("GET", "/challenge-attempts", params={"status": "active"}).get("data", [])
         if not attempts:
             raise ProprError("nessuna challenge attiva")
-        self.account_id = attempts[0]["accountId"]
+
+        if expected_challenge_slug:
+            attempts = [
+                a for a in attempts
+                if a.get("challenge", {}).get("slug") == expected_challenge_slug
+            ]
+            if not attempts:
+                raise ProprError(f"challenge attiva attesa non trovata: {expected_challenge_slug}")
+        if expected_account_id:
+            attempts = [a for a in attempts if a.get("accountId") == expected_account_id]
+            if len(attempts) != 1:
+                raise ProprError(f"account attivo atteso non trovato: {expected_account_id}")
+
+        attempt = attempts[0]
+        if attempt.get("status") != "active":
+            raise ProprError(f"challenge non attiva: {attempt.get('status')}")
+        self.active_attempt = attempt
+        self.account_id = attempt["accountId"]
         return self.account_id
 
     def get_account(self) -> dict:
@@ -47,6 +66,11 @@ class ProprClient:
     def get_positions(self, status: str = "open") -> list[dict]:
         data = self._req("GET", f"/accounts/{self.account_id}/positions", params={"status": status}).get("data", [])
         return [p for p in data if float(p["quantity"]) != 0]
+
+    def get_orders(self, status: str = "open") -> list[dict]:
+        return self._req(
+            "GET", f"/accounts/{self.account_id}/orders", params={"status": status}
+        ).get("data", [])
 
     def get_margin_config(self, asset: str) -> dict:
         return self._req("GET", f"/accounts/{self.account_id}/margin-config/{asset}")
@@ -64,10 +88,12 @@ class ProprClient:
         return limits.get("overrides", {}).get(asset, limits.get("defaultMax", 2))
 
     def create_order(self, *, side: str, position_side: str, order_type: str, asset: str,
-                      quantity: str, reduce_only: bool = False, close_position: bool = False) -> list[dict]:
+                      quantity: str, reduce_only: bool = False, close_position: bool = False,
+                      intent_id: str | None = None, position_id: str | None = None,
+                      trigger_price: str | None = None) -> list[dict]:
         order = {
             "accountId": self.account_id,
-            "intentId": _ulid(),
+            "intentId": intent_id or _ulid(),
             "exchange": "hyperliquid",
             "type": order_type,
             "side": side,
@@ -81,6 +107,10 @@ class ProprClient:
             "reduceOnly": reduce_only,
             "closePosition": close_position,
         }
+        if position_id is not None:
+            order["positionId"] = position_id
+        if trigger_price is not None:
+            order["triggerPrice"] = trigger_price
         return self._req("POST", f"/accounts/{self.account_id}/orders", json={"orders": [order]}).get("data", [])
 
 

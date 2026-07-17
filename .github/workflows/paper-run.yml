@@ -25,6 +25,10 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       PROPR_API_KEY: ${{ secrets.PROPR_API_KEY }}
+      PROPR_AUTOMANAGE_ENABLED: ${{ vars.PROPR_AUTOMANAGE_ENABLED }}
+      PROPR_GUARD_ENABLED: ${{ vars.PROPR_GUARD_ENABLED }}
+      PROPR_EXPECTED_ACCOUNT_ID: ${{ vars.PROPR_EXPECTED_ACCOUNT_ID }}
+      PROPR_GUARD_CANARY_ASSET: ${{ vars.PROPR_GUARD_CANARY_ASSET }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
@@ -78,9 +82,21 @@ jobs:
         continue-on-error: true
         run: uv run scripts/paper_exits.py
 
+      - name: propr — gestione sistematica Free Trial paper
+        id: propr_manage
+        if: always() && env.PROPR_API_KEY != ''
+        continue-on-error: true
+        run: uv run scripts/propr_paper.py --manage-paper
+
+      - name: propr — protezioni native server-side
+        id: propr_guard
+        if: always() && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED == 'true'
+        continue-on-error: true
+        run: uv run scripts/propr_guard.py --execute
+
       - name: propr — snapshot live account paper (sola lettura)
         id: propr
-        if: env.PROPR_API_KEY != '' && steps.paper_all.outcome == 'success' && steps.portfolio_all.outcome == 'success' && steps.promote.outcome == 'success'
+        if: always() && env.PROPR_API_KEY != ''
         continue-on-error: true
         run: uv run scripts/propr_paper.py --snapshot-only
 
@@ -124,6 +140,8 @@ jobs:
           --critical "exits=${{ steps.exits.outcome }}"
           --optional "cot=${{ steps.cot.outcome }}"
           --optional "agents_rr2=${{ steps.agents_rr2.outcome }}"
+          --optional "propr_manage=${{ steps.propr_manage.outcome }}"
+          --optional "propr_guard=${{ steps.propr_guard.outcome }}"
           --optional "propr=${{ steps.propr.outcome }}"
           --optional "polymarket=${{ steps.polymarket.outcome }}"
           --optional "supabase=${{ steps.supabase.outcome }}"
