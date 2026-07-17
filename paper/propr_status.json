@@ -15,29 +15,29 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5028.85,
- "balance": 4991.47,
+ "equity": 5028.31,
+ "balance": 4991.46,
  "high_water_mark": 5000.0,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.58,
+ "profit_target_progress_pct": 0.57,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.58,
+ "drawdown_room_pct": 6.57,
  "passed": false,
  "breached": false,
  "positions": [
   {
    "asset": "XRP",
    "side": "short",
-   "notional": 71.36,
-   "unrealized_pnl": 0.71
+   "notional": 71.5,
+   "unrealized_pnl": 0.57
   },
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 62.9,
-   "unrealized_pnl": -1.11
+   "notional": 62.97,
+   "unrealized_pnl": -1.05
   },
   {
    "asset": "CRV",
@@ -49,31 +49,31 @@
    "asset": "SOL",
    "side": "long",
    "notional": 69.38,
-   "unrealized_pnl": -3.49
+   "unrealized_pnl": -3.48
   },
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 250.31,
-   "unrealized_pnl": 28.89
+   "notional": 250.02,
+   "unrealized_pnl": 28.6
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 194.12,
-   "unrealized_pnl": 3.45
+   "notional": 194.61,
+   "unrealized_pnl": 2.96
   },
   {
    "asset": "SUI",
    "side": "short",
-   "notional": 142.02,
-   "unrealized_pnl": -1.03
+   "notional": 141.94,
+   "unrealized_pnl": -0.96
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 254.32,
-   "unrealized_pnl": 9.96
+   "notional": 254.59,
+   "unrealized_pnl": 10.22
   }
  ],
  "last_rebalance_ts": "2026-07-12T23:20:36.773723+00:00",
@@ -521,6 +521,10 @@
   {
    "ts": "2026-07-17T08:14:48.077947+00:00",
    "equity": 5028.85
+  },
+  {
+   "ts": "2026-07-17T09:14:52.532300+00:00",
+   "equity": 5028.31
   }
  ],
  "strategy_detail": null,
@@ -537,5 +541,5 @@
   "maker_run_id": null,
   "checker_run_id": null
  },
- "updated_at": "2026-07-17T08:14:48.078005+00:00"
+ "updated_at": "2026-07-17T09:14:52.532355+00:00"
 }
