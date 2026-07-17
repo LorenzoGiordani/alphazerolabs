@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29549296910-1",
-  "generated_at": "2026-07-17T02:14:32.459119+00:00",
+  "run_id": "29551759609-1",
+  "generated_at": "2026-07-17T03:14:30.913653+00:00",
   "component": "highvol-port-v1-signal-eligible",
   "critical": false,
   "expected_count": 132,
