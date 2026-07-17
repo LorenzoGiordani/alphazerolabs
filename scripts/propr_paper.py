@@ -104,9 +104,10 @@ def _protection_summary(positions: list[dict], open_orders: list[dict]) -> dict:
             continue
         position_side = str(position.get("positionSide", "")).lower()
         closing_side = "sell" if position_side == "long" else "buy" if position_side == "short" else ""
+        order_position_side = "long" if closing_side == "buy" else "short" if closing_side else ""
         if (order.get("type") == "stop_market" and closing_side
                 and str(order.get("side", "")).lower() == closing_side
-                and str(order.get("positionSide", "")).lower() == position_side
+                and str(order.get("positionSide", "")).lower() == order_position_side
                 and order.get("reduceOnly") is True and order.get("closePosition") is True):
             protected_ids.add(position_id)
     covered = position_ids & protected_ids

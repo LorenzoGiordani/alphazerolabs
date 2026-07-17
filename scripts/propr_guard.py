@@ -125,11 +125,14 @@ def _build_plan(positions: list[dict], open_orders: list[dict], canary: str) -> 
         if position_side not in ("long", "short"):
             raise ProprError(f"positionSide inatteso per {asset}: {position_side}")
         closing_side = "sell" if position_side == "long" else "buy"
+        # L'API live (code 13096, 2026-07-17) impone buy+long / sell+short
+        # anche per un close condizionale, diversamente dall'esempio nei docs.
+        order_position_side = "long" if closing_side == "buy" else "short"
         protected = any(
             order.get("type") == "stop_market"
             and str(order.get("positionId", "")) == position_id
             and str(order.get("side", "")).lower() == closing_side
-            and str(order.get("positionSide", "")).lower() == position_side
+            and str(order.get("positionSide", "")).lower() == order_position_side
             and order.get("reduceOnly") is True
             and order.get("closePosition") is True
             for order in open_orders
@@ -148,7 +151,7 @@ def _build_plan(positions: list[dict], open_orders: list[dict], canary: str) -> 
             "asset": asset,
             "position_id": position_id,
             "side": closing_side,
-            "position_side": position_side,
+            "position_side": order_position_side,
             "quantity": quantity,
             "trigger_price": trigger_price,
             "intent_id": _intent_id(position, quantity, trigger_price),

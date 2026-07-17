@@ -66,7 +66,7 @@ def test_client_builds_conditional_close_payload(monkeypatch):
 
     monkeypatch.setattr(client, "_req", fake_req)
     result = client.create_order(
-        side="sell", position_side="long", order_type="stop_market", asset="BTC",
+        side="sell", position_side="short", order_type="stop_market", asset="BTC",
         quantity="2", reduce_only=True, close_position=True,
         intent_id="01INTENT", position_id="pos-1", trigger_price="96",
     )
@@ -78,6 +78,7 @@ def test_client_builds_conditional_close_payload(monkeypatch):
     assert result == [{"orderId": "order-1"}]
     assert order["intentId"] == "01INTENT"
     assert order["positionId"] == "pos-1"
+    assert (order["side"], order["positionSide"]) == ("sell", "short")
     assert order["triggerPrice"] == "96"
     assert order["timeInForce"] == "GTC"
     assert order["reduceOnly"] is True
@@ -123,7 +124,7 @@ def test_read_only_plan_uses_canary_opposite_side_and_skips_existing(monkeypatch
         def get_orders(self, status="open"):
             assert status == "open"
             return [{"positionId": "pos-btc", "type": "stop_market",
-                     "side": "sell", "positionSide": "long",
+                     "side": "sell", "positionSide": "short",
                      "reduceOnly": True, "closePosition": True}]
 
         def create_order(self, **_kwargs):
@@ -138,7 +139,7 @@ def test_read_only_plan_uses_canary_opposite_side_and_skips_existing(monkeypatch
     plan = result["plans"][0]
     assert plan["asset"] == "ETH"
     assert plan["side"] == "buy"
-    assert plan["position_side"] == "short"
+    assert plan["position_side"] == "long"
     assert plan["trigger_price"] == "208"
     assert plan["intent_id"] == guard._intent_id(
         _position("ETH", "pos-eth", "short", "200", "3"), "3", "208"
@@ -149,13 +150,13 @@ def test_wrong_side_stop_does_not_count_as_protection():
     import scripts.propr_guard as guard
 
     position = _position("ETH", "pos-eth", "short", "200", "3")
-    wrong = {"positionId": "pos-eth", "type": "stop_market", "side": "sell",
-             "positionSide": "long", "reduceOnly": True, "closePosition": True}
+    wrong = {"positionId": "pos-eth", "type": "stop_market", "side": "buy",
+             "positionSide": "short", "reduceOnly": True, "closePosition": True}
     plans, skipped = guard._build_plan([position], [wrong], "*")
     assert skipped == 0
     assert len(plans) == 1
     assert plans[0]["side"] == "buy"
-    assert plans[0]["position_side"] == "short"
+    assert plans[0]["position_side"] == "long"
 
 
 def test_execute_plans_at_most_eight_before_writes_and_journals_actions(tmp_path, monkeypatch):
@@ -197,7 +198,7 @@ def test_execute_plans_at_most_eight_before_writes_and_journals_actions(tmp_path
     assert events[3][0] == "write"
     assert result["created_count"] == 8
     assert all(event[1]["reduce_only"] and event[1]["close_position"] for event in writes)
-    assert all(event[1]["position_side"] == "long" for event in writes)
+    assert all(event[1]["position_side"] == "short" for event in writes)
     journal = [json.loads(line) for line in guard.JOURNAL.read_text().splitlines()]
     assert len(journal) == 1
     assert journal[0]["status"] == "created"

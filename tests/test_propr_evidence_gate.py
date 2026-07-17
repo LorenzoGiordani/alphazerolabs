@@ -148,9 +148,9 @@ def test_protection_summary_counts_only_native_reduce_only_closes():
         {"positionId": "p2", "positionSide": "short"},
     ]
     orders = [
-        {"positionId": "p1", "type": "stop_market", "side": "sell", "positionSide": "long",
+        {"positionId": "p1", "type": "stop_market", "side": "sell", "positionSide": "short",
          "reduceOnly": True, "closePosition": True},
-        {"positionId": "p2", "type": "stop_market", "side": "sell", "positionSide": "long",
+        {"positionId": "p2", "type": "stop_market", "side": "buy", "positionSide": "short",
          "reduceOnly": True, "closePosition": True},
     ]
     summary = propr._protection_summary(positions, orders)
