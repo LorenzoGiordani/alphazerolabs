@@ -176,20 +176,18 @@ def _openrouter_chat(prompt: str, *, search_prompt: str, timeout: int) -> tuple[
                 "role": "system",
                 "content": (
                     "Restituisci esclusivamente un oggetto JSON conforme al contratto richiesto. "
-                    "Usa il tool web search prima di citare fonti."
+                    "Usa le fonti web restituite prima di citare fonti."
                 ),
             },
             {"role": "user", "content": f"{prompt}\n\nDIRETTIVA DI RICERCA:\n{search_prompt}"},
         ],
         "response_format": {"type": "json_object"},
-        "tools": [{
-            "type": "openrouter:web_search",
-            "parameters": {
-                "engine": "exa",
-                "max_results": 24,
-                "max_total_results": 24,
-                "search_context_size": "high",
-            },
+        "provider": {"require_parameters": True},
+        "plugins": [{
+            "id": "web",
+            "engine": "exa",
+            "max_results": 24,
+            "search_prompt": search_prompt,
         }],
         "stream": False,
         "temperature": 0.2,

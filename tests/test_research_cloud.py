@@ -204,13 +204,13 @@ def test_zai_quota_falls_back_to_openrouter_deepseek_v4_pro(monkeypatch):
     assert model == "openrouter:deepseek/deepseek-v4-pro"
     assert captured["url"] == "https://openrouter.ai/api/v1/chat/completions"
     assert captured["json"]["model"] == "deepseek/deepseek-v4-pro"
-    assert captured["json"]["tools"] == [{
-        "type": "openrouter:web_search",
-        "parameters": {
-            "engine": "exa", "max_results": 24, "max_total_results": 24,
-            "search_context_size": "high",
-        },
+    assert captured["json"]["provider"] == {"require_parameters": True}
+    assert captured["json"]["plugins"] == [{
+        "id": "web", "engine": "exa", "max_results": 24,
+        "search_prompt": "primary",
     }]
+    assert "tools" not in captured["json"]
+    assert not captured["json"]["model"].endswith(":online")
     assert "test-only" not in json.dumps(captured["json"])
 
 
