@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29647545986-1",
-  "generated_at": "2026-07-18T14:13:59.005571+00:00",
+  "run_id": "29649476864-1",
+  "generated_at": "2026-07-18T15:13:46.705917+00:00",
   "component": "xsmom-highvol-combo-v1-prices",
   "critical": true,
-  "expected_count": 113,
-  "observed_count": 113,
+  "expected_count": 109,
+  "observed_count": 109,
   "missing": [],
   "status": "pass"
 }
