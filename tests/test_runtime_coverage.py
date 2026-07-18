@@ -145,6 +145,53 @@ def test_due_rebalance_with_held_mark_only_asset_leaves_state_unchanged(tmp_path
     assert state.read_text() == initial
 
 
+def test_portfolio_child_uses_shared_marks_without_live_snapshot(tmp_path, monkeypatch):
+    import scripts.portfolio_paper as portfolio
+
+    snapshot = tmp_path / "marks.json"
+    snapshot.write_text(json.dumps({"ok": True, "rows": [
+        {"symbol": "A", "mark": 10.0}, {"symbol": "B", "mark": 20.0},
+    ]}))
+    monkeypatch.setenv(portfolio.MARK_SNAPSHOT_ENV, str(snapshot))
+    monkeypatch.setattr(portfolio, "perp_market_snapshot", lambda: (
+        _ for _ in ()).throw(AssertionError("live snapshot called")))
+
+    assert portfolio.market_marks() == {"A": 10.0, "B": 20.0}
+
+
+def test_empty_shared_mark_path_does_not_refetch_live(monkeypatch):
+    import scripts.portfolio_paper as portfolio
+
+    monkeypatch.setenv(portfolio.MARK_SNAPSHOT_ENV, "")
+    monkeypatch.setattr(portfolio, "perp_market_snapshot", lambda: (
+        _ for _ in ()).throw(AssertionError("live snapshot called")))
+
+    with pytest.raises(RuntimeError, match="condivisa illeggibile"):
+        portfolio.market_marks()
+
+
+def test_invalid_shared_marks_fail_closed_before_state_write(tmp_path, monkeypatch):
+    import scripts.portfolio_paper as portfolio
+
+    state = tmp_path / "state.json"
+    spec = {"id": "alpha-port-v1", "engine": "portfolio", "status": "challenger",
+            "portfolio": {"lookback_h": 24, "rebalance_h": 24, "factor": "xsmom"}}
+    monkeypatch.setattr(portfolio, "STATE_FILE", state)
+    monkeypatch.setattr(portfolio, "load", lambda _path: spec)
+    monkeypatch.setattr(portfolio, "paper_symbols", lambda _spec: "A,B,C")
+    monkeypatch.setattr(portfolio, "trailing_returns", lambda *_args: (
+        pd.Series({"A": 0.1, "B": -0.1}), {"A": 10.0, "B": 20.0}))
+    monkeypatch.setenv(portfolio.MARK_SNAPSHOT_ENV, str(tmp_path / "missing.json"))
+    monkeypatch.setattr(portfolio, "perp_market_snapshot", lambda: (
+        _ for _ in ()).throw(AssertionError("live snapshot called")))
+    monkeypatch.setattr(sys, "argv", ["portfolio_paper.py", "alpha.yaml"])
+
+    with pytest.raises(SystemExit, match="copertura prezzi incompleta"):
+        portfolio.main()
+
+    assert not state.exists()
+
+
 def test_too_narrow_signal_eligible_subset_blocks(tmp_path, monkeypatch):
     import scripts.portfolio_paper as portfolio
 
@@ -255,3 +302,62 @@ def test_runner_propagates_child_failures(tmp_path, monkeypatch):
     monkeypatch.setattr(runner.subprocess, "run", lambda *_args, **_kwargs: next(outcomes))
     with pytest.raises(SystemExit, match="b-v1"):
         runner.main()
+
+
+def test_portfolio_runner_fetches_one_shared_snapshot(tmp_path, monkeypatch):
+    import scripts.portfolio_all as runner
+
+    specs = [(Path("a.yaml"), {"id": "a-v1", "status": "challenger"}),
+             (Path("b.yaml"), {"id": "b-v1", "status": "champion"})]
+    calls = []
+    snapshot_calls = []
+    monkeypatch.setattr(runner, "portfolio_active_specs", lambda: specs)
+    monkeypatch.setattr(runner, "COVERAGE_DIR", tmp_path)
+
+    def snapshot():
+        snapshot_calls.append(True)
+        return [{"symbol": "BTC", "mark": 100.0}]
+
+    monkeypatch.setattr(runner, "perp_market_snapshot", snapshot)
+
+    def run(_command, *, env):
+        calls.append((env[runner.MARK_SNAPSHOT_ENV], json.loads(
+            Path(env[runner.MARK_SNAPSHOT_ENV]).read_text())))
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(runner.subprocess, "run", run)
+
+    runner.main()
+
+    assert len(snapshot_calls) == 1
+    assert len(calls) == 2
+    assert calls[0][0] == calls[1][0]
+    assert calls[0][1] == {"ok": True, "rows": [{"symbol": "BTC", "mark": 100.0}]}
+
+
+def test_portfolio_runner_shares_one_failure_without_child_refetch(tmp_path, monkeypatch):
+    import scripts.portfolio_all as runner
+
+    specs = [(Path("a.yaml"), {"id": "a-v1", "status": "challenger"}),
+             (Path("b.yaml"), {"id": "b-v1", "status": "champion"})]
+    payloads = []
+    snapshot_calls = []
+    monkeypatch.setattr(runner, "portfolio_active_specs", lambda: specs)
+    monkeypatch.setattr(runner, "COVERAGE_DIR", tmp_path)
+
+    def snapshot():
+        snapshot_calls.append(True)
+        raise RuntimeError("HL HTTP 429")
+
+    def run(_command, *, env):
+        payloads.append(json.loads(Path(env[runner.MARK_SNAPSHOT_ENV]).read_text()))
+        return SimpleNamespace(returncode=1)
+
+    monkeypatch.setattr(runner, "perp_market_snapshot", snapshot)
+    monkeypatch.setattr(runner.subprocess, "run", run)
+
+    with pytest.raises(SystemExit, match="a-v1, b-v1"):
+        runner.main()
+
+    assert len(snapshot_calls) == 1
+    assert payloads == [{"ok": False, "error": "HL HTTP 429"}] * 2

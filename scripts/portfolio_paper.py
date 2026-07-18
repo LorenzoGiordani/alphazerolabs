@@ -12,6 +12,7 @@ Uso: uv run scripts/portfolio_paper.py strategies/generated/xsmom-port-v1.yaml
 """
 import json
 import math
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -39,6 +40,40 @@ COST = HL_TAKER_FEE + DEFAULT_SLIPPAGE
 # del book. Cablato qui per i candidati con portfolio.vol_target.enabled=true.
 # Cron ogni 4h -> annualizzo per sqrt(PERIODS_PER_YEAR_HEARTBEAT). Warmup m=1.0.
 PERIODS_PER_YEAR_HEARTBEAT = 6 * 365   # heartbeat ogni 4h
+MARK_SNAPSHOT_ENV = "PORTFOLIO_MARK_SNAPSHOT_PATH"
+
+
+def market_marks() -> dict[str, float]:
+    """Legge la snapshot condivisa dal parent; standalone usa HL direttamente."""
+    shared_path = os.environ.get(MARK_SNAPSHOT_ENV)
+    if shared_path is not None:
+        try:
+            payload = json.loads(Path(shared_path).read_text())
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError("snapshot mark HL condivisa illeggibile") from exc
+        if not isinstance(payload, dict) or payload.get("ok") is not True:
+            reason = payload.get("error") if isinstance(payload, dict) else None
+            if not isinstance(reason, str) or not reason:
+                reason = "errore non specificato"
+            raise RuntimeError(f"snapshot mark HL condivisa non disponibile ({reason})")
+        rows = payload.get("rows")
+    else:
+        rows = perp_market_snapshot()
+    if not isinstance(rows, list):
+        raise RuntimeError("snapshot mark HL senza lista rows")
+    marks = {}
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("symbol"), str):
+            raise RuntimeError("snapshot mark HL con simbolo non valido")
+        symbol = row["symbol"]
+        try:
+            mark = float(row.get("mark"))
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError(f"snapshot mark HL non valida per {symbol}") from exc
+        if not symbol or not math.isfinite(mark) or mark <= 0 or symbol in marks:
+            raise RuntimeError(f"snapshot mark HL non valida per {symbol or '<vuoto>'}")
+        marks[symbol] = mark
+    return marks
 
 
 def _vol_target_multiplier(history: list, vt: dict) -> float:
@@ -271,7 +306,7 @@ def main() -> None:
     mark_only_symbols = set()
     if missing_prices:
         try:
-            marks = {row["symbol"]: row["mark"] for row in perp_market_snapshot()}
+            marks = market_marks()
         except Exception as exc:
             print(f"  snapshot mark HL fallita ({exc})", file=sys.stderr)
         else:

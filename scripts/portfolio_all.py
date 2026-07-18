@@ -9,16 +9,21 @@ file che non matcha un pattern (com'era xsmom-multihorizon-v1).
 Uso: .venv/bin/python scripts/portfolio_all.py
 """
 
+import json
+import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backtest.lifecycle import portfolio_active_specs
+from pipeline.live import perp_market_snapshot
 from scripts.runtime_health import write_coverage
 
 ROOT = Path(__file__).resolve().parent.parent
 COVERAGE_DIR = ROOT / "paper" / "coverage"
+MARK_SNAPSHOT_ENV = "PORTFOLIO_MARK_SNAPSHOT_PATH"
 
 
 def required_lookback(spec: dict) -> int:
@@ -42,17 +47,30 @@ def main() -> None:
     print(f"strategie portfolio attive: {len(active)}")
     failures = []
     successes = []
-    for path, spec in active:
-        sid = spec["id"]
-        print(f"\n→ {sid} [{spec['status']}]")
-        # Continua per osservare tutti i book, ma propaga il risultato aggregato:
-        # la health gate deve poter bloccare un deploy parziale.
-        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "portfolio_paper.py"), str(path)])
-        if r.returncode != 0:
-            print(f"  ⚠ {sid} uscito con codice {r.returncode}", file=sys.stderr)
-            failures.append(sid)
-        else:
-            successes.append(sid)
+    try:
+        snapshot = {"ok": True, "rows": perp_market_snapshot()}
+    except Exception as exc:
+        snapshot = {"ok": False, "error": str(exc)}
+        print(f"snapshot mark HL condivisa fallita ({exc})", file=sys.stderr)
+    with tempfile.TemporaryDirectory(prefix="portfolio-marks-") as temp_dir:
+        snapshot_path = Path(temp_dir) / "snapshot.json"
+        snapshot_path.write_text(json.dumps(snapshot))
+        child_env = os.environ.copy()
+        child_env[MARK_SNAPSHOT_ENV] = str(snapshot_path)
+        for path, spec in active:
+            sid = spec["id"]
+            print(f"\n→ {sid} [{spec['status']}]")
+            # Continua per osservare tutti i book, ma propaga il risultato aggregato:
+            # la health gate deve poter bloccare un deploy parziale.
+            r = subprocess.run(
+                [sys.executable, str(ROOT / "scripts" / "portfolio_paper.py"), str(path)],
+                env=child_env,
+            )
+            if r.returncode != 0:
+                print(f"  ⚠ {sid} uscito con codice {r.returncode}", file=sys.stderr)
+                failures.append(sid)
+            else:
+                successes.append(sid)
     write_coverage("portfolio-all", [spec["id"] for _, spec in active], successes,
                    output_dir=COVERAGE_DIR)
     if failures:
