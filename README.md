@@ -114,6 +114,13 @@ Dal rilascio Integrity P0 il gate è hard e fail-closed: DSR ≥0,95, holdout OO
 `PASS`, hash coerenti e checker indipendente. Gli artefatti legacy non soddisfano
 il contratto, quindi nessuna strategia corrente è evidence-ready.
 
+**Hardening feed paper (18/07).** Il collector Coinalyze 1h usa ora l'open
+interest come clock: le ore senza eventi di liquidazione sono barre esplicite a
+zero, mentre l'assenza di OI resta un errore fail-closed. Il runner portfolio
+acquisisce inoltre una sola snapshot mark Hyperliquid per run e la condivide con
+tutti i child; un errore condiviso non innesca nuovi fetch nei child. I gate di
+copertura prezzi 100% e LIQIMB 9/9 restano invariati.
+
 **F8 — validazione storica su onchain prop firm (dal 09/07)**: `xsmom-multihorizon-v1`
 ha prodotto uno storico su Propr (account Free Trial $5.000, capitale virtuale).
 Il percorso ufficiale resta bloccato prima del client finché la strategia non supera
