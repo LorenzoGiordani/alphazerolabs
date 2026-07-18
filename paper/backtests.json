@@ -3,7 +3,7 @@
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-18T17:14 UTC",
+ "generated_at": "2026-07-18T17:57 UTC",
  "strategies": [
   {
    "id": "commodities-trend-v1",
@@ -122,9 +122,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.41,
-    "mean_return": 0.0407,
-    "worst_drawdown": -0.1734,
+    "mean_sharpe": -0.3,
+    "mean_return": -0.0569,
+    "worst_drawdown": -0.2044,
     "positive_symbols": "market-neutral",
     "consistency": "1/6 fold positivi"
    },
