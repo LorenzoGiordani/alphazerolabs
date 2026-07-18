@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29626582959-1",
-  "generated_at": "2026-07-18T02:14:28.948447+00:00",
+  "run_id": "29628363780-1",
+  "generated_at": "2026-07-18T03:14:32.451932+00:00",
   "component": "xsmom-reb48-v1-prices",
   "critical": true,
-  "expected_count": 130,
-  "observed_count": 130,
+  "expected_count": 128,
+  "observed_count": 128,
   "missing": [],
   "status": "pass"
 }

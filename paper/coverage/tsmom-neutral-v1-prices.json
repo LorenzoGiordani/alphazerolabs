@@ -1,11 +1,13 @@
 {
   "schema_version": 1,
-  "run_id": "29626582959-1",
-  "generated_at": "2026-07-18T02:14:23.633622+00:00",
+  "run_id": "29628363780-1",
+  "generated_at": "2026-07-18T03:14:27.053873+00:00",
   "component": "tsmom-neutral-v1-prices",
   "critical": true,
   "expected_count": 138,
-  "observed_count": 138,
-  "missing": [],
-  "status": "pass"
+  "observed_count": 137,
+  "missing": [
+    "xyz:EBAY"
+  ],
+  "status": "fail"
 }
