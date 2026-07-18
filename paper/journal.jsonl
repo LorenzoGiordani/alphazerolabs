@@ -7306,3 +7306,14 @@
 {"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9639.83, "open_positions": 86, "logged_at": "2026-07-18T08:14:08.642505+00:00"}
 {"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9024.85, "open_positions": 90, "logged_at": "2026-07-18T08:14:11.765312+00:00"}
 {"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9803.5, "open_positions": 6, "logged_at": "2026-07-18T08:14:12.330576+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 9325.49, "open_positions": 2, "logged_at": "2026-07-18T09:11:07.836637+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10058.37, "open_positions": 0, "logged_at": "2026-07-18T09:11:08.440752+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9947.49, "open_positions": 0, "logged_at": "2026-07-18T09:11:08.955974+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10581.86, "open_positions": 4, "logged_at": "2026-07-18T09:13:52.356856+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 9449.73, "open_positions": 133, "logged_at": "2026-07-18T09:13:55.597176+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10619.2, "open_positions": 79, "logged_at": "2026-07-18T09:13:59.086241+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10414.2, "open_positions": 6, "logged_at": "2026-07-18T09:13:59.673943+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10703.37, "open_positions": 78, "logged_at": "2026-07-18T09:14:02.632851+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9641.46, "open_positions": 86, "logged_at": "2026-07-18T09:14:05.909524+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9015.61, "open_positions": 90, "logged_at": "2026-07-18T09:14:08.700802+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9815.82, "open_positions": 6, "logged_at": "2026-07-18T09:14:09.290994+00:00"}
