@@ -1,11 +1,13 @@
 {
   "schema_version": 1,
-  "run_id": "29642113918-1",
-  "generated_at": "2026-07-18T11:14:08.563993+00:00",
+  "run_id": "29643859394-1",
+  "generated_at": "2026-07-18T12:14:20.487079+00:00",
   "component": "portfolio-all",
   "critical": true,
   "expected_count": 8,
-  "observed_count": 8,
-  "missing": [],
-  "status": "pass"
+  "observed_count": 7,
+  "missing": [
+    "highvol-port-v1"
+  ],
+  "status": "fail"
 }
