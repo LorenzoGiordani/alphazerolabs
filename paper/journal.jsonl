@@ -7201,3 +7201,15 @@
 {"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9655.25, "open_positions": 86, "logged_at": "2026-07-17T23:14:32.618138+00:00"}
 {"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9055.08, "open_positions": 90, "logged_at": "2026-07-17T23:14:33.213922+00:00"}
 {"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9757.26, "open_positions": 6, "logged_at": "2026-07-17T23:14:33.781172+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 9325.49, "open_positions": 2, "logged_at": "2026-07-18T00:11:06.812950+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10058.37, "open_positions": 0, "logged_at": "2026-07-18T00:11:07.409667+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9947.49, "open_positions": 0, "logged_at": "2026-07-18T00:11:07.958673+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10544.05, "open_positions": 4, "logged_at": "2026-07-18T00:14:11.642398+00:00"}
+{"type": "heartbeat", "strategy": "tsmom-neutral-v1", "equity": 9485.63, "open_positions": 133, "logged_at": "2026-07-18T00:14:26.378278+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10612.85, "open_positions": 6, "logged_at": "2026-07-18T00:14:26.957709+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10374.64, "open_positions": 6, "logged_at": "2026-07-18T00:14:27.559358+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10736.41, "open_positions": 78, "logged_at": "2026-07-18T00:14:31.096052+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-reb48-v1", "equity": 9663.82, "open_positions": 86, "logged_at": "2026-07-18T00:14:31.634583+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9062.39, "open_positions": 90, "logged_at": "2026-07-18T00:14:32.228793+00:00"}
+{"type": "rebalance", "strategy": "liqimb-port-v1", "equity": 9752.51, "weights": {"BTC": 1625.4304, "ETH": 1625.4304, "XRP": -1625.4304, "WLD": -1625.4304, "ZEC": 1625.4304, "CRV": -1625.4304}, "logged_at": "2026-07-18T00:14:32.759964+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9752.51, "open_positions": 6, "logged_at": "2026-07-18T00:14:32.768852+00:00"}
