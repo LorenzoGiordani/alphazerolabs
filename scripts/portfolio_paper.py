@@ -25,7 +25,7 @@ from backtest.engine import DEFAULT_SLIPPAGE, HL_TAKER_FEE
 from backtest.portfolio import sign_weights, xs_momentum_weights
 from backtest.lifecycle import paper_symbols
 from backtest.strategy import load
-from pipeline.live import atomic_write_text, fetch_candles_cached
+from pipeline.live import atomic_write_text, fetch_candles_cached, perp_market_snapshot
 from scripts.paper_trade import STATE_FILE, log_event
 from scripts.runtime_health import write_coverage
 
@@ -263,18 +263,22 @@ def main() -> None:
         rets, px = liqimb_signal(symbols, int(pf.get("liq_lookback_d", 7)))
     else:                                        # xsmom E tsmom: ritorno trailing
         rets, px = trailing_returns(symbols, lookback_h, multi_horizon)
-    # Prezzo osservato e segnale eleggibile sono contratti distinti. Un listing
-    # nuovo con 56 candele deve essere monitorato, ma non puo inventarsi un
-    # momentum 168/336h: resta esplicitamente ineleggibile finche matura lo storico.
-    for held in st["positions"]:
-        if held in px:
-            continue
-        try:
-            candles = fetch_live(held, lookback_h=8)["candles"]
-            px[held] = float(candles.close.iloc[-1])
-        except Exception as exc:
-            print(f"  {held}: posizione detenuta senza prezzo ({exc})", file=sys.stderr)
     price_expected = set(symbols) | set(st["positions"])
+    # Prezzo osservato e segnale eleggibile sono contratti distinti. Se un perp
+    # illiquido non stampa candele recenti, il mark corrente HL puo valorizzare il
+    # book ma non puo inventare un segnale: ``rets`` resta invariato.
+    missing_prices = price_expected - set(px)
+    mark_only_symbols = set()
+    if missing_prices:
+        try:
+            marks = {row["symbol"]: row["mark"] for row in perp_market_snapshot()}
+        except Exception as exc:
+            print(f"  snapshot mark HL fallita ({exc})", file=sys.stderr)
+        else:
+            for symbol in sorted(missing_prices & marks.keys()):
+                px[symbol] = marks[symbol]
+                mark_only_symbols.add(symbol)
+                print(f"  {symbol}: mark HL usato solo per valorizzazione")
     price_observed = set(px) & price_expected
     write_coverage(f"{acct}-prices", price_expected, price_observed,
                    output_dir=STATE_FILE.parent / "coverage")
@@ -305,6 +309,14 @@ def main() -> None:
         raise SystemExit(f"segnali eleggibili insufficienti: {len(signal_observed)}/{len(symbols)}; "
                          f"minimo {min_eligible} ({min_ratio:.0%})")
 
+    due = (not st["last_rebalance_ts"] or
+           now - datetime.fromisoformat(st["last_rebalance_ts"]) >= pd.Timedelta(hours=rebalance_h).to_pytimedelta())
+    held_mark_only = sorted(mark_only_symbols & set(st["positions"]))
+    if due and held_mark_only:
+        print(f"  rebalance differito: posizioni senza candela fresca "
+              f"({','.join(held_mark_only[:20])})")
+        return
+
     # 1. mark-to-market del book esistente
     for s, pos in list(st["positions"].items()):
         if s not in px:
@@ -316,8 +328,6 @@ def main() -> None:
         pos["px"] = new_px
 
     # 2. ribilanciamento se è ora (o book vuoto)
-    due = (not st["last_rebalance_ts"] or
-           now - datetime.fromisoformat(st["last_rebalance_ts"]) >= pd.Timedelta(hours=rebalance_h).to_pytimedelta())
     if due and len(rets) < 3:
         raise SystemExit(f"rebalance dovuto ma solo {len(rets)} segnali utilizzabili")
     if due:

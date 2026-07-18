@@ -20,6 +20,7 @@ def test_portfolio_partial_universe_blocks_without_state_write(tmp_path, monkeyp
     monkeypatch.setattr(portfolio, "paper_symbols", lambda _spec: "A,B,C")
     monkeypatch.setattr(portfolio, "trailing_returns",
                         lambda *_args: (pd.Series({"A": 0.1, "B": -0.1}), {"A": 10.0, "B": 20.0}))
+    monkeypatch.setattr(portfolio, "perp_market_snapshot", lambda: [])
     monkeypatch.setattr(sys, "argv", ["portfolio_paper.py", "alpha.yaml"])
     with pytest.raises(SystemExit, match="copertura prezzi incompleta"):
         portfolio.main()
@@ -72,6 +73,76 @@ def test_new_listing_price_is_covered_but_signal_waits_for_history(tmp_path, mon
     assert prices["status"] == "pass" and prices["observed_count"] == 5
     assert signals["critical"] is False and signals["missing"] == ["NEW"]
     assert state.exists()
+
+
+def test_held_asset_uses_market_mark_without_inventing_signal(tmp_path, monkeypatch):
+    import scripts.portfolio_paper as portfolio
+
+    state = tmp_path / "state.json"
+    spec = {"id": "alpha-port-v1", "engine": "portfolio", "status": "challenger",
+            "portfolio": {"lookback_h": 24, "rebalance_h": 24, "factor": "xsmom"}}
+    monkeypatch.setattr(portfolio, "STATE_FILE", state)
+    monkeypatch.setattr(portfolio, "load", lambda _path: spec)
+    monkeypatch.setattr(portfolio, "paper_symbols", lambda _spec: "A,B,C,D,E")
+    monkeypatch.setattr(portfolio, "trailing_returns", lambda *_args: (
+        pd.Series({"A": 0.2, "B": 0.1, "C": -0.1, "D": -0.2}),
+        {"A": 10.0, "B": 20.0, "C": 30.0, "D": 40.0}))
+    monkeypatch.setattr(portfolio, "perp_market_snapshot", lambda: [
+        {"symbol": "E", "mark": 50.0}])
+    monkeypatch.setattr(portfolio, "log_event", lambda _event: None)
+    monkeypatch.setattr(sys, "argv", ["portfolio_paper.py", "alpha.yaml"])
+    last_rebalance = pd.Timestamp.now(tz="UTC").isoformat()
+    state.write_text(json.dumps({"alpha-port-v1": {
+        "equity": 10_000.0,
+        "positions": {"E": {"notional": 100.0, "px": 40.0}},
+        "last_rebalance_ts": last_rebalance,
+        "equity_history": [],
+    }}))
+
+    portfolio.main()
+
+    prices = json.loads((tmp_path / "coverage/alpha-port-v1-prices.json").read_text())
+    signals = json.loads((tmp_path / "coverage/alpha-port-v1-signal-eligible.json").read_text())
+    updated = json.loads(state.read_text())["alpha-port-v1"]
+    assert prices["status"] == "pass" and prices["observed_count"] == 5
+    assert signals["missing"] == ["E"]
+    assert updated["last_rebalance_ts"] == last_rebalance
+    assert updated["positions"]["E"] == {"notional": 125.0, "px": 50.0}
+
+
+def test_due_rebalance_with_held_mark_only_asset_leaves_state_unchanged(tmp_path, monkeypatch):
+    import scripts.portfolio_paper as portfolio
+
+    state = tmp_path / "state.json"
+    spec = {"id": "alpha-port-v1", "engine": "portfolio", "status": "challenger",
+            "portfolio": {"lookback_h": 24, "rebalance_h": 24, "factor": "xsmom"}}
+    initial = json.dumps({"alpha-port-v1": {
+        "equity": 10_000.0,
+        "positions": {"E": {"notional": 100.0, "px": 40.0}},
+        "last_rebalance_ts": "",
+        "equity_history": [],
+    }})
+    state.write_text(initial)
+    monkeypatch.setattr(portfolio, "STATE_FILE", state)
+    monkeypatch.setattr(portfolio, "load", lambda _path: spec)
+    monkeypatch.setattr(portfolio, "paper_symbols", lambda _spec: "A,B,C,D,E")
+    monkeypatch.setattr(portfolio, "trailing_returns", lambda *_args: (
+        pd.Series({"A": 0.2, "B": 0.1, "C": -0.1, "D": -0.2}),
+        {"A": 10.0, "B": 20.0, "C": 30.0, "D": 40.0}))
+    monkeypatch.setattr(portfolio, "perp_market_snapshot", lambda: [
+        {"symbol": "E", "mark": 50.0}])
+    monkeypatch.setattr(portfolio, "atomic_write_text", lambda *_args: (
+        _ for _ in ()).throw(AssertionError("state write during deferred rebalance")))
+    monkeypatch.setattr(portfolio, "log_event", lambda _event: (
+        _ for _ in ()).throw(AssertionError("journal write during deferred rebalance")))
+    monkeypatch.setattr(sys, "argv", ["portfolio_paper.py", "alpha.yaml"])
+
+    portfolio.main()
+
+    prices = json.loads((tmp_path / "coverage/alpha-port-v1-prices.json").read_text())
+    signals = json.loads((tmp_path / "coverage/alpha-port-v1-signal-eligible.json").read_text())
+    assert prices["status"] == "pass" and signals["missing"] == ["E"]
+    assert state.read_text() == initial
 
 
 def test_too_narrow_signal_eligible_subset_blocks(tmp_path, monkeypatch):
