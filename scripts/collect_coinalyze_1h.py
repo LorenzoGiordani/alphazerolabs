@@ -28,6 +28,19 @@ OUT_DIR = ROOT / "data/coinalyze_1h"
 REQUIRED_COLUMNS = {"ts", "liq_long", "liq_short", "oi"}
 
 
+def hourly_frame(liq: pd.DataFrame, oi: pd.DataFrame) -> pd.DataFrame:
+    """Usa l'OI come clock orario; nessun evento di liquidazione vale zero."""
+    if oi.empty:
+        raise ValueError("open interest 1h assente")
+    frame = oi.copy() if liq.empty else oi.merge(liq, on="ts", how="left")
+    for column in ("liq_long", "liq_short"):
+        if column not in frame:
+            frame[column] = 0.0
+        else:
+            frame[column] = frame[column].fillna(0.0)
+    return frame[["ts", "liq_long", "liq_short", "oi"]]
+
+
 def validate_output(symbols: list[str], *, out_dir: Path = OUT_DIR,
                     max_age_h: float = 8, now=None) -> list[str]:
     """Controlla il contratto realmente consumato da LIQIMB."""
@@ -59,22 +72,23 @@ def main() -> None:
     args = ap.parse_args()
     requested = [coin.strip() for coin in args.symbols.split(",") if coin.strip()]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    s = requests.Session(); s.headers["api_key"] = api_key()
+    s = requests.Session()
+    s.headers["api_key"] = api_key()
     markets = get(s, "future-markets", None)
-    to = int(time.time()); frm = to - args.lookback_days * 86400
+    to = int(time.time())
+    frm = to - args.lookback_days * 86400
 
     for coin in requested:
         syms = perp_symbols(markets, coin)
         if not syms:
-            print(f"  {coin}: nessun perp"); continue
+            print(f"  {coin}: nessun perp")
+            continue
         common = {"symbols": ",".join(syms), "interval": "1hour", "from": frm, "to": to}
         liq = aggregate(get(s, "liquidation-history", {**common, "convert_to_usd": "true"}),
                         {"liq_long": "l", "liq_short": "s"})
         oi = aggregate(get(s, "open-interest-history", {**common, "convert_to_usd": "true"}),
                        {"oi": "c"})
-        if liq.empty:
-            print(f"  {coin}: nessuna liquidazione 1h"); continue
-        df = liq.merge(oi, on="ts", how="left") if not oi.empty else liq
+        df = hourly_frame(liq, oi)
         path = OUT_DIR / f"{coin}.parquet"
         if path.exists():
             df = pd.concat([pd.read_parquet(path), df], ignore_index=True)
