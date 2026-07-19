@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29676022495-1",
-  "generated_at": "2026-07-19T06:13:26.484387+00:00",
+  "run_id": "29677672346-1",
+  "generated_at": "2026-07-19T07:13:29.541743+00:00",
   "component": "tsmom-neutral-v1-prices",
   "critical": true,
   "expected_count": 142,
