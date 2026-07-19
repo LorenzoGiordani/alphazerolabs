@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29682893211-1",
-  "generated_at": "2026-07-19T10:13:28.490892+00:00",
+  "run_id": "29684670898-1",
+  "generated_at": "2026-07-19T11:13:30.776776+00:00",
   "component": "xsmom-highvol-combo-v1-prices",
   "critical": true,
   "expected_count": 113,
