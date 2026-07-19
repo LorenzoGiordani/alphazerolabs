@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29696319969-1",
-  "generated_at": "2026-07-19T17:13:29.339710+00:00",
+  "run_id": "29698264929-1",
+  "generated_at": "2026-07-19T18:13:29.324263+00:00",
   "component": "exit-check",
   "critical": true,
   "expected_count": 2,
