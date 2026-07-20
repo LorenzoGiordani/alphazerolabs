@@ -15,47 +15,47 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5045.12,
+ "equity": 5044.72,
  "balance": 4986.95,
  "high_water_mark": 5060.986444,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.9,
+ "profit_target_progress_pct": 0.89,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.9,
+ "drawdown_room_pct": 6.89,
  "passed": false,
  "breached": false,
  "positions": [
   {
    "asset": "NEAR",
    "side": "short",
-   "notional": 250.05,
-   "unrealized_pnl": -0.1
+   "notional": 248.69,
+   "unrealized_pnl": 1.26
   },
   {
    "asset": "XRP",
    "side": "short",
    "notional": 0.11,
-   "unrealized_pnl": -0.0
+   "unrealized_pnl": 0.0
   },
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 246.02,
-   "unrealized_pnl": 29.31
+   "notional": 243.76,
+   "unrealized_pnl": 27.04
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 237.18,
-   "unrealized_pnl": 13.42
+   "notional": 234.63,
+   "unrealized_pnl": 15.96
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 254.63,
-   "unrealized_pnl": 15.54
+   "notional": 252.59,
+   "unrealized_pnl": 13.5
   }
  ],
  "last_rebalance_ts": "2026-07-17T22:04:35.818582+00:00",
@@ -783,6 +783,10 @@
   {
    "ts": "2026-07-20T04:13:31.226860+00:00",
    "equity": 5045.12
+  },
+  {
+   "ts": "2026-07-20T05:13:35.932596+00:00",
+   "equity": 5044.72
   }
  ],
  "strategy_detail": null,
@@ -799,5 +803,5 @@
   "maker_run_id": null,
   "checker_run_id": null
  },
- "updated_at": "2026-07-20T04:13:31.226911+00:00"
+ "updated_at": "2026-07-20T05:13:35.932657+00:00"
 }
