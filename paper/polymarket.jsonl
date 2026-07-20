@@ -17,3 +17,10 @@
 {"type": "resolution", "ts": "2026-07-14T22:14:06.268665+00:00", "market_id": "2880028", "outcome_yes": 0.0, "brier_llm": 0.0042, "brier_market": 0.011}
 {"type": "resolution", "ts": "2026-07-14T22:14:06.268665+00:00", "market_id": "2880294", "outcome_yes": 0.0, "brier_llm": 0.3025, "brier_market": 0.354}
 {"type": "resolution", "ts": "2026-07-16T06:14:04.043479+00:00", "market_id": "2686769", "outcome_yes": 0.0, "brier_llm": 0.0484, "brier_market": 0.0089}
+{"type": "resolution", "ts": "2026-07-20T02:13:33.776112+00:00", "market_id": "558938", "outcome_yes": 0.0, "brier_llm": 0.0144, "brier_market": 0.0402}
+{"type": "resolution", "ts": "2026-07-20T02:13:33.776112+00:00", "market_id": "558951", "outcome_yes": 0.0, "brier_llm": 0.0, "brier_market": 0.0035}
+{"type": "resolution", "ts": "2026-07-20T02:13:33.776112+00:00", "market_id": "558936", "outcome_yes": 0.0, "brier_llm": 0.0324, "brier_market": 0.106}
+{"type": "resolution", "ts": "2026-07-20T02:13:33.776112+00:00", "market_id": "558935", "outcome_yes": 0.0, "brier_llm": 0.0324, "brier_market": 0.0254}
+{"type": "resolution", "ts": "2026-07-20T02:13:33.776112+00:00", "market_id": "558934", "outcome_yes": 1.0, "brier_llm": 0.5776, "brier_market": 0.6602}
+{"type": "resolution", "ts": "2026-07-20T02:13:33.776112+00:00", "market_id": "2069638", "outcome_yes": 1.0, "brier_llm": 0.7744, "brier_market": 0.3192}
+{"type": "resolution", "ts": "2026-07-20T02:13:33.776112+00:00", "market_id": "2069635", "outcome_yes": 0.0, "brier_llm": 0.0004, "brier_market": 0.1433}

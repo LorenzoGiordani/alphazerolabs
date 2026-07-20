@@ -7685,3 +7685,15 @@
 {"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10694.92, "open_positions": 78, "logged_at": "2026-07-19T23:13:14.966019+00:00"}
 {"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9105.02, "open_positions": 90, "logged_at": "2026-07-19T23:13:16.230386+00:00"}
 {"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9918.97, "open_positions": 6, "logged_at": "2026-07-19T23:13:17.068115+00:00"}
+{"type": "close", "strategy": "commodities-trend-v1", "symbol": "xyz_SILVER", "reason": "stopped", "exit_px": 57.01357041232819, "frac": 1.0, "remaining": -1.0, "pnl_usd": -97.7, "equity": 9227.8, "ts": "2026-07-20 01:00:00+00:00", "logged_at": "2026-07-20T02:11:11.610032+00:00"}
+{"type": "heartbeat", "strategy": "commodities-trend-v1", "equity": 9227.8, "open_positions": 1, "logged_at": "2026-07-20T02:11:11.626678+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10058.37, "open_positions": 0, "logged_at": "2026-07-20T02:11:12.271364+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9947.49, "open_positions": 0, "logged_at": "2026-07-20T02:11:12.817019+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10643.78, "open_positions": 59, "logged_at": "2026-07-20T02:13:23.126069+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10625.37, "open_positions": 79, "logged_at": "2026-07-20T02:13:24.289301+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10394.02, "open_positions": 76, "logged_at": "2026-07-20T02:13:24.911367+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10705.36, "open_positions": 78, "logged_at": "2026-07-20T02:13:25.484860+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9088.47, "open_positions": 90, "logged_at": "2026-07-20T02:13:26.651935+00:00"}
+{"type": "rebalance", "strategy": "liqimb-port-v1", "equity": 9894.91, "weights": {"BTC": 1649.166, "ETH": 1649.166, "XRP": -1649.166, "SUI": -1649.166, "WLD": -1649.166, "ZEC": 1649.166}, "logged_at": "2026-07-20T02:13:27.438086+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9894.91, "open_positions": 6, "logged_at": "2026-07-20T02:13:27.449010+00:00"}
+{"type": "close", "strategy": "commodities-trend-v1", "symbol": "xyz_GOLD", "reason": "retired", "exit_px": 4007.0, "frac": 1.0, "remaining": 0.0, "pnl_usd": 14.05, "equity": 9241.85, "ts": "2026-07-20 01:00:00+00:00", "logged_at": "2026-07-20T02:13:32.173754+00:00"}

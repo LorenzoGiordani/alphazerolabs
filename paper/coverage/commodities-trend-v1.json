@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29707491483-1",
-  "generated_at": "2026-07-19T23:11:11.868013+00:00",
+  "run_id": "29712084899-1",
+  "generated_at": "2026-07-20T02:11:11.607935+00:00",
   "component": "commodities-trend-v1",
   "critical": true,
   "expected_count": 5,
