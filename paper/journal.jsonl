@@ -7697,3 +7697,10 @@
 {"type": "rebalance", "strategy": "liqimb-port-v1", "equity": 9894.91, "weights": {"BTC": 1649.166, "ETH": 1649.166, "XRP": -1649.166, "SUI": -1649.166, "WLD": -1649.166, "ZEC": 1649.166}, "logged_at": "2026-07-20T02:13:27.438086+00:00"}
 {"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9894.91, "open_positions": 6, "logged_at": "2026-07-20T02:13:27.449010+00:00"}
 {"type": "close", "strategy": "commodities-trend-v1", "symbol": "xyz_GOLD", "reason": "retired", "exit_px": 4007.0, "frac": 1.0, "remaining": 0.0, "pnl_usd": 14.05, "equity": 9241.85, "ts": "2026-07-20 01:00:00+00:00", "logged_at": "2026-07-20T02:13:32.173754+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10058.37, "open_positions": 0, "logged_at": "2026-07-20T03:11:12.033466+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9947.49, "open_positions": 0, "logged_at": "2026-07-20T03:11:12.453455+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10639.9, "open_positions": 59, "logged_at": "2026-07-20T03:13:21.842160+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10626.52, "open_positions": 79, "logged_at": "2026-07-20T03:13:22.696081+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10378.63, "open_positions": 76, "logged_at": "2026-07-20T03:13:23.144875+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-port-v1", "equity": 10705.14, "open_positions": 78, "logged_at": "2026-07-20T03:13:23.573297+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9089.64, "open_positions": 90, "logged_at": "2026-07-20T03:13:24.434077+00:00"}
