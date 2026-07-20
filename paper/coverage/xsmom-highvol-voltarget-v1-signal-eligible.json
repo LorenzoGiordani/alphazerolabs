@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29770917242-1",
-  "generated_at": "2026-07-20T19:14:17.072734+00:00",
+  "run_id": "29775044531-1",
+  "generated_at": "2026-07-20T20:14:26.714796+00:00",
   "component": "xsmom-highvol-voltarget-v1-signal-eligible",
   "critical": false,
-  "expected_count": 124,
-  "observed_count": 123,
+  "expected_count": 126,
+  "observed_count": 125,
   "missing": [
     "xyz:CXMT"
   ],
