@@ -28,6 +28,21 @@ def _position(asset="BTC", position_id="pos-1", side="long", mark="100", quantit
     }
 
 
+def _stop(order_id, position, created_at):
+    is_long = position["positionSide"] == "long"
+    return {
+        "orderId": order_id,
+        "intentId": f"intent-{order_id}",
+        "positionId": position["positionId"],
+        "type": "stop_market",
+        "side": "sell" if is_long else "buy",
+        "positionSide": "short" if is_long else "long",
+        "reduceOnly": True,
+        "closePosition": True,
+        "createdAt": created_at,
+    }
+
+
 def test_guard_cli_imports_from_repo_root():
     root = Path(__file__).resolve().parent.parent
     result = subprocess.run(
@@ -121,8 +136,7 @@ def test_read_only_plan_uses_canary_opposite_side_and_skips_existing(monkeypatch
                 _position("ETH", "pos-eth", "short", "200", "3"),
             ]
 
-        def get_orders(self, status="open"):
-            assert status == "open"
+        def get_active_orders(self):
             return [{"positionId": "pos-btc", "type": "stop_market",
                      "side": "sell", "positionSide": "short",
                      "reduceOnly": True, "closePosition": True}]
@@ -142,8 +156,27 @@ def test_read_only_plan_uses_canary_opposite_side_and_skips_existing(monkeypatch
     assert plan["position_side"] == "long"
     assert plan["trigger_price"] == "208"
     assert plan["intent_id"] == guard._intent_id(
-        _position("ETH", "pos-eth", "short", "200", "3"), "3", "208"
+        _position("ETH", "pos-eth", "short", "200", "3")
     )
+
+
+def test_guard_intent_is_stable_for_same_position_across_market_changes():
+    import scripts.propr_guard as guard
+
+    first, _ = guard._build_plan(
+        [_position("ETH", "pos-eth", "short", "200", "3")], [], "*"
+    )
+    changed, _ = guard._build_plan(
+        [_position("ETH", "pos-eth", "short", "220", "4")], [], "*"
+    )
+    flipped, _ = guard._build_plan(
+        [_position("ETH", "pos-eth", "long", "220", "4")], [], "*"
+    )
+
+    assert first[0]["trigger_price"] != changed[0]["trigger_price"]
+    assert first[0]["quantity"] != changed[0]["quantity"]
+    assert first[0]["intent_id"] == changed[0]["intent_id"]
+    assert first[0]["intent_id"] != flipped[0]["intent_id"]
 
 
 def test_wrong_side_stop_does_not_count_as_protection():
@@ -159,8 +192,9 @@ def test_wrong_side_stop_does_not_count_as_protection():
     assert plans[0]["position_side"] == "long"
 
 
-def test_execute_plans_at_most_eight_before_writes_and_journals_actions(tmp_path, monkeypatch):
+def test_execute_rejects_more_than_eight_stops_before_first_write(tmp_path, monkeypatch):
     import scripts.propr_guard as guard
+    from scripts.propr_client import ProprError
 
     events = []
 
@@ -177,32 +211,199 @@ def test_execute_plans_at_most_eight_before_writes_and_journals_actions(tmp_path
             events.append(("positions",))
             return [_position(f"A{i:02}", f"pos-{i}") for i in range(10)]
 
-        def get_orders(self, status="open"):
-            events.append(("orders", status))
+        def get_active_orders(self):
+            events.append(("orders", "active"))
             return []
 
         def create_order(self, **kwargs):
             events.append(("write", kwargs))
-            return [{"orderId": kwargs["position_id"]}]
+            return [{"orderId": kwargs["position_id"], "intentId": kwargs["intent_id"],
+                     "status": "open"}]
 
     monkeypatch.setattr(guard, "ProprClient", FakeClient)
     monkeypatch.setattr(guard, "JOURNAL", tmp_path / "guard.jsonl")
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
     monkeypatch.setenv("PROPR_GUARD_CANARY_ASSET", "*")
-    result = guard.main(execute=True)
+    with pytest.raises(ProprError, match="10 stop > cap 8"):
+        guard.main(execute=True)
 
     writes = [event for event in events if event[0] == "write"]
-    assert len(writes) == guard.MAX_CREATES == 8
+    assert writes == []
     assert [event[0] for event in events[:3]] == ["setup", "positions", "orders"]
-    assert events[3][0] == "write"
-    assert result["created_count"] == 8
-    assert all(event[1]["reduce_only"] and event[1]["close_position"] for event in writes)
-    assert all(event[1]["position_side"] == "short" for event in writes)
+    assert not guard.JOURNAL.exists()
+
+
+def test_guard_rejects_unverifiable_create_response(tmp_path, monkeypatch):
+    import scripts.propr_guard as guard
+    from scripts.propr_client import ProprError
+
+    class FakeClient:
+        def __init__(self, *, read_only=False):
+            self.active_attempt = _attempt()
+
+        def setup(self, **_kwargs):
+            return "paper-1"
+
+        def get_positions(self):
+            return [_position()]
+
+        def get_active_orders(self):
+            return []
+
+        def create_order(self, **_kwargs):
+            return []
+
+    monkeypatch.setattr(guard, "ProprClient", FakeClient)
+    monkeypatch.setattr(guard, "JOURNAL", tmp_path / "guard.jsonl")
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
+
+    with pytest.raises(ProprError, match="risposta creazione stop non verificabile"):
+        guard.main(execute=True)
+
+    assert not guard.JOURNAL.exists()
+
+
+def test_dedupe_keeps_oldest_protection_per_position():
+    import scripts.propr_guard as guard
+
+    btc = _position("BTC", "pos-btc")
+    eth = _position("ETH", "pos-eth", "short")
+    orders = [
+        _stop("btc-old", btc, "2026-07-21T19:58:00Z"),
+        _stop("btc-new", btc, "2026-07-21T20:03:00Z"),
+        _stop("eth-old", eth, "2026-07-21T19:58:00Z"),
+        _stop("eth-new", eth, "2026-07-21T20:03:00Z"),
+    ]
+
+    plan = guard._build_dedupe_plan([btc, eth], orders)
+
+    assert {item["order_id"] for item in plan} == {"btc-new", "eth-new"}
+    assert {item["kept_order_id"] for item in plan} == {"btc-old", "eth-old"}
+
+
+def test_dedupe_cancels_exact_expected_count_and_journals(tmp_path, monkeypatch):
+    import scripts.propr_guard as guard
+
+    positions = [_position(asset, f"pos-{asset.lower()}") for asset in ("BTC", "ETH", "SOL")]
+    orders = []
+    for position in positions:
+        orders.extend([
+            _stop(f"{position['base']}-old", position, "2026-07-21T19:58:00Z"),
+            _stop(f"{position['base']}-new", position, "2026-07-21T20:03:00Z"),
+        ])
+    cancelled = []
+
+    class FakeClient:
+        def __init__(self, *, read_only=False):
+            assert read_only is False
+            self.active_attempt = _attempt()
+
+        def setup(self, **kwargs):
+            assert kwargs == {
+                "expected_account_id": "paper-1", "expected_challenge_slug": "free-trial"}
+            return "paper-1"
+
+        def get_positions(self):
+            return positions
+
+        def get_active_orders(self):
+            return orders
+
+        def cancel_order(self, order_id):
+            cancelled.append(order_id)
+            return {"orderId": order_id, "status": "cancelled"}
+
+    monkeypatch.setattr(guard, "ProprClient", FakeClient)
+    monkeypatch.setattr(guard, "JOURNAL", tmp_path / "guard.jsonl")
+    monkeypatch.setenv("PROPR_DEDUPE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "false")
+    monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "false")
+    monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
+
+    result = guard.dedupe(expected_duplicates=3)
+
+    assert set(cancelled) == {"BTC-new", "ETH-new", "SOL-new"}
+    assert result["cancelled_count"] == 3
     journal = [json.loads(line) for line in guard.JOURNAL.read_text().splitlines()]
-    assert len(journal) == 1
-    assert journal[0]["status"] == "created"
-    assert len(journal[0]["actions"]) == 8
+    assert journal[0]["status"] == "deduped"
+
+
+def test_dedupe_count_mismatch_fails_before_cancel(tmp_path, monkeypatch):
+    import scripts.propr_guard as guard
+    from scripts.propr_client import ProprError
+
+    position = _position()
+
+    class FakeClient:
+        def __init__(self, *, read_only=False):
+            self.active_attempt = _attempt()
+
+        def setup(self, **_kwargs):
+            return "paper-1"
+
+        def get_positions(self):
+            return [position]
+
+        def get_active_orders(self):
+            return [_stop("old", position, "2026-07-21T19:58:00Z"),
+                    _stop("new", position, "2026-07-21T20:03:00Z")]
+
+        def cancel_order(self, _order_id):
+            pytest.fail("cancel reached before exact-count validation")
+
+    monkeypatch.setattr(guard, "ProprClient", FakeClient)
+    monkeypatch.setattr(guard, "JOURNAL", tmp_path / "guard.jsonl")
+    monkeypatch.setenv("PROPR_DEDUPE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "false")
+    monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "false")
+    monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
+
+    with pytest.raises(ProprError, match="attesi 3, trovati 1"):
+        guard.dedupe(expected_duplicates=3)
+
+    assert not guard.JOURNAL.exists()
+
+
+def test_client_reads_and_deduplicates_every_active_order_page(monkeypatch):
+    from scripts.propr_client import ACTIVE_ORDER_STATUSES, ORDER_PAGE_LIMIT, ProprClient
+
+    pending = [
+        {"orderId": f"order-{index}", "status": "pending"}
+        for index in range(ORDER_PAGE_LIMIT + 1)
+    ]
+    calls = []
+    client = ProprClient("paper-key", read_only=True)
+    client.account_id = "paper-1"
+
+    def fake_req(method, path, *, params):
+        calls.append((method, path, params.copy()))
+        status, offset = params["status"], params["offset"]
+        source = pending if status == "pending" else (
+            [{"orderId": "order-0", "status": "open"}] if status == "open" else []
+        )
+        page = source[offset:offset + params["limit"]]
+        return {"data": page, "total": len(source), "offset": offset}
+
+    monkeypatch.setattr(client, "_req", fake_req)
+
+    orders = client.get_active_orders()
+
+    assert len(orders) == len(pending)
+    assert {call[2]["status"] for call in calls} == set(ACTIVE_ORDER_STATUSES)
+    assert any(call[2]["offset"] == ORDER_PAGE_LIMIT for call in calls)
+
+
+def test_client_fails_closed_on_incomplete_order_page(monkeypatch):
+    from scripts.propr_client import ProprClient, ProprError
+
+    client = ProprClient("paper-key", read_only=True)
+    client.account_id = "paper-1"
+    monkeypatch.setattr(client, "_req", lambda *_args, **_kwargs: {"data": []})
+
+    with pytest.raises(ProprError, match="risposta ordini incompleta"):
+        client.get_active_orders()
 
 
 def test_execute_rejects_non_5k_attempt_before_orders(monkeypatch):

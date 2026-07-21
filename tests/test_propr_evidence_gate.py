@@ -99,6 +99,55 @@ def test_propr_snapshot_only_reads_account_without_orders(tmp_path, monkeypatch)
     assert payload["positions"][0]["asset"] == "ETH"
 
 
+def test_guard_only_snapshot_reports_native_protection(tmp_path, monkeypatch):
+    import scripts.propr_paper as propr
+
+    status = tmp_path / "propr_status.json"
+    monkeypatch.setattr(propr, "STATUS_PATH", status)
+    monkeypatch.setattr(propr, "STATE_PATH", tmp_path / "missing-state.json")
+    monkeypatch.setattr(propr, "load", lambda _path: {
+        "id": "alpha-port-v1", "status": "champion", "engine": "portfolio"})
+    monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
+        "verified": False, "status": "blocked", "reasons": ["checker_missing"]})
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "false")
+    monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
+
+    class ReadOnlyClient:
+        def __init__(self, *, read_only=False):
+            assert read_only is True
+            self.active_attempt = {
+                "accountId": "paper-1", "status": "active", "startedAt": "2026-07-08T00:00:00Z",
+                "challenge": {"name": "Free Trial", "slug": "free-trial", "initialBalance": 5000,
+                              "phases": [{"profitTargetPercent": 10, "maxDailyLossPercent": 3,
+                                          "maxDrawdownPercent": 6}]}}
+
+        def setup(self, **kwargs):
+            assert kwargs == {
+                "expected_account_id": "paper-1", "expected_challenge_slug": "free-trial"}
+            return "paper-1"
+
+        def get_positions(self):
+            return [{"positionId": "pos-1", "base": "ETH", "positionSide": "long",
+                     "notionalValue": "250", "unrealizedPnl": "12"}]
+
+        def get_active_orders(self):
+            return [{"orderId": "order-1", "positionId": "pos-1", "type": "stop_market",
+                     "side": "sell", "positionSide": "short", "reduceOnly": True,
+                     "closePosition": True}]
+
+        def get_account(self):
+            return {"balance": "5004", "totalUnrealizedPnl": "12", "highWaterMark": "5030"}
+
+    monkeypatch.setattr(propr, "ProprClient", ReadOnlyClient)
+
+    propr.main(snapshot_only=True)
+
+    protection = json.loads(status.read_text())["realtime_protection"]
+    assert protection == {"mode": "native-stop-market", "open_positions": 1,
+                          "protected_positions": 1, "fully_protected": True}
+
+
 def test_propr_manage_kill_switch_blocks_before_client(monkeypatch):
     import scripts.propr_paper as propr
 
@@ -281,9 +330,15 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
 
 def test_paper_run_requires_both_propr_kill_switches_for_management():
     workflow = (Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml").read_text()
+    assert "DEDUPE_FREE_TRIAL_3" in workflow
+    assert "scripts/propr_guard.py --dedupe --expected-duplicates 3" in workflow
     assert ("if: always() && env.PROPR_API_KEY != '' && "
             "env.PROPR_AUTOMANAGE_ENABLED == 'true' && "
-            "env.PROPR_GUARD_ENABLED == 'true'") in workflow
+            "env.PROPR_GUARD_ENABLED == 'true' && "
+            "env.PROPR_GUARD_CANARY_ASSET == '*' && "
+            "steps.propr_guard_pre.outcome == 'success'") in workflow
+    assert workflow.index("id: propr_guard_pre") < workflow.index("id: propr_manage")
+    assert workflow.index("id: propr_manage") < workflow.index("id: propr_guard\n")
 
 
 @pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])

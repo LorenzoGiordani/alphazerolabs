@@ -334,8 +334,10 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
         "automanage_enabled": automanage,
         "paper_only": True,
         "official_candidate": False,
-        "realtime_protection": (protection or {"mode": "pending-guard", "fully_protected": False}
-                                if automanage else {"mode": "none", "fully_protected": False}),
+        "realtime_protection": protection or (
+            {"mode": "pending-guard", "fully_protected": False}
+            if automanage else {"mode": "none", "fully_protected": False}
+        ),
         "account_id": attempt["accountId"],
         "challenge": ch["name"], "challenge_slug": ch["slug"],
         "attempt_status": attempt["status"], "started_at": attempt["startedAt"],
@@ -376,21 +378,23 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
         evidence.update(verified=False, status="blocked")
     if snapshot_only:
         automanage_requested = _enabled("PROPR_AUTOMANAGE_ENABLED")
+        guard_requested = _enabled("PROPR_GUARD_ENABLED")
+        protected_mode_requested = automanage_requested or guard_requested
         expected_account_id = os.environ.get("PROPR_EXPECTED_ACCOUNT_ID", "").strip()
-        if automanage_requested and not expected_account_id:
-            raise SystemExit("PROPR_EXPECTED_ACCOUNT_ID obbligatorio con automanage")
+        if protected_mode_requested and not expected_account_id:
+            raise SystemExit("PROPR_EXPECTED_ACCOUNT_ID obbligatorio con guard o automanage")
         client = ProprClient(read_only=True)
         client.setup(expected_account_id=expected_account_id or None,
-                     expected_challenge_slug="free-trial" if automanage_requested else None)
+                     expected_challenge_slug="free-trial" if protected_mode_requested else None)
         attempt = client.active_attempt
-        if automanage_requested:
+        if protected_mode_requested:
             _validate_paper_attempt(attempt, expected_account_id)
         positions = client.get_positions()
         state = _read_state()
         automanage = (automanage_requested and
                       state.get("management_mode") == AUTOMANAGE_VERSION)
-        protection = (_protection_summary(positions, client.get_orders(status="open"))
-                      if automanage else None)
+        protection = (_protection_summary(positions, client.get_active_orders())
+                      if guard_requested else None)
         write_status(client, spec, attempt, positions, state.get("last_rebalance_ts", ""),
                      discretionary=not automanage, automanage=automanage,
                      protection=protection, evidence=evidence)

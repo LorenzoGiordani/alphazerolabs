@@ -8,6 +8,8 @@ import os
 import requests
 
 BASE_URL = "https://api.propr.xyz/v1"
+ACTIVE_ORDER_STATUSES = ("pending", "open", "partially_filled")
+ORDER_PAGE_LIMIT = 20
 
 
 class ProprError(RuntimeError):
@@ -68,9 +70,43 @@ class ProprClient:
         return [p for p in data if float(p["quantity"]) != 0]
 
     def get_orders(self, status: str = "open") -> list[dict]:
-        return self._req(
-            "GET", f"/accounts/{self.account_id}/orders", params={"status": status}
-        ).get("data", [])
+        """Legge una vista completa e stabile degli ordini per uno status."""
+        orders: list[dict] = []
+        offset = 0
+        expected_total: int | None = None
+        while True:
+            payload = self._req(
+                "GET", f"/accounts/{self.account_id}/orders",
+                params={"status": status, "limit": ORDER_PAGE_LIMIT, "offset": offset},
+            )
+            if not isinstance(payload, dict):
+                raise ProprError(f"risposta ordini non valida per status={status}")
+            page = payload.get("data")
+            total = payload.get("total")
+            response_offset = payload.get("offset")
+            if not isinstance(page, list) or not isinstance(total, int) or response_offset != offset:
+                raise ProprError(f"risposta ordini incompleta per status={status}")
+            if expected_total is None:
+                expected_total = total
+            elif total != expected_total:
+                raise ProprError(f"paginazione ordini instabile per status={status}")
+            orders.extend(page)
+            offset += len(page)
+            if offset >= total:
+                return orders
+            if not page:
+                raise ProprError(f"paginazione ordini incompleta per status={status}")
+
+    def get_active_orders(self) -> list[dict]:
+        """Unisce tutti gli status che possono ancora eseguire un ordine."""
+        active: dict[str, dict] = {}
+        for status in ACTIVE_ORDER_STATUSES:
+            for order in self.get_orders(status=status):
+                order_id = order.get("orderId")
+                if not isinstance(order_id, str) or not order_id:
+                    raise ProprError(f"ordine attivo senza orderId per status={status}")
+                active[order_id] = order
+        return list(active.values())
 
     def get_margin_config(self, asset: str) -> dict:
         return self._req("GET", f"/accounts/{self.account_id}/margin-config/{asset}")
@@ -112,6 +148,9 @@ class ProprClient:
         if trigger_price is not None:
             order["triggerPrice"] = trigger_price
         return self._req("POST", f"/accounts/{self.account_id}/orders", json={"orders": [order]}).get("data", [])
+
+    def cancel_order(self, order_id: str) -> dict:
+        return self._req("POST", f"/accounts/{self.account_id}/orders/{order_id}/cancel")
 
 
 def _ulid() -> str:
