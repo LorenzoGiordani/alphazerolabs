@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29842730412-1",
-  "generated_at": "2026-07-21T15:14:01.130175+00:00",
+  "run_id": "29847419972-1",
+  "generated_at": "2026-07-21T16:13:58.396580+00:00",
   "component": "xsmom-highvol-voltarget-v1-prices",
   "critical": true,
-  "expected_count": 125,
-  "observed_count": 125,
+  "expected_count": 123,
+  "observed_count": 123,
   "missing": [],
   "status": "pass"
 }
