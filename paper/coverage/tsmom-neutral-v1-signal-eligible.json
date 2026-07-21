@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "29870467199-1",
-  "generated_at": "2026-07-21T21:37:04.745198+00:00",
+  "run_id": "29872821236-1",
+  "generated_at": "2026-07-21T22:13:58.374255+00:00",
   "component": "tsmom-neutral-v1-signal-eligible",
   "critical": false,
-  "expected_count": 117,
-  "observed_count": 116,
+  "expected_count": 121,
+  "observed_count": 120,
   "missing": [
     "xyz:CXMT"
   ],
