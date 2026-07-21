@@ -6,8 +6,10 @@
  "paper_only": true,
  "official_candidate": false,
  "realtime_protection": {
-  "mode": "none",
-  "fully_protected": false
+  "mode": "native-stop-market",
+  "open_positions": 5,
+  "protected_positions": 5,
+  "fully_protected": true
  },
  "account_id": "urn:prp-account:Ek4s7FRgDDmi",
  "challenge": "Free Trial",
@@ -15,7 +17,7 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5040.77,
+ "equity": 5041.19,
  "balance": 4986.94,
  "high_water_mark": 5060.986444,
  "profit_target_pct": 10.0,
@@ -30,8 +32,8 @@
   {
    "asset": "NEAR",
    "side": "short",
-   "notional": 251.79,
-   "unrealized_pnl": -1.83
+   "notional": 252.16,
+   "unrealized_pnl": -2.21
   },
   {
    "asset": "XRP",
@@ -42,20 +44,20 @@
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 245.09,
-   "unrealized_pnl": 28.38
+   "notional": 246.13,
+   "unrealized_pnl": 29.42
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 245.74,
-   "unrealized_pnl": 4.86
+   "notional": 246.17,
+   "unrealized_pnl": 4.43
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 261.51,
-   "unrealized_pnl": 22.42
+   "notional": 261.71,
+   "unrealized_pnl": 22.62
   }
  ],
  "last_rebalance_ts": "2026-07-17T22:04:35.818582+00:00",
@@ -959,6 +961,10 @@
   {
    "ts": "2026-07-21T21:19:33.777823+00:00",
    "equity": 5040.77
+  },
+  {
+   "ts": "2026-07-21T21:25:02.775723+00:00",
+   "equity": 5041.19
   }
  ],
  "strategy_detail": null,
@@ -975,5 +981,5 @@
   "maker_run_id": null,
   "checker_run_id": null
  },
- "updated_at": "2026-07-21T21:19:33.777869+00:00"
+ "updated_at": "2026-07-21T21:25:02.775764+00:00"
 }
