@@ -400,10 +400,28 @@ def test_client_fails_closed_on_incomplete_order_page(monkeypatch):
 
     client = ProprClient("paper-key", read_only=True)
     client.account_id = "paper-1"
-    monkeypatch.setattr(client, "_req", lambda *_args, **_kwargs: {"data": []})
+    repeated = [{"orderId": f"order-{index}"} for index in range(20)]
+    monkeypatch.setattr(client, "_req", lambda *_args, **_kwargs: {"data": repeated})
 
-    with pytest.raises(ProprError, match="risposta ordini incompleta"):
+    with pytest.raises(ProprError, match="paginazione ordini duplicata"):
         client.get_active_orders()
+
+
+def test_client_paginates_when_optional_metadata_is_omitted(monkeypatch):
+    from scripts.propr_client import ORDER_PAGE_LIMIT, ProprClient
+
+    pending = [{"orderId": f"order-{index}"} for index in range(ORDER_PAGE_LIMIT + 1)]
+    client = ProprClient("paper-key", read_only=True)
+    client.account_id = "paper-1"
+
+    def fake_req(_method, _path, *, params):
+        source = pending if params["status"] == "pending" else []
+        offset = params["offset"]
+        return {"data": source[offset:offset + params["limit"]]}
+
+    monkeypatch.setattr(client, "_req", fake_req)
+
+    assert len(client.get_active_orders()) == len(pending)
 
 
 def test_execute_rejects_non_5k_attempt_before_orders(monkeypatch):

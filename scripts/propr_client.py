@@ -72,6 +72,7 @@ class ProprClient:
     def get_orders(self, status: str = "open") -> list[dict]:
         """Legge una vista completa e stabile degli ordini per uno status."""
         orders: list[dict] = []
+        seen_order_ids: set[str] = set()
         offset = 0
         expected_total: int | None = None
         while True:
@@ -84,18 +85,33 @@ class ProprClient:
             page = payload.get("data")
             total = payload.get("total")
             response_offset = payload.get("offset")
-            if not isinstance(page, list) or not isinstance(total, int) or response_offset != offset:
+            if not isinstance(page, list):
                 raise ProprError(f"risposta ordini incompleta per status={status}")
-            if expected_total is None:
+            if response_offset is not None and (not isinstance(response_offset, int)
+                                                or response_offset != offset):
+                raise ProprError(f"offset ordini inatteso per status={status}")
+            if total is not None and (not isinstance(total, int) or total < 0):
+                raise ProprError(f"totale ordini non valido per status={status}")
+            if expected_total is None and total is not None:
                 expected_total = total
-            elif total != expected_total:
+            elif total is not None and total != expected_total:
                 raise ProprError(f"paginazione ordini instabile per status={status}")
+            for order in page:
+                order_id = order.get("orderId") if isinstance(order, dict) else None
+                if not isinstance(order_id, str) or not order_id or order_id in seen_order_ids:
+                    raise ProprError(f"paginazione ordini duplicata per status={status}")
+                seen_order_ids.add(order_id)
             orders.extend(page)
             offset += len(page)
-            if offset >= total:
+            if expected_total is not None:
+                if offset > expected_total:
+                    raise ProprError(f"paginazione ordini eccede total per status={status}")
+                if offset == expected_total:
+                    return orders
+            if len(page) < ORDER_PAGE_LIMIT:
+                if expected_total is not None and offset != expected_total:
+                    raise ProprError(f"paginazione ordini incompleta per status={status}")
                 return orders
-            if not page:
-                raise ProprError(f"paginazione ordini incompleta per status={status}")
 
     def get_active_orders(self) -> list[dict]:
         """Unisce tutti gli status che possono ancora eseguire un ordine."""
