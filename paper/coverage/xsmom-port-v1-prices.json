@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29869646175-1",
-  "generated_at": "2026-07-21T21:24:51.637414+00:00",
+  "run_id": "29869993944-1",
+  "generated_at": "2026-07-21T21:30:02.139722+00:00",
   "component": "xsmom-port-v1-prices",
   "critical": true,
   "expected_count": 126,

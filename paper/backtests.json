@@ -3,7 +3,7 @@
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-21T21:25 UTC",
+ "generated_at": "2026-07-21T21:30 UTC",
  "strategies": [
   {
    "id": "highvol-port-v1",
