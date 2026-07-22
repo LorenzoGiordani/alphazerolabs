@@ -672,7 +672,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
   pointer-events:none; white-space:normal;
 }
 
-/* ---------- verdetto in linguaggio piano (benchmark BTC) ---------- */
+/* ---------- verdetto in linguaggio piano (benchmark S&P 500) ---------- */
 .verdict-row{ margin:-6px 0 20px; padding:12px 16px; border:1px solid var(--line);
   border-left:2px solid var(--amber); border-radius:var(--r); background:var(--bg-2);
   font-family:var(--sans); font-size:13.5px; line-height:1.6; color:var(--text-2); text-wrap:pretty; }
@@ -1167,7 +1167,7 @@ h1,h2,h3,h4,
         '<div class="s" style="color:var(--text-4)">'+wins+' vinte</div></div>';
   }
 
-  /* ---------- render: verdetto in linguaggio piano + benchmark BTC ---------- */
+  /* ---------- render: verdetto in linguaggio piano + benchmark S&P 500 ---------- */
   function renderVerdict(){
     const host=$('#verdict'); if(!host) return;
     const accs=DATA.accounts||[]; if(!accs.length){ host.innerHTML=''; return; }
@@ -1180,7 +1180,7 @@ h1,h2,h3,h4,
     const b=DATA.benchmark; let bench='';
     if(b&&isFinite(b.pct)){
       const diff=pct-b.pct;
-      bench=' Nello stesso periodo, comprare e tenere Bitcoin avrebbe reso <b class="'+clsOf(b.pct)+'">'+pctSigned(b.pct)+'</b>: il sistema è '+
+      bench=' Nello stesso periodo, l\'andamento dell\'S&amp;P 500 ha segnato <b class="'+clsOf(b.pct)+'">'+pctSigned(b.pct)+'</b>: il sistema è '+
         (diff>=0?'<b class="pos">'+NF1.format(diff)+' punti sopra</b>':'<b class="neg">'+NF1.format(Math.abs(diff))+' punti sotto</b>')+
         ' quel riferimento.';
     }
