@@ -338,6 +338,20 @@ def test_openrouter_deepseek_v4_pro_is_fixed_for_separate_maker_checker(
     assert len(calls) == 2 and all(call["enable_web"] is False for call in calls)
 
 
+def test_openrouter_maker_prompt_states_literal_falsification_clause(tmp_path, monkeypatch):
+    _patch_pipeline(monkeypatch)
+    source = tmp_path / "research"
+    _write_research_bundle(source)
+
+    def chat(prompt, **_kwargs):
+        assert "Falsificata se:" in prompt
+        return _proposal(), [], {"total_tokens": 10}, "deepseek/deepseek-v4-pro"
+
+    monkeypatch.setattr(evolution.research_cloud, "_openrouter_chat", chat)
+    proposal = evolution.generate_openrouter_proposal(source, tmp_path / "proposal")
+    assert proposal["outcome"] == "CANDIDATE"
+
+
 def test_panel_requires_full_declared_universe_six_months_and_hourly_cadence(tmp_path, monkeypatch):
     parent = _parent()
     candidate = evolution._materialize(_proposal(), parent, _pack())

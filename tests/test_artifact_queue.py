@@ -215,3 +215,23 @@ def test_evolution_workflow_reuses_authoritative_stages_and_never_pushes():
     assert "fetch-depth: 2" in integrity
     assert "scripts.evolution_cloud validate-changed-admissions" in integrity
     assert "--base-ref HEAD^" in integrity
+
+
+def test_manual_evolution_canary_is_branch_only_and_non_authoritative():
+    root = Path(__file__).resolve().parent.parent
+    workflow = (root / ".github/workflows/research-maker.yml").read_text(encoding="utf-8")
+    canary = workflow.split("  evolution-canary:\n", 1)[1]
+
+    assert "github.ref == 'refs/heads/main' && inputs.evolution_canary != true" in workflow
+    assert "startsWith(github.ref, 'refs/heads/agent/evolution-canary-')" in canary
+    assert "group: evolution-canary-${{ github.ref }}" in canary
+    assert canary.count("OPENROUTER_API_KEY:") == 2
+    assert "scripts.evolution_cloud openrouter-maker" in canary
+    assert "scripts.evolution_cloud openrouter-checker" in canary
+    assert "evolution-canary-${{ github.run_id }}" in canary
+    assert "retention-days: 1" in canary
+    assert '"CANARY.json"' in canary
+    assert "scripts.evolution_cloud publish" not in canary
+    assert "git push" not in canary
+    assert "gh pr" not in canary
+    assert "paper/" not in canary

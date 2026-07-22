@@ -13,7 +13,7 @@ Return exactly one JSON object and no additional keys:
   "outcome": "BLOCKED or CANDIDATE",
   "blockers": [],
   "parent_id": "one eligible portfolio strategy id, or null",
-  "thesis": "falsifiable thesis preserving the approved preregistration, or null",
+  "thesis": "at least 40 characters, preserving the preregistration and containing the literal clause 'Falsificata se:', or null",
   "portfolio": {
     "factor": "xsmom, tsmom or highvol",
     "lookback_h": 168,
@@ -49,6 +49,8 @@ Use `BLOCKED` with at least one concrete blocker when the hypothesis requires
 events, news, order flow, BBO/L2, a new dataset, a new engine, or any mechanism
 not faithfully expressible by the closed registry. For `BLOCKED`, `parent_id`,
 `thesis`, and `portfolio` are null. For `CANDIDATE`, blockers are empty.
+The `CANDIDATE` thesis must contain the literal text `Falsificata se:` followed
+by a measurable rejection condition.
 
 ## Evolution Checker
 

@@ -2,10 +2,12 @@ name: research-maker
 
 on:
   workflow_dispatch:
-
-concurrency:
-  group: research-maker
-  cancel-in-progress: false
+    inputs:
+      evolution_canary:
+        description: "Esegui Maker+Checker L2 isolati su prereg sintetica non autorevole"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   actions: read
@@ -13,7 +15,10 @@ permissions:
 
 jobs:
   maker:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && inputs.evolution_canary != true
+    concurrency:
+      group: research-maker
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -80,4 +85,174 @@ jobs:
           name: research-maker-${{ steps.preflight.outputs.local_date }}
           path: /tmp/research-maker/
           retention-days: 30
+          if-no-files-found: error
+
+  evolution-canary:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.evolution_canary == true &&
+      startsWith(github.ref, 'refs/heads/agent/evolution-canary-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    concurrency:
+      group: evolution-canary-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: prepara prereg sintetica non autorevole
+        run: |
+          uv run --frozen python - <<'PY'
+          import json
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+
+          from scripts import research_pack as rp
+
+          now = datetime.now(timezone.utc)
+          census = [{"symbol": "BTC"}]
+          pack = rp._with_pack_id({
+              "kind": rp.PACK_KIND,
+              "generated_at": now.isoformat(),
+              "expires_at": (now + timedelta(hours=24)).isoformat(),
+              "universe": {
+                  "census": census,
+                  "census_sha256": rp.content_hash(census),
+              },
+          })
+          families = [{
+              "family_id": f"canary-portfolio-{index}",
+              "title": f"Canary portfolio family {index}",
+              "hypothesis": "A falsifiable bounded portfolio mutation.",
+              "mechanism": "Existing portfolio factors with a different fixed rebalance cadence.",
+              "data_requirements": ["point-in-time hourly OHLCV"],
+              "source_urls": [f"https://example.org/canary/{index}"],
+              "novelty_status": "material_variant",
+              "data_feasibility": "feasible",
+              "blockers": [],
+          } for index in range(1, 6)]
+          maker = {
+              "kind": rp.MAKER_KIND,
+              "pack_id": pack["pack_id"],
+              "created_at": (now + timedelta(seconds=1)).isoformat(),
+              "maker_run_id": f"manual-canary-l1-maker-{pack['pack_id'][:12]}",
+              "model": "openrouter:deepseek/deepseek-v4-pro",
+              "outcome": "CANDIDATE",
+              "inventory": {
+                  "note_path": "manual non-authoritative canary",
+                  "checked_at": now.isoformat(),
+                  "consumed_strategy_ids": [],
+                  "novelty_summary": "Diagnostic only; not an authoritative novelty claim.",
+              },
+              "research_families": families,
+              "candidate": {
+                  "family_id": "canary-portfolio-1",
+                  "thesis": (
+                      "Within the existing xsmom, tsmom and highvol registry, test whether a "
+                      "fixed change in rebalance cadence improves adaptation without changing "
+                      "signals, basket, gross exposure or risk."
+                  ),
+                  "prereg_scope": "One fixed mutation over one active parent paper basket.",
+                  "data_contract": [
+                      "point-in-time hourly OHLCV already supported by AlphaZero"
+                  ],
+                  "falsification": (
+                      "Reject unless frozen tail Sharpe beats the parent by at least 0.10 and "
+                      "every deterministic DSR, drawdown and rebalance gate passes."
+                  ),
+                  "next_gate": "PREREG_REVIEW_ONLY",
+              },
+              "guardrails": dict(rp.GUARDRAILS),
+          }
+          checker = {
+              "kind": rp.CHECKER_KIND,
+              "pack_id": pack["pack_id"],
+              "maker_sha256": rp.content_hash(maker),
+              "maker_run_id": maker["maker_run_id"],
+              "checked_at": (now + timedelta(seconds=2)).isoformat(),
+              "checker_run_id": f"manual-canary-l1-checker-{pack['pack_id'][:12]}",
+              "verdict": "APPROVE_PREREG_ONLY",
+              "blockers": [],
+              "notes": "Synthetic receipt solely for isolated provider and replay validation.",
+              "checks": {check: True for check in rp.CHECKS},
+          }
+          root = Path("/tmp/evolution-canary/input")
+          (root / "research").mkdir(parents=True, exist_ok=True)
+          (root / "research/pack.json").write_text(json.dumps(pack))
+          (root / "research/maker.json").write_text(json.dumps(maker))
+          (root / "checker.json").write_text(json.dumps(checker))
+          (root / "CANARY.json").write_text(json.dumps({
+              "kind": "evolution-manual-canary.v1",
+              "authoritative": False,
+              "synthetic_prereg": True,
+              "publication_allowed": False,
+              "paper_allowed": False,
+          }, indent=2) + "\n")
+          PY
+
+      - name: Evolution Maker L2 canary (DeepSeek V4 Pro via OpenRouter)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          uv run --frozen python -m scripts.evolution_cloud openrouter-maker \
+            --input-dir /tmp/evolution-canary/input \
+            --out-dir /tmp/evolution-canary/maker
+          cp /tmp/evolution-canary/input/CANARY.json /tmp/evolution-canary/maker/CANARY.json
+
+      - name: Independent Evolution Checker L2 canary (DeepSeek V4 Pro via OpenRouter)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: >-
+          uv run --frozen python -m scripts.evolution_cloud openrouter-checker
+          --input-dir /tmp/evolution-canary/maker
+          --out-dir /tmp/evolution-canary/checker
+
+      - name: prepara output canary senza publication
+        run: |
+          uv run --frozen python - <<'PY'
+          import json
+          import shutil
+          from pathlib import Path
+
+          source = Path("/tmp/evolution-canary/checker")
+          result = Path("/tmp/evolution-canary/result")
+          result.mkdir(parents=True)
+          for name in (
+              "CANARY.json",
+              "proposal.json", "proposal-metadata.json", "maker.json", "candidate.yaml",
+              "review.json", "review-metadata.json", "evolution-checker.json",
+          ):
+              path = source / name
+              if path.exists():
+                  shutil.copy2(path, result / name)
+          maker = json.loads((source / "maker.json").read_text())
+          checker = json.loads((source / "evolution-checker.json").read_text())
+          summary = {
+              "kind": "evolution-manual-canary-result.v1",
+              "authoritative": False,
+              "publication_allowed": False,
+              "paper_allowed": False,
+              "pack_id": maker["pack_id"],
+              "model": maker["control_plane"],
+              "maker_outcome": maker["outcome"],
+              "candidate": maker["candidate"],
+              "checker_verdict": checker["verdict"],
+              "checker_blockers": checker["blockers"],
+          }
+          (result / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+          print(json.dumps(summary, indent=2))
+          PY
+
+      - name: verifica checkout immutato
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: evolution-canary-${{ github.run_id }}
+          path: /tmp/evolution-canary/result/
+          retention-days: 1
           if-no-files-found: error
