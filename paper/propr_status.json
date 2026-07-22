@@ -17,53 +17,53 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5036.18,
+ "equity": 5040.38,
  "balance": 5007.71,
  "high_water_mark": 5060.986444,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.72,
+ "profit_target_progress_pct": 0.81,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.72,
+ "drawdown_room_pct": 6.81,
  "passed": false,
  "breached": false,
  "positions": [
   {
    "asset": "SOL",
    "side": "short",
-   "notional": 213.52,
-   "unrealized_pnl": 1.23
+   "notional": 212.83,
+   "unrealized_pnl": 1.91
   },
   {
    "asset": "CRV",
    "side": "long",
-   "notional": 178.57,
-   "unrealized_pnl": -0.24
+   "notional": 180.09,
+   "unrealized_pnl": 1.27
   },
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 66.0,
-   "unrealized_pnl": -0.32
+   "notional": 65.88,
+   "unrealized_pnl": -0.45
   },
   {
    "asset": "NEAR",
    "side": "short",
-   "notional": 245.9,
-   "unrealized_pnl": 4.06
+   "notional": 245.39,
+   "unrealized_pnl": 4.57
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 249.02,
-   "unrealized_pnl": 1.57
+   "notional": 247.02,
+   "unrealized_pnl": 3.58
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 250.71,
-   "unrealized_pnl": 22.17
+   "notional": 250.33,
+   "unrealized_pnl": 21.79
   }
  ],
  "last_rebalance_ts": "2026-07-21T21:37:22.187148+00:00",
@@ -1095,6 +1095,14 @@
   {
    "ts": "2026-07-22T11:14:23.180517+00:00",
    "equity": 5036.18
+  },
+  {
+   "ts": "2026-07-22T12:14:20.686386+00:00",
+   "equity": 5040.38
+  },
+  {
+   "ts": "2026-07-22T12:14:24.317794+00:00",
+   "equity": 5040.38
   }
  ],
  "strategy_detail": {
@@ -1154,5 +1162,5 @@
   "maker_run_id": null,
   "checker_run_id": null
  },
- "updated_at": "2026-07-22T11:14:23.180730+00:00"
+ "updated_at": "2026-07-22T12:14:24.318077+00:00"
 }
