@@ -292,6 +292,34 @@ def test_openrouter_retries_empty_content_then_returns_valid_json(monkeypatch):
     assert calls == [1, 1]
 
 
+def test_openrouter_can_disable_web_for_bounded_l2_roles(monkeypatch):
+    captured = {}
+
+    class Response:
+        status_code = 200
+
+        def json(self):
+            return {
+                "model": cloud.OPENROUTER_MODEL,
+                "choices": [{"message": {"content": json.dumps({"ok": True})}}],
+                "usage": {},
+            }
+
+    def fake_post(_url, **kwargs):
+        captured.update(kwargs)
+        return Response()
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-only")
+    monkeypatch.setattr(cloud.requests, "post", fake_post)
+    value, sources, _usage, _model = cloud._openrouter_chat(
+        "bounded prompt", search_prompt="unused", timeout=10, enable_web=False,
+    )
+
+    assert value == {"ok": True} and sources == []
+    assert "plugins" not in captured["json"]
+    assert "DIRETTIVA DI RICERCA" not in captured["json"]["messages"][1]["content"]
+
+
 def test_openrouter_tool_call_without_final_json_fails_closed(monkeypatch):
     class Response:
         status_code = 200

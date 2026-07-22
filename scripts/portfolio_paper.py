@@ -10,6 +10,7 @@ Stesse fee/slippage dell'engine. Account fittizio 10k$, prezzi reali HL.
 
 Uso: uv run scripts/portfolio_paper.py strategies/generated/xsmom-port-v1.yaml
 """
+import hashlib
 import json
 import math
 import os
@@ -41,6 +42,30 @@ COST = HL_TAKER_FEE + DEFAULT_SLIPPAGE
 # Cron ogni 4h -> annualizzo per sqrt(PERIODS_PER_YEAR_HEARTBEAT). Warmup m=1.0.
 PERIODS_PER_YEAR_HEARTBEAT = 6 * 365   # heartbeat ogni 4h
 MARK_SNAPSHOT_ENV = "PORTFOLIO_MARK_SNAPSHOT_PATH"
+
+
+def _validated_evolution_symbols(spec: dict, resolved: list[str]) -> list[str]:
+    """Fail closed when an L2 challenger no longer matches its frozen basket."""
+    pin = (spec.get("evolution") or {}).get("paper_universe")
+    if pin is None:
+        return resolved
+    required = {"schema_version", "source_parent_selection", "symbols", "symbols_sha256"}
+    if not isinstance(pin, dict) or set(pin) != required or pin.get("schema_version") != 1:
+        raise SystemExit("paper universe L2 malformato")
+    symbols = pin.get("symbols")
+    if (
+        not isinstance(symbols, list)
+        or len(symbols) < 3
+        or any(not isinstance(item, str) or not item for item in symbols)
+        or len(set(symbols)) != len(symbols)
+    ):
+        raise SystemExit("paper universe L2 malformato")
+    digest = hashlib.sha256(
+        json.dumps(symbols, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    if digest != pin.get("symbols_sha256") or resolved != symbols:
+        raise SystemExit("paper universe L2 diverge dall'evidence congelata")
+    return symbols
 
 
 def market_marks() -> dict[str, float]:
@@ -226,9 +251,9 @@ def liqimb_signal(symbols: list[str], lookback_d: int) -> tuple[pd.Series, dict]
 
 def combo_signal(symbols: list[str], factors: list[str], weights: list[float],
                  lookback_h: int, vol_lookback_h: int) -> tuple[pd.Series, dict]:
-    """COMBO multi-fattore: media pesata dei segnali normalizzati (z-score per
-    comparabilita'). xsmom = ret trailing (z), highvol = std trailing (z).
-    Pesi da `weights` (es. [0.7, 0.3]). Anti-lookahead: ogni segnale usa dati <= t."""
+    """COMBO multi-fattore: somma raw pesata, poi z-score cross-section.
+    xsmom = ritorno trailing, highvol = std trailing. Pesi da `weights`
+    (es. [0.7, 0.3]). Anti-lookahead: ogni segnale usa dati <= t."""
     sigs = {}
     px = {}
     for s in symbols:
@@ -273,7 +298,9 @@ def main() -> None:
         return
     acct = spec["id"]
     pf = spec["portfolio"]
-    symbols = [s for s in paper_symbols(spec).split(",") if s]   # resolver: rispetta selection:all_perps + exclude
+    symbols = [s for s in paper_symbols(spec).split(",") if s]
+    symbols = _validated_evolution_symbols(spec, symbols)
+    l2_pinned_universe = (spec.get("evolution") or {}).get("paper_universe") is not None
     lookback_h = int(pf["lookback_h"]) if "lookback_h" in pf else int(pf.get("lookbacks_h", [168])[0])
     rebalance_h = int(pf["rebalance_h"])
     gross = float(pf.get("gross", 1.0))
@@ -325,11 +352,15 @@ def main() -> None:
     rets = rets[rets.map(lambda value: math.isfinite(float(value)))]
     signal_expected = set(symbols)
     signal_observed = set(rets.index) & signal_expected
-    signal_critical = factor == "liqimb"
+    signal_critical = factor == "liqimb" or l2_pinned_universe
     write_coverage(f"{acct}-signal-eligible", signal_expected, signal_observed,
                    critical=signal_critical, output_dir=STATE_FILE.parent / "coverage")
     missing_signals = sorted(signal_expected - signal_observed)
-    if signal_critical and missing_signals:
+    if l2_pinned_universe and missing_signals:
+        raise SystemExit(f"copertura segnali L2 incompleta: "
+                         f"{len(signal_observed)}/{len(signal_expected)}; "
+                         f"mancano {','.join(missing_signals[:20])}")
+    if factor == "liqimb" and missing_signals:
         raise SystemExit(f"copertura sorgente segnale incompleta: "
                          f"{len(signal_observed)}/{len(signal_expected)}; "
                          f"mancano {','.join(missing_signals[:20])}")

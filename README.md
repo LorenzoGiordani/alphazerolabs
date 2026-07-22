@@ -35,7 +35,7 @@ Principi non negoziabili:
 - **Selezione multi-asset** (mean Sharpe su basket): mai promuovere su singolo asset
 - **Paper status ≠ readiness**: DSR ≥0,95, holdout OOS e checker indipendente sono obbligatori; qualsiasi artefatto assente blocca
 - **Publish fail-closed**: errori critici o health scaduta impediscono un nuovo deploy della dashboard
-- **Coverage misurata**: ogni ticker dichiarato deve avere un prezzo HL fresco; listing con storico insufficiente restano visibili ma ineleggibili al ranking (warning, minimo 80% eleggibile). Le fonti di segnale obbligatorie come LIQIMB restano 9/9 fail-closed
+- **Coverage misurata**: ogni ticker dichiarato deve avere un prezzo HL fresco; listing con storico insufficiente restano visibili ma ineleggibili al ranking (warning, minimo 80% eleggibile). Le fonti di segnale obbligatorie come LIQIMB restano 9/9 fail-closed; ogni challenger Evolution L2 richiede inoltre il 100% dei segnali sul basket congelato prima di qualunque mutazione del paper state
 
 ## Componenti
 
@@ -52,7 +52,8 @@ Principi non negoziabili:
 | `backtest/evidence.py` | Verifica content-addressed di DSR, holdout OOS e receipt checker indipendente |
 | `strategies/FORMAT.md` | Schema artefatto strategia (tesi, segnali, exit, risk immutabile, lineage) |
 | `scripts/run_strategy.py` | Backtest singola strategia su un asset |
-| `scripts/evolve.py` | Loop evolutivo storico/API; le nuove mutazioni LLM passano da task Codex revisionati |
+| `scripts/evolve.py` | Harness storico per mutazioni locali; non è schedulato nel paper runtime |
+| `scripts/evolution_cloud.py` | Research OS L2: prereg approvata → mutazione portfolio one-shot → panel congelato → replay/checker → bundle per draft PR umana |
 | `scripts/decide.py` | Pipeline agenti storica/API; non schedulata nel runtime cloud dal 12/07/2026 |
 | `scripts/agents_paper.py` | Gestisce i desk storici; lo scheduler usa `--manage-only` e non apre nuove decisioni LLM |
 | `scripts/claude_strategy.py` | Strategia ibrida: gate tsmom+liq_imbalance → PM LLM avverso |
@@ -280,9 +281,9 @@ sh scripts/cron_run.sh                           # run completo (in crontab ogni
 ```
 
 **Operazioni LLM di execution** — dal 12/07/2026 passano da **Codex/GPT-5.6** autenticato
-con la subscription ChatGPT. I workflow di execution e il cron locale non ricevono
-credenziali Z.ai/OpenRouter e non generano decisioni, review, mutazioni o nuove
-previsioni Polymarket. Il cloud resta attivo per dati, strategie meccaniche,
+con la subscription ChatGPT. Salvo le eccezioni Research OS L1/L2 delimitate sotto,
+i workflow di execution e il cron locale non ricevono credenziali Z.ai/OpenRouter e
+non generano decisioni, review, mutazioni o nuove previsioni Polymarket. Il cloud resta attivo per dati, strategie meccaniche,
 uscite, scoring, sincronizzazione e dashboard. La subscription Codex non è una
 API: `scripts/llm.py` resta nel repository come backend HTTP storico/testabile,
 ma è dormiente nei workflow schedulati. Il kill switch
@@ -299,7 +300,7 @@ Ogni nuova proposta LLM di execution viene quindi prodotta come artefatto Codex,
 verificata da un checker indipendente e soltanto dopo può essere ammessa al paper trading.
 Nessuna chiave della subscription viene copiata nel repository o in Actions.
 
-Il **Research OS L1** è la sola eccezione cloud: Cloudflare schedula
+Il **Research OS L1** è la prima eccezione cloud delimitata: Cloudflare schedula
 `research-maker.yml` alle 07:15 Europe/Rome e `research-checker.yml` ogni ora;
 GitHub Actions usa Z.AI come primario sull'endpoint API generale con web search e
 JSON validato. Solo sugli errori di quota/autorizzazione Z.AI (incluso `429` code
@@ -310,6 +311,17 @@ al massimo 20 mercati core 24/7 e produce 5–8 famiglie source-first; il Checke
 revisiona soltanto il nuovo hash. Al massimo una famiglia arriva a
 `PREREG_REVIEW_ONLY`; `NO_CANDIDATE` è valido. Nessun output L1 può creare una
 strategy spec, aprire P&L/holdout o modificare paper state e journal.
+
+Una receipt `APPROVE_PREREG_ONLY` può alimentare il **Research OS L2** event-driven.
+L2 mantiene una coda FIFO transazionale e usa esclusivamente
+`deepseek/deepseek-v4-pro` via OpenRouter in due job separati: un Maker one-shot e un
+Checker che ripete il panel congelato. I retry riusano gli artifact autorevoli e non
+generano altre mutazioni. Sono ammesse solo portfolio già supportate (`xsmom`, `tsmom`,
+`highvol`); nuovi dati, eventi, order flow, BBO/L2, engine o codice producono `BLOCKED`.
+Actions è read-only sul repo e genera al massimo un bundle `HUMAN_PR_REQUIRED`: push,
+draft PR e merge restano azioni Codex/umane autenticate. Tutti i gate statistici e
+semantici devono passare prima che il registry paper possa vedere il challenger.
+Dettagli in `docs/evolution-pipeline.md`.
 Il Worker non espone endpoint HTTP di dispatch: le esecuzioni manuali passano
 solo da `workflow_dispatch` autenticato nell'interfaccia o API di GitHub.
 
@@ -319,7 +331,7 @@ Stato reale: M1–M4 costruiti. Prima di qualsiasi ipotesi su fondi reali servon
 evidenza riproducibile, track record plurimensile, affidabilità operativa e un gate umano separato.
 
 - [x] M1 — dati, harness, registry, formato strategia, loop evolutivo (3 generazioni)
-- [x] M2 — paper trading live; decide/review/evolve restano su Codex, Research OS L1 gira report-only con Z.AI primario e fallback quota su OpenRouter via Cloudflare e GitHub Actions
+- [x] M2 — paper trading live; execution LLM resta fuori dal runtime deterministico, Research OS L1 è report-only e L2 produce bundle paper-only one-shot con DeepSeek V4 Pro, replay indipendente e PR umana
 - [x] COT report CFTC (posizionamento commodities = analogo del funding)
 - [x] Champion/challenger per-trade con gate formale (**deflated Sharpe ≥0.95**); i portfolio non sono auto-promovibili perché gli heartbeat non sono trade indipendenti
 - [x] Integrity P0 — maker/checker evidence contract, runtime health fail-closed, endpoint pubblico e CI mirata

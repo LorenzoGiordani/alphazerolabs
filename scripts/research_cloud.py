@@ -61,7 +61,10 @@ def _repo_inventory() -> dict:
                 strategies.append({
                     "id": spec["id"],
                     "status": spec.get("status", "unknown"),
+                    "engine": spec.get("engine", "signal"),
                     "thesis": str(spec.get("thesis", ""))[:500],
+                    "paper_symbols": spec.get("paper_symbols"),
+                    "portfolio": spec.get("portfolio"),
                     "signals": [
                         signal.get("name") for signal in spec.get("signals", [])
                         if isinstance(signal, dict) and signal.get("name")
@@ -171,34 +174,40 @@ def _openrouter_search_results(message: dict) -> list[dict]:
     return results
 
 
-def _openrouter_chat(prompt: str, *, search_prompt: str, timeout: int) -> tuple[dict, list, dict, str]:
+def _openrouter_chat(
+    prompt: str, *, search_prompt: str, timeout: int, enable_web: bool = True,
+) -> tuple[dict, list, dict, str]:
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
-        raise RuntimeError("OpenRouter fallback richiesto ma OPENROUTER_API_KEY mancante")
+        raise RuntimeError("OPENROUTER_API_KEY mancante")
     payload = {
         "model": OPENROUTER_MODEL,
         "messages": [
             {
                 "role": "system",
+                "content": "Restituisci esclusivamente un oggetto JSON conforme al contratto richiesto.",
+            },
+            {
+                "role": "user",
                 "content": (
-                    "Restituisci esclusivamente un oggetto JSON conforme al contratto richiesto. "
-                    "Usa le fonti web restituite prima di citare fonti."
+                    f"{prompt}\n\nDIRETTIVA DI RICERCA:\n{search_prompt}"
+                    if enable_web else prompt
                 ),
             },
-            {"role": "user", "content": f"{prompt}\n\nDIRETTIVA DI RICERCA:\n{search_prompt}"},
         ],
         "response_format": {"type": "json_object"},
         "provider": {"require_parameters": True},
-        "plugins": [{
-            "id": "web",
-            "engine": "exa",
-            "max_results": 24,
-            "search_prompt": search_prompt,
-        }],
         "stream": False,
         "temperature": 0.2,
         "max_tokens": 16_000,
     }
+    if enable_web:
+        payload["plugins"] = [{
+            "id": "web",
+            "engine": "exa",
+            "max_results": 24,
+            "search_prompt": search_prompt,
+        }]
     last_error = None
     for attempt in range(MAX_ATTEMPTS):
         try:
@@ -331,7 +340,12 @@ def run_maker(state_file: str | Path, out_dir: str | Path) -> dict:
         "Esegui un Daily Research Maker L1 source-first e report-only. Esplora 5-8 famiglie "
         "distinte. Usa soltanto fonti primarie realmente restituite dal web search; copia "
         "gli URL esatti. NO_CANDIDATE e il default quando novelty o dati point-in-time non "
-        "reggono. Non calcolare P&L, non creare strategie e non proporre operazioni.\n\n"
+        "reggono. Includi almeno due famiglie materialmente distinte ma implementabili, senza "
+        "nuovo codice o nuove fonti, come mutazioni one-shot delle portfolio attive basate su "
+        "xsmom, tsmom o highvol. Se selezioni una candidata, preferisci una di queste solo quando "
+        "il meccanismo resta fedele e il data contract usa dati gia disponibili; non spacciare un "
+        "ritocco parametrico per novelty. Le idee event-driven o microstrutturali restano blocked "
+        "se manca il runner. Non calcolare P&L, non creare strategie e non proporre operazioni.\n\n"
         f"CONTRATTO:\n{contract}\n\nPACK:\n{research_pack.render_prompt(pack)}\n\n"
         f"INVENTARIO CLOUD VERSIONATO:\n{json.dumps(_repo_inventory(), ensure_ascii=False)}"
     )

@@ -218,7 +218,7 @@ def _market_context(row: dict, data: dict, now: datetime) -> dict:
 def build_pack(*, state_file: str | Path = ROOT / "paper/state.json", top: int = 12,
                prefilter: int = 20, min_volume_usd: float = 1_000_000,
                min_oi_usd: float = 500_000, lookback_h: int = 800,
-               min_enrichment_coverage: float = 0.90, expires_h: float = 2.0,
+               min_enrichment_coverage: float = 0.90, expires_h: float = 24.0,
                weight_budget: int = HL_WEIGHT_BUDGET) -> dict:
     if not 1 <= top <= 12:
         raise ValueError("top deve essere tra 1 e 12")
