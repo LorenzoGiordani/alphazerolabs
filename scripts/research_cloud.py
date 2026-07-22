@@ -29,6 +29,12 @@ OPENROUTER_MODEL = "deepseek/deepseek-v4-pro"
 MAX_ATTEMPTS = 2
 
 
+class SearchProvenanceMismatch(ValueError):
+    def __init__(self, missing: list[str]):
+        self.missing = missing
+        super().__init__(f"fonti non presenti nei risultati web search: {missing[:3]}")
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -271,7 +277,7 @@ def _validate_search_provenance(maker: dict, search_results: list) -> None:
         if _normalized_url(url) not in surfaced
     })
     if missing:
-        raise ValueError(f"fonti non presenti nei risultati web search: {missing[:3]}")
+        raise SearchProvenanceMismatch(missing)
 
 
 def _maker_fixed(value: dict, pack: dict, run_id: str, model: str) -> dict:
@@ -381,7 +387,28 @@ def run_checker(input_dir: str | Path, out_dir: str | Path) -> dict:
         )
         checker = _checker_fixed(value, pack, maker, run_id)
         try:
+            result = research_pack.validate_checker(pack, maker, checker, now=_now())
             _validate_search_provenance(maker, search_results)
+            break
+        except SearchProvenanceMismatch as exc:
+            trusted_checks = {
+                "pack_integrity", "maker_schema", "identity_separation",
+                "scope_report_only", "checker_no_forbidden_writes",
+            }
+            checker = _checker_fixed({
+                "verdict": "REJECT",
+                "blockers": [
+                    f"Fonte Maker non riattestata dalla ricerca web indipendente: {url}"
+                    for url in exc.missing
+                ],
+                "notes": (
+                    "REJECT fail-closed: la ricerca web indipendente non ha riattestato "
+                    f"{len(exc.missing)} fonti Maker."
+                ),
+                "checks": {
+                    check: check in trusted_checks for check in research_pack.CHECKS
+                },
+            }, pack, maker, run_id)
             result = research_pack.validate_checker(pack, maker, checker, now=_now())
             break
         except (KeyError, TypeError, ValueError) as exc:
