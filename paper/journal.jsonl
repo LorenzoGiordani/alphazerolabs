@@ -8130,3 +8130,10 @@
 {"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10130.01, "open_positions": 76, "logged_at": "2026-07-22T08:14:07.580703+00:00"}
 {"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9237.7, "open_positions": 90, "logged_at": "2026-07-22T08:14:08.818518+00:00"}
 {"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9805.59, "open_positions": 6, "logged_at": "2026-07-22T08:14:09.234356+00:00"}
+{"type": "heartbeat", "strategy": "agents-v1", "equity": 10058.37, "open_positions": 0, "logged_at": "2026-07-22T09:11:04.625093+00:00"}
+{"type": "heartbeat", "strategy": "agents-rr2-v1", "equity": 9947.49, "open_positions": 0, "logged_at": "2026-07-22T09:11:05.002733+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-multihorizon-v1", "equity": 10454.81, "open_positions": 59, "logged_at": "2026-07-22T09:14:12.509266+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-combo-v1", "equity": 10476.47, "open_positions": 79, "logged_at": "2026-07-22T09:14:13.307405+00:00"}
+{"type": "heartbeat", "strategy": "xsmom-highvol-voltarget-v1", "equity": 10140.04, "open_positions": 76, "logged_at": "2026-07-22T09:14:13.732928+00:00"}
+{"type": "heartbeat", "strategy": "highvol-port-v1", "equity": 9241.83, "open_positions": 90, "logged_at": "2026-07-22T09:14:14.909416+00:00"}
+{"type": "heartbeat", "strategy": "liqimb-port-v1", "equity": 9788.97, "open_positions": 6, "logged_at": "2026-07-22T09:14:15.303954+00:00"}
