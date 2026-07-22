@@ -321,6 +321,10 @@ generano altre mutazioni. Sono ammesse solo portfolio già supportate (`xsmom`, 
 Actions è read-only sul repo e genera al massimo un bundle `HUMAN_PR_REQUIRED`: push,
 draft PR e merge restano azioni Codex/umane autenticate. Tutti i gate statistici e
 semantici devono passare prima che il registry paper possa vedere il challenger.
+La canary manuale di diagnosi gira soltanto da un branch `agent/evolution-canary-*`:
+usa una prereg sintetica dichiarata non autorevole, forza le due chiamate L2 e conserva
+per un giorno soltanto proposta, replay e verdict; non crea intake, publication o marker
+consumabili dalla pipeline e non modifica il paper.
 Dettagli in `docs/evolution-pipeline.md`.
 Il Worker non espone endpoint HTTP di dispatch: le esecuzioni manuali passano
 solo da `workflow_dispatch` autenticato nell'interfaccia o API di GitHub.
