@@ -1,3 +1,4 @@
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -73,6 +74,57 @@ def test_new_listing_price_is_covered_but_signal_waits_for_history(tmp_path, mon
     assert prices["status"] == "pass" and prices["observed_count"] == 5
     assert signals["critical"] is False and signals["missing"] == ["NEW"]
     assert state.exists()
+
+
+def test_l2_missing_signal_blocks_before_persistent_runtime_mutation(tmp_path, monkeypatch):
+    import scripts.portfolio_paper as portfolio
+
+    state = tmp_path / "state.json"
+    symbols = ["A", "B", "C", "D", "E"]
+    symbols_sha256 = hashlib.sha256(
+        json.dumps(symbols, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    spec = {
+        "id": "evolved-port-v1",
+        "engine": "portfolio",
+        "status": "challenger",
+        "portfolio": {"lookback_h": 24, "rebalance_h": 24, "factor": "xsmom"},
+        "evolution": {
+            "paper_universe": {
+                "schema_version": 1,
+                "source_parent_selection": "all_perps",
+                "symbols": symbols,
+                "symbols_sha256": symbols_sha256,
+            }
+        },
+    }
+    initial = json.dumps({"evolved-port-v1": {
+        "equity": 10_000.0,
+        "positions": {},
+        "last_rebalance_ts": "",
+        "equity_history": [],
+    }})
+    state.write_text(initial)
+    coverage_calls = []
+    monkeypatch.setattr(portfolio, "STATE_FILE", state)
+    monkeypatch.setattr(portfolio, "load", lambda _path: spec)
+    monkeypatch.setattr(portfolio, "paper_symbols", lambda _spec: ",".join(symbols))
+    monkeypatch.setattr(portfolio, "trailing_returns", lambda *_args: (
+        pd.Series({"A": 0.2, "B": 0.1, "C": -0.1, "D": -0.2}),
+        {symbol: float(index + 1) for index, symbol in enumerate(symbols)}))
+    monkeypatch.setattr(portfolio, "write_coverage", lambda *args, **kwargs: (
+        coverage_calls.append((args, kwargs))))
+    monkeypatch.setattr(portfolio, "atomic_write_text", lambda *_args: (
+        _ for _ in ()).throw(AssertionError("state write before L2 coverage gate")))
+    monkeypatch.setattr(portfolio, "log_event", lambda _event: (
+        _ for _ in ()).throw(AssertionError("journal write before L2 coverage gate")))
+    monkeypatch.setattr(sys, "argv", ["portfolio_paper.py", "evolved.yaml"])
+
+    with pytest.raises(SystemExit, match="copertura segnali L2 incompleta: 4/5; mancano E"):
+        portfolio.main()
+
+    assert state.read_text() == initial
+    assert coverage_calls[-1][1]["critical"] is True
 
 
 def test_held_asset_uses_market_mark_without_inventing_signal(tmp_path, monkeypatch):

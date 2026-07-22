@@ -50,6 +50,26 @@ subject hash; every other strategy change requires fresh evidence.
 No receipt in this directory authorizes real capital. That remains a separate,
 explicit human decision.
 
+## Evolution L2 evidence
+
+`evidence/evolution/<strategy-id>/` is a separate admission trail for a new
+paper challenger. It contains the exact approved L1 receipt, OpenRouter
+`deepseek/deepseek-v4-pro` proposal and provider metadata, frozen parent snapshot,
+L2 Maker record, independent review/provider metadata, replayed L2 Checker record,
+and frozen-data manifest. The frozen dataset itself remains a 30-day GitHub
+artifact; its exact hash and schema are recorded in the manifest.
+
+Actions first emits a `HUMAN_PR_REQUIRED` publication bundle; an authenticated
+Codex/human step creates the draft PR. A human merge is required before the
+strategy becomes visible to the paper registry. Its tail split is a development
+proxy, not the official holdout required by the champion evidence contract above.
+An L2 receipt never authorizes Propr readiness, live orders, or capital.
+For a newly added receipt, the PR validator also rechecks the current parent and
+family challenger cap. Historical validation keeps the logic hash binding but
+accepts later `champion`/`retired` lifecycle states and parent evolution. At runtime
+the pinned L2 basket requires 100% signal coverage before paper-state or journal
+mutation.
+
 Portfolio strategies have two additional fail-closed boundaries. Runtime
 heartbeats are autocorrelated and therefore never satisfy the automatic
 trade-count promotion gate. The current Propr executor also applies a different

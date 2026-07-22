@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          fetch-depth: 2
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
       - name: integrity tests
         run: >-
@@ -35,9 +37,17 @@ jobs:
           tests/test_cloud_llm_disabled.py
           tests/test_research_pack.py
           tests/test_research_cloud.py
+          tests/test_artifact_queue.py
+          tests/test_evolution_cloud.py
           tests/test_coinalyze_freshness.py
           tests/test_research_ops.py
       - name: cron Worker routing tests
         run: node --test infra/cron-trigger/src/index.test.js
+      - name: validate published evolution lineage
+        run: uv run --frozen python -m scripts.evolution_cloud validate-published --repo-root .
+      - name: validate newly added evolution admissions
+        run: >-
+          uv run --frozen python -m scripts.evolution_cloud validate-changed-admissions
+          --repo-root . --base-ref HEAD^
       - name: fatal Python checks
         run: uv run --frozen --with ruff==0.15.8 ruff check --select E9,F63,F7,F82 .

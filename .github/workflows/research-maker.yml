@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   maker:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -23,11 +24,31 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           local_date=$(TZ=Europe/Rome date +%F)
-          existing=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=research-maker-${local_date}" \
-            --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main")] | length')
+          inventory=/tmp/research-maker-artifacts.json
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=research-maker-${local_date}&per_page=100" \
+            > "$inventory"
+          mapfile -t existing_ids < <(
+            python scripts/artifact_queue.py markers \
+              --artifacts "$inventory" \
+              --name "research-maker-${local_date}"
+          )
+          existing=false
+          for artifact_id in "${existing_ids[@]}"; do
+            artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}")
+            producer_run_id=$(jq -r '.workflow_run.id // empty' <<< "$artifact")
+            producer=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${producer_run_id}")
+            if [ "$(jq -r '.path' <<< "$producer")" = ".github/workflows/research-maker.yml" ] \
+              && [ "$(jq -r '.head_branch' <<< "$producer")" = "main" ] \
+              && [ "$(jq -r '.conclusion' <<< "$producer")" = "success" ]; then
+              existing=true
+              break
+            fi
+          done
           echo "local_date=${local_date}" >> "$GITHUB_OUTPUT"
-          if [ "$existing" -gt 0 ]; then
+          if [ "$existing" = true ]; then
             echo "should_run=false" >> "$GITHUB_OUTPUT"
             echo "NO-OP: Maker gia pubblicato per ${local_date} Europe/Rome"
           else

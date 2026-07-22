@@ -1,0 +1,183 @@
+name: evolution-intake
+
+on:
+  workflow_run:
+    workflows: [research-checker]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      checker_artifact_id:
+        description: "Artifact id research-checker da recuperare manualmente (opzionale)"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: evolution-intake
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  intake:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      should_upload: ${{ steps.select.outputs.should_upload }}
+      pack_id: ${{ steps.select.outputs.pack_id }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: disponi la receipt piu vecchia non processata
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_ARTIFACT_ID: ${{ inputs.checker_artifact_id }}
+        run: |
+          set -euo pipefail
+          inventory=/tmp/actions-artifacts.json
+          mkdir -p /tmp/evolution-intake /tmp/evolution-intake-scan
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" > "$inventory"
+
+          if [ -n "$REQUESTED_ARTIFACT_ID" ]; then
+            [[ "$REQUESTED_ARTIFACT_ID" =~ ^[0-9]+$ ]] || {
+              echo "checker_artifact_id deve essere numerico" >&2
+              exit 1
+            }
+            candidates=("$REQUESTED_ARTIFACT_ID")
+          else
+            mapfile -t candidates < <(
+              python scripts/artifact_queue.py candidates \
+                --artifacts "$inventory" \
+                --source-prefix research-checker-
+            )
+          fi
+
+          selected=""
+          selected_status=""
+          selected_verdict=""
+          selected_artifact_id=""
+          selected_run_id=""
+          for artifact_id in "${candidates[@]}"; do
+            artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}")
+            artifact_name=$(jq -r '.name // empty' <<< "$artifact")
+            if [[ ! "$artifact_name" =~ ^research-checker-([a-f0-9]{64})$ ]] \
+              || [ "$(jq -r '.expired' <<< "$artifact")" != "false" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: non e una receipt checker valida"
+              continue
+            fi
+            name_pack_id="${BASH_REMATCH[1]}"
+            producer_run_id=$(jq -r '.workflow_run.id // empty' <<< "$artifact")
+            producer=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${producer_run_id}")
+            if [ "$(jq -r '.path' <<< "$producer")" != ".github/workflows/research-checker.yml" ] \
+              || [ "$(jq -r '.head_branch' <<< "$producer")" != "main" ] \
+              || [ "$(jq -r '.conclusion' <<< "$producer")" != "success" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: producer Checker non autorevole"
+              continue
+            fi
+
+            mapfile -t dispositions < <(
+              python scripts/artifact_queue.py markers \
+                --artifacts "$inventory" \
+                --name "evolution-intake-${name_pack_id}"
+            )
+            disposition_exists=false
+            for disposition_id in "${dispositions[@]}"; do
+              disposition=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${disposition_id}")
+              disposition_run_id=$(jq -r '.workflow_run.id // empty' <<< "$disposition")
+              disposition_run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${disposition_run_id}")
+              if [ "$(jq -r '.path' <<< "$disposition_run")" = ".github/workflows/evolution-intake.yml" ] \
+                && [ "$(jq -r '.head_branch' <<< "$disposition_run")" = "main" ] \
+                && [ "$(jq -r '.conclusion' <<< "$disposition_run")" = "success" ]; then
+                disposition_exists=true
+                break
+              fi
+            done
+            if [ "$disposition_exists" = true ]; then
+              echo "pack ${name_pack_id} gia disposto; continuo la coda"
+              continue
+            fi
+
+            scan_dir="/tmp/evolution-intake-scan/${artifact_id}"
+            mkdir -p "$scan_dir/files"
+            gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" \
+              > "$scan_dir/artifact.zip"
+            if ! unzip -q "$scan_dir/artifact.zip" -d "$scan_dir/files"; then
+              echo "::warning::ignoro artifact ${artifact_id}: zip invalido"
+              continue
+            fi
+            checker_file="$scan_dir/files/checker.json"
+            pack_file="$scan_dir/files/research/pack.json"
+            maker_file="$scan_dir/files/research/maker.json"
+            if [ ! -f "$checker_file" ] || [ ! -f "$pack_file" ] || [ ! -f "$maker_file" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: receipt bundle incompleta"
+              continue
+            fi
+            if ! uv run --frozen python -c \
+              'import json,sys; from datetime import datetime; from pathlib import Path; from scripts import research_pack as rp; pack=json.loads(Path(sys.argv[1]).read_text()); maker=json.loads(Path(sys.argv[2]).read_text()); checker=json.loads(Path(sys.argv[3]).read_text()); checked=datetime.fromisoformat(checker["checked_at"].replace("Z", "+00:00")); rp.validate_checker(pack, maker, checker, now=checked)' \
+              "$pack_file" "$maker_file" "$checker_file"; then
+              echo "::warning::ignoro artifact ${artifact_id}: receipt non valida"
+              continue
+            fi
+            pack_id=$(jq -r '.pack_id // empty' "$checker_file")
+            if [ "$pack_id" != "$name_pack_id" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: pack_id non coincide col nome"
+              continue
+            fi
+            verdict=$(jq -r '.verdict // empty' "$checker_file")
+            status=REJECTED
+            [ "$verdict" = "APPROVE_PREREG_ONLY" ] && status=READY
+
+            cp -R "$scan_dir/files/." /tmp/evolution-intake/
+            selected="$pack_id"
+            selected_status="$status"
+            selected_verdict="$verdict"
+            selected_artifact_id="$artifact_id"
+            selected_run_id="$producer_run_id"
+            break
+          done
+
+          if [ -z "$selected" ]; then
+            echo "should_upload=false" >> "$GITHUB_OUTPUT"
+            echo "NO-OP: nessuna receipt Checker valida e non disposta"
+            exit 0
+          fi
+
+          jq -n \
+            --arg kind evolution-intake.v1 \
+            --arg pack_id "$selected" \
+            --arg status "$selected_status" \
+            --arg receipt_verdict "$selected_verdict" \
+            --arg source_artifact_id "$selected_artifact_id" \
+            --arg source_run_id "$selected_run_id" \
+            --arg created_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{kind:$kind, pack_id:$pack_id, status:$status,
+              receipt_verdict:$receipt_verdict,
+              source_artifact_id:$source_artifact_id,
+              source_run_id:$source_run_id, created_at:$created_at}' \
+            > /tmp/evolution-intake/intake.json
+          echo "should_upload=true" >> "$GITHUB_OUTPUT"
+          echo "pack_id=$selected" >> "$GITHUB_OUTPUT"
+
+      - name: verifica checkout immutato
+        if: steps.select.outputs.should_upload == 'true'
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.select.outputs.should_upload == 'true'
+        with:
+          name: evolution-intake-${{ steps.select.outputs.pack_id }}
+          path: /tmp/evolution-intake/
+          retention-days: 30
+          if-no-files-found: error

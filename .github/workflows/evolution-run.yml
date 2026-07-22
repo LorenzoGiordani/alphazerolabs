@@ -1,0 +1,594 @@
+name: evolution-run
+
+on:
+  workflow_run:
+    workflows: [evolution-intake]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      intake_artifact_id:
+        description: "Artifact id evolution-intake da recuperare manualmente (opzionale)"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: evolution-run
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  preflight:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      should_run: ${{ steps.select.outputs.should_run }}
+      pack_id: ${{ steps.select.outputs.pack_id }}
+      intake_artifact_id: ${{ steps.select.outputs.intake_artifact_id }}
+      intake_run_id: ${{ steps.select.outputs.intake_run_id }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: seleziona il piu vecchio intake READY non finalizzato
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_ARTIFACT_ID: ${{ inputs.intake_artifact_id }}
+        run: |
+          set -euo pipefail
+          inventory=/tmp/actions-artifacts.json
+          mkdir -p /tmp/evolution-intake-scan
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" > "$inventory"
+
+          if [ -n "$REQUESTED_ARTIFACT_ID" ]; then
+            [[ "$REQUESTED_ARTIFACT_ID" =~ ^[0-9]+$ ]] || {
+              echo "intake_artifact_id deve essere numerico" >&2
+              exit 1
+            }
+            candidates=("$REQUESTED_ARTIFACT_ID")
+          else
+            mapfile -t candidates < <(
+              python scripts/artifact_queue.py candidates \
+                --artifacts "$inventory" \
+                --source-prefix evolution-intake-
+            )
+          fi
+
+          selected=""
+          selected_artifact_id=""
+          selected_run_id=""
+          for artifact_id in "${candidates[@]}"; do
+            artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}")
+            artifact_name=$(jq -r '.name // empty' <<< "$artifact")
+            if [[ ! "$artifact_name" =~ ^evolution-intake-([a-f0-9]{64})$ ]] \
+              || [ "$(jq -r '.expired' <<< "$artifact")" != "false" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: intake name/expiry invalida"
+              continue
+            fi
+            name_pack_id="${BASH_REMATCH[1]}"
+            producer_run_id=$(jq -r '.workflow_run.id // empty' <<< "$artifact")
+            producer=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${producer_run_id}")
+            if [ "$(jq -r '.path' <<< "$producer")" != ".github/workflows/evolution-intake.yml" ] \
+              || [ "$(jq -r '.head_branch' <<< "$producer")" != "main" ] \
+              || [ "$(jq -r '.conclusion' <<< "$producer")" != "success" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: producer intake non autorevole"
+              continue
+            fi
+
+            mapfile -t finals < <(
+              python scripts/artifact_queue.py markers \
+                --artifacts "$inventory" \
+                --name "evolution-final-${name_pack_id}"
+            )
+            final_exists=false
+            for final_id in "${finals[@]}"; do
+              final_artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${final_id}")
+              final_run_id=$(jq -r '.workflow_run.id // empty' <<< "$final_artifact")
+              final_run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${final_run_id}")
+              if [ "$(jq -r '.path' <<< "$final_run")" = ".github/workflows/evolution-run.yml" ] \
+                && [ "$(jq -r '.head_branch' <<< "$final_run")" = "main" ] \
+                && [ "$(jq -r '.conclusion' <<< "$final_run")" = "success" ]; then
+                final_exists=true
+                break
+              fi
+            done
+            if [ "$final_exists" = true ]; then
+              echo "pack ${name_pack_id} gia finalizzato; continuo la coda"
+              continue
+            fi
+
+            scan_dir="/tmp/evolution-intake-scan/${artifact_id}"
+            mkdir -p "$scan_dir/files"
+            gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" \
+              > "$scan_dir/artifact.zip"
+            if ! unzip -q "$scan_dir/artifact.zip" -d "$scan_dir/files"; then
+              echo "::warning::ignoro artifact ${artifact_id}: zip invalido"
+              continue
+            fi
+            intake_file="$scan_dir/files/intake.json"
+            if [ ! -f "$intake_file" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: intake.json mancante"
+              continue
+            fi
+            if [ "$(jq -r '.pack_id // empty' "$intake_file")" != "$name_pack_id" ] \
+              || [ "$(jq -r '.status // empty' "$intake_file")" != "READY" ] \
+              || [ "$(jq -r '.receipt_verdict // empty' "$intake_file")" != "APPROVE_PREREG_ONLY" ]; then
+              echo "intake ${name_pack_id} non READY; continuo la coda"
+              continue
+            fi
+            if ! uv run --frozen python -m scripts.evolution_cloud context \
+              --input-dir "$scan_dir/files" \
+              --out-file "$scan_dir/context.json"; then
+              echo "::warning::ignoro artifact ${artifact_id}: receipt L1 non valida"
+              continue
+            fi
+            if [ "$(jq -r '.pack_id // empty' "$scan_dir/context.json")" != "$name_pack_id" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: context pack mismatch"
+              continue
+            fi
+
+            selected="$name_pack_id"
+            selected_artifact_id="$artifact_id"
+            selected_run_id="$producer_run_id"
+            break
+          done
+
+          if [ -z "$selected" ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "NO-OP: nessun intake READY non finalizzato"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "pack_id=$selected" >> "$GITHUB_OUTPUT"
+            echo "intake_artifact_id=$selected_artifact_id" >> "$GITHUB_OUTPUT"
+            echo "intake_run_id=$selected_run_id" >> "$GITHUB_OUTPUT"
+          fi
+
+  maker:
+    needs: preflight
+    if: needs.preflight.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    outputs:
+      artifact_id: ${{ steps.stage.outputs.artifact_id }}
+      run_id: ${{ steps.stage.outputs.run_id }}
+      repo_commit: ${{ steps.stage.outputs.repo_commit }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: scarica l'intake selezionato anche da una run precedente
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ needs.preflight.outputs.intake_artifact_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/evolution-intake
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            > /tmp/evolution-intake.zip
+          unzip -q /tmp/evolution-intake.zip -d /tmp/evolution-intake
+
+      - name: risolvi Evolution Maker autorevole
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACK_ID: ${{ needs.preflight.outputs.pack_id }}
+        run: |
+          set -euo pipefail
+          inventory=/tmp/maker-artifacts.json
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" > "$inventory"
+          mapfile -t ids < <(
+            python scripts/artifact_queue.py markers \
+              --artifacts "$inventory" \
+              --name "evolution-maker-${PACK_ID}"
+          )
+          authoritative_ids=()
+          authoritative_runs=()
+          for artifact_id in "${ids[@]}"; do
+            artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}")
+            run_id=$(jq -r '.workflow_run.id // empty' <<< "$artifact")
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")
+            if [ "$(jq -r '.path' <<< "$run")" = ".github/workflows/evolution-run.yml" ] \
+              && [ "$(jq -r '.head_branch' <<< "$run")" = "main" ]; then
+              authoritative_ids+=("$artifact_id")
+              authoritative_runs+=("$run_id")
+            fi
+          done
+          [ "${#authoritative_ids[@]}" -le 1 ] || {
+            echo "piu artifact Maker autorevoli per ${PACK_ID}" >&2
+            exit 1
+          }
+          if [ "${#authoritative_ids[@]}" -eq 1 ]; then
+            echo "reuse=true" >> "$GITHUB_OUTPUT"
+            echo "artifact_id=${authoritative_ids[0]}" >> "$GITHUB_OUTPUT"
+            echo "run_id=${authoritative_runs[0]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "reuse=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: riusa i byte esatti del Maker precedente
+        if: steps.resolve.outputs.reuse == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.resolve.outputs.artifact_id }}
+        run: |
+          mkdir -p /tmp/evolution-maker
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            > /tmp/evolution-maker.zip
+          unzip -q /tmp/evolution-maker.zip -d /tmp/evolution-maker
+
+      - name: Evolution Maker L2 one-shot (DeepSeek V4 Pro via OpenRouter)
+        if: steps.resolve.outputs.reuse != 'true'
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: >-
+          uv run --frozen python -m scripts.evolution_cloud openrouter-maker
+          --input-dir /tmp/evolution-intake
+          --out-dir /tmp/evolution-maker
+
+      - name: valida identita del bundle Maker
+        env:
+          PACK_ID: ${{ needs.preflight.outputs.pack_id }}
+        run: |
+          test -f /tmp/evolution-maker/maker.json
+          test "$(jq -r '.pack_id // empty' /tmp/evolution-maker/maker.json)" = "$PACK_ID"
+          test "$(jq -r '.control_plane // empty' /tmp/evolution-maker/maker.json)" \
+            = "openrouter:deepseek/deepseek-v4-pro"
+
+      - name: verifica checkout immutato
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: upload
+        if: steps.resolve.outputs.reuse != 'true'
+        with:
+          name: evolution-maker-${{ needs.preflight.outputs.pack_id }}
+          path: /tmp/evolution-maker/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: esporta artifact Maker autorevole
+        id: stage
+        env:
+          REUSE: ${{ steps.resolve.outputs.reuse }}
+          REUSED_ARTIFACT_ID: ${{ steps.resolve.outputs.artifact_id }}
+          REUSED_RUN_ID: ${{ steps.resolve.outputs.run_id }}
+          NEW_ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: |
+          repo_commit=$(jq -r '.repo_commit // empty' /tmp/evolution-maker/maker.json)
+          [[ "$repo_commit" =~ ^[a-f0-9]{40}$ ]] || {
+            echo "repo_commit Maker invalido" >&2
+            exit 1
+          }
+          echo "repo_commit=$repo_commit" >> "$GITHUB_OUTPUT"
+          if [ "$REUSE" = "true" ]; then
+            echo "artifact_id=$REUSED_ARTIFACT_ID" >> "$GITHUB_OUTPUT"
+            echo "run_id=$REUSED_RUN_ID" >> "$GITHUB_OUTPUT"
+          else
+            test -n "$NEW_ARTIFACT_ID"
+            echo "artifact_id=$NEW_ARTIFACT_ID" >> "$GITHUB_OUTPUT"
+            echo "run_id=$GITHUB_RUN_ID" >> "$GITHUB_OUTPUT"
+          fi
+
+  checker:
+    needs: [preflight, maker]
+    if: needs.preflight.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    outputs:
+      artifact_id: ${{ steps.stage.outputs.artifact_id }}
+      run_id: ${{ steps.stage.outputs.run_id }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.maker.outputs.repo_commit }}
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: scarica Evolution Maker autorevole anche da una run precedente
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ needs.maker.outputs.artifact_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/evolution-maker
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            > /tmp/evolution-maker.zip
+          unzip -q /tmp/evolution-maker.zip -d /tmp/evolution-maker
+
+      - name: blocca il replay su un checkout diverso dal Maker
+        env:
+          MAKER_REPO_COMMIT: ${{ needs.maker.outputs.repo_commit }}
+        run: test "$(git rev-parse HEAD)" = "$MAKER_REPO_COMMIT"
+
+      - name: risolvi Evolution Checker autorevole
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACK_ID: ${{ needs.preflight.outputs.pack_id }}
+        run: |
+          set -euo pipefail
+          inventory=/tmp/checker-artifacts.json
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" > "$inventory"
+          mapfile -t ids < <(
+            python scripts/artifact_queue.py markers \
+              --artifacts "$inventory" \
+              --name "evolution-checker-${PACK_ID}"
+          )
+          authoritative_ids=()
+          authoritative_runs=()
+          for artifact_id in "${ids[@]}"; do
+            artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}")
+            run_id=$(jq -r '.workflow_run.id // empty' <<< "$artifact")
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")
+            if [ "$(jq -r '.path' <<< "$run")" = ".github/workflows/evolution-run.yml" ] \
+              && [ "$(jq -r '.head_branch' <<< "$run")" = "main" ]; then
+              authoritative_ids+=("$artifact_id")
+              authoritative_runs+=("$run_id")
+            fi
+          done
+          [ "${#authoritative_ids[@]}" -le 1 ] || {
+            echo "piu artifact Checker autorevoli per ${PACK_ID}" >&2
+            exit 1
+          }
+          if [ "${#authoritative_ids[@]}" -eq 1 ]; then
+            echo "reuse=true" >> "$GITHUB_OUTPUT"
+            echo "artifact_id=${authoritative_ids[0]}" >> "$GITHUB_OUTPUT"
+            echo "run_id=${authoritative_runs[0]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "reuse=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: riusa i byte esatti del Checker precedente
+        if: steps.resolve.outputs.reuse == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.resolve.outputs.artifact_id }}
+        run: |
+          mkdir -p /tmp/evolution-checker
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            > /tmp/evolution-checker.zip
+          unzip -q /tmp/evolution-checker.zip -d /tmp/evolution-checker
+
+      - name: Independent Evolution Checker L2 one-shot (DeepSeek V4 Pro via OpenRouter)
+        if: steps.resolve.outputs.reuse != 'true'
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: >-
+          uv run --frozen python -m scripts.evolution_cloud openrouter-checker
+          --input-dir /tmp/evolution-maker
+          --out-dir /tmp/evolution-checker
+
+      - name: valida identita del bundle Checker
+        env:
+          PACK_ID: ${{ needs.preflight.outputs.pack_id }}
+        run: |
+          test -f /tmp/evolution-checker/evolution-checker.json
+          test "$(jq -r '.pack_id // empty' /tmp/evolution-checker/evolution-checker.json)" \
+            = "$PACK_ID"
+          test "$(jq -r '.control_plane // empty' /tmp/evolution-checker/evolution-checker.json)" \
+            = "openrouter:deepseek/deepseek-v4-pro"
+          test "$(jq -r '.maker_run_id // empty' /tmp/evolution-checker/evolution-checker.json)" \
+            = "$(jq -r '.maker_run_id // empty' /tmp/evolution-maker/maker.json)"
+
+      - name: verifica checkout immutato
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: upload
+        if: steps.resolve.outputs.reuse != 'true'
+        with:
+          name: evolution-checker-${{ needs.preflight.outputs.pack_id }}
+          path: /tmp/evolution-checker/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: esporta artifact Checker autorevole
+        id: stage
+        env:
+          REUSE: ${{ steps.resolve.outputs.reuse }}
+          REUSED_ARTIFACT_ID: ${{ steps.resolve.outputs.artifact_id }}
+          REUSED_RUN_ID: ${{ steps.resolve.outputs.run_id }}
+          NEW_ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: |
+          if [ "$REUSE" = "true" ]; then
+            echo "artifact_id=$REUSED_ARTIFACT_ID" >> "$GITHUB_OUTPUT"
+            echo "run_id=$REUSED_RUN_ID" >> "$GITHUB_OUTPUT"
+          else
+            test -n "$NEW_ARTIFACT_ID"
+            echo "artifact_id=$NEW_ARTIFACT_ID" >> "$GITHUB_OUTPUT"
+            echo "run_id=$GITHUB_RUN_ID" >> "$GITHUB_OUTPUT"
+          fi
+
+  final:
+    needs: [preflight, maker, checker]
+    if: needs.preflight.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: scarica Evolution Checker autorevole anche da una run precedente
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ needs.checker.outputs.artifact_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/evolution-checker
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            > /tmp/evolution-checker.zip
+          unzip -q /tmp/evolution-checker.zip -d /tmp/evolution-checker
+
+      - name: leggi il verdetto Checker
+        id: verdict
+        env:
+          PACK_ID: ${{ needs.preflight.outputs.pack_id }}
+        run: |
+          set -euo pipefail
+          checker=/tmp/evolution-checker/evolution-checker.json
+          test -f "$checker"
+          test "$(jq -r '.pack_id // empty' "$checker")" = "$PACK_ID"
+          verdict=$(jq -r '.verdict // empty' "$checker")
+          case "$verdict" in
+            REJECT|APPROVE_CHALLENGER_PR) ;;
+            *) echo "verdetto Evolution Checker invalido: $verdict" >&2; exit 1 ;;
+          esac
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+
+      - name: risolvi publication autorevole per il retry finale
+        id: publication
+        if: steps.verdict.outputs.verdict == 'APPROVE_CHALLENGER_PR'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACK_ID: ${{ needs.preflight.outputs.pack_id }}
+          CHECKER_ARTIFACT_ID: ${{ needs.checker.outputs.artifact_id }}
+        run: |
+          set -euo pipefail
+          inventory=/tmp/publication-artifacts.json
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" > "$inventory"
+          mapfile -t ids < <(
+            python scripts/artifact_queue.py markers \
+              --artifacts "$inventory" \
+              --name "evolution-publication-${PACK_ID}"
+          )
+          authoritative_ids=()
+          for artifact_id in "${ids[@]}"; do
+            artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}")
+            run_id=$(jq -r '.workflow_run.id // empty' <<< "$artifact")
+            run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")
+            if [ "$(jq -r '.path' <<< "$run")" = ".github/workflows/evolution-run.yml" ] \
+              && [ "$(jq -r '.head_branch' <<< "$run")" = "main" ]; then
+              authoritative_ids+=("$artifact_id")
+            fi
+          done
+          [ "${#authoritative_ids[@]}" -le 1 ] || {
+            echo "piu publication autorevoli per ${PACK_ID}" >&2
+            exit 1
+          }
+          if [ "${#authoritative_ids[@]}" -eq 1 ]; then
+            artifact_id="${authoritative_ids[0]}"
+            mkdir -p /tmp/evolution-publication
+            gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" \
+              > /tmp/evolution-publication.zip
+            unzip -q /tmp/evolution-publication.zip -d /tmp/evolution-publication
+            test "$(jq -r '.pack_id // empty' /tmp/evolution-publication/stage.json)" = "$PACK_ID"
+            test "$(jq -r '.checker_artifact_id // empty' /tmp/evolution-publication/stage.json)" \
+              = "$CHECKER_ARTIFACT_ID"
+            echo "reuse=true" >> "$GITHUB_OUTPUT"
+            echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
+          else
+            echo "reuse=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: materializza publication in un clone fresco e isolato
+        if: >-
+          steps.verdict.outputs.verdict == 'APPROVE_CHALLENGER_PR' &&
+          steps.publication.outputs.reuse != 'true'
+        env:
+          PACK_ID: ${{ needs.preflight.outputs.pack_id }}
+          CHECKER_ARTIFACT_ID: ${{ needs.checker.outputs.artifact_id }}
+        run: |
+          set -euo pipefail
+          git clone --no-local "$GITHUB_WORKSPACE" /tmp/publication
+          uv run --frozen python -m scripts.evolution_cloud publish \
+            --input-dir /tmp/evolution-checker \
+            --repo-root /tmp/publication \
+            --result-file /tmp/evolution-publish.json
+          test "$(jq -r '.pack_id // empty' /tmp/evolution-publish.json)" = "$PACK_ID"
+          strategy_id=$(jq -r '.strategy_id // empty' /tmp/evolution-publish.json)
+          test -n "$strategy_id"
+          uv run --frozen python -m scripts.evolution_cloud validate-published \
+            --repo-root /tmp/publication \
+            --strategy-id "$strategy_id" \
+            --require-current-admission
+          mkdir -p /tmp/evolution-publication
+          mapfile -t changed_paths < <(jq -r '.changed_paths[]' /tmp/evolution-publish.json)
+          [ "${#changed_paths[@]}" -gt 0 ] || {
+            echo "publication senza file" >&2
+            exit 1
+          }
+          for relative in "${changed_paths[@]}"; do
+            [[ "$relative" != /* && "$relative" != *".."* ]] || {
+              echo "publication path invalido: $relative" >&2
+              exit 1
+            }
+            (cd /tmp/publication && cp --parents -- "$relative" /tmp/evolution-publication/)
+          done
+          cp /tmp/evolution-publish.json /tmp/evolution-publication/publication.json
+          jq -n \
+            --arg pack_id "$PACK_ID" \
+            --arg checker_artifact_id "$CHECKER_ARTIFACT_ID" \
+            --arg created_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{kind:"evolution-publication-stage.v1", pack_id:$pack_id,
+              checker_artifact_id:$checker_artifact_id, created_at:$created_at}' \
+            > /tmp/evolution-publication/stage.json
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: upload_publication
+        if: >-
+          steps.verdict.outputs.verdict == 'APPROVE_CHALLENGER_PR' &&
+          steps.publication.outputs.reuse != 'true'
+        with:
+          name: evolution-publication-${{ needs.preflight.outputs.pack_id }}
+          path: /tmp/evolution-publication/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: prepara stato finale senza push o PR
+        env:
+          PACK_ID: ${{ needs.preflight.outputs.pack_id }}
+          CHECKER_VERDICT: ${{ steps.verdict.outputs.verdict }}
+          REUSED_PUBLICATION_ID: ${{ steps.publication.outputs.artifact_id }}
+          NEW_PUBLICATION_ID: ${{ steps.upload_publication.outputs.artifact-id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/evolution-final
+          if [ "$CHECKER_VERDICT" = "REJECT" ]; then
+            status=REJECTED
+            publication_id=""
+          else
+            status=HUMAN_PR_REQUIRED
+            publication_id="${REUSED_PUBLICATION_ID:-$NEW_PUBLICATION_ID}"
+            test -n "$publication_id"
+          fi
+          jq -n \
+            --arg pack_id "$PACK_ID" \
+            --arg checker_verdict "$CHECKER_VERDICT" \
+            --arg status "$status" \
+            --arg publication_artifact_id "$publication_id" \
+            '{kind:"evolution-final.v1", pack_id:$pack_id,
+              checker_verdict:$checker_verdict, status:$status,
+              publication_artifact_id:(if $publication_artifact_id == ""
+                then null else $publication_artifact_id end)}' \
+            > /tmp/evolution-final/result.json
+
+      - name: verifica checkout sorgente immutato
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: evolution-final-${{ needs.preflight.outputs.pack_id }}
+          path: /tmp/evolution-final/
+          retention-days: 30
+          if-no-files-found: error

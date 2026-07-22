@@ -218,7 +218,7 @@ def test_checker_rejects_maker_tampering(tmp_path, monkeypatch):
 def test_checker_rejects_expired_or_future_receipt(tmp_path, monkeypatch):
     _patch_pack(monkeypatch, [_row(f"COIN{index}") for index in range(5)])
     state = tmp_path / "state.json"; state.write_text("{}")
-    pack = rp.build_pack(state_file=state, top=5, prefilter=5)
+    pack = rp.build_pack(state_file=state, top=5, prefilter=5, expires_h=2)
     maker = _maker(pack)
     checker = _checker(pack, maker, "APPROVE_NO_CANDIDATE")
     checker["checked_at"] = (NOW + timedelta(hours=2, minutes=1)).isoformat()
@@ -227,6 +227,13 @@ def test_checker_rejects_expired_or_future_receipt(tmp_path, monkeypatch):
     checker["checked_at"] = (NOW + timedelta(minutes=30)).isoformat()
     with pytest.raises(ValueError, match="futuro"):
         rp.validate_checker(pack, maker, checker, now=NOW + timedelta(minutes=20))
+
+
+def test_default_pack_ttl_covers_a_full_checker_day(tmp_path, monkeypatch):
+    _patch_pack(monkeypatch, [_row(f"COIN{index}") for index in range(5)])
+    state = tmp_path / "state.json"; state.write_text("{}")
+    pack = rp.build_pack(state_file=state, top=5, prefilter=5)
+    assert datetime.fromisoformat(pack["expires_at"]) - datetime.fromisoformat(pack["generated_at"]) == timedelta(hours=24)
 
 
 def test_expired_pack_cannot_be_registered_later(tmp_path, monkeypatch):

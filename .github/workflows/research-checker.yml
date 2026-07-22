@@ -13,67 +13,105 @@ permissions:
 
 jobs:
   checker:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: preflight pack pendente
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: seleziona il pack Maker piu vecchio non verificato
         id: preflight
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p /tmp/research-maker /tmp/research-checker
-          artifact_id=""
-          for offset in 0 1; do
-            local_date=$(TZ=Europe/Rome date -d "-${offset} day" +%F)
-            artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=research-maker-${local_date}" \
-              --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main")] | sort_by(.created_at) | reverse | .[0] // empty')
-            artifact_id=$(jq -r '.id // empty' <<< "$artifact")
-            [ -n "$artifact_id" ] && break
+          set -euo pipefail
+          inventory=/tmp/actions-artifacts.json
+          mkdir -p /tmp/research-maker /tmp/research-checker /tmp/research-scan
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" > "$inventory"
+          mapfile -t candidates < <(
+            python scripts/artifact_queue.py candidates \
+              --artifacts "$inventory" \
+              --source-prefix research-maker-
+          )
+
+          selected=""
+          for artifact_id in "${candidates[@]}"; do
+            artifact=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}")
+            producer_run_id=$(jq -r '.workflow_run.id // empty' <<< "$artifact")
+            producer=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${producer_run_id}")
+            if [ "$(jq -r '.path' <<< "$producer")" != ".github/workflows/research-maker.yml" ] \
+              || [ "$(jq -r '.head_branch' <<< "$producer")" != "main" ] \
+              || [ "$(jq -r '.conclusion' <<< "$producer")" != "success" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: producer Maker non autorevole"
+              continue
+            fi
+
+            scan_dir="/tmp/research-scan/${artifact_id}"
+            mkdir -p "$scan_dir/files"
+            gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" \
+              > "$scan_dir/artifact.zip"
+            if ! unzip -q "$scan_dir/artifact.zip" -d "$scan_dir/files"; then
+              echo "::warning::ignoro artifact ${artifact_id}: zip invalido"
+              continue
+            fi
+            if [ ! -f "$scan_dir/files/pack.json" ] || [ ! -f "$scan_dir/files/maker.json" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: pack.json o maker.json mancante"
+              continue
+            fi
+            producer_sha=$(jq -r '.head_sha // empty' <<< "$producer")
+            if [ "$(jq -r '.repo_commit // empty' "$scan_dir/files/pack.json")" != "$producer_sha" ]; then
+              echo "::warning::ignoro artifact ${artifact_id}: repo_commit non coincide col Maker"
+              continue
+            fi
+            if ! uv run --frozen python -m scripts.research_pack validate-maker \
+              --pack "$scan_dir/files/pack.json" \
+              --maker "$scan_dir/files/maker.json" > "$scan_dir/validation.json"; then
+              echo "::warning::ignoro artifact ${artifact_id}: contratto Maker invalido o scaduto"
+              continue
+            fi
+            pack_id=$(jq -r '.pack_id // empty' "$scan_dir/files/pack.json")
+            if [[ ! "$pack_id" =~ ^[a-f0-9]{64}$ ]]; then
+              echo "::warning::ignoro artifact ${artifact_id}: pack_id invalido"
+              continue
+            fi
+
+            receipted=false
+            mapfile -t receipt_ids < <(
+              python scripts/artifact_queue.py markers \
+                --artifacts "$inventory" \
+                --name "research-checker-${pack_id}"
+            )
+            for receipt_id in "${receipt_ids[@]}"; do
+              receipt=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${receipt_id}")
+              receipt_run_id=$(jq -r '.workflow_run.id // empty' <<< "$receipt")
+              receipt_run=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${receipt_run_id}")
+              if [ "$(jq -r '.path' <<< "$receipt_run")" = ".github/workflows/research-checker.yml" ] \
+                && [ "$(jq -r '.head_branch' <<< "$receipt_run")" = "main" ] \
+                && [ "$(jq -r '.conclusion' <<< "$receipt_run")" = "success" ]; then
+                receipted=true
+                break
+              fi
+            done
+            if [ "$receipted" = true ]; then
+              echo "pack ${pack_id} gia verificato; continuo la coda"
+              continue
+            fi
+
+            cp -R "$scan_dir/files/." /tmp/research-maker/
+            selected="$pack_id"
+            break
           done
-          if [ -z "$artifact_id" ]; then
+
+          if [ -z "$selected" ]; then
             echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "NO-OP: nessun Maker recente"
-            exit 0
-          fi
-          producer_run_id=$(jq -r '.workflow_run.id // empty' <<< "$artifact")
-          producer_sha=$(jq -r '.workflow_run.head_sha // empty' <<< "$artifact")
-          producer=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${producer_run_id}")
-          [ "$(jq -r '.path' <<< "$producer")" = ".github/workflows/research-maker.yml" ] || {
-            echo "artefatto non prodotto da research-maker.yml" >&2; exit 1;
-          }
-          [ "$(jq -r '.head_branch' <<< "$producer")" = "main" ] || {
-            echo "artefatto Maker non proveniente da main" >&2; exit 1;
-          }
-          [ "$(jq -r '.conclusion' <<< "$producer")" = "success" ] || {
-            echo "run Maker non conclusa con successo" >&2; exit 1;
-          }
-          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" > /tmp/research-maker.zip
-          unzip -q /tmp/research-maker.zip -d /tmp/research-maker
-          [ "$(jq -r '.repo_commit' /tmp/research-maker/pack.json)" = "$producer_sha" ] || {
-            echo "repo_commit del pack non coincide con head_sha del Maker" >&2; exit 1;
-          }
-          pack_id=$(jq -r '.pack_id' /tmp/research-maker/pack.json)
-          [[ "$pack_id" =~ ^[a-f0-9]{64}$ ]] || { echo "pack_id invalido" >&2; exit 1; }
-          expires_at=$(jq -r '.expires_at' /tmp/research-maker/pack.json)
-          if [ "$(date -d "$expires_at" +%s)" -lt "$(date +%s)" ]; then
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "NO-OP: pack ${pack_id} scaduto"
-            exit 0
-          fi
-          existing=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=research-checker-${pack_id}" \
-            --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_branch == "main")] | length')
-          echo "pack_id=${pack_id}" >> "$GITHUB_OUTPUT"
-          if [ "$existing" -gt 0 ]; then
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "NO-OP: pack ${pack_id} gia verificato"
+            echo "NO-OP: nessun pack Maker valido e non verificato"
           else
             echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "pack_id=$selected" >> "$GITHUB_OUTPUT"
           fi
-
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
-        if: steps.preflight.outputs.should_run == 'true'
 
       - name: Independent Checker L1 (Z.AI primary, OpenRouter fallback)
         if: steps.preflight.outputs.should_run == 'true'
@@ -90,6 +128,13 @@ jobs:
         run: |
           git diff --exit-code
           test -z "$(git status --porcelain --untracked-files=all)"
+
+      - name: conserva il bundle Maker esatto nella receipt
+        if: steps.preflight.outputs.should_run == 'true'
+        run: |
+          mkdir -p /tmp/research-checker/research
+          cp /tmp/research-maker/pack.json /tmp/research-checker/research/pack.json
+          cp /tmp/research-maker/maker.json /tmp/research-checker/research/maker.json
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: steps.preflight.outputs.should_run == 'true'

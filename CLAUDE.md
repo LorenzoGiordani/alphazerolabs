@@ -80,7 +80,7 @@ Il Research OS L1 (`scripts/research_pack.py`, `scripts/research_ops.py` e
 all-dex, candele bounded core 24/7, 5–8 famiglie, massimo una candidata al solo
 gate `PREREG_REVIEW_ONLY`. Non modifica repo, vault, paper state o journal.
 
-Eccezione esplicita dal 14/07/2026: soltanto Daily Maker e Hourly Checker L1
+Eccezione esplicita dal 14/07/2026: Daily Maker e Hourly Checker L1
 girano come workflow GitHub dedicati, schedulati dal Worker Cloudflare. Usano
 `ZAI_API_KEY` sull'endpoint Z.AI generale come primario, con web search e JSON
 validato. Solo un errore Z.AI di quota/autorizzazione (incluso `429` code `1113`)
@@ -92,13 +92,23 @@ novelty deriva da `brain/` e `strategies/`; Obsidian resta canonico e read-only.
 Il Worker non espone un handler HTTP pubblico; le run manuali usano soltanto il
 `workflow_dispatch` autenticato di GitHub Actions.
 
+Eccezione esplicita dal 22/07/2026: una receipt L1 `APPROVE_PREREG_ONLY` può
+alimentare il solo Research OS L2 portfolio. Maker e Checker L2 sono job separati
+e usano esclusivamente `deepseek/deepseek-v4-pro` tramite `OPENROUTER_API_KEY`;
+non usano Z.AI, non aggiungono codice o segnali e non vedono/eseguono ordini. Ogni
+pack ha un solo Maker e un solo Checker autorevoli: i retry riusano gli artifact
+hashati esistenti e non generano altre mutazioni. Actions resta read-only sul repo
+e produce al massimo un bundle `HUMAN_PR_REQUIRED`; push, draft PR, merge e ingresso
+nel paper richiedono il control plane Codex/umano autenticato. Retention 30 giorni.
+
 ### 9. Architettura cloud-first
 Paper-run deterministico su GitHub Actions (orario via Cloudflare Worker = clock
 affidabile); dashboard statica su Cloudflare Pages (`lux-ai.pages.dev`). Il cloud
 gestisce dati, strategie meccaniche, uscite, pubblicazione e il Research OS L1
-report-only con Z.AI primario e fallback quota OpenRouter delimitato. Codex/GPT-5.6
-resta il control plane revisionabile per le altre operazioni LLM e per qualsiasi
-passaggio oltre `PREREG_REVIEW_ONLY`.
+report-only con Z.AI primario e fallback quota OpenRouter delimitato. L'eccezione
+L2 sopra usa DeepSeek V4 Pro soltanto per proposta e review semantica bounded;
+Codex/GPT-5.6 resta il control plane revisionabile per pubblicazione, PR e ogni
+altra operazione oltre `PREREG_REVIEW_ONLY`.
 Precompute pesanti (Kronos, GDELT, xsection, HMM) restano in workflow dedicati.
 
 ### 10. Loop evolutivo: walk-forward + DSR + complessità penalty

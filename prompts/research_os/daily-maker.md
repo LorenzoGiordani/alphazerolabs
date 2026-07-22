@@ -47,6 +47,11 @@ revisionabile, non una strategia attiva. Esegui un solo ciclo bounded.
 5. Se nessuna famiglia supera novelty più data feasibility, usa `NO_CANDIDATE`.
    È un risultato corretto. Altrimenti conserva al massimo una candidata e solo
    per `PREREG_REVIEW_ONLY`.
+6. Includi almeno due famiglie implementabili senza nuovo codice o nuove fonti come
+   mutazioni one-shot delle portfolio attive `xsmom`, `tsmom` o `highvol`. Preferisci
+   una di queste come candidata solo se meccanismo e data contract restano fedeli;
+   non chiamare novelty un semplice ritocco parametrico. Event study, order-flow o
+   microstruttura senza runner e dati reali devono restare `blocked`.
 
 ## Output e registrazione
 

@@ -6,8 +6,8 @@ blocco `portfolio` (registry chiuso di knob, cfr. PORTFOLIO_REGISTRY_DOC):
 universe/risk/engine sono forzati dal parent, come il blocco risk in evolve.py.
 
 Eval offline: replica dei fattori live di portfolio_paper.py (xsmom single e
-multi-orizzonte, tsmom sign, highvol, combo z-scored) su panel di chiusure da
-data/candles/, con costo sul turnover e overlay vol-target Moreira-Muir.
+multi-orizzonte, tsmom sign, highvol, combo raw-pesata poi z-scored) su panel di
+chiusure da data/candles/, con costo sul turnover e overlay vol-target Moreira-Muir.
 liqimb ESCLUSO dall'evoluzione: il collector coinalyze ha copertura parziale,
 un backtest offline mentirebbe.
 
@@ -44,7 +44,8 @@ EVOLVABLE_FACTORS = ("xsmom", "tsmom", "highvol")
 
 PORTFOLIO_REGISTRY_DOC = """Knob mutabili del blocco `portfolio` (REGISTRY CHIUSO — solo questi, solo questi range):
 - factor: xsmom | tsmom | highvol  (liqimb NON mutabile: dati offline parziali)
-- factors: [xsmom, highvol] + weights: [w1, w2]  → combo multi-fattore z-scored (somma pesi = 1)
+- factors: [xsmom, highvol] + weights: [w1, w2]  → somma raw pesata, poi z-score
+  (somma pesi = 1)
 - lookback_h (24-720): orizzonte del ritorno trailing (xsmom/tsmom/combo)
 - lookbacks_h: lista di orizzonti (SOLO xsmom, es. [96,168,336]) → media dei trailing per asset
 - vol_lookback_h (24-336): finestra std oraria per highvol/combo
@@ -88,7 +89,7 @@ def _signal_panel(pf: dict, px: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     factor = pf.get("factor", "xsmom")
     lb = int(pf.get("lookback_h", 168))
     vol_lb = int(pf.get("vol_lookback_h", 72))
-    if factors:                                  # combo z-scored (come combo_signal live)
+    if factors:                                  # somma raw pesata, poi z-score (come live)
         parts, warm = [], 0
         for f, w in zip(factors, pf.get("weights", [0.5, 0.5])):
             if f == "xsmom":
@@ -98,9 +99,14 @@ def _signal_panel(pf: dict, px: pd.DataFrame) -> tuple[pd.DataFrame, int]:
                 warm = max(warm, vol_lb)
             else:
                 raise ValueError(f"fattore combo fuori registry: {f}")
-            z = sig.sub(sig.mean(axis=1), axis=0).div(sig.std(axis=1).replace(0, np.nan), axis=0)
-            parts.append(z * float(w))
-        return sum(parts), warm
+            parts.append(sig * float(w))
+        sig = sum(parts)
+        std = sig.std(axis=1)
+        normalizable = (sig.notna().sum(axis=1) >= 3) & (std > 0)
+        sig.loc[normalizable] = sig.loc[normalizable].sub(
+            sig.loc[normalizable].mean(axis=1), axis=0
+        ).div(std.loc[normalizable], axis=0)
+        return sig, warm
     if factor == "highvol":
         return px.pct_change().rolling(vol_lb).std(), vol_lb
     multi = pf.get("lookbacks_h")
@@ -150,17 +156,21 @@ def run_portfolio(px: pd.DataFrame, pf: dict) -> tuple[pd.Series, pd.Series, dic
             rebalances += 1
     rets = pd.Series(port_r, index=px.index)
     equity = (1.0 + rets).cumprod()
-    return equity, rets, {"rebalances": rebalances}
+    return equity, rets, {"rebalances": rebalances, "warmup": warmup}
 
 
 def eval_portfolio(spec: dict, px: pd.DataFrame, months: int) -> tuple[dict, pd.Series]:
-    equity, rets, meta = run_portfolio(px, spec["portfolio"])
-    sharpe = float(rets.mean() / rets.std() * np.sqrt(PPY)) if rets.std() else 0.0
-    agg = {"total_return": round(float(equity.iloc[-1] - 1), 4),
+    _, rets, meta = run_portfolio(px, spec["portfolio"])
+    rets = rets.iloc[meta["warmup"]:]  # elimina solo il warmup; gli zeri economici restano
+    equity = (1.0 + rets).cumprod()
+    std = float(rets.std())
+    sharpe = float(rets.mean() / std * np.sqrt(PPY)) if np.isfinite(std) and std > 0 else 0.0
+    agg = {"total_return": round(float(equity.iloc[-1] - 1), 4) if len(equity) else 0.0,
            "sharpe": round(sharpe, 2),
-           "max_drawdown": round(float((equity / equity.cummax() - 1).min()), 4),
+           "max_drawdown": round(float((equity / equity.cummax() - 1).min()), 4)
+           if len(equity) else 0.0,
            "rebalances": meta["rebalances"]}
-    return agg, rets.loc[rets != 0]
+    return agg, rets
 
 
 # ---------------------------------------------------------------- validazione
