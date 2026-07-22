@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29941239260-1",
-  "generated_at": "2026-07-22T17:14:17.041207+00:00",
+  "run_id": "29945546218-1",
+  "generated_at": "2026-07-22T18:14:16.040363+00:00",
   "component": "liqimb-port-v1-signal-eligible",
   "critical": true,
   "expected_count": 9,
