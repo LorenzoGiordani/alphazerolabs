@@ -30,6 +30,7 @@ jobs:
           tests/test_dashboard_integrity.py
           tests/test_propr_evidence_gate.py
           tests/test_propr_guard.py
+          tests/test_propr_competition.py
           tests/test_lifecycle_rules.py
           tests/test_live_cache.py
           tests/test_runtime_coverage.py
