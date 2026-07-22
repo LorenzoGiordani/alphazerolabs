@@ -64,5 +64,10 @@ def test_dashboard_uses_sp500_benchmark(monkeypatch):
         "px_start": 99.0, "px_now": 105.0,
     }
     template = (Path(__file__).resolve().parent.parent / "dashboard/template.html").read_text()
-    assert "andamento dell\\'S&amp;P 500" in template
+    assert "rendimento assoluto" in template
+    assert "const benchmarkUsd=base*b.pct/100" in template
+    assert "const diffUsd=wr-benchmarkUsd" in template
+    assert "signedUsd(benchmarkUsd)" in template
+    assert "signedUsd(diffUsd)" in template
+    assert "lo stesso capitale sull\\'S&amp;P 500" in template
     assert "comprare e tenere Bitcoin" not in template
