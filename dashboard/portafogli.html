@@ -1162,17 +1162,18 @@ h1,h2,h3,h4,
     const host=$('#verdict'); if(!host) return;
     const accs=DATA.accounts||[]; if(!accs.length){ host.innerHTML=''; return; }
     const base=accs.length*10000, eq=accs.reduce((s,a)=>s+(a.equity||0),0);
-    const pct=(eq/base-1)*100;
-    let txt;
-    if(pct>=1) txt='Il sistema è in attivo del <b class="pos">'+NF1.format(pct)+'%</b> dall\'avvio.';
-    else if(pct<=-1) txt='Il sistema è sotto del <b class="neg">'+NF1.format(Math.abs(pct))+'%</b> dall\'avvio: normale in questa fase, l\'edge si misura su mesi, non su giorni.';
-    else txt='Il sistema è vicino al pareggio (<b>'+pctSigned(pct)+'</b>) dall\'avvio: normale in questa fase, l\'edge si misura su mesi, non su giorni.';
+    const wr=eq-base, pct=wr/base*100;
+    const txt='Su <b>'+usd(base)+'</b> iniziali, AlphaZero Labs vale <b>'+usd(eq)+'</b>: rendimento assoluto '+
+      '<b class="'+clsOf(wr)+'">'+signedUsd(wr)+'</b> (<b class="'+clsOf(pct)+'">'+pctSigned(pct)+'</b>) dall\'avvio.';
     const b=DATA.benchmark; let bench='';
     if(b&&isFinite(b.pct)){
       const diff=pct-b.pct;
-      bench=' Nello stesso periodo, l\'andamento dell\'S&amp;P 500 ha segnato <b class="'+clsOf(b.pct)+'">'+pctSigned(b.pct)+'</b>: il sistema è '+
-        (diff>=0?'<b class="pos">'+NF1.format(diff)+' punti sopra</b>':'<b class="neg">'+NF1.format(Math.abs(diff))+' punti sotto</b>')+
-        ' quel riferimento.';
+      const benchmarkUsd=base*b.pct/100;
+      const diffUsd=wr-benchmarkUsd;
+      bench=' Nello stesso periodo, lo stesso capitale sull\'S&amp;P 500 varrebbe <b>'+usd(base+benchmarkUsd)+'</b>: rendimento '+
+        '<b class="'+clsOf(benchmarkUsd)+'">'+signedUsd(benchmarkUsd)+'</b> (<b class="'+clsOf(b.pct)+'">'+pctSigned(b.pct)+'</b>). '+
+        'Scarto dal benchmark: <b class="'+clsOf(diffUsd)+'">'+signedUsd(diffUsd)+'</b> ('+
+        (diff>=0?NF1.format(diff)+' punti sopra':NF1.format(Math.abs(diff))+' punti sotto')+').';
     }
     host.innerHTML='<div class="verdict-row">'+txt+bench+'</div>';
   }
