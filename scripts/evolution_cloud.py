@@ -576,7 +576,9 @@ def generate_openrouter_proposal(input_dir: str | Path, out_dir: str | Path) -> 
         "Sei l'Evolution Maker L2. Produci una sola mutazione one-shot oppure BLOCKED. "
         "Non hai accesso ai dati del nuovo backtest. Non introdurre segnali, codice, fonti, "
         "universi o risk knob; usa soltanto il registry chiuso del contratto. La proposta deve "
-        "implementare fedelmente la preregistrazione, non inseguire un risultato.\n\n"
+        "implementare fedelmente la preregistrazione, non inseguire un risultato. Se outcome e "
+        "CANDIDATE, il campo thesis deve contenere letteralmente 'Falsificata se:' seguito da "
+        "una condizione misurabile.\n\n"
         f"CONTRATTO:\n{contract}\n\nCONTESTO IMMUTABILE:\n{_canonical_json(context)}"
     )
     value, search, usage, model = research_cloud._openrouter_chat(
