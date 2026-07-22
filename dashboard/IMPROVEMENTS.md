@@ -29,7 +29,7 @@ Ordine di implementazione consigliato: 1 → 3 → 4 → 5 → 2, poi il resto.
   sulla legenda per accendere/spegnere. La legenda diventa indice dei conti.
 
 - [x] **5. Numeri negativi con contesto** — "P&L −2454 $, win 29%" spaventa e basta.
-  (a) benchmark affiancato: "vs comprare-e-tenere BTC: −8,1%";
+  (a) benchmark affiancato: "vs andamento S&P 500: −8,1%";
   (b) riga verdetto in linguaggio piano: "il sistema è sotto del 2,4% dall'avvio:
   normale in questa fase, l'edge si misura su mesi".
 

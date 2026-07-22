@@ -35,3 +35,34 @@ def test_open_dashboard_rechecks_health_freshness():
     assert "setInterval(renderHealth, 60000)" in template
     assert "host.hidden=status==='healthy'||status==='degraded'" in template
     assert "#health-banner[hidden]{ display:none; }" in template
+
+
+def test_dashboard_uses_sp500_benchmark(monkeypatch):
+    import pandas as pd
+    import pipeline.live as live
+    import scripts.dashboard as dashboard
+
+    candles = pd.DataFrame({
+        "ts": pd.to_datetime(["2026-01-01T15:00Z", "2026-01-02T15:00Z",
+                              "2026-01-03T15:00Z"]),
+        "close": [99.0, 100.0, 105.0],
+    })
+    calls = []
+
+    def fake_fetch(symbol, lookback_h):
+        calls.append((symbol, lookback_h))
+        return {"candles": candles}
+
+    monkeypatch.setattr(live, "fetch_live_cached", fake_fetch)
+    result = dashboard.benchmark_sp500([
+        {"equity_curve": [["2026-01-02 12:00", 10_000.0]]},
+    ])
+
+    assert calls == [("xyz_SP500", 1200)]
+    assert result == {
+        "symbol": "SP500", "start": "2026-01-02 12:00", "pct": 6.06,
+        "px_start": 99.0, "px_now": 105.0,
+    }
+    template = (Path(__file__).resolve().parent.parent / "dashboard/template.html").read_text()
+    assert "andamento dell\\'S&amp;P 500" in template
+    assert "comprare e tenere Bitcoin" not in template

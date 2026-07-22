@@ -650,33 +650,35 @@ def portfolio_live_view(state: dict) -> list[dict]:
     return out
 
 
-def benchmark_btc(accounts: list[dict]) -> dict | None:
-    """Benchmark "comprare e tenere BTC" sullo stesso periodo dei conti paper
-    (punto 5 IMPROVEMENTS): variazione % di BTC dal primo heartbeat a ora.
-    Da\u0300 contesto ai numeri assoluti: -2% col BTC a -8% e\u0300 una storia diversa
-    da -2% col BTC a +10%. Errori dati -> None, mai bloccante."""
+def benchmark_sp500(accounts: list[dict]) -> dict | None:
+    """Benchmark "comprare e tenere S&P 500" sul periodo dei conti paper.
+
+    xyz_SP500 riusa il percorso Yahoo Finance esistente verso l'indice ^GSPC.
+    Il prezzo iniziale e' l'ultima chiusura disponibile non successiva all'avvio,
+    cosi' notti e weekend non introducono lookahead. Errori dati -> None.
+    """
     starts = [a["equity_curve"][0][0] for a in accounts if a.get("equity_curve")]
     if not starts:
         return None
     start = min(starts)
     try:
         from pipeline.live import fetch_live_cached
-        c = fetch_live_cached("BTC", lookback_h=1200)["candles"]
+        c = fetch_live_cached("xyz_SP500", lookback_h=1200)["candles"]
         import pandas as pd
         ts = pd.to_datetime(c["ts"])
         if getattr(ts.dt, "tz", None) is not None:
             ts = ts.dt.tz_localize(None)
-        after = c.loc[(ts >= pd.Timestamp(start)).values, "close"]
-        if after.empty:
+        through_start = c.loc[(ts <= pd.Timestamp(start)).values, "close"]
+        if through_start.empty:
             return None
-        px0, px1 = float(after.iloc[0]), float(c["close"].iloc[-1])
+        px0, px1 = float(through_start.iloc[-1]), float(c["close"].iloc[-1])
         if px0 <= 0:
             return None
-        return {"symbol": "BTC", "start": start,
+        return {"symbol": "SP500", "start": start,
                 "pct": round((px1 / px0 - 1) * 100, 2),
                 "px_start": round(px0, 0), "px_now": round(px1, 0)}
     except Exception as e:
-        print(f"[dashboard] benchmark BTC saltato: {e}", file=sys.stderr)
+        print(f"[dashboard] benchmark S&P 500 saltato: {e}", file=sys.stderr)
         return None
 
 
@@ -1123,7 +1125,7 @@ def build_data() -> dict:
     ids = {n["id"] for n in lineage} | set(state) | {s["id"] for s in strategies}
     ids |= {s.get("id") for s in (backtests.get("strategies") or []) if isinstance(s, dict)}
     data["labels"] = {i: friendly_label(i) for i in ids if i}
-    data["benchmark"] = benchmark_btc(accounts)
+    data["benchmark"] = benchmark_sp500(accounts)
     data["digest"] = build_digest(data)
     data["propr"] = build_propr()
     return data

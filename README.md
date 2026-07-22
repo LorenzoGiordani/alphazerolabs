@@ -356,7 +356,7 @@ Implementati 8 dei 12 punti dell'audit UI/UX (`dashboard/IMPROVEMENTS.md`, spunt
 - **Nav a 2 livelli** — da 13 voci tecniche a 4 gruppi (Oggi · Strategie · Diario · Contesto) con riga secondaria del gruppo attivo; mobile 375px ok.
 - **Nomi amichevoli ovunque** — `friendly_label()` + mappa `labels` nel data: albero evolutivo, lifecycle, backtest e legenda mostrano il nome, l'id tecnico vive nel tooltip.
 - **Equity aggregata senza spaghetti** — default top 3 + peggiori 3, le altre curve si accendono dalla legenda.
-- **Benchmark & verdetto** — "comprare e tenere BTC" sullo stesso periodo + riga verdetto in linguaggio piano sotto i KPI.
+- **Benchmark & verdetto** — andamento dell'S&P 500 sullo stesso periodo + riga verdetto in linguaggio piano sotto i KPI.
 - **Card conti compatte** (riga + sparkline, chart lazy all'apertura), **glossario inline** (tooltip su dollar-neutral, drawdown, sharpe…), **timestamp relativi**, **tooltip badge feed**.
 - **Albero evolutivo orizzontale** (07/07) — una card per famiglia con contatore ("12 generazioni · 4 attive · 8 ritirate"), collapse nativo (le famiglie tutte ritirate partono chiuse), nodi pill colorati per status, dentro la famiglia resta solo la generazione (g2.g1…), dettagli nel tooltip.
 
