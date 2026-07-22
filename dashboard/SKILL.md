@@ -27,7 +27,7 @@ rest as JSON. Top-level keys:
 | `lessons` | Post-mortem lessons journal — including honestly falsified research |
 | `lineage` / `lifecycle` | Evolutionary tree: which strategy mutated from which, promotions/retirements |
 | `backtests` | Honest walk-forward backtests (fees+slippage included) of active strategies |
-| `benchmark` | Buy-and-hold BTC comparison over the same period |
+| `benchmark` | S&P 500 price-index comparison over the same period |
 | `portfolio_live` | Current open positions of the portfolio engines |
 | `digest` | Plain-language summary of what happened today |
 | `health` | Runtime manifest: critical/optional outcomes, freshness and `publish_allowed` |
