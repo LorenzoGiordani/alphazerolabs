@@ -119,6 +119,53 @@ def test_checker_fails_closed_without_independent_search(tmp_path, monkeypatch):
         raise AssertionError("Checker doveva fallire senza ricerca indipendente")
 
 
+def test_checker_records_reject_when_independent_search_omits_maker_source(tmp_path, monkeypatch):
+    _patch_common(monkeypatch)
+    monkeypatch.setattr(rp, "build_pack", lambda **_kwargs: _pack())
+    responses = iter([
+        (_maker_value(), [{"link": SOURCE}], {}, "glm-5.1"),
+        (_checker_value(), [{"link": "https://example.org/different"}], {}, "glm-5.1"),
+    ])
+    monkeypatch.setattr(cloud, "_zai_chat", lambda *_args, **_kwargs: next(responses))
+    cloud.run_maker(tmp_path / "state.json", tmp_path / "maker")
+
+    result = cloud.run_checker(tmp_path / "maker", tmp_path / "checker")
+
+    checker = json.loads((tmp_path / "checker/checker.json").read_text())
+    assert result["verdict"] == "REJECT"
+    assert checker["verdict"] == "REJECT"
+    assert checker["checks"]["source_quality"] is False
+    assert checker["blockers"] == [
+        f"Fonte Maker non riattestata dalla ricerca web indipendente: {SOURCE}"
+    ]
+    assert json.loads((tmp_path / "checker/checker-search.json").read_text()) == [
+        {"link": "https://example.org/different"}
+    ]
+    assert json.loads((tmp_path / "checker/metadata.json").read_text())["search_result_count"] == 1
+
+
+def test_checker_does_not_mask_invalid_schema_with_search_mismatch(tmp_path, monkeypatch):
+    _patch_common(monkeypatch)
+    monkeypatch.setattr(rp, "build_pack", lambda **_kwargs: _pack())
+    invalid_checker = _checker_value()
+    invalid_checker.pop("checks")
+    responses = iter([
+        (_maker_value(), [{"link": SOURCE}], {}, "glm-5.1"),
+        (invalid_checker, [{"link": "https://example.org/different"}], {}, "glm-5.1"),
+        (invalid_checker, [{"link": "https://example.org/different"}], {}, "glm-5.1"),
+    ])
+    monkeypatch.setattr(cloud, "_zai_chat", lambda *_args, **_kwargs: next(responses))
+    cloud.run_maker(tmp_path / "state.json", tmp_path / "maker")
+
+    try:
+        cloud.run_checker(tmp_path / "maker", tmp_path / "checker")
+    except RuntimeError as exc:
+        assert "checker chiavi invalide" in str(exc)
+    else:
+        raise AssertionError("Uno schema Checker invalido deve restare un errore operativo")
+    assert not (tmp_path / "checker/checker.json").exists()
+
+
 def test_zai_request_uses_general_api_and_web_search(monkeypatch):
     captured = {}
 
