@@ -156,7 +156,7 @@ def test_client_setup_competition_uses_exact_owned_account(monkeypatch):
     def request(method, path, **kwargs):
         calls.append((method, path, kwargs))
         if path == "/accounts/competition-1":
-            return {"accountId": "competition-1", "balance": "50000"}
+            return {"accountId": "urn:prp-account:competition-1", "balance": "50000"}
         if path == "/competitions/lighter-propr-trading-tournament":
             return _attempt()["competition"]
         raise AssertionError(path)
@@ -180,6 +180,7 @@ def test_client_setup_competition_uses_exact_owned_account(monkeypatch):
     [
         ([], "account competition non accessibile"),
         ({}, "account competition non accessibile"),
+        ({"balance": "50000"}, "account competition inatteso"),
         ({"accountId": "other", "balance": "50000"}, "account competition inatteso"),
     ],
 )
