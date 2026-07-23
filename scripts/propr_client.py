@@ -37,27 +37,74 @@ class ProprClient:
         return r.json()
 
     def setup(self, *, expected_account_id: str | None = None,
-              expected_challenge_slug: str | None = None) -> str:
-        """Trova e, quando richiesto, vincola la challenge attempt attiva."""
-        attempts = self._req("GET", "/challenge-attempts", params={"status": "active"}).get("data", [])
-        if not attempts:
-            raise ProprError("nessuna challenge attiva")
-
-        if expected_challenge_slug:
-            attempts = [
-                a for a in attempts
-                if a.get("challenge", {}).get("slug") == expected_challenge_slug
+              expected_challenge_slug: str | None = None,
+              expected_competition_id: str | None = None,
+              expected_competition_slug: str | None = None) -> str:
+        """Trova e vincola l'account attivo challenge oppure competition."""
+        if expected_competition_id or expected_competition_slug:
+            if not (expected_account_id and expected_competition_id
+                    and expected_competition_slug):
+                raise ProprError("pin competition incompleto")
+            payload = self._req(
+                "GET", "/competition-participations", params={"limit": -1},
+            )
+            if not isinstance(payload, dict):
+                raise ProprError("risposta participation competition non valida")
+            participations = payload.get("data", [])
+            if not isinstance(participations, list):
+                raise ProprError("risposta participation competition non valida")
+            matches = [
+                item for item in participations
+                if isinstance(item, dict)
+                and item.get("accountId") == expected_account_id
+                and item.get("competitionId") == expected_competition_id
             ]
+            if len(matches) != 1:
+                raise ProprError(
+                    f"partecipazione competition attesa non trovata: "
+                    f"{expected_competition_id}/{expected_account_id}"
+                )
+            competition = self._req(
+                "GET", f"/competitions/{expected_competition_slug}",
+            )
+            if not isinstance(competition, dict):
+                raise ProprError("metadati competition non validi")
+            attempt = {
+                **matches[0],
+                "competition": competition,
+                "challenge": {
+                    "slug": f"competition:{expected_competition_slug}",
+                    "initialBalance": competition.get("initialBalance"),
+                },
+            }
+        else:
+            attempts = self._req(
+                "GET", "/challenge-attempts", params={"status": "active"},
+            ).get("data", [])
             if not attempts:
-                raise ProprError(f"challenge attiva attesa non trovata: {expected_challenge_slug}")
-        if expected_account_id:
-            attempts = [a for a in attempts if a.get("accountId") == expected_account_id]
-            if len(attempts) != 1:
-                raise ProprError(f"account attivo atteso non trovato: {expected_account_id}")
+                raise ProprError("nessuna challenge attiva")
 
-        attempt = attempts[0]
+            if expected_challenge_slug:
+                attempts = [
+                    a for a in attempts
+                    if a.get("challenge", {}).get("slug") == expected_challenge_slug
+                ]
+                if not attempts:
+                    raise ProprError(
+                        f"challenge attiva attesa non trovata: {expected_challenge_slug}"
+                    )
+            if expected_account_id:
+                attempts = [
+                    a for a in attempts if a.get("accountId") == expected_account_id
+                ]
+                if len(attempts) != 1:
+                    raise ProprError(
+                        f"account attivo atteso non trovato: {expected_account_id}"
+                    )
+            attempt = attempts[0]
+
         if attempt.get("status") != "active":
-            raise ProprError(f"challenge non attiva: {attempt.get('status')}")
+            raise ProprError(f"account non attivo: {attempt.get('status')}")
         self.active_attempt = attempt
         self.account_id = attempt["accountId"]
         return self.account_id
