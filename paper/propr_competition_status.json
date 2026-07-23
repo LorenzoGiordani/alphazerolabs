@@ -1,10 +1,10 @@
 {
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "mode": "error",
- "note": "ProprError: partecipazione competition attesa non trovata: urn:prp-competition:XSLPfvuHDUtT/SzSKErmBBPN6",
+ "note": "ProprError: account competition inatteso: urn:prp-account:SzSKErmBBPN6",
  "official_candidate": false,
  "paper_only": true,
  "state": {},
  "strategy": "tsmom-neutral-tournament-20260723-v1",
- "updated_at": "2026-07-23T18:25:34.618065+00:00"
+ "updated_at": "2026-07-23T18:32:28.021214+00:00"
 }
