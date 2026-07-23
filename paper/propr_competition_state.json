@@ -5,37 +5,35 @@
  "day_date": "2026-07-23",
  "day_start_equity": 50000.0,
  "expected_assets": [
-  "BTC",
-  "NEAR"
+  "NEAR",
+  "XRP"
  ],
  "expected_quantities": {
-  "BTC": "1.832",
-  "NEAR": "25311.7"
+  "NEAR": "25166.3",
+  "XRP": "42731.2"
  },
  "expected_sides": {
-  "BTC": "long",
-  "NEAR": "short"
+  "NEAR": "short",
+  "XRP": "long"
  },
  "halt_kind": "",
  "halt_reason": "",
  "halted_today": false,
- "high_water_mark": 50056.86032,
- "last_equity": 49954.280551,
- "last_manage_ts": "2026-07-23T22:11:10.351105+00:00",
- "last_rebalance_ts": "2026-07-23T20:05:35.615920+00:00",
+ "high_water_mark": 50157.444185,
+ "last_equity": 50108.646681,
+ "last_manage_ts": "2026-07-23T23:05:11.972192+00:00",
+ "last_rebalance_ts": "2026-07-23T23:05:11.972192+00:00",
  "last_target": {
-  "BTC": 118750.0,
-  "NEAR": -47500.0
+  "NEAR": -47500.0,
+  "XRP": 47500.0
  },
  "migration": {
-  "completed_at": "2026-07-23T20:05:35.615920+00:00",
+  "completed_at": "2026-07-23T23:05:11.972192+00:00",
   "forced_rebalance": false,
-  "from": "tsmom-neutral-tournament-20260723-v1",
-  "phase": "complete",
-  "prepared_at": "2026-07-23T20:04:22.670428+00:00",
-  "to": "tsmom-abs2-tournament-20260723-v2"
+  "from": "tsmom-abs2-tournament-20260723-v2",
+  "to": "xsmom-neutral2-tournament-20260724-v3"
  },
  "permanently_halted": false,
- "strategy": "tsmom-abs2-tournament-20260723-v2",
+ "strategy": "xsmom-neutral2-tournament-20260724-v3",
  "version": "propr-competition-state-v2"
 }
