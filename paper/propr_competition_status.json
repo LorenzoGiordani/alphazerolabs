@@ -5,26 +5,26 @@
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.15,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 49905.82,
+ "equity": 49982.98,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 4.75,
  "margin_utilization": 0.95,
- "mode": "manage",
- "note": "rebalance",
+ "mode": "check",
+ "note": "preflight API read-only; status locale aggiornato",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
    "asset": "NEAR",
-   "notional": 47631.28,
+   "notional": 47702.43,
    "side": "short",
-   "unrealized_pnl": 0.0
+   "unrealized_pnl": -71.15
   },
   {
    "asset": "BTC",
-   "notional": 118966.42,
+   "notional": 119124.88,
    "side": "long",
-   "unrealized_pnl": 0.0
+   "unrealized_pnl": 158.47
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -71,5 +71,5 @@
  },
  "strategy": "tsmom-abs2-tournament-20260723-v2",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-23T20:05:51.020515+00:00"
+ "updated_at": "2026-07-23T20:08:31.885795+00:00"
 }
