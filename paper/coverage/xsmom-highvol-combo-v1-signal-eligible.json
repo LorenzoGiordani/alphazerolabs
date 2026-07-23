@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "30014600004-1",
-  "generated_at": "2026-07-23T14:14:47.183283+00:00",
+  "run_id": "30019317707-1",
+  "generated_at": "2026-07-23T15:14:17.574422+00:00",
   "component": "xsmom-highvol-combo-v1-signal-eligible",
   "critical": false,
   "expected_count": 132,
