@@ -336,6 +336,7 @@ def _fresh_state(account_id: str, equity: float, now: datetime) -> dict:
         "expected_assets": [],
         "expected_sides": {},
         "expected_quantities": {},
+        "stop_receipts": {},
     }
 
 
@@ -406,10 +407,13 @@ def _validate_state(state: dict, account_id: str) -> None:
     expected_sides = state.get("expected_sides")
     expected_quantities = state.get("expected_quantities")
     last_target = state.get("last_target")
+    stop_receipts = state.get("stop_receipts", {})
     if not isinstance(expected_assets, list) or not isinstance(expected_sides, dict):
         raise ProprError("stato competition book atteso non valido")
     if not isinstance(expected_quantities, dict) or not isinstance(last_target, dict):
         raise ProprError("stato competition sizing atteso non valido")
+    if not isinstance(stop_receipts, dict):
+        raise ProprError("stato competition receipt stop non valido")
     expected_keys = set(expected_sides)
     if expected_keys - set(SYMBOLS) or sorted(expected_assets) != sorted(expected_keys):
         raise ProprError("stato competition asset attesi incoerenti")
@@ -434,6 +438,34 @@ def _validate_state(state: dict, account_id: str) -> None:
         target_net += target
         has_long = has_long or target > 0
         has_short = has_short or target < 0
+    if stop_receipts and set(stop_receipts) != expected_keys:
+        raise ProprError("stato competition receipt stop incompleti")
+    for asset, receipt in stop_receipts.items():
+        if not isinstance(receipt, dict) or set(receipt) != {
+            "orderId", "intentId", "positionId", "asset", "quantity", "trigger",
+        }:
+            raise ProprError(f"stato competition receipt stop malformato: {asset}")
+        if receipt["asset"] != asset or any(
+            not isinstance(receipt.get(key), str) or not receipt[key]
+            for key in ("orderId", "intentId", "positionId")
+        ):
+            raise ProprError(f"stato competition receipt stop incoerente: {asset}")
+        quantity = _decimal(receipt["quantity"], f"receipt quantity {asset}")
+        trigger = _decimal(receipt["trigger"], f"receipt trigger {asset}")
+        expected_quantity = _decimal(
+            expected_quantities[asset],
+            f"state quantity {asset}",
+        )
+        quantity_tolerance = max(
+            Decimal("0.00000001"),
+            expected_quantity * QUANTITY_REL_TOL,
+        )
+        if (
+            quantity <= 0
+            or trigger <= 0
+            or abs(quantity - expected_quantity) > quantity_tolerance
+        ):
+            raise ProprError(f"stato competition receipt stop numerico: {asset}")
     margin_cap = EXPECTED_INITIAL_BALANCE * MARGIN_UTILIZATION
     if target_margin > margin_cap + Decimal("1"):
         raise ProprError("stato competition margin target oltre cap")
@@ -683,6 +715,23 @@ def _looks_like_native_stop(order: dict) -> bool:
     )
 
 
+def _stop_receipt(position: dict, order: dict) -> dict:
+    return {
+        "orderId": str(order["orderId"]),
+        "intentId": str(order["intentId"]),
+        "positionId": str(position["positionId"]),
+        "asset": str(position["base"]),
+        "quantity": format(
+            abs(_decimal(position["quantity"], "quantity receipt stop")),
+            "f",
+        ),
+        "trigger": format(
+            _decimal(order["triggerPrice"], "trigger receipt stop"),
+            "f",
+        ),
+    }
+
+
 def _cancel_orders(client: ProprClient, orders: list[dict], reason: str) -> None:
     if len(orders) > MAX_CANCELS:
         raise ProprError(f"cancellazioni competition oltre cap: {len(orders)}")
@@ -699,7 +748,20 @@ def _cancel_orders(client: ProprClient, orders: list[dict], reason: str) -> None
         _append_journal({"type": "cancel_orders", "actions": actions})
 
 
-def _create_missing_stops(client: ProprClient, positions: list[dict]) -> list[dict]:
+def _create_missing_stops(
+    client: ProprClient,
+    positions: list[dict],
+    *,
+    state: dict | None = None,
+) -> list[dict]:
+    existing_receipts = (state or {}).get("stop_receipts") or {}
+    for position in positions:
+        asset = str(position.get("base", ""))
+        receipt = existing_receipts.get(asset)
+        if receipt and str(receipt.get("positionId", "")) != str(
+            position.get("positionId", "")
+        ):
+            raise ProprError(f"positionId cambiato rispetto al receipt stop: {asset}")
     active_orders = client.get_active_orders()
     keep_ids: set[str] = set()
     protected_position_ids: set[str] = set()
@@ -760,16 +822,20 @@ def _create_missing_stops(client: ProprClient, positions: list[dict]) -> list[di
     _cancel_orders(client, stale, "stale_or_duplicate_stop")
 
     verified_orders = client.get_active_orders()
+    receipts = {}
     for position in positions:
         exact = [order for order in verified_orders if _is_exact_protection(position, order)]
         if len(exact) != 1:
             raise ProprError(f"copertura stop non verificata per {position['base']}: {len(exact)}")
+        receipts[str(position["base"])] = _stop_receipt(position, exact[0])
     unexpected = [
         order for order in verified_orders
         if not any(_is_exact_protection(position, order) for position in positions)
     ]
     if unexpected:
         raise ProprError(f"ordini attivi inattesi dopo guard: {len(unexpected)}")
+    if state is not None:
+        state["stop_receipts"] = receipts
     return actions
 
 
@@ -966,7 +1032,7 @@ def _roll_day(state: dict, positions: list[dict], equity: float, now: datetime) 
         state.update({"halted_today": False, "halt_kind": "", "halt_reason": "",
                       "last_rebalance_ts": "", "expected_assets": [],
                       "expected_sides": {}, "expected_quantities": {},
-                      "last_target": {}})
+                      "last_target": {}, "stop_receipts": {}})
 
 
 def _set_halt(state: dict, reason: str, *, permanent: bool) -> None:
@@ -977,7 +1043,14 @@ def _set_halt(state: dict, reason: str, *, permanent: bool) -> None:
         state["permanently_halted"] = True
 
 
-def _risk_reason(state: dict, positions: list[dict], equity: float, now: datetime) -> tuple[str, bool]:
+def _risk_reason(
+    state: dict,
+    positions: list[dict],
+    equity: float,
+    now: datetime,
+    *,
+    native_stop_filled: bool = False,
+) -> tuple[str, bool]:
     if now >= FLATTEN_AT:
         return ("scheduled_end_flatten" if now < END_AT else "competition_ended", True)
     if state.get("permanently_halted"):
@@ -996,6 +1069,8 @@ def _risk_reason(state: dict, positions: list[dict], equity: float, now: datetim
         return (str(state.get("halt_reason") or "daily_halt"),
                 state.get("halt_kind") != "daily")
     if not _leverage_migration_pending(state) and _book_drift(state, positions):
+        if native_stop_filled:
+            return ("native_stop_filled", False)
         return ("native_stop_or_external_drift", True)
     return ("", False)
 
@@ -1019,7 +1094,8 @@ def _recover_after_write(client: ProprClient, state: dict, now: datetime,
                          reason: str, error: Exception) -> None:
     _set_halt(state, reason, permanent=True)
     state.update({"expected_assets": [], "expected_sides": {}, "expected_quantities": {},
-                  "last_target": {}, "last_manage_ts": now.isoformat()})
+                  "last_target": {}, "stop_receipts": {},
+                  "last_manage_ts": now.isoformat()})
     recovery_errors = []
     recovered = False
     for attempt in range(1, RECOVERY_ATTEMPTS + 1):
@@ -1141,6 +1217,240 @@ def _active_runtime_errors(
     return _runtime_book_errors(state, positions, orders)
 
 
+def _surviving_book_matches(state: dict, positions: list[dict]) -> bool:
+    expected_assets = set(state.get("expected_sides") or {})
+    current_assets = [str(position.get("base", "")) for position in positions]
+    current_set = set(current_assets)
+    if (
+        not expected_assets
+        or len(current_assets) != len(current_set)
+        or not current_set < expected_assets
+    ):
+        return False
+    survivor_state = dict(state)
+    survivor_state["expected_assets"] = sorted(current_set)
+    survivor_state["expected_sides"] = {
+        asset: state["expected_sides"][asset] for asset in current_set
+    }
+    survivor_state["expected_quantities"] = {
+        asset: state["expected_quantities"][asset] for asset in current_set
+    }
+    survivor_state["last_target"] = {
+        asset: state["last_target"][asset] for asset in current_set
+    }
+    return not _book_drift(survivor_state, positions)
+
+
+def _account_id_matches(observed: object, expected: object) -> bool:
+    observed_id = str(observed or "")
+    expected_id = str(expected or "")
+    if not observed_id or not expected_id:
+        return False
+    prefix = "urn:prp-account:"
+    allowed = {expected_id}
+    if expected_id.startswith(prefix):
+        allowed.add(expected_id.removeprefix(prefix))
+    else:
+        allowed.add(f"{prefix}{expected_id}")
+    return observed_id in allowed
+
+
+def _filled_stop_at(
+    receipt: dict,
+    order: dict,
+    last_rebalance: datetime,
+    account_id: str,
+    expected_position_side: str,
+) -> datetime | None:
+    try:
+        quantity = _decimal(receipt["quantity"], "receipt quantity stop filled")
+        trigger = _decimal(receipt["trigger"], "receipt trigger stop filled")
+        order_quantity = _decimal(order.get("quantity"), "quantity stop filled")
+        cumulative_quantity = _decimal(
+            order.get("cumulativeQuantity"),
+            "cumulative stop filled",
+        )
+        average_fill_price = _decimal(
+            order.get("averageFillPrice"),
+            "averageFillPrice stop",
+        )
+        order_trigger = _decimal(
+            order.get("triggerPrice"),
+            "trigger stop filled",
+        )
+        filled_at = _timestamp(order.get("filledAt"), "filledAt stop")
+    except (KeyError, ProprError):
+        return None
+    closing_side = "sell" if expected_position_side == "long" else "buy"
+    order_position_side = "short" if closing_side == "sell" else "long"
+    if not (
+        order.get("status") == "filled"
+        and _looks_like_native_stop(order)
+        and _account_id_matches(order.get("accountId"), account_id)
+        and str(order.get("orderId", "")) == receipt.get("orderId")
+        and str(order.get("intentId", "")) == receipt.get("intentId")
+        and str(order.get("positionId", "")) == receipt.get("positionId")
+        and str(order.get("asset", "")) == receipt.get("asset")
+        and str(order.get("side", "")).lower() == closing_side
+        and str(order.get("positionSide", "")).lower() == order_position_side
+        and order_quantity == quantity
+        and cumulative_quantity == quantity
+        and average_fill_price > 0
+        and order_trigger == trigger
+        and filled_at > last_rebalance
+    ):
+        return None
+    return filled_at
+
+
+def _filled_stop_trades_match(
+    receipt: dict,
+    order: dict,
+    trades: list[dict],
+    last_rebalance: datetime,
+    filled_at: datetime,
+    account_id: str,
+    expected_position_side: str,
+) -> bool:
+    if not trades:
+        return False
+    total_quantity = Decimal("0")
+    closing_side = "sell" if expected_position_side == "long" else "buy"
+    try:
+        for trade in trades:
+            executed_at = _timestamp(trade.get("executedAt"), "executedAt stop")
+            quantity = abs(_decimal(trade.get("quantity"), "trade quantity stop"))
+            if not (
+                _account_id_matches(trade.get("accountId"), account_id)
+                and str(trade.get("orderId", "")) == receipt.get("orderId")
+                and str(trade.get("positionId", "")) == receipt.get("positionId")
+                and str(trade.get("asset", "")) == receipt.get("asset")
+                and str(trade.get("side", "")).lower() == closing_side
+                and str(trade.get("positionSide", "")).lower()
+                == expected_position_side
+                and trade.get("type") in ("reduce", "close")
+                and trade.get("isLiquidation") is False
+                and quantity > 0
+                and last_rebalance < executed_at <= filled_at
+            ):
+                return False
+            total_quantity += quantity
+    except ProprError:
+        return False
+    return total_quantity == _decimal(
+        order.get("cumulativeQuantity"),
+        "cumulative quantity trade stop",
+    )
+
+
+def _stopped_position_is_zero(
+    receipt: dict,
+    records: list[dict],
+    account_id: str,
+) -> bool:
+    if len(records) != 1:
+        return False
+    position = records[0]
+    try:
+        quantity = abs(_decimal(
+            position.get("quantity"),
+            "quantity posizione stop filled",
+        ))
+    except ProprError:
+        return False
+    return bool(
+        _account_id_matches(position.get("accountId"), account_id)
+        and str(position.get("positionId", "")) == receipt.get("positionId")
+        and str(position.get("asset", "")) == receipt.get("asset")
+        and position.get("status") in ("open", "closed")
+        and quantity == 0
+    )
+
+
+def _native_stop_filled(
+    client: ProprClient,
+    state: dict,
+    positions: list[dict],
+    active_orders: list[dict],
+) -> bool:
+    if (
+        state.get("strategy") != STRATEGY_ID
+        or _leverage_migration_pending(state)
+        or not _book_drift(state, positions)
+        or not _surviving_book_matches(state, positions)
+        or _runtime_book_errors(state, positions, active_orders)
+        != ["book side/assets diverge dallo stato"]
+    ):
+        return False
+    receipts = state.get("stop_receipts") or {}
+    missing_assets = set(state["expected_sides"]) - {
+        str(position["base"]) for position in positions
+    }
+    if not missing_assets or not missing_assets <= set(receipts):
+        return False
+    account_id = getattr(client, "account_id", "")
+    if not account_id:
+        return False
+    try:
+        last_rebalance = _timestamp(
+            state.get("last_rebalance_ts"),
+            "last_rebalance_ts stop",
+        )
+    except ProprError:
+        return False
+    for asset in missing_assets:
+        receipt = receipts[asset]
+        try:
+            filled_orders = client.get_orders(
+                status="filled",
+                order_id=receipt["orderId"],
+            )
+        except (KeyError, ProprError):
+            return False
+        matches = []
+        for order in filled_orders:
+            filled_at = _filled_stop_at(
+                receipt,
+                order,
+                last_rebalance,
+                account_id,
+                state["expected_sides"][asset],
+            )
+            if filled_at is not None:
+                matches.append((order, filled_at))
+        if len(matches) != 1:
+            return False
+        try:
+            trades = client.get_trades(order_id=receipt["orderId"])
+        except ProprError:
+            return False
+        if not _filled_stop_trades_match(
+            receipt,
+            matches[0][0],
+            trades,
+            last_rebalance,
+            matches[0][1],
+            account_id,
+            state["expected_sides"][asset],
+        ):
+            return False
+        try:
+            stopped_positions = client.get_positions(
+                status=None,
+                position_id=receipt["positionId"],
+                include_zero=True,
+            )
+        except ProprError:
+            return False
+        if not _stopped_position_is_zero(
+            receipt,
+            stopped_positions,
+            account_id,
+        ):
+            return False
+    return True
+
+
 def _validate_legacy_runtime(
     state: dict,
     positions: list[dict],
@@ -1179,7 +1489,18 @@ def check() -> dict:
             raise ProprError(f"prima attivazione account non vergine: {detail}")
     else:
         _validate_state(state, account_id)
+        native_stop_filled = _native_stop_filled(
+            client,
+            state,
+            positions,
+            active_orders,
+        )
         errors = _active_runtime_errors(state, positions, active_orders)
+        if (
+            native_stop_filled
+            and errors == ["book side/assets diverge dallo stato"]
+        ):
+            errors = []
         if errors:
             raise ProprError("preflight runtime: " + "; ".join(errors))
     result = {
@@ -1269,7 +1590,19 @@ def guard() -> dict:
                     "leverage migration runtime: " + "; ".join(migration_errors)
                 )
         _roll_day(state, positions, equity, now)
-        reason, permanent = _risk_reason(state, positions, equity, now)
+        native_stop_filled = _native_stop_filled(
+            client,
+            state,
+            positions,
+            active_orders,
+        )
+        reason, permanent = _risk_reason(
+            state,
+            positions,
+            equity,
+            now,
+            native_stop_filled=native_stop_filled,
+        )
     except Exception as exc:
         _recover_after_write(client, state, now, "state_or_position_invalid", exc)
     if reason:
@@ -1279,7 +1612,8 @@ def guard() -> dict:
         except Exception as exc:
             _recover_after_write(client, state, now, f"{reason}_recovery", exc)
         state.update({"expected_assets": [], "expected_sides": {}, "expected_quantities": {},
-                      "last_target": {}, "last_manage_ts": now.isoformat()})
+                      "last_target": {}, "stop_receipts": {},
+                      "last_manage_ts": now.isoformat()})
         account = client.get_account()
         state["last_equity"] = round(_equity(account), 8)
         _write_state(state)
@@ -1291,7 +1625,7 @@ def guard() -> dict:
             raise ProprError(f"competition halted: {reason}")
         return result
     try:
-        actions = _create_missing_stops(client, positions)
+        actions = _create_missing_stops(client, positions, state=state)
     except Exception as exc:
         _recover_after_write(client, state, now, "guard_failure", exc)
     account = client.get_account()
@@ -1379,7 +1713,19 @@ def manage() -> dict:
                     "leverage migration runtime: " + "; ".join(migration_errors)
                 )
         _roll_day(state, positions, equity, now)
-        reason, permanent = _risk_reason(state, positions, equity, now)
+        native_stop_filled = _native_stop_filled(
+            client,
+            state,
+            positions,
+            active_orders,
+        )
+        reason, permanent = _risk_reason(
+            state,
+            positions,
+            equity,
+            now,
+            native_stop_filled=native_stop_filled,
+        )
     except Exception as exc:
         _recover_after_write(client, state, now, "state_or_position_invalid", exc)
 
@@ -1394,6 +1740,7 @@ def manage() -> dict:
         state["expected_sides"] = {}
         state["expected_quantities"] = {}
         state["last_target"] = {}
+        state["stop_receipts"] = {}
         state["last_manage_ts"] = now.isoformat()
         account = client.get_account()
         state["last_equity"] = round(_equity(account), 8)
@@ -1407,7 +1754,7 @@ def manage() -> dict:
     # Pre-guard obbligatorio: una run non cambia il book se l'esposizione gia'
     # presente non puo' essere resa server-side protected.
     try:
-        _create_missing_stops(client, positions)
+        _create_missing_stops(client, positions, state=state)
     except Exception as exc:
         _recover_after_write(client, state, now, "pre_guard_failure", exc)
 
@@ -1479,6 +1826,7 @@ def manage() -> dict:
                     "expected_sides": {},
                     "expected_quantities": {},
                     "last_target": {},
+                    "stop_receipts": {},
                     "last_manage_ts": now.isoformat(),
                 })
                 state["last_equity"] = round(_equity(client.get_account()), 8)
@@ -1506,7 +1854,8 @@ def manage() -> dict:
             _validate_positions(positions)
             # Post-guard prima di valutare un eventuale errore parziale: ogni
             # write riuscita deve essere protetta o immediatamente appiattita.
-            _create_missing_stops(client, positions)
+            state["stop_receipts"] = {}
+            _create_missing_stops(client, positions, state=state)
             failures = _rebalance_response_errors(orders) + _reconcile_target(positions, target)
             if failures:
                 raise ProprError("partial_rebalance: " + ",".join(failures))

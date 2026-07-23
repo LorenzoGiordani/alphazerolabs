@@ -108,20 +108,114 @@ class ProprClient:
     def get_account(self) -> dict:
         return self._req("GET", f"/accounts/{self.account_id}")
 
-    def get_positions(self, status: str = "open") -> list[dict]:
-        data = self._req("GET", f"/accounts/{self.account_id}/positions", params={"status": status}).get("data", [])
-        return [p for p in data if float(p["quantity"]) != 0]
+    def get_positions(
+        self,
+        status: str | None = "open",
+        *,
+        position_id: str | None = None,
+        include_zero: bool = False,
+    ) -> list[dict]:
+        """Legge una vista completa e stabile delle posizioni per uno status."""
+        positions: list[dict] = []
+        seen_position_ids: set[str] = set()
+        offset = 0
+        expected_total: int | None = None
+        while True:
+            params = {
+                "limit": ORDER_PAGE_LIMIT,
+                "offset": offset,
+            }
+            if status:
+                params["status"] = status
+            if position_id:
+                params["positionId"] = position_id
+            payload = self._req(
+                "GET",
+                f"/accounts/{self.account_id}/positions",
+                params=params,
+            )
+            if not isinstance(payload, dict):
+                raise ProprError(f"risposta posizioni non valida per status={status}")
+            page = payload.get("data")
+            total = payload.get("total")
+            response_offset = payload.get("offset")
+            if not isinstance(page, list):
+                raise ProprError(f"risposta posizioni incompleta per status={status}")
+            if response_offset is not None and (
+                not isinstance(response_offset, int) or response_offset != offset
+            ):
+                raise ProprError(f"offset posizioni inatteso per status={status}")
+            if total is not None and (not isinstance(total, int) or total < 0):
+                raise ProprError(f"totale posizioni non valido per status={status}")
+            if expected_total is None and total is not None:
+                expected_total = total
+            elif total is not None and total != expected_total:
+                raise ProprError(f"paginazione posizioni instabile per status={status}")
+            for position in page:
+                observed_position_id = (
+                    position.get("positionId")
+                    if isinstance(position, dict)
+                    else None
+                )
+                if (
+                    not isinstance(observed_position_id, str)
+                    or not observed_position_id
+                    or observed_position_id in seen_position_ids
+                ):
+                    raise ProprError(
+                        f"paginazione posizioni duplicata per status={status}"
+                    )
+                seen_position_ids.add(observed_position_id)
+            positions.extend(page)
+            offset += len(page)
+            if expected_total is not None:
+                if offset > expected_total:
+                    raise ProprError(
+                        f"paginazione posizioni eccede total per status={status}"
+                    )
+                if offset == expected_total:
+                    break
+            if len(page) < ORDER_PAGE_LIMIT:
+                if expected_total is not None and offset != expected_total:
+                    raise ProprError(
+                        f"paginazione posizioni incompleta per status={status}"
+                    )
+                break
+        try:
+            return (
+                positions
+                if include_zero
+                else [
+                    position
+                    for position in positions
+                    if float(position["quantity"]) != 0
+                ]
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ProprError("quantity posizione non valida") from exc
 
-    def get_orders(self, status: str = "open") -> list[dict]:
+    def get_orders(
+        self,
+        status: str = "open",
+        *,
+        order_id: str | None = None,
+    ) -> list[dict]:
         """Legge una vista completa e stabile degli ordini per uno status."""
         orders: list[dict] = []
         seen_order_ids: set[str] = set()
         offset = 0
         expected_total: int | None = None
         while True:
+            params = {
+                "status": status,
+                "limit": ORDER_PAGE_LIMIT,
+                "offset": offset,
+            }
+            if order_id:
+                params["orderId"] = order_id
             payload = self._req(
                 "GET", f"/accounts/{self.account_id}/orders",
-                params={"status": status, "limit": ORDER_PAGE_LIMIT, "offset": offset},
+                params=params,
             )
             if not isinstance(payload, dict):
                 raise ProprError(f"risposta ordini non valida per status={status}")
@@ -166,6 +260,59 @@ class ProprClient:
                     raise ProprError(f"ordine attivo senza orderId per status={status}")
                 active[order_id] = order
         return list(active.values())
+
+    def get_trades(self, *, order_id: str) -> list[dict]:
+        """Legge tutte le esecuzioni associate a un ordine."""
+        trades: list[dict] = []
+        seen_trade_ids: set[str] = set()
+        offset = 0
+        expected_total: int | None = None
+        while True:
+            payload = self._req(
+                "GET", f"/accounts/{self.account_id}/trades",
+                params={
+                    "orderId": order_id,
+                    "limit": ORDER_PAGE_LIMIT,
+                    "offset": offset,
+                },
+            )
+            if not isinstance(payload, dict):
+                raise ProprError("risposta trades non valida")
+            page = payload.get("data")
+            total = payload.get("total")
+            response_offset = payload.get("offset")
+            if not isinstance(page, list):
+                raise ProprError("risposta trades incompleta")
+            if response_offset is not None and (
+                not isinstance(response_offset, int) or response_offset != offset
+            ):
+                raise ProprError("offset trades inatteso")
+            if total is not None and (not isinstance(total, int) or total < 0):
+                raise ProprError("totale trades non valido")
+            if expected_total is None and total is not None:
+                expected_total = total
+            elif total is not None and total != expected_total:
+                raise ProprError("paginazione trades instabile")
+            for trade in page:
+                trade_id = trade.get("tradeId") if isinstance(trade, dict) else None
+                if (
+                    not isinstance(trade_id, str)
+                    or not trade_id
+                    or trade_id in seen_trade_ids
+                ):
+                    raise ProprError("paginazione trades duplicata")
+                seen_trade_ids.add(trade_id)
+            trades.extend(page)
+            offset += len(page)
+            if expected_total is not None:
+                if offset > expected_total:
+                    raise ProprError("paginazione trades eccede total")
+                if offset == expected_total:
+                    return trades
+            if len(page) < ORDER_PAGE_LIMIT:
+                if expected_total is not None and offset != expected_total:
+                    raise ProprError("paginazione trades incompleta")
+                return trades
 
     def get_margin_config(self, asset: str) -> dict:
         return self._req("GET", f"/accounts/{self.account_id}/margin-config/{asset}")
