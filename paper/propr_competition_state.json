@@ -20,8 +20,8 @@
  "halt_reason": "",
  "halted_today": false,
  "high_water_mark": 50157.444185,
- "last_equity": 50092.517666,
- "last_manage_ts": "2026-07-23T23:11:11.101943+00:00",
+ "last_equity": 50000.291271,
+ "last_manage_ts": "2026-07-23T23:51:44.689951+00:00",
  "last_rebalance_ts": "2026-07-23T23:05:11.972192+00:00",
  "last_target": {
   "NEAR": -47500.0,
@@ -34,6 +34,24 @@
   "to": "xsmom-neutral2-tournament-20260724-v3"
  },
  "permanently_halted": false,
+ "stop_receipts": {
+  "NEAR": {
+   "asset": "NEAR",
+   "intentId": "01KY89B411XQQ3M1F9GF567HEP",
+   "orderId": "urn:prp-order:yHWXVwVMGMA9",
+   "positionId": "urn:prp-position:69MyzwiTqzfh",
+   "quantity": "25166.3",
+   "trigger": "1.9382"
+  },
+  "XRP": {
+   "asset": "XRP",
+   "intentId": "01KY8KM1X0JTR406J2XA30M5PE",
+   "orderId": "urn:prp-order:JYSFFUecwBud",
+   "positionId": "urn:prp-position:4EWNhtNfbiQr",
+   "quantity": "42731.2",
+   "trigger": "1.0775"
+  }
+ },
  "strategy": "xsmom-neutral2-tournament-20260724-v3",
  "version": "propr-competition-state-v2"
 }
