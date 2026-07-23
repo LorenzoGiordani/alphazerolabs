@@ -31,7 +31,8 @@ from scripts.propr_paper import flatten, rebalance  # noqa: E402
 
 COMPETITION_ID = "urn:prp-competition:XSLPfvuHDUtT"
 COMPETITION_SLUG = "lighter-propr-trading-tournament"
-STRATEGY_ID = "tsmom-neutral-tournament-20260723-v1"
+LEGACY_STRATEGY_ID = "tsmom-neutral-tournament-20260723-v1"
+STRATEGY_ID = "tsmom-abs2-tournament-20260723-v2"
 START_AT = datetime(2026, 7, 23, 13, 0, tzinfo=timezone.utc)
 # Due run utili prima dello stop: il clock cloud gira ogni ora al minuto :10.
 FLATTEN_AT = datetime(2026, 7, 30, 11, 0, tzinfo=timezone.utc)
@@ -39,11 +40,14 @@ END_AT = datetime(2026, 7, 30, 13, 0, tzinfo=timezone.utc)
 EXPECTED_INITIAL_BALANCE = Decimal("50000")
 SYMBOLS = ("BTC", "ETH", "SOL", "XRP", "SUI", "NEAR")
 LOOKBACK_H = 168
-REBALANCE_H = 24
-GROSS = 0.30
-DAILY_STOP_PCT = 0.015
-TOTAL_STOP_PCT = 0.04
-STOP_DISTANCE = Decimal("0.04")
+REBALANCE_H = 12
+TARGET_POSITIONS = 2
+GROSS = 1.50
+LEVERAGE = 2
+DAILY_STOP_PCT = 0.125
+TOTAL_STOP_PCT = 0.15
+STOP_DISTANCE = Decimal("0.08")
+LEGACY_STOP_DISTANCE = Decimal("0.04")
 RECONCILE_REL_TOL = 0.05
 RECONCILE_ABS_TOL = 25.0
 RUNTIME_RECONCILE_REL_TOL = 0.35
@@ -56,7 +60,8 @@ FLAT_READBACKS = 3
 FLAT_CONFIRMATIONS = 2
 RECOVERY_ATTEMPTS = 3
 STATE_VERSION = "propr-competition-state-v2"
-STOP_VERSION = "propr-competition-stop-v1"
+STOP_VERSION = "propr-competition-stop-v2"
+LEGACY_STOP_VERSION = "propr-competition-stop-v1"
 _FALLBACK_ULID_MS = 1_577_836_800_000
 _CROCKFORD32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 
@@ -140,10 +145,10 @@ def _created_at_ms(position: dict) -> int:
     return min(max(milliseconds, 0), (1 << 48) - 1)
 
 
-def _stop_intent_id(position: dict) -> str:
+def _stop_intent_id(position: dict, stop_version: str = STOP_VERSION) -> str:
     quantity = format(abs(_decimal(position.get("quantity"), "quantity stop")), "f")
     seed = "|".join((
-        STOP_VERSION,
+        stop_version,
         str(position["positionId"]),
         str(position["positionSide"]).lower(),
         quantity,
@@ -153,7 +158,7 @@ def _stop_intent_id(position: dict) -> str:
     return _ulid_from_bytes(value)
 
 
-def _stop_plan(position: dict) -> dict:
+def _stop_plan(position: dict, *, legacy: bool = False) -> dict:
     asset = str(position.get("base", "")).upper()
     position_id = str(position.get("positionId", ""))
     side = str(position.get("positionSide", "")).lower()
@@ -164,7 +169,9 @@ def _stop_plan(position: dict) -> dict:
         raise ProprError(f"quantity nulla per {asset}")
     reference = _decimal(position.get("entryPrice"), f"entryPrice {asset}")
     closing_side = "sell" if side == "long" else "buy"
-    multiplier = Decimal("1") - STOP_DISTANCE if side == "long" else Decimal("1") + STOP_DISTANCE
+    distance = LEGACY_STOP_DISTANCE if legacy else STOP_DISTANCE
+    stop_version = LEGACY_STOP_VERSION if legacy else STOP_VERSION
+    multiplier = Decimal("1") - distance if side == "long" else Decimal("1") + distance
     return {
         "asset": asset,
         "position_id": position_id,
@@ -172,13 +179,13 @@ def _stop_plan(position: dict) -> dict:
         "position_side": "short" if closing_side == "sell" else "long",
         "quantity": format(quantity_value, "f"),
         "trigger_price": _five_significant(reference * multiplier),
-        "intent_id": _stop_intent_id(position),
+        "intent_id": _stop_intent_id(position, stop_version),
     }
 
 
-def _is_exact_protection(position: dict, order: dict) -> bool:
+def _is_exact_protection(position: dict, order: dict, *, legacy: bool = False) -> bool:
     try:
-        plan = _stop_plan(position)
+        plan = _stop_plan(position, legacy=legacy)
         order_quantity = abs(_decimal(order.get("quantity"), "quantity stop attivo"))
         trigger = _decimal(order.get("triggerPrice"), "triggerPrice stop attivo")
         planned_trigger = _decimal(plan["trigger_price"], "triggerPrice stop pianificato")
@@ -278,6 +285,24 @@ def _read_state() -> dict:
     return payload
 
 
+def _migrate_state(state: dict) -> dict:
+    if state.get("strategy") != LEGACY_STRATEGY_ID:
+        return state
+    migrated = dict(state)
+    migrated.update({
+        "strategy": STRATEGY_ID,
+        "last_rebalance_ts": (
+            START_AT - timedelta(hours=REBALANCE_H)
+        ).isoformat(),
+        "migration": {
+            "from": LEGACY_STRATEGY_ID,
+            "to": STRATEGY_ID,
+            "forced_rebalance": True,
+        },
+    })
+    return migrated
+
+
 def _fresh_state(account_id: str, equity: float, now: datetime) -> dict:
     return {
         "version": STATE_VERSION,
@@ -305,10 +330,11 @@ def _validate_state(state: dict, account_id: str) -> None:
     required = {
         "version": STATE_VERSION,
         "competition_id": COMPETITION_ID,
-        "strategy": STRATEGY_ID,
         "account_id": account_id,
     }
     mismatches = [key for key, value in required.items() if state.get(key) != value]
+    if state.get("strategy") not in (LEGACY_STRATEGY_ID, STRATEGY_ID):
+        mismatches.append("strategy")
     if mismatches:
         raise ProprError(f"stato competition incompatibile: {','.join(mismatches)}")
 
@@ -442,14 +468,24 @@ def _target(sizing_base: float) -> tuple[dict[str, float], dict[str, float]]:
     if observed != set(SYMBOLS):
         missing = sorted(set(SYMBOLS) - observed)
         raise ProprError(f"segnali competition incompleti: {','.join(missing)}")
-    weights = sign_weights(signals.reindex(SYMBOLS), gross=GROSS)
+    ranked = signals.reindex(SYMBOLS).abs().sort_values(
+        ascending=False,
+        kind="mergesort",
+    )
+    selected = list(ranked.index[:TARGET_POSITIONS])
+    if len(selected) != TARGET_POSITIONS or any(signals[asset] == 0 for asset in selected):
+        raise ProprError("segnali competition insufficienti per abs2")
+    weights = sign_weights(signals.reindex(selected), gross=GROSS)
     for asset in SYMBOLS:
         _decimal(signals[asset], f"signal {asset}")
-        _decimal(weights[asset], f"weight {asset}")
+        _decimal(weights.get(asset, 0), f"weight {asset}")
         if _decimal(prices[asset], f"price {asset}") <= 0:
             raise ProprError(f"price competition non positivo: {asset}")
-    target = {asset: float(weights[asset]) * sizing_base
-              for asset in SYMBOLS if abs(float(weights[asset])) > 1e-9}
+    target = {
+        asset: float(weights[asset]) * sizing_base
+        for asset in selected
+        if abs(float(weights[asset])) > 1e-9
+    }
     observed_prices = {asset: float(prices[asset]) for asset in SYMBOLS}
     _validate_target(target, observed_prices)
     return target, observed_prices
@@ -458,7 +494,8 @@ def _target(sizing_base: float) -> tuple[dict[str, float], dict[str, float]]:
 def _validate_target(target: dict, prices: dict) -> None:
     if not isinstance(target, dict) or not isinstance(prices, dict):
         raise ProprError("target competition non strutturato")
-    if not target or len(target) > MAX_POSITIONS or set(target) - set(SYMBOLS):
+    if (len(target) != TARGET_POSITIONS or len(target) > MAX_POSITIONS
+            or set(target) - set(SYMBOLS)):
         raise ProprError(f"target competition non valido: {len(target)} gambe")
     gross = Decimal("0")
     for asset, raw_target in target.items():
@@ -470,6 +507,63 @@ def _validate_target(target: dict, prices: dict) -> None:
     gross_cap = EXPECTED_INITIAL_BALANCE * Decimal(str(GROSS))
     if gross > gross_cap + Decimal("1"):
         raise ProprError(f"gross target competition oltre cap: {gross} > {gross_cap}")
+
+
+def _leverage_cap(limits: dict, asset: str) -> int:
+    if not isinstance(limits, dict):
+        raise ProprError("leverage limits competition non strutturati")
+    overrides = limits.get("overrides") or {}
+    defaults = limits.get("defaults") or {}
+    if not isinstance(overrides, dict) or not isinstance(defaults, dict):
+        raise ProprError("leverage limits competition ambigui")
+    raw = overrides.get(asset)
+    if raw is None:
+        raw = limits.get("defaultMax", defaults.get("crypto"))
+    value = _decimal(raw, f"max leverage {asset}")
+    if value <= 0 or value != value.to_integral_value():
+        raise ProprError(f"max leverage competition non intero: {asset}={value}")
+    return int(value)
+
+
+def _margin_config_matches(config: dict, asset: str) -> bool:
+    if not isinstance(config, dict):
+        raise ProprError(f"margin config competition non strutturato: {asset}")
+    observed_asset = config.get("asset")
+    if observed_asset not in (None, asset):
+        raise ProprError(f"margin config asset inatteso: {asset}={observed_asset}")
+    leverage = _decimal(config.get("leverage"), f"margin leverage {asset}")
+    mode = str(config.get("marginMode", "cross")).lower()
+    return leverage == LEVERAGE and mode == "cross"
+
+
+def _ensure_leverage(client: ProprClient, assets: list[str]) -> None:
+    selected = sorted(set(assets))
+    if not selected or set(selected) - set(SYMBOLS):
+        raise ProprError("asset leverage competition non validi")
+    limits = client.get_leverage_limits()
+    configs = {}
+    for asset in selected:
+        if _leverage_cap(limits, asset) < LEVERAGE:
+            raise ProprError(f"leva competition non disponibile: {asset}")
+        config = client.get_margin_config(asset)
+        _margin_config_matches(config, asset)
+        configs[asset] = config
+
+    updated = []
+    for asset, config in configs.items():
+        if _margin_config_matches(config, asset):
+            continue
+        config_id = str(config.get("configId", ""))
+        if not config_id:
+            raise ProprError(f"margin configId competition assente: {asset}")
+        client.update_margin_config(config_id, asset, LEVERAGE, margin_mode="cross")
+        updated.append(asset)
+
+    for asset in selected:
+        if not _margin_config_matches(client.get_margin_config(asset), asset):
+            raise ProprError(f"leva competition non verificata: {asset}")
+    if updated:
+        _append_journal({"type": "leverage", "assets": updated, "leverage": LEVERAGE})
 
 
 def _looks_like_native_stop(order: dict) -> bool:
@@ -532,7 +626,6 @@ def _create_missing_stops(client: ProprClient, positions: list[dict]) -> list[di
         if str(order.get("orderId", "")) in keep_ids:
             continue
         (stale if _looks_like_native_stop(order) else external).append(order)
-    _cancel_orders(client, stale, "stale_or_duplicate_stop")
     if external:
         _cancel_orders(client, external, "unexpected_active_order")
         raise ProprError(f"ordini attivi esterni cancellati: {len(external)}")
@@ -556,6 +649,7 @@ def _create_missing_stops(client: ProprClient, positions: list[dict]) -> list[di
         actions.append({"asset": plan["asset"], "order_id": response[0]["orderId"]})
     if actions:
         _append_journal({"type": "guard", "actions": actions})
+    _cancel_orders(client, stale, "stale_or_duplicate_stop")
 
     verified_orders = client.get_active_orders()
     for position in positions:
@@ -859,16 +953,33 @@ def _recover_after_write(client: ProprClient, state: dict, now: datetime,
 
 def _runtime_book_errors(state: dict, positions: list[dict], orders: list[dict]) -> list[str]:
     errors = []
+    legacy = state.get("strategy") == LEGACY_STRATEGY_ID
     if _book_drift(state, positions):
         errors.append("book side/assets diverge dallo stato")
     for position in positions:
-        count = sum(_is_exact_protection(position, order) for order in orders)
+        count = sum(_is_exact_protection(position, order, legacy=legacy) for order in orders)
         if count != 1:
             errors.append(f"{position['base']}:stop_count={count}")
     for order in orders:
-        if not any(_is_exact_protection(position, order) for position in positions):
+        if not any(
+            _is_exact_protection(position, order, legacy=legacy)
+            for position in positions
+        ):
             errors.append(f"ordine_inatteso={order.get('orderId')}")
     return errors
+
+
+def _validate_legacy_runtime(
+    state: dict,
+    positions: list[dict],
+    orders: list[dict],
+) -> None:
+    if state.get("strategy") != LEGACY_STRATEGY_ID:
+        return
+    _validate_positions(positions)
+    errors = _runtime_book_errors(state, positions, orders)
+    if errors:
+        raise ProprError("legacy migration preflight: " + "; ".join(errors))
 
 
 def check() -> dict:
@@ -966,6 +1077,18 @@ def guard() -> dict:
         print(json.dumps(result, indent=2))
         return result
     try:
+        _validate_legacy_runtime(state, positions, active_orders)
+    except Exception as exc:
+        _recover_after_write(
+            client,
+            state,
+            now,
+            "legacy_migration_preflight",
+            exc,
+        )
+    state = _migrate_state(state)
+    _validate_state(state, account_id)
+    try:
         _validate_positions(positions)
         _roll_day(state, positions, equity, now)
         reason, permanent = _risk_reason(state, positions, equity, now)
@@ -1054,6 +1177,18 @@ def manage() -> dict:
                 ),
             )
     try:
+        _validate_legacy_runtime(state, positions, active_orders)
+    except Exception as exc:
+        _recover_after_write(
+            client,
+            state,
+            now,
+            "legacy_migration_preflight",
+            exc,
+        )
+    state = _migrate_state(state)
+    _validate_state(state, account_id)
+    try:
         _validate_positions(positions)
         _roll_day(state, positions, equity, now)
         reason, permanent = _risk_reason(state, positions, equity, now)
@@ -1097,6 +1232,15 @@ def manage() -> dict:
         try:
             target, prices = _target(float(EXPECTED_INITIAL_BALANCE))
             _validate_target(target, prices)
+        except Exception as exc:
+            _recover_after_write(client, state, now, "target_recovery", exc)
+        try:
+            _ensure_leverage(client, list(target))
+        except Exception as exc:
+            message = f"leverage_preflight: {type(exc).__name__}: {exc}"
+            _write_error_marker(message, state)
+            raise ProprError(message) from exc
+        try:
             orders = rebalance(client, target, prices, positions)
             _append_journal({"type": "rebalance", "target": target, "orders": orders})
             positions = client.get_positions()
