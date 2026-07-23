@@ -1,0 +1,114 @@
+name: propr-competition
+
+# Clock esterno: lux-paper-cron dispatcha questo workflow ogni ora. Il job resta
+# no-op finche' entrambi i kill switch repository sono spenti. Il preflight
+# manuale e' read-only e non richiede di accendere alcun interruttore.
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "scheduled oppure check (sola lettura)"
+        required: false
+        default: "scheduled"
+        type: choice
+        options:
+          - scheduled
+          - check
+
+concurrency:
+  group: propr-competition
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LLM_RUNTIME_DISABLED: "1"
+      PROPR_API_KEY: ${{ secrets.PROPR_API_KEY }}
+      PROPR_COMPETITION_ACCOUNT_ID: ${{ vars.PROPR_COMPETITION_ACCOUNT_ID }}
+      PROPR_COMPETITION_GUARD_ENABLED: ${{ vars.PROPR_COMPETITION_GUARD_ENABLED }}
+      PROPR_COMPETITION_AUTOMANAGE_ENABLED: ${{ vars.PROPR_COMPETITION_AUTOMANAGE_ENABLED }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
+
+      - name: preflight account competition (read-only)
+        id: check
+        if: >-
+          inputs.action == 'check' ||
+          env.PROPR_COMPETITION_GUARD_ENABLED == 'true' ||
+          env.PROPR_COMPETITION_AUTOMANAGE_ENABLED == 'true'
+        continue-on-error: true
+        run: uv run scripts/propr_competition.py --check
+
+      - name: pre-guard reduce-only
+        id: guard
+        if: >-
+          inputs.action != 'check' &&
+          env.PROPR_COMPETITION_GUARD_ENABLED == 'true'
+        continue-on-error: true
+        run: uv run scripts/propr_competition.py --guard
+
+      - name: manage TSMOM tournament
+        id: manage
+        if: >-
+          inputs.action != 'check' &&
+          env.PROPR_COMPETITION_AUTOMANAGE_ENABLED == 'true' &&
+          steps.check.outcome == 'success' &&
+          steps.guard.outcome == 'success'
+        continue-on-error: true
+        run: uv run scripts/propr_competition.py --manage
+
+      - name: pubblica soltanto stato competition
+        id: publish
+        if: always()
+        shell: bash
+        run: |
+          files=()
+          for path in \
+            paper/propr_competition_state.json \
+            paper/propr_competition_status.json \
+            paper/propr_competition_journal.jsonl
+          do
+            if [ -e "$path" ]; then files+=("$path"); fi
+          done
+          if [ "${#files[@]}" -eq 0 ]; then exit 0; fi
+          git add -- "${files[@]}"
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "alphazero-competition"
+          git config user.email "actions@users.noreply.github.com"
+          git commit -m "chore: competition run $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"
+          pushed=false
+          for i in 1 2 3; do
+            if git pull --rebase origin main && git push origin main; then
+              pushed=true
+              break
+            fi
+            sleep 5
+          done
+          [ "$pushed" = true ] || exit 1
+
+      - name: gate finale competition
+        if: always()
+        shell: bash
+        env:
+          CHECK_OUTCOME: ${{ steps.check.outcome }}
+          GUARD_OUTCOME: ${{ steps.guard.outcome }}
+          MANAGE_OUTCOME: ${{ steps.manage.outcome }}
+          PUBLISH_OUTCOME: ${{ steps.publish.outcome }}
+          REQUESTED_ACTION: ${{ inputs.action }}
+        run: |
+          if [ "$PUBLISH_OUTCOME" != "success" ]; then exit 1; fi
+          if [ "$REQUESTED_ACTION" = "check" ]; then
+            [ "$CHECK_OUTCOME" = "success" ]
+            exit $?
+          fi
+          if [ "$PROPR_COMPETITION_GUARD_ENABLED" = "true" ] && [ "$GUARD_OUTCOME" != "success" ]; then exit 1; fi
+          if [ "$PROPR_COMPETITION_AUTOMANAGE_ENABLED" = "true" ]; then
+            [ "$CHECK_OUTCOME" = "success" ] || exit 1
+            [ "$MANAGE_OUTCOME" = "success" ] || exit 1
+          fi

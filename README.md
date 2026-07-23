@@ -63,6 +63,8 @@ Principi non negoziabili:
 | `scripts/polymarket_paper.py` | **F7**: journal Polymarket storico; il cloud risolve le previsioni esistenti ma non ne genera di nuove |
 | `scripts/propr_paper.py` | **F8**: challenge virtuale Propr; gate ufficiale invariato, più corsia `--manage-paper` sperimentale e paper-only con kill switch e account pin |
 | `scripts/propr_guard.py` | Stop protettivi nativi server-side sul solo Free Trial autorizzato; default read-only, execute con doppio consenso |
+| `scripts/propr_competition.py` | Runner paper dedicato al torneo Lighter x Propr: pin account/competition, TSMOM deterministico, doppi kill switch, pre/post guard e flatten terminale |
+| `.github/workflows/propr-competition.yml` | Corsia cloud isolata dal Free Trial; preflight manuale read-only e gestione oraria solo dopo attivazione esplicita delle due variabili repository |
 | `scripts/runtime_health.py` | Manifest `paper/health.json`, validazione freshness e gate `publish_allowed` |
 | `scripts/research_pack.py` | Census strict all-dex, shortlist candle bounded e contratti content-addressed Daily Maker/Hourly Checker L1 |
 | `scripts/research_ops.py` | Backpressure, kill switch e clean streak 14 giorni dello stato operativo locale report-only |
@@ -300,6 +302,21 @@ Ogni nuova proposta LLM di execution viene quindi prodotta come artefatto Codex,
 verificata da un checker indipendente e soltanto dopo può essere ammessa al paper trading.
 Nessuna chiave della subscription viene copiata nel repository o in Actions.
 
+**Lighter x Propr Trading Tournament — corsia dormiente (22/07).** Per il torneo
+paper da $50.000 esiste un runner separato dal Free Trial e dallo stato ufficiale
+delle strategie. La variante sperimentale usa `tsmom-neutral` su sei perp, lookback
+168h, rebalance 24h e gross 0,30; il segnale a segno non garantisce neutralita'
+long/short e non eredita ordini o stato da XSMOM. Account ID e competition ID sono
+pin obbligatori; `--check` non scrive sull'account, ma aggiorna lo status della run, e
+guard/automanage hanno interruttori distinti. Ogni rebalance ha pre/post guard con
+stop nativi; un fill parziale o una protezione non verificabile porta al flatten e
+all'halt permanente della corsia. Daily stop 1,5%, stop totale 4% e flatten schedulato due ore
+prima della chiusura sono limiti prudenziali del test, non regole Propr pubblicate.
+Il workflow dedicato viene soltanto dispatchato dal clock Cloudflare: con le variabili
+assenti o false e' un no-op. La corsia resta disabilitata finche' il nuovo account non
+appare, il preflight non conferma lo schema ufficiale e l'utente non dice `parti`.
+Non e' un candidato ufficiale, non prova il Propr Standard e non muove fondi reali.
+
 Il **Research OS L1** è la prima eccezione cloud delimitata: Cloudflare schedula
 `research-maker.yml` alle 07:15 Europe/Rome e `research-checker.yml` ogni ora;
 GitHub Actions usa Z.AI come primario sull'endpoint API generale con web search e
@@ -339,6 +356,7 @@ evidenza riproducibile, track record plurimensile, affidabilità operativa e un 
 - [x] COT report CFTC (posizionamento commodities = analogo del funding)
 - [x] Champion/challenger per-trade con gate formale (**deflated Sharpe ≥0.95**); i portfolio non sono auto-promovibili perché gli heartbeat non sono trade indipendenti
 - [x] Integrity P0 — maker/checker evidence contract, runtime health fail-closed, endpoint pubblico e CI mirata
+- [ ] Corsia tournament paper cloud separata e fail-closed (dormiente; account pin, review e attivazione umana ancora richiesti)
 - [x] Journal → Supabase (schema + `sync_supabase.py` idempotente + workflow cloud gated; il recall semantico pgvector è cablato, l'embedding da popolare a progetto creato)
 - [x] Interfaccia v2 → Cloudflare Pages (`lux-ai.pages.dev`, deploy nel workflow)
 - [x] M4 — testnet Hyperliquid (`execute_testnet.py` dry-run sicuro, isolato per regola #2 — va in cron solo con `HL_API_SECRET` configurato)

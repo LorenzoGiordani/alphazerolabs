@@ -2,7 +2,8 @@
 // salta/ritarda le run su repo privato; questo Worker è il clock affidabile).
 //
 // Compiti principali:
-//  1) HOURLY (cron "10 * * * *") → dispatch del paper-run completo (segnali, LLM, dashboard)
+//  1) HOURLY (cron "10 * * * *") → dispatch del paper-run completo e della corsia
+//     Propr competition separata (no-op finche' i suoi kill switch sono spenti)
 //  2) MONITOR (cron "*/3 * * * *") → legge le posizioni aperte, controlla i mid HL e,
 //     SOLO se uno stop/target è sfiorato, dispatcha paper-exits.yml → uscite ~real-time
 //     con minuti Actions quasi nulli (GitHub gira solo sui breach reali).
@@ -27,29 +28,47 @@ export function isRomeMakerTime(scheduledTime) {
 }
 
 export function workflowsForCron(cron, scheduledTime) {
-  if (cron === HOURLY_CRON) return ["paper-run.yml", "hl-snapshot.yml", "research-checker.yml"];
+  if (cron === HOURLY_CRON) return [
+    "paper-run.yml",
+    "propr-competition.yml",
+    "hl-snapshot.yml",
+    "research-checker.yml",
+  ];
   if (cron === KRONOS_CRON) return ["kronos-precompute.yml", "xsection-precompute.yml"];
   if (cron === GDELT_CRON) return ["gdelt-precompute.yml", "coinalyze-1h.yml"];
   return null;
 }
 
-async function dispatch(env, workflow) {
-  const res = await fetch(
-    `https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.GH_PAT}`,
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "lux-paper-cron",
-      },
-      body: JSON.stringify({ ref: "main" }),
-    },
-  );
-  const ok = res.status === 204; // 204 No Content = dispatch riuscito
-  if (!ok) console.log(`dispatch ${workflow} failed`, res.status, await res.text());
-  return ok;
+export async function dispatch(env, workflow) {
+  let lastStatus = 0;
+  let lastError = "";
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${env.GH_PAT}`,
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "lux-paper-cron",
+          },
+          body: JSON.stringify({ ref: "main" }),
+        },
+      );
+      if (res.status === 204) return true;
+      lastStatus = res.status;
+      lastError = `status ${res.status}`;
+      console.log(`dispatch ${workflow} failed`, res.status, await res.text(),
+        `attempt ${attempt}/3`);
+    } catch (error) {
+      lastError = `${error.name}: ${error.message}`;
+      console.log(`dispatch ${workflow} failed`, lastError, `attempt ${attempt}/3`);
+    }
+  }
+  const detail = lastError || `status ${lastStatus}`;
+  throw new Error(`dispatch ${workflow} failed after 3 attempts (${detail})`);
 }
 
 // legge lo stato paper e i mid HL; se una posizione ha sfiorato stop/target
