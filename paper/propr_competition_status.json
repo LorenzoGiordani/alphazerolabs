@@ -1,54 +1,30 @@
 {
  "account_id": "SzSKErmBBPN6",
  "attempt_status": "active",
- "balance": 49993.43,
+ "balance": 49905.82,
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.15,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 49988.5,
+ "equity": 49905.82,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 4.75,
  "margin_utilization": 0.95,
  "mode": "manage",
- "note": "leverage_migration_pending",
+ "note": "rebalance",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
-   "asset": "XRP",
-   "notional": 1881.51,
-   "side": "long",
-   "unrealized_pnl": 6.04
-  },
-  {
-   "asset": "SUI",
-   "notional": 3785.21,
-   "side": "short",
-   "unrealized_pnl": -20.53
-  },
-  {
-   "asset": "SOL",
-   "notional": 1881.81,
-   "side": "long",
-   "unrealized_pnl": 5.42
-  },
-  {
    "asset": "NEAR",
-   "notional": 3769.27,
+   "notional": 47631.28,
    "side": "short",
-   "unrealized_pnl": -3.46
-  },
-  {
-   "asset": "ETH",
-   "notional": 1877.27,
-   "side": "long",
-   "unrealized_pnl": -0.25
+   "unrealized_pnl": 0.0
   },
   {
    "asset": "BTC",
-   "notional": 1882.26,
+   "notional": 118966.42,
    "side": "long",
-   "unrealized_pnl": 3.09
+   "unrealized_pnl": 0.0
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -60,55 +36,32 @@
   "day_start_equity": 50000.0,
   "expected_assets": [
    "BTC",
-   "ETH",
-   "NEAR",
-   "SOL",
-   "SUI",
-   "XRP"
+   "NEAR"
   ],
   "expected_quantities": {
-   "BTC": "0.029",
-   "ETH": "0.999",
-   "NEAR": "2001.1",
-   "SOL": "24.8",
-   "SUI": "5064",
-   "XRP": "1700.8"
+   "BTC": "1.832",
+   "NEAR": "25311.7"
   },
   "expected_sides": {
    "BTC": "long",
-   "ETH": "long",
-   "NEAR": "short",
-   "SOL": "long",
-   "SUI": "short",
-   "XRP": "long"
+   "NEAR": "short"
   },
   "halt_kind": "",
   "halt_reason": "",
   "halted_today": false,
   "high_water_mark": 50008.513193,
-  "last_equity": 49988.497952,
-  "last_manage_ts": "2026-07-23T20:04:22.670428+00:00",
-  "last_rebalance_ts": "2026-07-23T01:00:00+00:00",
+  "last_equity": 49905.823204,
+  "last_manage_ts": "2026-07-23T20:05:35.615920+00:00",
+  "last_rebalance_ts": "2026-07-23T20:05:35.615920+00:00",
   "last_target": {
-   "BTC": 1875.0,
-   "ETH": 1875.0,
-   "NEAR": -3750.0,
-   "SOL": 1875.0,
-   "SUI": -3750.0,
-   "XRP": 1875.0
+   "BTC": 118750.0,
+   "NEAR": -47500.0
   },
   "migration": {
-   "forced_rebalance": true,
+   "completed_at": "2026-07-23T20:05:35.615920+00:00",
+   "forced_rebalance": false,
    "from": "tsmom-neutral-tournament-20260723-v1",
-   "pending_prices": {
-    "BTC": 64834.0,
-    "NEAR": 1.8766
-   },
-   "pending_target": {
-    "BTC": 118750.0,
-    "NEAR": -47500.0
-   },
-   "phase": "leverage_migration_pending",
+   "phase": "complete",
    "prepared_at": "2026-07-23T20:04:22.670428+00:00",
    "to": "tsmom-abs2-tournament-20260723-v2"
   },
@@ -118,5 +71,5 @@
  },
  "strategy": "tsmom-abs2-tournament-20260723-v2",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-23T20:04:33.377158+00:00"
+ "updated_at": "2026-07-23T20:05:51.020515+00:00"
 }
