@@ -1,0 +1,10 @@
+{
+ "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
+ "mode": "error",
+ "note": "ProprError: account attivo atteso non trovato: SzSKErmBBPN6",
+ "official_candidate": false,
+ "paper_only": true,
+ "state": {},
+ "strategy": "tsmom-neutral-tournament-20260723-v1",
+ "updated_at": "2026-07-23T18:08:54.045607+00:00"
+}
