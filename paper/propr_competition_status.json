@@ -5,26 +5,26 @@
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.15,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 50108.65,
+ "equity": 50093.72,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 4.75,
  "margin_utilization": 0.95,
- "mode": "manage",
- "note": "rebalance",
+ "mode": "check",
+ "note": "preflight API read-only; status locale aggiornato",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
    "asset": "XRP",
-   "notional": 47466.54,
+   "notional": 47446.59,
    "side": "long",
-   "unrealized_pnl": 0.0
+   "unrealized_pnl": -19.96
   },
   {
    "asset": "NEAR",
-   "notional": 47500.13,
+   "notional": 47495.1,
    "side": "short",
-   "unrealized_pnl": -142.47
+   "unrealized_pnl": -137.43
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -69,5 +69,5 @@
  },
  "strategy": "xsmom-neutral2-tournament-20260724-v3",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-23T23:05:29.687321+00:00"
+ "updated_at": "2026-07-23T23:06:25.930043+00:00"
 }
