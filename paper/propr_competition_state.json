@@ -32,8 +32,8 @@
  "halt_reason": "",
  "halted_today": false,
  "high_water_mark": 50008.513193,
- "last_equity": 50008.513193,
- "last_manage_ts": "2026-07-23T18:42:18.479841+00:00",
+ "last_equity": 49992.90313,
+ "last_manage_ts": "2026-07-23T19:11:07.337337+00:00",
  "last_rebalance_ts": "2026-07-23T18:39:53.291272+00:00",
  "last_target": {
   "BTC": 1875.0,

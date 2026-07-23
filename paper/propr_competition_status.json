@@ -1,53 +1,53 @@
 {
  "account_id": "SzSKErmBBPN6",
  "attempt_status": "active",
- "balance": 49993.23,
+ "balance": 49993.33,
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.015,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 50008.51,
+ "equity": 49992.9,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 0.3,
- "mode": "manage",
- "note": "guard_only",
+ "mode": "guard",
+ "note": "guard-only",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
    "asset": "XRP",
-   "notional": 1874.71,
+   "notional": 1875.9,
    "side": "long",
-   "unrealized_pnl": -0.77
+   "unrealized_pnl": 0.43
   },
   {
    "asset": "SUI",
-   "notional": 3756.93,
+   "notional": 3770.86,
    "side": "short",
-   "unrealized_pnl": 7.75
+   "unrealized_pnl": -6.18
   },
   {
    "asset": "SOL",
-   "notional": 1874.97,
+   "notional": 1876.93,
    "side": "long",
-   "unrealized_pnl": -1.43
+   "unrealized_pnl": 0.53
   },
   {
    "asset": "NEAR",
-   "notional": 3753.16,
+   "notional": 3762.07,
    "side": "short",
-   "unrealized_pnl": 12.65
+   "unrealized_pnl": 3.74
   },
   {
    "asset": "ETH",
-   "notional": 1875.77,
+   "notional": 1877.57,
    "side": "long",
-   "unrealized_pnl": -1.75
+   "unrealized_pnl": 0.05
   },
   {
    "asset": "BTC",
-   "notional": 1878.0,
+   "notional": 1880.17,
    "side": "long",
-   "unrealized_pnl": -1.17
+   "unrealized_pnl": 1.0
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -85,8 +85,8 @@
   "halt_reason": "",
   "halted_today": false,
   "high_water_mark": 50008.513193,
-  "last_equity": 50008.513193,
-  "last_manage_ts": "2026-07-23T18:42:18.479841+00:00",
+  "last_equity": 49992.90313,
+  "last_manage_ts": "2026-07-23T19:11:07.337337+00:00",
   "last_rebalance_ts": "2026-07-23T18:39:53.291272+00:00",
   "last_target": {
    "BTC": 1875.0,
@@ -102,5 +102,5 @@
  },
  "strategy": "tsmom-neutral-tournament-20260723-v1",
  "total_stop_pct": 0.04,
- "updated_at": "2026-07-23T18:42:20.738933+00:00"
+ "updated_at": "2026-07-23T19:11:11.638689+00:00"
 }
