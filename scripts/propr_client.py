@@ -52,7 +52,11 @@ class ProprClient:
             if not isinstance(account, dict) or "balance" not in account:
                 raise ProprError("account competition non accessibile")
             observed_account_id = account.get("accountId")
-            if observed_account_id is not None and observed_account_id != expected_account_id:
+            allowed_account_ids = {
+                expected_account_id,
+                f"urn:prp-account:{expected_account_id}",
+            }
+            if observed_account_id is not None and observed_account_id not in allowed_account_ids:
                 raise ProprError(f"account competition inatteso: {observed_account_id}")
             competition = self._req(
                 "GET", f"/competitions/{expected_competition_slug}",
