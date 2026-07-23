@@ -1,10 +1,21 @@
 {
+ "account_id": "SzSKErmBBPN6",
+ "attempt_status": "active",
+ "balance": 50000.0,
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
- "mode": "error",
- "note": "ProprError: account competition inatteso: urn:prp-account:SzSKErmBBPN6",
+ "daily_stop_pct": 0.015,
+ "end_at": "2026-07-30T13:00:00+00:00",
+ "equity": 50000.0,
+ "flatten_at": "2026-07-30T11:00:00+00:00",
+ "gross": 0.3,
+ "mode": "check",
+ "note": "preflight API read-only; status locale aggiornato",
  "official_candidate": false,
  "paper_only": true,
+ "positions": [],
+ "start_at": "2026-07-23T13:00:00+00:00",
  "state": {},
  "strategy": "tsmom-neutral-tournament-20260723-v1",
- "updated_at": "2026-07-23T18:32:28.021214+00:00"
+ "total_stop_pct": 0.04,
+ "updated_at": "2026-07-23T18:37:24.600494+00:00"
 }
