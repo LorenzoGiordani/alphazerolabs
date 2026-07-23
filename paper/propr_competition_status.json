@@ -3,11 +3,11 @@
  "attempt_status": "active",
  "balance": 49993.33,
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
- "daily_stop_pct": 0.015,
+ "daily_stop_pct": 0.125,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 49992.9,
+ "equity": 49972.07,
  "flatten_at": "2026-07-30T11:00:00+00:00",
- "gross": 0.3,
+ "gross": 1.5,
  "mode": "guard",
  "note": "guard-only",
  "official_candidate": false,
@@ -15,39 +15,39 @@
  "positions": [
   {
    "asset": "XRP",
-   "notional": 1875.9,
+   "notional": 1876.58,
    "side": "long",
-   "unrealized_pnl": 0.43
+   "unrealized_pnl": 1.11
   },
   {
    "asset": "SUI",
-   "notional": 3770.86,
+   "notional": 3774.43,
    "side": "short",
-   "unrealized_pnl": -6.18
+   "unrealized_pnl": -9.75
   },
   {
    "asset": "SOL",
-   "notional": 1876.93,
+   "notional": 1875.51,
    "side": "long",
-   "unrealized_pnl": 0.53
+   "unrealized_pnl": -0.88
   },
   {
    "asset": "NEAR",
-   "notional": 3762.07,
+   "notional": 3776.98,
    "side": "short",
-   "unrealized_pnl": 3.74
+   "unrealized_pnl": -11.17
   },
   {
    "asset": "ETH",
-   "notional": 1877.57,
+   "notional": 1876.67,
    "side": "long",
-   "unrealized_pnl": 0.05
+   "unrealized_pnl": -0.85
   },
   {
    "asset": "BTC",
-   "notional": 1880.17,
+   "notional": 1879.45,
    "side": "long",
-   "unrealized_pnl": 1.0
+   "unrealized_pnl": 0.28
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -85,9 +85,9 @@
   "halt_reason": "",
   "halted_today": false,
   "high_water_mark": 50008.513193,
-  "last_equity": 49992.90313,
-  "last_manage_ts": "2026-07-23T19:11:07.337337+00:00",
-  "last_rebalance_ts": "2026-07-23T18:39:53.291272+00:00",
+  "last_equity": 49972.067435,
+  "last_manage_ts": "2026-07-23T19:24:53.955210+00:00",
+  "last_rebalance_ts": "2026-07-23T01:00:00+00:00",
   "last_target": {
    "BTC": 1875.0,
    "ETH": 1875.0,
@@ -96,11 +96,16 @@
    "SUI": -3750.0,
    "XRP": 1875.0
   },
+  "migration": {
+   "forced_rebalance": true,
+   "from": "tsmom-neutral-tournament-20260723-v1",
+   "to": "tsmom-abs2-tournament-20260723-v2"
+  },
   "permanently_halted": false,
-  "strategy": "tsmom-neutral-tournament-20260723-v1",
+  "strategy": "tsmom-abs2-tournament-20260723-v2",
   "version": "propr-competition-state-v2"
  },
- "strategy": "tsmom-neutral-tournament-20260723-v1",
- "total_stop_pct": 0.04,
- "updated_at": "2026-07-23T19:11:11.638689+00:00"
+ "strategy": "tsmom-abs2-tournament-20260723-v2",
+ "total_stop_pct": 0.15,
+ "updated_at": "2026-07-23T19:25:00.602508+00:00"
 }

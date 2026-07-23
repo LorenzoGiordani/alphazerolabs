@@ -32,9 +32,9 @@
  "halt_reason": "",
  "halted_today": false,
  "high_water_mark": 50008.513193,
- "last_equity": 49992.90313,
- "last_manage_ts": "2026-07-23T19:11:07.337337+00:00",
- "last_rebalance_ts": "2026-07-23T18:39:53.291272+00:00",
+ "last_equity": 49972.067435,
+ "last_manage_ts": "2026-07-23T19:24:53.955210+00:00",
+ "last_rebalance_ts": "2026-07-23T01:00:00+00:00",
  "last_target": {
   "BTC": 1875.0,
   "ETH": 1875.0,
@@ -43,7 +43,12 @@
   "SUI": -3750.0,
   "XRP": 1875.0
  },
+ "migration": {
+  "forced_rebalance": true,
+  "from": "tsmom-neutral-tournament-20260723-v1",
+  "to": "tsmom-abs2-tournament-20260723-v2"
+ },
  "permanently_halted": false,
- "strategy": "tsmom-neutral-tournament-20260723-v1",
+ "strategy": "tsmom-abs2-tournament-20260723-v2",
  "version": "propr-competition-state-v2"
 }
