@@ -180,6 +180,7 @@ def test_client_setup_competition_uses_exact_owned_account(monkeypatch):
     [
         ([], "account competition non accessibile"),
         ({}, "account competition non accessibile"),
+        ({"balance": "50000"}, "account competition inatteso"),
         ({"accountId": "other", "balance": "50000"}, "account competition inatteso"),
     ],
 )

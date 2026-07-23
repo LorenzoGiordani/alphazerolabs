@@ -56,7 +56,7 @@ class ProprClient:
                 expected_account_id,
                 f"urn:prp-account:{expected_account_id}",
             }
-            if observed_account_id is not None and observed_account_id not in allowed_account_ids:
+            if observed_account_id not in allowed_account_ids:
                 raise ProprError(f"account competition inatteso: {observed_account_id}")
             competition = self._req(
                 "GET", f"/competitions/{expected_competition_slug}",
