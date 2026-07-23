@@ -22,7 +22,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from backtest.portfolio import sign_weights  # noqa: E402
 from pipeline.live import atomic_write_text  # noqa: E402
 from scripts.portfolio_paper import trailing_returns  # noqa: E402
 from scripts.propr_client import ProprClient, ProprError  # noqa: E402
@@ -42,11 +41,20 @@ SYMBOLS = ("BTC", "ETH", "SOL", "XRP", "SUI", "NEAR")
 LOOKBACK_H = 168
 REBALANCE_H = 12
 TARGET_POSITIONS = 2
-GROSS = 1.50
-LEVERAGE = 2
-DAILY_STOP_PCT = 0.125
-TOTAL_STOP_PCT = 0.15
-STOP_DISTANCE = Decimal("0.08")
+MARGIN_UTILIZATION = Decimal("0.95")
+MAX_LEVERAGE_BY_ASSET = {
+    "BTC": 5,
+    "ETH": 5,
+    "SOL": 2,
+    "XRP": 2,
+    "SUI": 2,
+    "NEAR": 2,
+}
+GROSS = 4.75
+LEVERAGE_MIGRATION_PHASE = "leverage_migration_pending"
+DAILY_STOP_PCT = 0.15
+TOTAL_STOP_PCT = 0.20
+STOP_DISTANCE = Decimal("0.03")
 LEGACY_STOP_DISTANCE = Decimal("0.04")
 RECONCILE_REL_TOL = 0.05
 RECONCILE_ABS_TOL = 25.0
@@ -60,7 +68,7 @@ FLAT_READBACKS = 3
 FLAT_CONFIRMATIONS = 2
 RECOVERY_ATTEMPTS = 3
 STATE_VERSION = "propr-competition-state-v2"
-STOP_VERSION = "propr-competition-stop-v2"
+STOP_VERSION = "propr-competition-stop-v3"
 LEGACY_STOP_VERSION = "propr-competition-stop-v1"
 _FALLBACK_ULID_MS = 1_577_836_800_000
 _CROCKFORD32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
@@ -400,7 +408,7 @@ def _validate_state(state: dict, account_id: str) -> None:
         raise ProprError("stato competition target/quantita' incompleti")
     if expected_keys and not state.get("last_rebalance_ts"):
         raise ProprError("stato competition book senza rebalance timestamp")
-    target_gross = Decimal("0")
+    target_margin = Decimal("0")
     for asset in expected_keys:
         side = expected_sides[asset]
         if side not in ("long", "short"):
@@ -410,10 +418,10 @@ def _validate_state(state: dict, account_id: str) -> None:
         target = _decimal(last_target[asset], f"state target {asset}")
         if target == 0 or (target > 0) != (side == "long"):
             raise ProprError(f"stato competition target/lato incoerente per {asset}")
-        target_gross += abs(target)
-    gross_cap = EXPECTED_INITIAL_BALANCE * Decimal(str(GROSS))
-    if target_gross > gross_cap + Decimal("1"):
-        raise ProprError("stato competition gross target oltre cap")
+        target_margin += abs(target) / Decimal(MAX_LEVERAGE_BY_ASSET[asset])
+    margin_cap = EXPECTED_INITIAL_BALANCE * MARGIN_UTILIZATION
+    if target_margin > margin_cap + Decimal("1"):
+        raise ProprError("stato competition margin target oltre cap")
 
 
 def _write_state(state: dict) -> None:
@@ -475,20 +483,44 @@ def _target(sizing_base: float) -> tuple[dict[str, float], dict[str, float]]:
     selected = list(ranked.index[:TARGET_POSITIONS])
     if len(selected) != TARGET_POSITIONS or any(signals[asset] == 0 for asset in selected):
         raise ProprError("segnali competition insufficienti per abs2")
-    weights = sign_weights(signals.reindex(selected), gross=GROSS)
     for asset in SYMBOLS:
         _decimal(signals[asset], f"signal {asset}")
-        _decimal(weights.get(asset, 0), f"weight {asset}")
         if _decimal(prices[asset], f"price {asset}") <= 0:
             raise ProprError(f"price competition non positivo: {asset}")
+    margin_per_leg = (
+        Decimal(str(sizing_base))
+        * MARGIN_UTILIZATION
+        / Decimal(TARGET_POSITIONS)
+    )
     target = {
-        asset: float(weights[asset]) * sizing_base
+        asset: float(
+            margin_per_leg
+            * Decimal(MAX_LEVERAGE_BY_ASSET[asset])
+            * (Decimal("1") if signals[asset] > 0 else Decimal("-1"))
+        )
         for asset in selected
-        if abs(float(weights[asset])) > 1e-9
     }
     observed_prices = {asset: float(prices[asset]) for asset in SYMBOLS}
     _validate_target(target, observed_prices)
     return target, observed_prices
+
+
+def _pending_migration_target(state: dict) -> tuple[dict[str, float], dict[str, float]]:
+    migration = state.get("migration") or {}
+    raw_target = migration.get("pending_target")
+    raw_prices = migration.get("pending_prices")
+    if not isinstance(raw_target, dict) or not isinstance(raw_prices, dict):
+        raise ProprError("target leverage migration assente")
+    target = {
+        str(asset): float(_decimal(value, f"pending target {asset}"))
+        for asset, value in raw_target.items()
+    }
+    prices = {
+        str(asset): float(_decimal(value, f"pending price {asset}"))
+        for asset, value in raw_prices.items()
+    }
+    _validate_target(target, prices)
+    return target, prices
 
 
 def _validate_target(target: dict, prices: dict) -> None:
@@ -497,16 +529,16 @@ def _validate_target(target: dict, prices: dict) -> None:
     if (len(target) != TARGET_POSITIONS or len(target) > MAX_POSITIONS
             or set(target) - set(SYMBOLS)):
         raise ProprError(f"target competition non valido: {len(target)} gambe")
-    gross = Decimal("0")
+    margin = Decimal("0")
     for asset, raw_target in target.items():
         notional = _decimal(raw_target, f"target {asset}")
         price = _decimal(prices.get(asset), f"price target {asset}")
         if notional == 0 or price <= 0:
             raise ProprError(f"target competition nullo/non prezzato: {asset}")
-        gross += abs(notional)
-    gross_cap = EXPECTED_INITIAL_BALANCE * Decimal(str(GROSS))
-    if gross > gross_cap + Decimal("1"):
-        raise ProprError(f"gross target competition oltre cap: {gross} > {gross_cap}")
+        margin += abs(notional) / Decimal(MAX_LEVERAGE_BY_ASSET[asset])
+    margin_cap = EXPECTED_INITIAL_BALANCE * MARGIN_UTILIZATION
+    if margin > margin_cap + Decimal("1"):
+        raise ProprError(f"margin target competition oltre cap: {margin} > {margin_cap}")
 
 
 def _leverage_cap(limits: dict, asset: str) -> int:
@@ -525,45 +557,77 @@ def _leverage_cap(limits: dict, asset: str) -> int:
     return int(value)
 
 
-def _margin_config_matches(config: dict, asset: str) -> bool:
+def _margin_config_matches(config: dict, asset: str, leverage: int) -> bool:
     if not isinstance(config, dict):
         raise ProprError(f"margin config competition non strutturato: {asset}")
     observed_asset = config.get("asset")
-    if observed_asset not in (None, asset):
+    if observed_asset != asset:
         raise ProprError(f"margin config asset inatteso: {asset}={observed_asset}")
-    leverage = _decimal(config.get("leverage"), f"margin leverage {asset}")
-    mode = str(config.get("marginMode", "cross")).lower()
-    return leverage == LEVERAGE and mode == "cross"
+    if not str(config.get("configId", "")):
+        raise ProprError(f"margin configId competition assente: {asset}")
+    if "marginMode" not in config:
+        raise ProprError(f"margin mode competition assente: {asset}")
+    observed_leverage = _decimal(config.get("leverage"), f"margin leverage {asset}")
+    mode = str(config["marginMode"]).lower()
+    return observed_leverage == leverage and mode == "cross"
 
 
-def _ensure_leverage(client: ProprClient, assets: list[str]) -> None:
+def _leverage_configs(
+    client: ProprClient,
+    assets: list[str],
+) -> tuple[list[str], dict[str, dict], dict[str, int]]:
     selected = sorted(set(assets))
     if not selected or set(selected) - set(SYMBOLS):
         raise ProprError("asset leverage competition non validi")
     limits = client.get_leverage_limits()
     configs = {}
+    desired = {}
     for asset in selected:
-        if _leverage_cap(limits, asset) < LEVERAGE:
-            raise ProprError(f"leva competition non disponibile: {asset}")
+        observed_cap = _leverage_cap(limits, asset)
+        expected_cap = MAX_LEVERAGE_BY_ASSET[asset]
+        if observed_cap != expected_cap:
+            raise ProprError(
+                f"leva massima competition inattesa: "
+                f"{asset}={observed_cap} expected={expected_cap}"
+            )
         config = client.get_margin_config(asset)
-        _margin_config_matches(config, asset)
+        _margin_config_matches(config, asset, expected_cap)
         configs[asset] = config
+        desired[asset] = expected_cap
+    return selected, configs, desired
 
-    updated = []
+
+def _leverage_needs_update(client: ProprClient, assets: list[str]) -> bool:
+    _selected, configs, desired = _leverage_configs(client, assets)
+    return any(
+        not _margin_config_matches(config, asset, desired[asset])
+        for asset, config in configs.items()
+    )
+
+
+def _ensure_leverage(client: ProprClient, assets: list[str]) -> None:
+    selected, configs, desired = _leverage_configs(client, assets)
+
+    updated = {}
     for asset, config in configs.items():
-        if _margin_config_matches(config, asset):
+        leverage = desired[asset]
+        if _margin_config_matches(config, asset, leverage):
             continue
         config_id = str(config.get("configId", ""))
         if not config_id:
             raise ProprError(f"margin configId competition assente: {asset}")
-        client.update_margin_config(config_id, asset, LEVERAGE, margin_mode="cross")
-        updated.append(asset)
+        client.update_margin_config(config_id, asset, leverage, margin_mode="cross")
+        updated[asset] = leverage
 
     for asset in selected:
-        if not _margin_config_matches(client.get_margin_config(asset), asset):
+        if not _margin_config_matches(
+            client.get_margin_config(asset),
+            asset,
+            desired[asset],
+        ):
             raise ProprError(f"leva competition non verificata: {asset}")
     if updated:
-        _append_journal({"type": "leverage", "assets": updated, "leverage": LEVERAGE})
+        _append_journal({"type": "leverage", "assets": updated})
 
 
 def _looks_like_native_stop(order: dict) -> bool:
@@ -810,6 +874,7 @@ def _write_status(*, mode: str, account_id: str, attempt: dict, account: dict,
         "balance": round(float(account["balance"]), 2),
         "equity": round(equity, 2),
         "gross": GROSS,
+        "margin_utilization": float(MARGIN_UTILIZATION),
         "daily_stop_pct": DAILY_STOP_PCT,
         "total_stop_pct": TOTAL_STOP_PCT,
         "positions": [
@@ -886,7 +951,7 @@ def _risk_reason(state: dict, positions: list[dict], equity: float, now: datetim
     if state.get("halted_today"):
         return (str(state.get("halt_reason") or "daily_halt"),
                 state.get("halt_kind") != "daily")
-    if _book_drift(state, positions):
+    if not _leverage_migration_pending(state) and _book_drift(state, positions):
         return ("native_stop_or_external_drift", True)
     return ("", False)
 
@@ -969,6 +1034,69 @@ def _runtime_book_errors(state: dict, positions: list[dict], orders: list[dict])
     return errors
 
 
+def _leverage_migration_pending(state: dict) -> bool:
+    migration = state.get("migration") or {}
+    return (
+        isinstance(migration, dict)
+        and migration.get("phase") == LEVERAGE_MIGRATION_PHASE
+    )
+
+
+def _migration_position_errors(
+    state: dict,
+    positions: list[dict],
+) -> list[str]:
+    expected_sides = state.get("expected_sides") or {}
+    expected_quantities = state.get("expected_quantities") or {}
+    errors = []
+    for position in positions:
+        asset = str(position.get("base", ""))
+        side = str(position.get("positionSide", ""))
+        if expected_sides.get(asset) != side or asset not in expected_quantities:
+            errors.append(f"{asset}:unexpected_position")
+            continue
+        quantity = abs(_decimal(position.get("quantity"), f"quantity migration {asset}"))
+        expected = abs(_decimal(
+            expected_quantities[asset],
+            f"expected quantity migration {asset}",
+        ))
+        if quantity > expected * (Decimal("1") + QUANTITY_REL_TOL):
+            errors.append(f"{asset}:oversize")
+    return errors
+
+
+def _migration_book_errors(
+    state: dict,
+    positions: list[dict],
+    orders: list[dict],
+) -> list[str]:
+    errors = _migration_position_errors(state, positions)
+    for position in positions:
+        asset = str(position.get("base", ""))
+        if any(error.startswith(f"{asset}:") for error in errors):
+            continue
+        count = sum(_is_exact_protection(position, order) for order in orders)
+        if count != 1:
+            errors.append(f"{asset}:stop_count={count}")
+    for order in orders:
+        if (
+            not any(_is_exact_protection(position, order) for position in positions)
+            and not (not positions and _looks_like_native_stop(order))
+        ):
+            errors.append(f"ordine_inatteso={order.get('orderId')}")
+    return errors
+
+
+def _active_runtime_errors(
+    state: dict,
+    positions: list[dict],
+    orders: list[dict],
+) -> list[str]:
+    if _leverage_migration_pending(state):
+        return _migration_book_errors(state, positions, orders)
+    return _runtime_book_errors(state, positions, orders)
+
+
 def _validate_legacy_runtime(
     state: dict,
     positions: list[dict],
@@ -1007,7 +1135,7 @@ def check() -> dict:
             raise ProprError(f"prima attivazione account non vergine: {detail}")
     else:
         _validate_state(state, account_id)
-        errors = _runtime_book_errors(state, positions, active_orders)
+        errors = _active_runtime_errors(state, positions, active_orders)
         if errors:
             raise ProprError("preflight runtime: " + "; ".join(errors))
     result = {
@@ -1090,6 +1218,12 @@ def guard() -> dict:
     _validate_state(state, account_id)
     try:
         _validate_positions(positions)
+        if _leverage_migration_pending(state):
+            migration_errors = _migration_position_errors(state, positions)
+            if migration_errors:
+                raise ProprError(
+                    "leverage migration runtime: " + "; ".join(migration_errors)
+                )
         _roll_day(state, positions, equity, now)
         reason, permanent = _risk_reason(state, positions, equity, now)
     except Exception as exc:
@@ -1190,6 +1324,16 @@ def manage() -> dict:
     _validate_state(state, account_id)
     try:
         _validate_positions(positions)
+        if _leverage_migration_pending(state):
+            migration_errors = _migration_book_errors(
+                state,
+                positions,
+                active_orders,
+            )
+            if migration_errors:
+                raise ProprError(
+                    "leverage migration runtime: " + "; ".join(migration_errors)
+                )
         _roll_day(state, positions, equity, now)
         reason, permanent = _risk_reason(state, positions, equity, now)
     except Exception as exc:
@@ -1229,16 +1373,87 @@ def manage() -> dict:
     except Exception as exc:
         _recover_after_write(client, state, now, "state_or_position_invalid", exc)
     if rebalance_due:
+        migration_pending = _leverage_migration_pending(state)
         try:
-            target, prices = _target(float(EXPECTED_INITIAL_BALANCE))
+            if migration_pending:
+                target, prices = _pending_migration_target(state)
+            else:
+                target, prices = _target(float(EXPECTED_INITIAL_BALANCE))
             _validate_target(target, prices)
         except Exception as exc:
             _recover_after_write(client, state, now, "target_recovery", exc)
+
+        if positions and not migration_pending:
+            try:
+                leverage_update_needed = _leverage_needs_update(client, list(SYMBOLS))
+            except Exception as exc:
+                message = f"leverage_preflight: {type(exc).__name__}: {exc}"
+                _write_error_marker(message, state)
+                raise ProprError(message) from exc
+            if leverage_update_needed:
+                migration = dict(state.get("migration") or {})
+                migration.update({
+                    "phase": LEVERAGE_MIGRATION_PHASE,
+                    "pending_target": {
+                        asset: round(value, 2) for asset, value in target.items()
+                    },
+                    "pending_prices": {
+                        asset: prices[asset] for asset in target
+                    },
+                    "prepared_at": now.isoformat(),
+                })
+                state["migration"] = migration
+                state["last_manage_ts"] = now.isoformat()
+                account = client.get_account()
+                state["last_equity"] = round(_equity(account), 8)
+                _write_state(state)
+                _write_status(
+                    mode="manage",
+                    account_id=account_id,
+                    attempt=attempt,
+                    account=account,
+                    positions=positions,
+                    state=state,
+                    note=LEVERAGE_MIGRATION_PHASE,
+                )
+                result = {
+                    "mode": "manage",
+                    "action": LEVERAGE_MIGRATION_PHASE,
+                    "positions": len(positions),
+                    "equity": round(_equity(account), 2),
+                }
+                print(json.dumps(result, indent=2))
+                return result
+
+        if migration_pending:
+            try:
+                if positions:
+                    _flatten_and_cleanup(client, positions, "leverage_migration")
+                    positions = []
+                state.update({
+                    "expected_assets": [],
+                    "expected_sides": {},
+                    "expected_quantities": {},
+                    "last_target": {},
+                    "last_manage_ts": now.isoformat(),
+                })
+                state["last_equity"] = round(_equity(client.get_account()), 8)
+                _write_state(state)
+            except Exception as exc:
+                _recover_after_write(
+                    client,
+                    state,
+                    now,
+                    "leverage_migration_recovery",
+                    exc,
+                )
         try:
-            _ensure_leverage(client, list(target))
+            _ensure_leverage(client, list(SYMBOLS))
         except Exception as exc:
             message = f"leverage_preflight: {type(exc).__name__}: {exc}"
             _write_error_marker(message, state)
+            if migration_pending:
+                _write_state(state)
             raise ProprError(message) from exc
         try:
             orders = rebalance(client, target, prices, positions)
@@ -1266,6 +1481,16 @@ def manage() -> dict:
             )
             for position in positions
         }
+        if migration_pending:
+            migration = dict(state.get("migration") or {})
+            migration.pop("pending_target", None)
+            migration.pop("pending_prices", None)
+            migration.update({
+                "phase": "complete",
+                "forced_rebalance": False,
+                "completed_at": now.isoformat(),
+            })
+            state["migration"] = migration
         action = "rebalance"
 
     state["last_manage_ts"] = now.isoformat()

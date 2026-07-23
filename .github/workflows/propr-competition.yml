@@ -34,6 +34,11 @@ jobs:
       PROPR_COMPETITION_AUTOMANAGE_ENABLED: ${{ vars.PROPR_COMPETITION_AUTOMANAGE_ENABLED }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: sincronizza stato competition da main
+        run: git pull --ff-only origin main
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
 
       - name: preflight account competition (read-only)
