@@ -4,16 +4,45 @@
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "day_date": "2026-07-23",
  "day_start_equity": 50000.0,
- "expected_assets": [],
- "expected_quantities": {},
- "expected_sides": {},
+ "expected_assets": [
+  "BTC",
+  "ETH",
+  "NEAR",
+  "SOL",
+  "SUI",
+  "XRP"
+ ],
+ "expected_quantities": {
+  "BTC": "0.029",
+  "ETH": "0.999",
+  "NEAR": "2001.1",
+  "SOL": "24.8",
+  "SUI": "5064",
+  "XRP": "1700.8"
+ },
+ "expected_sides": {
+  "BTC": "long",
+  "ETH": "long",
+  "NEAR": "short",
+  "SOL": "long",
+  "SUI": "short",
+  "XRP": "long"
+ },
  "halt_kind": "",
  "halt_reason": "",
  "halted_today": false,
  "high_water_mark": 50000.0,
- "last_equity": 50000.0,
- "last_rebalance_ts": "",
- "last_target": {},
+ "last_equity": 49993.232431,
+ "last_manage_ts": "2026-07-23T18:39:53.291272+00:00",
+ "last_rebalance_ts": "2026-07-23T18:39:53.291272+00:00",
+ "last_target": {
+  "BTC": 1875.0,
+  "ETH": 1875.0,
+  "NEAR": -3750.0,
+  "SOL": 1875.0,
+  "SUI": -3750.0,
+  "XRP": 1875.0
+ },
  "permanently_halted": false,
  "strategy": "tsmom-neutral-tournament-20260723-v1",
  "version": "propr-competition-state-v2"
