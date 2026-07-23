@@ -5,49 +5,49 @@
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.125,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 49972.07,
+ "equity": 49974.09,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 1.5,
- "mode": "guard",
- "note": "guard-only",
+ "mode": "error",
+ "note": "ProprError: leverage_preflight: ProprError: PUT /accounts/SzSKErmBBPN6/margin-config/urn:prp-margin-config:WB1Dmf8JyT3v -> 409: {\"code\":13306,\"message\":\"margin_config_has_open_positions\"}",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
    "asset": "XRP",
-   "notional": 1876.58,
+   "notional": 1878.11,
    "side": "long",
-   "unrealized_pnl": 1.11
+   "unrealized_pnl": 2.64
   },
   {
    "asset": "SUI",
-   "notional": 3774.43,
+   "notional": 3776.0,
    "side": "short",
-   "unrealized_pnl": -9.75
+   "unrealized_pnl": -11.32
   },
   {
    "asset": "SOL",
-   "notional": 1875.51,
+   "notional": 1876.83,
    "side": "long",
-   "unrealized_pnl": -0.88
+   "unrealized_pnl": 0.43
   },
   {
    "asset": "NEAR",
-   "notional": 3776.98,
+   "notional": 3779.48,
    "side": "short",
-   "unrealized_pnl": -11.17
+   "unrealized_pnl": -13.67
   },
   {
    "asset": "ETH",
-   "notional": 1876.67,
+   "notional": 1878.47,
    "side": "long",
-   "unrealized_pnl": -0.85
+   "unrealized_pnl": 0.95
   },
   {
    "asset": "BTC",
-   "notional": 1879.45,
+   "notional": 1880.9,
    "side": "long",
-   "unrealized_pnl": 0.28
+   "unrealized_pnl": 1.73
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -85,8 +85,8 @@
   "halt_reason": "",
   "halted_today": false,
   "high_water_mark": 50008.513193,
-  "last_equity": 49972.067435,
-  "last_manage_ts": "2026-07-23T19:24:53.955210+00:00",
+  "last_equity": 49974.08954,
+  "last_manage_ts": "2026-07-23T19:25:49.545971+00:00",
   "last_rebalance_ts": "2026-07-23T01:00:00+00:00",
   "last_target": {
    "BTC": 1875.0,
@@ -107,5 +107,5 @@
  },
  "strategy": "tsmom-abs2-tournament-20260723-v2",
  "total_stop_pct": 0.15,
- "updated_at": "2026-07-23T19:25:00.602508+00:00"
+ "updated_at": "2026-07-23T19:26:05.795674+00:00"
 }
