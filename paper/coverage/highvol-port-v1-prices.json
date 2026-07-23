@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "29965316229-1",
-  "generated_at": "2026-07-22T23:14:05.941667+00:00",
+  "run_id": "29968341130-1",
+  "generated_at": "2026-07-23T00:14:08.897287+00:00",
   "component": "highvol-port-v1-prices",
   "critical": true,
   "expected_count": 136,
