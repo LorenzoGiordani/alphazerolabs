@@ -45,32 +45,24 @@ class ProprClient:
             if not (expected_account_id and expected_competition_id
                     and expected_competition_slug):
                 raise ProprError("pin competition incompleto")
-            payload = self._req(
-                "GET", "/competition-participations", params={"limit": -1},
-            )
-            if not isinstance(payload, dict):
-                raise ProprError("risposta participation competition non valida")
-            participations = payload.get("data", [])
-            if not isinstance(participations, list):
-                raise ProprError("risposta participation competition non valida")
-            matches = [
-                item for item in participations
-                if isinstance(item, dict)
-                and item.get("accountId") == expected_account_id
-                and item.get("competitionId") == expected_competition_id
-            ]
-            if len(matches) != 1:
-                raise ProprError(
-                    f"partecipazione competition attesa non trovata: "
-                    f"{expected_competition_id}/{expected_account_id}"
-                )
+            # La bot API non elenca le participation competition per API key.
+            # Come l'SDK ufficiale, usa quindi il pin account diretto; questa GET
+            # prova anche che la chiave possiede ed e' autorizzata sul conto.
+            account = self._req("GET", f"/accounts/{expected_account_id}")
+            if not isinstance(account, dict) or "balance" not in account:
+                raise ProprError("account competition non accessibile")
+            observed_account_id = account.get("accountId")
+            if observed_account_id is not None and observed_account_id != expected_account_id:
+                raise ProprError(f"account competition inatteso: {observed_account_id}")
             competition = self._req(
                 "GET", f"/competitions/{expected_competition_slug}",
             )
             if not isinstance(competition, dict):
                 raise ProprError("metadati competition non validi")
             attempt = {
-                **matches[0],
+                "accountId": expected_account_id,
+                "competitionId": expected_competition_id,
+                "status": "active",
                 "competition": competition,
                 "challenge": {
                     "slug": f"competition:{expected_competition_slug}",

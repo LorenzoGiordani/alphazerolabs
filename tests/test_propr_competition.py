@@ -147,7 +147,7 @@ def test_attempt_validation_is_fail_closed(attempt, message):
         competition._validate_attempt(attempt, "competition-1")
 
 
-def test_client_setup_competition_uses_exact_participation(monkeypatch):
+def test_client_setup_competition_uses_exact_owned_account(monkeypatch):
     from scripts.propr_client import ProprClient
 
     client = ProprClient(api_key="test", read_only=True)
@@ -155,21 +155,8 @@ def test_client_setup_competition_uses_exact_participation(monkeypatch):
 
     def request(method, path, **kwargs):
         calls.append((method, path, kwargs))
-        if path == "/competition-participations":
-            return {
-                "data": [
-                    {
-                        "accountId": "competition-1",
-                        "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
-                        "status": "active",
-                    },
-                    {
-                        "accountId": "other",
-                        "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
-                        "status": "active",
-                    },
-                ]
-            }
+        if path == "/accounts/competition-1":
+            return {"accountId": "competition-1", "balance": "50000"}
         if path == "/competitions/lighter-propr-trading-tournament":
             return _attempt()["competition"]
         raise AssertionError(path)
@@ -183,46 +170,29 @@ def test_client_setup_competition_uses_exact_participation(monkeypatch):
     ) == "competition-1"
     assert client.active_attempt["challenge"]["initialBalance"] == "50000"
     assert calls == [
-        ("GET", "/competition-participations", {"params": {"limit": -1}}),
+        ("GET", "/accounts/competition-1", {}),
         ("GET", "/competitions/lighter-propr-trading-tournament", {}),
     ]
 
 
 @pytest.mark.parametrize(
-    ("participations", "message"),
+    ("account", "message"),
     [
-        ([], "partecipazione competition attesa non trovata"),
-        ([
-            {
-                "accountId": "competition-1",
-                "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
-                "status": "active",
-            },
-            {
-                "accountId": "competition-1",
-                "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
-                "status": "active",
-            },
-        ], "partecipazione competition attesa non trovata"),
-        ([
-            {
-                "accountId": "competition-1",
-                "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
-                "status": "closed",
-            },
-        ], "account non attivo"),
+        ([], "account competition non accessibile"),
+        ({}, "account competition non accessibile"),
+        ({"accountId": "other", "balance": "50000"}, "account competition inatteso"),
     ],
 )
-def test_client_setup_competition_rejects_missing_duplicate_or_inactive(
-    monkeypatch, participations, message,
+def test_client_setup_competition_rejects_inaccessible_or_wrong_account(
+    monkeypatch, account, message,
 ):
     from scripts.propr_client import ProprClient, ProprError
 
     client = ProprClient(api_key="test", read_only=True)
 
     def request(_method, path, **_kwargs):
-        if path == "/competition-participations":
-            return {"data": participations}
+        if path == "/accounts/competition-1":
+            return account
         if path == "/competitions/lighter-propr-trading-tournament":
             return _attempt()["competition"]
         raise AssertionError(path)
