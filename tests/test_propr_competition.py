@@ -246,7 +246,7 @@ def test_check_uses_read_only_client_and_never_orders(tmp_path, monkeypatch):
     assert json.loads(competition.STATUS_PATH.read_text())["mode"] == "check"
 
 
-def test_target_is_frozen_abs2_with_bounded_gross(monkeypatch):
+def test_target_is_frozen_abs2_with_max_margin_utilization(monkeypatch):
     import scripts.propr_competition as competition
 
     signals = pd.Series({
@@ -259,10 +259,30 @@ def test_target_is_frozen_abs2_with_bounded_gross(monkeypatch):
     target, observed_prices = competition._target(50_000)
 
     assert set(target) == {"SUI", "NEAR"}
-    assert sum(abs(value) for value in target.values()) == pytest.approx(75_000)
+    assert target == {"SUI": 47_500.0, "NEAR": -47_500.0}
+    assert sum(
+        abs(value) / competition.MAX_LEVERAGE_BY_ASSET[asset]
+        for asset, value in target.items()
+    ) == pytest.approx(47_500)
     assert competition.GROSS * float(competition.STOP_DISTANCE) <= competition.DAILY_STOP_PCT
     assert target["SUI"] > 0 and target["NEAR"] < 0
     assert observed_prices == prices
+
+
+def test_btc_eth_abs2_uses_their_full_five_x_caps(monkeypatch):
+    import scripts.propr_competition as competition
+
+    signals = pd.Series({
+        "BTC": 0.6, "ETH": -0.5, "SOL": 0.1,
+        "XRP": -0.2, "SUI": 0.3, "NEAR": -0.3,
+    })
+    prices = {asset: 100.0 for asset in competition.SYMBOLS}
+    monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
+
+    target, _observed_prices = competition._target(50_000)
+
+    assert target == {"BTC": 118_750.0, "ETH": -118_750.0}
+    assert sum(abs(value) for value in target.values()) == pytest.approx(237_500)
 
 
 def test_guard_flattens_at_end_even_when_automanage_is_off(tmp_path, monkeypatch):
@@ -698,6 +718,7 @@ def test_semantically_corrupt_state_routes_to_recovery(
     monkeypatch.setattr(competition, "_flatten_and_cleanup", fake_flatten)
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
+    monkeypatch.setattr(competition, "JOURNAL_PATH", tmp_path / "journal.jsonl")
     state = _state(
         competition,
         datetime(2026, 7, 23, 13, 0, tzinfo=timezone.utc),
@@ -1233,10 +1254,463 @@ def test_leverage_is_updated_and_read_back_before_trading(tmp_path, monkeypatch)
 
     competition._ensure_leverage(client, ["SUI", "NEAR"])
 
-    assert client.configs["NEAR"]["leverage"] == competition.LEVERAGE
-    assert client.configs["SUI"]["leverage"] == competition.LEVERAGE
+    assert client.configs["NEAR"]["leverage"] == competition.MAX_LEVERAGE_BY_ASSET["NEAR"]
+    assert client.configs["SUI"]["leverage"] == competition.MAX_LEVERAGE_BY_ASSET["SUI"]
     assert client.events.index("put:NEAR") > client.events.index("get:SUI")
     assert client.events[-2:] == ["get:NEAR", "get:SUI"]
+
+
+def test_leverage_update_detection_is_read_only():
+    import scripts.propr_competition as competition
+
+    class Client:
+        def __init__(self):
+            self.events = []
+
+        def get_leverage_limits(self):
+            self.events.append("limits")
+            return {"defaults": {"crypto": 2}}
+
+        def get_margin_config(self, asset):
+            self.events.append(f"get:{asset}")
+            return {
+                "configId": f"cfg-{asset}",
+                "asset": asset,
+                "leverage": (
+                    1 if asset == "NEAR"
+                    else competition.MAX_LEVERAGE_BY_ASSET[asset]
+                ),
+                "marginMode": "cross",
+            }
+
+        def update_margin_config(self, *_args, **_kwargs):
+            pytest.fail("read-only leverage inspection attempted a write")
+
+    client = Client()
+
+    assert competition._leverage_needs_update(client, ["XRP", "NEAR"]) is True
+    assert client.events == ["limits", "get:NEAR", "get:XRP"]
+
+
+def test_global_leverage_detection_sees_alt_mismatch_when_btc_eth_are_maxed():
+    import scripts.propr_competition as competition
+
+    class Client:
+        def get_leverage_limits(self):
+            return {
+                "defaults": {"crypto": 2},
+                "overrides": {"BTC": 5, "ETH": 5},
+            }
+
+        def get_margin_config(self, asset):
+            leverage = competition.MAX_LEVERAGE_BY_ASSET[asset]
+            if asset == "SOL":
+                leverage = 1
+            return {
+                "configId": f"cfg-{asset}",
+                "asset": asset,
+                "leverage": leverage,
+                "marginMode": "cross",
+            }
+
+    client = Client()
+
+    assert competition._leverage_needs_update(client, ["BTC", "ETH"]) is False
+    assert competition._leverage_needs_update(
+        client,
+        list(competition.SYMBOLS),
+    ) is True
+
+
+@pytest.mark.parametrize(
+    ("config", "message"),
+    [
+        (
+            {"configId": "cfg-BTC", "leverage": 5, "marginMode": "cross"},
+            "asset inatteso",
+        ),
+        (
+            {"asset": "BTC", "leverage": 5, "marginMode": "cross"},
+            "configId.*assente",
+        ),
+        (
+            {"configId": "cfg-BTC", "asset": "BTC", "leverage": 5},
+            "margin mode.*assente",
+        ),
+    ],
+)
+def test_margin_config_contract_rejects_missing_identity_fields(config, message):
+    import scripts.propr_competition as competition
+
+    with pytest.raises(competition.ProprError, match=message):
+        competition._margin_config_matches(config, "BTC", 5)
+
+
+def test_manage_persists_marker_then_migrates_and_is_idempotent(
+    tmp_path,
+    monkeypatch,
+):
+    import scripts.propr_competition as competition
+
+    events = []
+
+    class Client:
+        def __init__(self):
+            self.active_attempt = _attempt()
+            self.positions = [_position()]
+            self.orders = []
+
+        def setup(self, **_kwargs):
+            return None
+
+        def get_positions(self):
+            return list(self.positions)
+
+        def get_account(self):
+            return _account()
+
+        def get_active_orders(self):
+            return list(self.orders)
+
+    client = Client()
+
+    def fake_guard(active_client, positions):
+        events.append(("guard", [position["base"] for position in positions]))
+        active_client.orders = []
+        for position in positions:
+            plan = competition._stop_plan(position)
+            active_client.orders.append({
+                "orderId": f"stop-{position['base']}",
+                "intentId": plan["intent_id"],
+                "positionId": plan["position_id"],
+                "type": "stop_market",
+                "side": plan["side"],
+                "positionSide": plan["position_side"],
+                "quantity": plan["quantity"],
+                "triggerPrice": plan["trigger_price"],
+                "reduceOnly": True,
+                "closePosition": True,
+            })
+        return []
+
+    def fake_flatten(active_client, positions, reason):
+        events.append(("flatten", reason, [position["base"] for position in positions]))
+        active_client.positions = []
+        active_client.orders = []
+
+    def fake_rebalance(active_client, _target, _prices, positions):
+        assert positions == []
+        events.append(("rebalance",))
+        active_client.positions = [
+            _position("NEAR", "short", quantity="475", notional="47500"),
+            _position("XRP", "long", quantity="475", notional="47500"),
+        ]
+        return [
+            {
+                "asset": "NEAR",
+                "action": "adjust",
+                "resp": [{"orderId": "near", "status": "filled"}],
+            },
+            {
+                "asset": "XRP",
+                "action": "adjust",
+                "resp": [{"orderId": "xrp", "status": "filled"}],
+            },
+        ]
+
+    monkeypatch.setenv("PROPR_COMPETITION_AUTOMANAGE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_COMPETITION_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_COMPETITION_ACCOUNT_ID", "competition-1")
+    monkeypatch.setattr(
+        competition, "_now",
+        lambda: datetime(2026, 7, 23, 19, 30, tzinfo=timezone.utc),
+    )
+    monkeypatch.setattr(
+        competition,
+        "ProprClient",
+        lambda *, read_only=False: client
+        if read_only is False
+        else pytest.fail("manage requested read-only client"),
+    )
+    monkeypatch.setattr(competition, "_create_missing_stops", fake_guard)
+    def fake_needs_update(_client, assets):
+        assert assets == list(competition.SYMBOLS)
+        events.append(("inspect_leverage",))
+        return True
+
+    monkeypatch.setattr(competition, "_leverage_needs_update", fake_needs_update)
+    monkeypatch.setattr(
+        competition,
+        "_ensure_leverage",
+        lambda _client, assets: events.append(("set_leverage", tuple(assets))),
+    )
+    monkeypatch.setattr(competition, "_flatten_and_cleanup", fake_flatten)
+    monkeypatch.setattr(competition, "rebalance", fake_rebalance)
+    monkeypatch.setattr(
+        competition,
+        "_target",
+        lambda *_args: (
+            {"NEAR": -47_500.0, "XRP": 47_500.0},
+            {"NEAR": 100.0, "XRP": 100.0},
+        ),
+    )
+    monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
+    monkeypatch.setattr(competition, "JOURNAL_PATH", tmp_path / "journal.jsonl")
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        expected_assets=["BTC"],
+        expected_sides={"BTC": "long"},
+        expected_quantities={"BTC": "1"},
+        last_target={"BTC": 100.0},
+        last_rebalance_ts="2026-07-23T01:00:00+00:00",
+    )
+    competition.STATE_PATH.write_text(json.dumps(state))
+
+    prepared = competition.manage()
+
+    assert prepared["action"] == competition.LEVERAGE_MIGRATION_PHASE
+    assert prepared["positions"] == 1
+    prepared_state = json.loads(competition.STATE_PATH.read_text())
+    assert prepared_state["expected_assets"] == ["BTC"]
+    assert prepared_state["migration"]["phase"] == competition.LEVERAGE_MIGRATION_PHASE
+    assert prepared_state["migration"]["pending_target"] == {
+        "NEAR": -47_500.0,
+        "XRP": 47_500.0,
+    }
+    assert events == [
+        ("guard", ["BTC"]),
+        ("inspect_leverage",),
+    ]
+
+    migrated = competition.manage()
+
+    assert migrated["action"] == "rebalance"
+    assert migrated["positions"] == 2
+    assert events == [
+        ("guard", ["BTC"]),
+        ("inspect_leverage",),
+        ("guard", ["BTC"]),
+        ("flatten", "leverage_migration", ["BTC"]),
+        ("set_leverage", tuple(competition.SYMBOLS)),
+        ("rebalance",),
+        ("guard", ["NEAR", "XRP"]),
+    ]
+    saved = json.loads(competition.STATE_PATH.read_text())
+    assert saved["expected_assets"] == ["NEAR", "XRP"]
+    assert saved["permanently_halted"] is False
+    assert saved["migration"]["phase"] == "complete"
+    assert saved["migration"]["forced_rebalance"] is False
+
+    third = competition.manage()
+
+    assert third["action"] == "guard_only"
+    assert events[-1] == ("guard", ["NEAR", "XRP"])
+
+
+def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
+    tmp_path,
+    monkeypatch,
+):
+    import scripts.propr_competition as competition
+
+    class Client:
+        def __init__(self):
+            self.active_attempt = _attempt()
+            self.positions = []
+
+        def setup(self, **_kwargs):
+            return None
+
+        def get_positions(self):
+            return list(self.positions)
+
+        def get_account(self):
+            return _account()
+
+        def get_active_orders(self):
+            return []
+
+    client = Client()
+    leverage_attempts = 0
+
+    def fake_leverage(_client, assets):
+        nonlocal leverage_attempts
+        leverage_attempts += 1
+        assert assets == list(competition.SYMBOLS)
+        if leverage_attempts == 1:
+            raise competition.ProprError("update failed after partial PUT")
+
+    def fake_rebalance(active_client, _target, _prices, positions):
+        assert positions == []
+        active_client.positions = [
+            _position("NEAR", "short", quantity="475", notional="47500"),
+            _position("XRP", "long", quantity="475", notional="47500"),
+        ]
+        return [
+            {
+                "asset": "NEAR",
+                "action": "adjust",
+                "resp": [{"orderId": "near", "status": "filled"}],
+            },
+            {
+                "asset": "XRP",
+                "action": "adjust",
+                "resp": [{"orderId": "xrp", "status": "filled"}],
+            },
+        ]
+
+    monkeypatch.setenv("PROPR_COMPETITION_AUTOMANAGE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_COMPETITION_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_COMPETITION_ACCOUNT_ID", "competition-1")
+    monkeypatch.setattr(
+        competition, "_now",
+        lambda: datetime(2026, 7, 23, 19, 30, tzinfo=timezone.utc),
+    )
+    monkeypatch.setattr(
+        competition,
+        "ProprClient",
+        lambda *, read_only=False: client
+        if read_only is False
+        else pytest.fail("manage requested read-only client"),
+    )
+    monkeypatch.setattr(competition, "_create_missing_stops", lambda *_args: [])
+    monkeypatch.setattr(competition, "_ensure_leverage", fake_leverage)
+    monkeypatch.setattr(competition, "rebalance", fake_rebalance)
+    monkeypatch.setattr(
+        competition,
+        "_target",
+        lambda *_args: pytest.fail("pending migration recomputed target"),
+    )
+    monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
+    monkeypatch.setattr(competition, "JOURNAL_PATH", tmp_path / "journal.jsonl")
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        expected_assets=["BTC"],
+        expected_sides={"BTC": "long"},
+        expected_quantities={"BTC": "1"},
+        last_target={"BTC": 100.0},
+        last_rebalance_ts="2026-07-23T01:00:00+00:00",
+        migration={
+            "phase": competition.LEVERAGE_MIGRATION_PHASE,
+            "pending_target": {"NEAR": -47_500.0, "XRP": 47_500.0},
+            "pending_prices": {"NEAR": 100.0, "XRP": 100.0},
+            "forced_rebalance": True,
+        },
+    )
+    competition.STATE_PATH.write_text(json.dumps(state))
+
+    with pytest.raises(competition.ProprError, match="leverage_preflight"):
+        competition.manage()
+
+    saved = json.loads(competition.STATE_PATH.read_text())
+    assert saved["expected_assets"] == []
+    assert saved["expected_sides"] == {}
+    assert saved["expected_quantities"] == {}
+    assert saved["last_target"] == {}
+    assert saved["permanently_halted"] is False
+    assert saved["migration"]["phase"] == competition.LEVERAGE_MIGRATION_PHASE
+
+    resumed = competition.manage()
+
+    assert resumed["action"] == "rebalance"
+    assert resumed["positions"] == 2
+    assert leverage_attempts == 2
+    completed = json.loads(competition.STATE_PATH.read_text())
+    assert completed["expected_assets"] == ["NEAR", "XRP"]
+    assert completed["migration"]["phase"] == "complete"
+
+    assert competition.manage()["action"] == "guard_only"
+
+
+def test_check_accepts_pending_migration_after_crash_left_account_flat(
+    tmp_path,
+    monkeypatch,
+):
+    import scripts.propr_competition as competition
+
+    class ReadOnlyClient:
+        def __init__(self, *, read_only=False):
+            assert read_only is True
+            self.active_attempt = _attempt()
+
+        def setup(self, **_kwargs):
+            return None
+
+        def get_positions(self):
+            return []
+
+        def get_account(self):
+            return _account()
+
+        def get_active_orders(self):
+            return []
+
+    monkeypatch.setenv("PROPR_COMPETITION_AUTOMANAGE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_COMPETITION_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_COMPETITION_ACCOUNT_ID", "competition-1")
+    monkeypatch.setattr(competition, "ProprClient", ReadOnlyClient)
+    monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        expected_assets=["BTC"],
+        expected_sides={"BTC": "long"},
+        expected_quantities={"BTC": "1"},
+        last_target={"BTC": 100.0},
+        last_rebalance_ts="2026-07-23T01:00:00+00:00",
+        migration={
+            "phase": competition.LEVERAGE_MIGRATION_PHASE,
+            "pending_target": {"NEAR": -47_500.0, "XRP": 47_500.0},
+            "pending_prices": {"NEAR": 100.0, "XRP": 100.0},
+        },
+    )
+    competition.STATE_PATH.write_text(json.dumps(state))
+
+    result = competition.check()
+
+    assert result["positions"] == 0
+    assert result["writes"] == 0
+
+
+def test_pending_migration_accepts_only_protected_reduction_subset():
+    import scripts.propr_competition as competition
+
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        expected_assets=["BTC"],
+        expected_sides={"BTC": "long"},
+        expected_quantities={"BTC": "1"},
+        last_target={"BTC": 100.0},
+        last_rebalance_ts="2026-07-23T01:00:00+00:00",
+        migration={"phase": competition.LEVERAGE_MIGRATION_PHASE},
+    )
+    residual = _position(quantity="0.5", notional="50")
+    plan = competition._stop_plan(residual)
+    stop = {
+        "orderId": "residual-stop",
+        "intentId": plan["intent_id"],
+        "positionId": plan["position_id"],
+        "type": "stop_market",
+        "side": plan["side"],
+        "positionSide": plan["position_side"],
+        "quantity": plan["quantity"],
+        "triggerPrice": plan["trigger_price"],
+        "reduceOnly": True,
+        "closePosition": True,
+    }
+
+    assert competition._active_runtime_errors(state, [residual], [stop]) == []
+    assert "BTC:oversize" in competition._active_runtime_errors(
+        state,
+        [_position(quantity="1.1", notional="110")],
+        [],
+    )
 
 
 def test_leverage_cap_failure_happens_before_config_write():
@@ -1256,7 +1730,7 @@ def test_leverage_cap_failure_happens_before_config_write():
             self.updated = True
 
     client = Client()
-    with pytest.raises(competition.ProprError, match="non disponibile"):
+    with pytest.raises(competition.ProprError, match="inattesa"):
         competition._ensure_leverage(client, ["SUI"])
     assert client.updated is False
 
@@ -1264,6 +1738,11 @@ def test_leverage_cap_failure_happens_before_config_write():
 def test_workflow_keeps_competition_dormant_by_default():
     workflow = (ROOT / ".github/workflows/propr-competition.yml").read_text()
 
+    sync_index = workflow.index("git pull --ff-only origin main")
+    check_index = workflow.index("uv run scripts/propr_competition.py --check")
+    assert "ref: main" in workflow
+    assert "fetch-depth: 0" in workflow
+    assert sync_index < check_index
     assert "PROPR_COMPETITION_GUARD_ENABLED: ${{ vars.PROPR_COMPETITION_GUARD_ENABLED }}" in workflow
     assert "PROPR_COMPETITION_AUTOMANAGE_ENABLED: ${{ vars.PROPR_COMPETITION_AUTOMANAGE_ENABLED }}" in workflow
     assert "env.PROPR_COMPETITION_GUARD_ENABLED == 'true'" in workflow
