@@ -1,7 +1,7 @@
 """Runner cloud fail-closed per il Lighter x Propr Trading Tournament.
 
 La corsia e' separata dal Free Trial: usa un account pin dedicato, stato e
-journal dedicati e una strategia TSMOM deterministica. ``--check`` e' sempre
+journal dedicati e una strategia XSMOM deterministica. ``--check`` e' sempre
 read-only; ``--manage`` puo' scrivere solo quando il kill switch competition e'
 esplicitamente attivo e la finestra UTC del torneo e' aperta.
 """
@@ -31,7 +31,8 @@ from scripts.propr_paper import flatten, rebalance  # noqa: E402
 COMPETITION_ID = "urn:prp-competition:XSLPfvuHDUtT"
 COMPETITION_SLUG = "lighter-propr-trading-tournament"
 LEGACY_STRATEGY_ID = "tsmom-neutral-tournament-20260723-v1"
-STRATEGY_ID = "tsmom-abs2-tournament-20260723-v2"
+PREVIOUS_STRATEGY_ID = "tsmom-abs2-tournament-20260723-v2"
+STRATEGY_ID = "xsmom-neutral2-tournament-20260724-v3"
 START_AT = datetime(2026, 7, 23, 13, 0, tzinfo=timezone.utc)
 # Due run utili prima dello stop: il clock cloud gira ogni ora al minuto :10.
 FLATTEN_AT = datetime(2026, 7, 30, 11, 0, tzinfo=timezone.utc)
@@ -294,7 +295,11 @@ def _read_state() -> dict:
 
 
 def _migrate_state(state: dict) -> dict:
-    if state.get("strategy") != LEGACY_STRATEGY_ID:
+    source = state.get("strategy")
+    if (
+        source not in (LEGACY_STRATEGY_ID, PREVIOUS_STRATEGY_ID)
+        or _leverage_migration_pending(state)
+    ):
         return state
     migrated = dict(state)
     migrated.update({
@@ -303,7 +308,7 @@ def _migrate_state(state: dict) -> dict:
             START_AT - timedelta(hours=REBALANCE_H)
         ).isoformat(),
         "migration": {
-            "from": LEGACY_STRATEGY_ID,
+            "from": source,
             "to": STRATEGY_ID,
             "forced_rebalance": True,
         },
@@ -341,7 +346,11 @@ def _validate_state(state: dict, account_id: str) -> None:
         "account_id": account_id,
     }
     mismatches = [key for key, value in required.items() if state.get(key) != value]
-    if state.get("strategy") not in (LEGACY_STRATEGY_ID, STRATEGY_ID):
+    if state.get("strategy") not in (
+        LEGACY_STRATEGY_ID,
+        PREVIOUS_STRATEGY_ID,
+        STRATEGY_ID,
+    ):
         mismatches.append("strategy")
     if mismatches:
         raise ProprError(f"stato competition incompatibile: {','.join(mismatches)}")
@@ -409,6 +418,9 @@ def _validate_state(state: dict, account_id: str) -> None:
     if expected_keys and not state.get("last_rebalance_ts"):
         raise ProprError("stato competition book senza rebalance timestamp")
     target_margin = Decimal("0")
+    target_net = Decimal("0")
+    has_long = False
+    has_short = False
     for asset in expected_keys:
         side = expected_sides[asset]
         if side not in ("long", "short"):
@@ -419,9 +431,29 @@ def _validate_state(state: dict, account_id: str) -> None:
         if target == 0 or (target > 0) != (side == "long"):
             raise ProprError(f"stato competition target/lato incoerente per {asset}")
         target_margin += abs(target) / Decimal(MAX_LEVERAGE_BY_ASSET[asset])
+        target_net += target
+        has_long = has_long or target > 0
+        has_short = has_short or target < 0
     margin_cap = EXPECTED_INITIAL_BALANCE * MARGIN_UTILIZATION
     if target_margin > margin_cap + Decimal("1"):
         raise ProprError("stato competition margin target oltre cap")
+    migration = state.get("migration") or {}
+    forced_rebalance = (
+        isinstance(migration, dict)
+        and migration.get("forced_rebalance") is True
+    )
+    if (
+        expected_keys
+        and state.get("strategy") == STRATEGY_ID
+        and not forced_rebalance
+        and (
+            len(expected_keys) != TARGET_POSITIONS
+            or not has_long
+            or not has_short
+            or abs(target_net) > Decimal("1")
+        )
+    ):
+        raise ProprError("stato competition non dollar-neutral")
 
 
 def _write_state(state: dict) -> None:
@@ -476,29 +508,33 @@ def _target(sizing_base: float) -> tuple[dict[str, float], dict[str, float]]:
     if observed != set(SYMBOLS):
         missing = sorted(set(SYMBOLS) - observed)
         raise ProprError(f"segnali competition incompleti: {','.join(missing)}")
-    ranked = signals.reindex(SYMBOLS).abs().sort_values(
-        ascending=False,
-        kind="mergesort",
-    )
-    selected = list(ranked.index[:TARGET_POSITIONS])
-    if len(selected) != TARGET_POSITIONS or any(signals[asset] == 0 for asset in selected):
-        raise ProprError("segnali competition insufficienti per abs2")
     for asset in SYMBOLS:
         _decimal(signals[asset], f"signal {asset}")
         if _decimal(prices[asset], f"price {asset}") <= 0:
             raise ProprError(f"price competition non positivo: {asset}")
-    margin_per_leg = (
+    ranked = signals.reindex(SYMBOLS).sort_values(
+        ascending=False,
+        kind="mergesort",
+    )
+    long_asset = str(ranked.index[0])
+    short_asset = str(ranked.index[-1])
+    if (
+        long_asset == short_asset
+        or _decimal(signals[long_asset], f"signal {long_asset}")
+        <= _decimal(signals[short_asset], f"signal {short_asset}")
+    ):
+        raise ProprError("dispersione competition insufficiente")
+    margin_cap = (
         Decimal(str(sizing_base))
         * MARGIN_UTILIZATION
-        / Decimal(TARGET_POSITIONS)
+    )
+    notional_per_leg = margin_cap / (
+        Decimal("1") / Decimal(MAX_LEVERAGE_BY_ASSET[long_asset])
+        + Decimal("1") / Decimal(MAX_LEVERAGE_BY_ASSET[short_asset])
     )
     target = {
-        asset: float(
-            margin_per_leg
-            * Decimal(MAX_LEVERAGE_BY_ASSET[asset])
-            * (Decimal("1") if signals[asset] > 0 else Decimal("-1"))
-        )
-        for asset in selected
+        long_asset: float(notional_per_leg),
+        short_asset: -float(notional_per_leg),
     }
     observed_prices = {asset: float(prices[asset]) for asset in SYMBOLS}
     _validate_target(target, observed_prices)
@@ -530,15 +566,23 @@ def _validate_target(target: dict, prices: dict) -> None:
             or set(target) - set(SYMBOLS)):
         raise ProprError(f"target competition non valido: {len(target)} gambe")
     margin = Decimal("0")
+    net = Decimal("0")
+    has_long = False
+    has_short = False
     for asset, raw_target in target.items():
         notional = _decimal(raw_target, f"target {asset}")
         price = _decimal(prices.get(asset), f"price target {asset}")
         if notional == 0 or price <= 0:
             raise ProprError(f"target competition nullo/non prezzato: {asset}")
         margin += abs(notional) / Decimal(MAX_LEVERAGE_BY_ASSET[asset])
+        net += notional
+        has_long = has_long or notional > 0
+        has_short = has_short or notional < 0
     margin_cap = EXPECTED_INITIAL_BALANCE * MARGIN_UTILIZATION
     if margin > margin_cap + Decimal("1"):
         raise ProprError(f"margin target competition oltre cap: {margin} > {margin_cap}")
+    if not has_long or not has_short or abs(net) > Decimal("1"):
+        raise ProprError(f"target competition non dollar-neutral: net={net}")
 
 
 def _leverage_cap(limits: dict, asset: str) -> int:
@@ -1491,6 +1535,17 @@ def manage() -> dict:
                 "completed_at": now.isoformat(),
             })
             state["migration"] = migration
+        else:
+            migration = dict(state.get("migration") or {})
+            if (
+                migration.get("to") == STRATEGY_ID
+                and migration.get("forced_rebalance") is True
+            ):
+                migration.update({
+                    "forced_rebalance": False,
+                    "completed_at": now.isoformat(),
+                })
+                state["migration"] = migration
         action = "rebalance"
 
     state["last_manage_ts"] = now.isoformat()
