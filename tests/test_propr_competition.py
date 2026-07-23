@@ -246,7 +246,7 @@ def test_check_uses_read_only_client_and_never_orders(tmp_path, monkeypatch):
     assert json.loads(competition.STATUS_PATH.read_text())["mode"] == "check"
 
 
-def test_target_is_frozen_abs2_with_max_margin_utilization(monkeypatch):
+def test_target_is_dollar_neutral_with_max_margin_utilization(monkeypatch):
     import scripts.propr_competition as competition
 
     signals = pd.Series({
@@ -283,6 +283,56 @@ def test_btc_eth_abs2_uses_their_full_five_x_caps(monkeypatch):
 
     assert target == {"BTC": 118_750.0, "ETH": -118_750.0}
     assert sum(abs(value) for value in target.values()) == pytest.approx(237_500)
+
+
+def test_mixed_leverage_legs_use_full_margin_and_equal_notionals(monkeypatch):
+    import scripts.propr_competition as competition
+
+    signals = pd.Series({
+        "BTC": 0.6, "ETH": 0.2, "SOL": 0.1,
+        "XRP": -0.2, "SUI": 0.3, "NEAR": -0.5,
+    })
+    prices = {asset: 100.0 for asset in competition.SYMBOLS}
+    monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
+
+    target, _observed_prices = competition._target(50_000)
+
+    expected = 47_500 / ((1 / 5) + (1 / 2))
+    assert target == pytest.approx({"BTC": expected, "NEAR": -expected})
+    assert sum(target.values()) == pytest.approx(0)
+    assert sum(
+        abs(value) / competition.MAX_LEVERAGE_BY_ASSET[asset]
+        for asset, value in target.items()
+    ) == pytest.approx(47_500)
+
+
+def test_all_positive_signals_still_trade_relative_winner_vs_loser(monkeypatch):
+    import scripts.propr_competition as competition
+
+    signals = pd.Series({
+        "BTC": 0.6, "ETH": 0.5, "SOL": 0.4,
+        "XRP": 0.3, "SUI": 0.2, "NEAR": 0.1,
+    })
+    prices = {asset: 100.0 for asset in competition.SYMBOLS}
+    monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
+
+    target, _observed_prices = competition._target(50_000)
+
+    assert set(target) == {"BTC", "NEAR"}
+    assert target["BTC"] == pytest.approx(-target["NEAR"])
+    assert target["BTC"] > 0
+
+
+def test_target_validation_rejects_unbalanced_leverage_weighting():
+    import scripts.propr_competition as competition
+
+    prices = {asset: 100.0 for asset in competition.SYMBOLS}
+
+    with pytest.raises(competition.ProprError, match="non dollar-neutral"):
+        competition._validate_target(
+            {"BTC": 118_750.0, "NEAR": -47_500.0},
+            prices,
+        )
 
 
 def test_guard_flattens_at_end_even_when_automanage_is_off(tmp_path, monkeypatch):
@@ -336,6 +386,7 @@ def test_guard_flattens_at_end_even_when_automanage_is_off(tmp_path, monkeypatch
     state = _state(
         competition,
         datetime(2026, 7, 29, 11, 10, tzinfo=timezone.utc),
+        strategy=competition.PREVIOUS_STRATEGY_ID,
         last_rebalance_ts="2026-07-29T11:10:00+00:00",
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
@@ -722,6 +773,7 @@ def test_semantically_corrupt_state_routes_to_recovery(
     state = _state(
         competition,
         datetime(2026, 7, 23, 13, 0, tzinfo=timezone.utc),
+        strategy=competition.PREVIOUS_STRATEGY_ID,
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
         expected_quantities={"BTC": "1"},
@@ -874,6 +926,7 @@ def test_crossed_stop_causes_guard_recovery_flatten(tmp_path, monkeypatch):
     state = _state(
         competition,
         datetime(2026, 7, 23, 13, 0, tzinfo=timezone.utc),
+        strategy=competition.PREVIOUS_STRATEGY_ID,
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
         expected_quantities={"BTC": "1"},
@@ -1002,6 +1055,49 @@ def test_legacy_state_migration_preserves_risk_and_forces_rebalance():
         migrated,
         datetime(2026, 7, 23, 19, 5, tzinfo=timezone.utc),
     ) is True
+
+
+def test_previous_aggressive_state_migrates_to_neutral_v3():
+    import scripts.propr_competition as competition
+
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 22, 11, tzinfo=timezone.utc),
+        strategy=competition.PREVIOUS_STRATEGY_ID,
+        expected_assets=["BTC", "NEAR"],
+        expected_sides={"BTC": "long", "NEAR": "short"},
+        expected_quantities={"BTC": "1.832", "NEAR": "25311.7"},
+        last_target={"BTC": 118_750.0, "NEAR": -47_500.0},
+        last_rebalance_ts="2026-07-23T20:05:35+00:00",
+    )
+
+    migrated = competition._migrate_state(state)
+
+    assert state["strategy"] == competition.PREVIOUS_STRATEGY_ID
+    assert migrated["strategy"] == competition.STRATEGY_ID
+    assert migrated["migration"] == {
+        "from": competition.PREVIOUS_STRATEGY_ID,
+        "to": competition.STRATEGY_ID,
+        "forced_rebalance": True,
+    }
+    competition._validate_state(migrated, "competition-1")
+
+
+def test_completed_v3_state_must_be_dollar_neutral():
+    import scripts.propr_competition as competition
+
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 22, 11, tzinfo=timezone.utc),
+        expected_assets=["BTC", "NEAR"],
+        expected_sides={"BTC": "long", "NEAR": "short"},
+        expected_quantities={"BTC": "1.832", "NEAR": "25311.7"},
+        last_target={"BTC": 118_750.0, "NEAR": -47_500.0},
+        last_rebalance_ts="2026-07-23T20:05:35+00:00",
+    )
+
+    with pytest.raises(competition.ProprError, match="non dollar-neutral"):
+        competition._validate_state(state, "competition-1")
 
 
 def test_unknown_strategy_state_is_rejected():
@@ -1460,6 +1556,7 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
     state = _state(
         competition,
         datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        strategy=competition.PREVIOUS_STRATEGY_ID,
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
         expected_quantities={"BTC": "1"},
@@ -1589,6 +1686,7 @@ def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
     state = _state(
         competition,
         datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        strategy=competition.STRATEGY_ID,
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
         expected_quantities={"BTC": "1"},
@@ -1658,6 +1756,7 @@ def test_check_accepts_pending_migration_after_crash_left_account_flat(
     state = _state(
         competition,
         datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        strategy=competition.PREVIOUS_STRATEGY_ID,
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
         expected_quantities={"BTC": "1"},
