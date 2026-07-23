@@ -3,7 +3,7 @@
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-23T00:14 UTC",
+ "generated_at": "2026-07-23T01:14 UTC",
  "strategies": [
   {
    "id": "highvol-port-v1",
@@ -11,13 +11,13 @@
    "engine": "portfolio",
    "thesis": "HIGH-VOL ANOMALY (inverso della classica low-vol anomaly). Nel basket crypto, gli asset PIU' VOLATILI delle ultime 72h sovraperformano i piu' calmi su orizzonti medi. E' ortogonale al momentum: ranka la VOLATILITA' (dev standard dei rendimenti), non il rendimento stesso. Tesi: il",
    "is_benchmark": false,
-   "window": "2025-12-26 → 2026-07-22",
+   "window": "2025-12-26 → 2026-07-23",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.79,
-    "mean_return": 0.1195,
-    "worst_drawdown": -0.1808,
+    "mean_sharpe": 0.81,
+    "mean_return": 0.1248,
+    "worst_drawdown": -0.1707,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -29,13 +29,13 @@
    "engine": "portfolio",
    "thesis": "LIQUIDATION IMBALANCE cross-sectional a portafoglio: per ogni asset lo sbilancio (liq_short - liq_long)/oi medio degli ultimi 7 giorni; long il top-terzile (dove gli SHORT vengono squeezati), short il bottom, dollar-neutral, ribilancio 24h. E' la versione PORTFOLIO del segnale li",
    "is_benchmark": false,
-   "window": "2025-12-26 → 2026-07-22",
+   "window": "2025-12-26 → 2026-07-23",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": -1.32,
-    "mean_return": -0.1932,
-    "worst_drawdown": -0.2999,
+    "mean_sharpe": -0.41,
+    "mean_return": -0.0769,
+    "worst_drawdown": -0.2311,
     "positive_symbols": "market-neutral",
     "consistency": "2/6 fold positivi"
    },
@@ -47,13 +47,13 @@
    "engine": "portfolio",
    "thesis": "TIME-SERIES momentum sign-based a portafoglio: long ogni asset con ritorno trailing 168h > 0, short se < 0, equal-weight per gamba, ribilancio 24h. A differenza di xsmom (rank RELATIVO, dollar-neutral by-construction) il book puo' diventare net-long/net-short quando i segni conco",
    "is_benchmark": false,
-   "window": "2025-12-26 → 2026-07-22",
+   "window": "2025-12-26 → 2026-07-23",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.69,
-    "mean_return": 0.5415,
-    "worst_drawdown": -0.2565,
+    "mean_sharpe": 1.61,
+    "mean_return": 0.4994,
+    "worst_drawdown": -0.2414,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
    },
@@ -65,15 +65,15 @@
    "engine": "portfolio",
    "thesis": "COMBO dei DUE edge ortogonali forti del progetto: xsmom (momentum relativo, corr al beta comune nettato) + HIGH-VOL (risk premium crypto, long alt volatili). I due fattori hanno correlazione rendimenti +0.28 (diversificazione GENUINA, non ridondanza: le varianti xsmom erano corr ",
    "is_benchmark": false,
-   "window": "2025-12-26 → 2026-07-22",
+   "window": "2025-12-26 → 2026-07-23",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.13,
-    "mean_return": -0.0012,
-    "worst_drawdown": -0.176,
+    "mean_sharpe": 0.96,
+    "mean_return": 0.1391,
+    "worst_drawdown": -0.171,
     "positive_symbols": "market-neutral",
-    "consistency": "2/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -83,15 +83,15 @@
    "engine": "portfolio",
    "thesis": "COMBO 50/50 dei due edge ortogonali (xsmom + highvol, corr 0.28) con VOL-TARGET OVERLAY (Moreira-Muir \"Volatility-Managed Portfolios\" 2017). Il blend-ratio sweep dell'audit di robustezza ha mostrato 50/50 marginalmente > del 70/30 scelto in xsmom-highvol-combo-v1 (Sharpe 2.75 vs ",
    "is_benchmark": false,
-   "window": "2025-12-26 → 2026-07-22",
+   "window": "2025-12-26 → 2026-07-23",
    "basket_size": 9,
    "vol_target": "on (m medio 0.83)",
    "aggregate": {
-    "mean_sharpe": 0.38,
-    "mean_return": 0.0333,
-    "worst_drawdown": -0.1545,
+    "mean_sharpe": 1.26,
+    "mean_return": 0.146,
+    "worst_drawdown": -0.1058,
     "positive_symbols": "market-neutral",
-    "consistency": "2/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -101,13 +101,13 @@
    "engine": "portfolio",
    "thesis": "CROSS-SECTIONAL MOMENTUM MULTI-ORIZZONTE. Stesso edge del parent xsmom-port-v1 (rank relativo nel basket, dollar-neutral) ma mediato su 3 orizzonti (lb 96/168/336h): il segnale a 96h cattura i movimenti di medio termine, 168h e' il core del parent, 336h il trend di fondo. La medi",
    "is_benchmark": false,
-   "window": "2025-12-26 → 2026-07-22",
+   "window": "2025-12-26 → 2026-07-23",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 2.45,
-    "mean_return": 0.4398,
-    "worst_drawdown": -0.1396,
+    "mean_sharpe": 2.47,
+    "mean_return": 0.4441,
+    "worst_drawdown": -0.1266,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
    },
@@ -119,15 +119,15 @@
    "engine": "portfolio",
    "thesis": "Cross-sectional momentum a PORTAFOGLIO: long il top-terzile del basket per forza relativa (ultime 168h), short il bottom-terzile, dollar-neutral, ribilanciato ogni 168h. Lo stesso edge che da -14.5% nell'engine per-simbolo stop-based (l'IC e troppo sottile per trade discreti) ren",
    "is_benchmark": false,
-   "window": "2025-12-26 → 2026-07-22",
+   "window": "2025-12-26 → 2026-07-23",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 0.22,
-    "mean_return": 0.0138,
-    "worst_drawdown": -0.176,
+    "mean_sharpe": 0.98,
+    "mean_return": 0.1419,
+    "worst_drawdown": -0.171,
     "positive_symbols": "market-neutral",
-    "consistency": "2/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -137,13 +137,13 @@
    "engine": "portfolio",
    "thesis": "Cross-sectional momentum lb168 IDENTICO a xsmom-port-v1 ma ribilanciato ogni 48h invece di 168h. Motivazione dall'OOS split (robustness_portfolio.py, 04/07, train 8m / test 4m mai visti): il config canonico lb168/reb168 crolla OOS (Sharpe 4.18 train -> 0.88 test) mentre lb168/reb",
    "is_benchmark": false,
-   "window": "2025-12-26 → 2026-07-22",
+   "window": "2025-12-26 → 2026-07-23",
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.52,
-    "mean_return": 0.2514,
-    "worst_drawdown": -0.1604,
+    "mean_sharpe": 1.29,
+    "mean_return": 0.1989,
+    "worst_drawdown": -0.1709,
     "positive_symbols": "market-neutral",
     "consistency": "4/6 fold positivi"
    },
