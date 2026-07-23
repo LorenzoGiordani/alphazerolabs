@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "30010080687-1",
-  "generated_at": "2026-07-23T13:14:16.524568+00:00",
+  "run_id": "30014600004-1",
+  "generated_at": "2026-07-23T14:14:50.102818+00:00",
   "component": "portfolio-all",
   "critical": true,
   "expected_count": 8,
