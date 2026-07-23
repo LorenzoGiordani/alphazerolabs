@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-23T09:14:48.969901+00:00",
+  "generated_at": "2026-07-23T10:15:23.475009+00:00",
   "max_age_seconds": 7200,
-  "run_id": "29994209647-1",
-  "commit": "684c9961e60ee707d4a29def71d8a1599337220b",
+  "run_id": "29998307888-1",
+  "commit": "ebef4cd2ba758bb9aef1eec45c0b2eceefb39b1b",
   "status": "degraded",
   "publish_allowed": true,
   "checks": [
@@ -35,7 +35,7 @@
     {
       "name": "cot",
       "critical": false,
-      "outcome": "success"
+      "outcome": "failure"
     },
     {
       "name": "agents_rr2",
@@ -86,8 +86,8 @@
   "coverage": [
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:11:01.788883+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:11:37.649097+00:00",
       "component": "agents-rr2-v1",
       "critical": false,
       "expected_count": 0,
@@ -97,8 +97,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:11:01.269704+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:11:37.113745+00:00",
       "component": "agents-v1",
       "critical": true,
       "expected_count": 0,
@@ -108,8 +108,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:16.339255+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:52.336589+00:00",
       "component": "exit-check",
       "critical": true,
       "expected_count": 0,
@@ -119,8 +119,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:11.472115+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:47.705579+00:00",
       "component": "highvol-port-v1-prices",
       "critical": true,
       "expected_count": 138,
@@ -130,8 +130,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:11.472860+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:47.706616+00:00",
       "component": "highvol-port-v1-signal-eligible",
       "critical": false,
       "expected_count": 129,
@@ -141,8 +141,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:12.025480+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:48.303396+00:00",
       "component": "liqimb-port-v1-prices",
       "critical": true,
       "expected_count": 9,
@@ -152,8 +152,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:12.026090+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:48.304042+00:00",
       "component": "liqimb-port-v1-signal-eligible",
       "critical": true,
       "expected_count": 9,
@@ -163,8 +163,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:11:00.790083+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:11:36.639417+00:00",
       "component": "paper-all",
       "critical": true,
       "expected_count": 0,
@@ -174,8 +174,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:12.092977+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:48.395877+00:00",
       "component": "portfolio-all",
       "critical": true,
       "expected_count": 8,
@@ -185,8 +185,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:08.579398+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:44.647560+00:00",
       "component": "tsmom-neutral-v1-prices",
       "critical": true,
       "expected_count": 144,
@@ -196,8 +196,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:08.580162+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:44.648779+00:00",
       "component": "tsmom-neutral-v1-signal-eligible",
       "critical": false,
       "expected_count": 129,
@@ -207,8 +207,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:09.174846+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:45.290516+00:00",
       "component": "xsmom-highvol-combo-v1-prices",
       "critical": true,
       "expected_count": 132,
@@ -218,8 +218,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:09.175565+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:45.291378+00:00",
       "component": "xsmom-highvol-combo-v1-signal-eligible",
       "critical": false,
       "expected_count": 129,
@@ -229,8 +229,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:09.785811+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:45.927649+00:00",
       "component": "xsmom-highvol-voltarget-v1-prices",
       "critical": true,
       "expected_count": 133,
@@ -240,8 +240,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:09.786787+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:45.928606+00:00",
       "component": "xsmom-highvol-voltarget-v1-signal-eligible",
       "critical": false,
       "expected_count": 129,
@@ -251,8 +251,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:08.041891+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:44.079565+00:00",
       "component": "xsmom-multihorizon-v1-prices",
       "critical": true,
       "expected_count": 131,
@@ -262,8 +262,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:08.042590+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:44.080346+00:00",
       "component": "xsmom-multihorizon-v1-signal-eligible",
       "critical": false,
       "expected_count": 129,
@@ -277,8 +277,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:10.349611+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:46.524435+00:00",
       "component": "xsmom-port-v1-prices",
       "critical": true,
       "expected_count": 135,
@@ -288,8 +288,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:10.350627+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:46.525484+00:00",
       "component": "xsmom-port-v1-signal-eligible",
       "critical": false,
       "expected_count": 129,
@@ -299,8 +299,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:10.889813+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:47.108997+00:00",
       "component": "xsmom-reb48-v1-prices",
       "critical": true,
       "expected_count": 135,
@@ -310,8 +310,8 @@
     },
     {
       "schema_version": 1,
-      "run_id": "29994209647-1",
-      "generated_at": "2026-07-23T09:14:10.890581+00:00",
+      "run_id": "29998307888-1",
+      "generated_at": "2026-07-23T10:14:47.110175+00:00",
       "component": "xsmom-reb48-v1-signal-eligible",
       "critical": false,
       "expected_count": 129,
@@ -328,6 +328,7 @@
   ],
   "errors": [],
   "warnings": [
+    "cot",
     "coverage:xsmom-multihorizon-v1-signal-eligible"
   ],
   "validation_reasons": []
