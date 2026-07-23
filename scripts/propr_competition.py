@@ -30,6 +30,7 @@ from scripts.propr_paper import flatten, rebalance  # noqa: E402
 
 
 COMPETITION_ID = "urn:prp-competition:XSLPfvuHDUtT"
+COMPETITION_SLUG = "lighter-propr-trading-tournament"
 STRATEGY_ID = "tsmom-neutral-tournament-20260723-v1"
 START_AT = datetime(2026, 7, 23, 13, 0, tzinfo=timezone.utc)
 # Due run utili prima dello stop: il clock cloud gira ogni ora al minuto :10.
@@ -95,6 +96,16 @@ def _decimal(value: object, field: str) -> Decimal:
     if not result.is_finite():
         raise ProprError(f"{field} non finito: {value}")
     return result
+
+
+def _timestamp(value: object, field: str) -> datetime:
+    try:
+        result = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError) as exc:
+        raise ProprError(f"{field} non valido: {value}") from exc
+    if result.tzinfo is None:
+        raise ProprError(f"{field} senza timezone: {value}")
+    return result.astimezone(timezone.utc)
 
 
 def _five_significant(value: Decimal) -> str:
@@ -216,6 +227,19 @@ def _validate_attempt(attempt: dict | None, expected_account_id: str) -> None:
     balance = _decimal(challenge.get("initialBalance"), "initialBalance")
     if balance != EXPECTED_INITIAL_BALANCE:
         raise ProprError(f"balance iniziale competition inatteso: {balance}")
+    competition = attempt.get("competition")
+    if not isinstance(competition, dict):
+        raise ProprError("metadati competition assenti")
+    if competition.get("exchange") != "hyperliquid":
+        raise ProprError(f"exchange competition inatteso: {competition.get('exchange')}")
+    if competition.get("currency") != "USDC":
+        raise ProprError(f"currency competition inattesa: {competition.get('currency')}")
+    if competition.get("slug") != COMPETITION_SLUG:
+        raise ProprError(f"slug competition inatteso: {competition.get('slug')}")
+    if _timestamp(competition.get("startsAt"), "startsAt") != START_AT:
+        raise ProprError(f"startsAt competition inatteso: {competition.get('startsAt')}")
+    if _timestamp(competition.get("endsAt"), "endsAt") != END_AT:
+        raise ProprError(f"endsAt competition inatteso: {competition.get('endsAt')}")
     observed_ids = _competition_ids(attempt)
     if observed_ids != {COMPETITION_ID}:
         raise ProprError(f"competition id inatteso: {sorted(observed_ids)}")
@@ -853,7 +877,11 @@ def check() -> dict:
         raise ProprError("automanage competition richiede guard competition attivo")
     account_id = _account_id()
     client = ProprClient(read_only=True)
-    client.setup(expected_account_id=account_id)
+    client.setup(
+        expected_account_id=account_id,
+        expected_competition_id=COMPETITION_ID,
+        expected_competition_slug=COMPETITION_SLUG,
+    )
     attempt = client.active_attempt
     _validate_attempt(attempt, account_id)
     positions = client.get_positions()
@@ -898,7 +926,11 @@ def guard() -> dict:
         return {"mode": "waiting", "writes": 0}
     account_id = _account_id()
     client = ProprClient(read_only=False)
-    client.setup(expected_account_id=account_id)
+    client.setup(
+        expected_account_id=account_id,
+        expected_competition_id=COMPETITION_ID,
+        expected_competition_slug=COMPETITION_SLUG,
+    )
     attempt = client.active_attempt
     _validate_attempt(attempt, account_id)
     positions = client.get_positions()
@@ -987,7 +1019,11 @@ def manage() -> dict:
 
     account_id = _account_id()
     client = ProprClient(read_only=False)
-    client.setup(expected_account_id=account_id)
+    client.setup(
+        expected_account_id=account_id,
+        expected_competition_id=COMPETITION_ID,
+        expected_competition_slug=COMPETITION_SLUG,
+    )
     attempt = client.active_attempt
     _validate_attempt(attempt, account_id)
     positions = client.get_positions()

@@ -17,6 +17,15 @@ def _attempt(account_id="competition-1", *, balance=50_000, slug="lighter-tourna
         "status": "active",
         "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
         "challenge": {"slug": slug, "initialBalance": balance},
+        "competition": {
+            "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
+            "exchange": "hyperliquid",
+            "currency": "USDC",
+            "slug": "lighter-propr-trading-tournament",
+            "initialBalance": str(balance),
+            "startsAt": "2026-07-23T13:00:00.000Z",
+            "endsAt": "2026-07-30T13:00:00.000Z",
+        },
     }
 
 
@@ -97,8 +106,38 @@ def test_automanage_requires_independent_guard_switch_before_client(monkeypatch)
         (_attempt(balance=5_000), "balance iniziale competition inatteso"),
         (_attempt(slug="free-trial"), "rifiutato account Free Trial"),
         ({**_attempt(), "competitionId": "other"}, "competition id inatteso"),
-        ({key: value for key, value in _attempt().items() if key != "competitionId"},
+        ({
+            **{key: value for key, value in _attempt().items() if key != "competitionId"},
+            "competition": {
+                **_attempt()["competition"],
+                "competitionId": None,
+            },
+         },
          "competition id inatteso"),
+        ({
+            **_attempt(),
+            "competition": {
+                **_attempt()["competition"],
+                "exchange": "other",
+            },
+         },
+         "exchange competition inatteso"),
+        ({
+            **_attempt(),
+            "competition": {
+                **_attempt()["competition"],
+                "slug": "other",
+            },
+         },
+         "slug competition inatteso"),
+        ({
+            **_attempt(),
+            "competition": {
+                **_attempt()["competition"],
+                "startsAt": "2026-07-23T14:00:00.000Z",
+            },
+         },
+         "startsAt competition inatteso"),
     ],
 )
 def test_attempt_validation_is_fail_closed(attempt, message):
@@ -106,6 +145,96 @@ def test_attempt_validation_is_fail_closed(attempt, message):
 
     with pytest.raises(competition.ProprError, match=message):
         competition._validate_attempt(attempt, "competition-1")
+
+
+def test_client_setup_competition_uses_exact_participation(monkeypatch):
+    from scripts.propr_client import ProprClient
+
+    client = ProprClient(api_key="test", read_only=True)
+    calls = []
+
+    def request(method, path, **kwargs):
+        calls.append((method, path, kwargs))
+        if path == "/competition-participations":
+            return {
+                "data": [
+                    {
+                        "accountId": "competition-1",
+                        "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
+                        "status": "active",
+                    },
+                    {
+                        "accountId": "other",
+                        "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
+                        "status": "active",
+                    },
+                ]
+            }
+        if path == "/competitions/lighter-propr-trading-tournament":
+            return _attempt()["competition"]
+        raise AssertionError(path)
+
+    monkeypatch.setattr(client, "_req", request)
+
+    assert client.setup(
+        expected_account_id="competition-1",
+        expected_competition_id="urn:prp-competition:XSLPfvuHDUtT",
+        expected_competition_slug="lighter-propr-trading-tournament",
+    ) == "competition-1"
+    assert client.active_attempt["challenge"]["initialBalance"] == "50000"
+    assert calls == [
+        ("GET", "/competition-participations", {"params": {"limit": -1}}),
+        ("GET", "/competitions/lighter-propr-trading-tournament", {}),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("participations", "message"),
+    [
+        ([], "partecipazione competition attesa non trovata"),
+        ([
+            {
+                "accountId": "competition-1",
+                "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
+                "status": "active",
+            },
+            {
+                "accountId": "competition-1",
+                "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
+                "status": "active",
+            },
+        ], "partecipazione competition attesa non trovata"),
+        ([
+            {
+                "accountId": "competition-1",
+                "competitionId": "urn:prp-competition:XSLPfvuHDUtT",
+                "status": "closed",
+            },
+        ], "account non attivo"),
+    ],
+)
+def test_client_setup_competition_rejects_missing_duplicate_or_inactive(
+    monkeypatch, participations, message,
+):
+    from scripts.propr_client import ProprClient, ProprError
+
+    client = ProprClient(api_key="test", read_only=True)
+
+    def request(_method, path, **_kwargs):
+        if path == "/competition-participations":
+            return {"data": participations}
+        if path == "/competitions/lighter-propr-trading-tournament":
+            return _attempt()["competition"]
+        raise AssertionError(path)
+
+    monkeypatch.setattr(client, "_req", request)
+
+    with pytest.raises(ProprError, match=message):
+        client.setup(
+            expected_account_id="competition-1",
+            expected_competition_id="urn:prp-competition:XSLPfvuHDUtT",
+            expected_competition_slug="lighter-propr-trading-tournament",
+        )
 
 
 def test_check_uses_read_only_client_and_never_orders(tmp_path, monkeypatch):
@@ -117,7 +246,11 @@ def test_check_uses_read_only_client_and_never_orders(tmp_path, monkeypatch):
             self.active_attempt = _attempt()
 
         def setup(self, **kwargs):
-            assert kwargs == {"expected_account_id": "competition-1"}
+            assert kwargs == {
+                "expected_account_id": "competition-1",
+                "expected_competition_id": competition.COMPETITION_ID,
+                "expected_competition_slug": competition.COMPETITION_SLUG,
+            }
 
         def get_positions(self):
             return []
@@ -172,7 +305,11 @@ def test_guard_flattens_at_end_even_when_automanage_is_off(tmp_path, monkeypatch
             self.positions = [_position()]
 
         def setup(self, **kwargs):
-            assert kwargs == {"expected_account_id": "competition-1"}
+            assert kwargs == {
+                "expected_account_id": "competition-1",
+                "expected_competition_id": competition.COMPETITION_ID,
+                "expected_competition_slug": competition.COMPETITION_SLUG,
+            }
 
         def get_positions(self):
             return list(self.positions)
@@ -233,7 +370,11 @@ def test_rebalance_timeout_after_write_is_guarded_and_flattened(tmp_path, monkey
             self.positions = []
 
         def setup(self, **kwargs):
-            assert kwargs == {"expected_account_id": "competition-1"}
+            assert kwargs == {
+                "expected_account_id": "competition-1",
+                "expected_competition_id": competition.COMPETITION_ID,
+                "expected_competition_slug": competition.COMPETITION_SLUG,
+            }
 
         def get_positions(self):
             return list(self.positions)
