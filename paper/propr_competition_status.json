@@ -5,49 +5,49 @@
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.015,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 49993.23,
+ "equity": 50008.51,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 0.3,
  "mode": "manage",
- "note": "rebalance",
+ "note": "guard_only",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
    "asset": "XRP",
-   "notional": 1875.47,
+   "notional": 1874.71,
    "side": "long",
-   "unrealized_pnl": 0.0
+   "unrealized_pnl": -0.77
   },
   {
    "asset": "SUI",
-   "notional": 3764.68,
+   "notional": 3756.93,
    "side": "short",
-   "unrealized_pnl": 0.0
+   "unrealized_pnl": 7.75
   },
   {
    "asset": "SOL",
-   "notional": 1876.39,
+   "notional": 1874.97,
    "side": "long",
-   "unrealized_pnl": 0.0
+   "unrealized_pnl": -1.43
   },
   {
    "asset": "NEAR",
-   "notional": 3765.81,
+   "notional": 3753.16,
    "side": "short",
-   "unrealized_pnl": 0.0
+   "unrealized_pnl": 12.65
   },
   {
    "asset": "ETH",
-   "notional": 1877.52,
+   "notional": 1875.77,
    "side": "long",
-   "unrealized_pnl": 0.0
+   "unrealized_pnl": -1.75
   },
   {
    "asset": "BTC",
-   "notional": 1879.17,
+   "notional": 1878.0,
    "side": "long",
-   "unrealized_pnl": 0.0
+   "unrealized_pnl": -1.17
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -84,9 +84,9 @@
   "halt_kind": "",
   "halt_reason": "",
   "halted_today": false,
-  "high_water_mark": 50000.0,
-  "last_equity": 49993.232431,
-  "last_manage_ts": "2026-07-23T18:39:53.291272+00:00",
+  "high_water_mark": 50008.513193,
+  "last_equity": 50008.513193,
+  "last_manage_ts": "2026-07-23T18:42:18.479841+00:00",
   "last_rebalance_ts": "2026-07-23T18:39:53.291272+00:00",
   "last_target": {
    "BTC": 1875.0,
@@ -102,5 +102,5 @@
  },
  "strategy": "tsmom-neutral-tournament-20260723-v1",
  "total_stop_pct": 0.04,
- "updated_at": "2026-07-23T18:40:06.727224+00:00"
+ "updated_at": "2026-07-23T18:42:20.738933+00:00"
 }
