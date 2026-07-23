@@ -1,53 +1,54 @@
 {
  "account_id": "SzSKErmBBPN6",
  "attempt_status": "active",
- "balance": 49993.33,
+ "balance": 49993.43,
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
- "daily_stop_pct": 0.125,
+ "daily_stop_pct": 0.15,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 49974.09,
+ "equity": 49986.38,
  "flatten_at": "2026-07-30T11:00:00+00:00",
- "gross": 1.5,
- "mode": "error",
- "note": "ProprError: leverage_preflight: ProprError: PUT /accounts/SzSKErmBBPN6/margin-config/urn:prp-margin-config:WB1Dmf8JyT3v -> 409: {\"code\":13306,\"message\":\"margin_config_has_open_positions\"}",
+ "gross": 4.75,
+ "margin_utilization": 0.95,
+ "mode": "guard",
+ "note": "guard-only",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
    "asset": "XRP",
-   "notional": 1878.11,
+   "notional": 1879.81,
    "side": "long",
-   "unrealized_pnl": 2.64
+   "unrealized_pnl": 4.34
   },
   {
    "asset": "SUI",
-   "notional": 3776.0,
+   "notional": 3780.61,
    "side": "short",
-   "unrealized_pnl": -11.32
+   "unrealized_pnl": -15.93
   },
   {
    "asset": "SOL",
-   "notional": 1876.83,
+   "notional": 1880.67,
    "side": "long",
-   "unrealized_pnl": 0.43
+   "unrealized_pnl": 4.28
   },
   {
    "asset": "NEAR",
-   "notional": 3779.48,
+   "notional": 3765.37,
    "side": "short",
-   "unrealized_pnl": -13.67
+   "unrealized_pnl": 0.44
   },
   {
    "asset": "ETH",
-   "notional": 1878.47,
+   "notional": 1875.27,
    "side": "long",
-   "unrealized_pnl": 0.95
+   "unrealized_pnl": -2.25
   },
   {
    "asset": "BTC",
-   "notional": 1880.9,
+   "notional": 1881.24,
    "side": "long",
-   "unrealized_pnl": 1.73
+   "unrealized_pnl": 2.07
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -85,8 +86,8 @@
   "halt_reason": "",
   "halted_today": false,
   "high_water_mark": 50008.513193,
-  "last_equity": 49974.08954,
-  "last_manage_ts": "2026-07-23T19:25:49.545971+00:00",
+  "last_equity": 49986.381137,
+  "last_manage_ts": "2026-07-23T20:02:18.757282+00:00",
   "last_rebalance_ts": "2026-07-23T01:00:00+00:00",
   "last_target": {
    "BTC": 1875.0,
@@ -106,6 +107,6 @@
   "version": "propr-competition-state-v2"
  },
  "strategy": "tsmom-abs2-tournament-20260723-v2",
- "total_stop_pct": 0.15,
- "updated_at": "2026-07-23T19:26:05.795674+00:00"
+ "total_stop_pct": 0.2,
+ "updated_at": "2026-07-23T20:02:25.202727+00:00"
 }
