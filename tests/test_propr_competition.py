@@ -237,6 +237,7 @@ def test_check_uses_read_only_client_and_never_orders(tmp_path, monkeypatch):
 
     monkeypatch.setenv("PROPR_COMPETITION_ACCOUNT_ID", "competition-1")
     monkeypatch.setattr(competition, "ProprClient", ReadOnlyClient)
+    monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
     result = competition.check()
 
@@ -245,7 +246,7 @@ def test_check_uses_read_only_client_and_never_orders(tmp_path, monkeypatch):
     assert json.loads(competition.STATUS_PATH.read_text())["mode"] == "check"
 
 
-def test_target_is_frozen_tsmom_with_bounded_gross(monkeypatch):
+def test_target_is_frozen_abs2_with_bounded_gross(monkeypatch):
     import scripts.propr_competition as competition
 
     signals = pd.Series({
@@ -257,10 +258,10 @@ def test_target_is_frozen_tsmom_with_bounded_gross(monkeypatch):
 
     target, observed_prices = competition._target(50_000)
 
-    assert set(target) == set(competition.SYMBOLS)
-    assert sum(abs(value) for value in target.values()) == pytest.approx(15_000)
+    assert set(target) == {"SUI", "NEAR"}
+    assert sum(abs(value) for value in target.values()) == pytest.approx(75_000)
     assert competition.GROSS * float(competition.STOP_DISTANCE) <= competition.DAILY_STOP_PCT
-    assert target["BTC"] > 0 and target["SOL"] < 0
+    assert target["SUI"] > 0 and target["NEAR"] < 0
     assert observed_prices == prices
 
 
@@ -378,9 +379,14 @@ def test_rebalance_timeout_after_write_is_guarded_and_flattened(tmp_path, monkey
     )
     monkeypatch.setattr(competition, "ProprClient", Client)
     monkeypatch.setattr(competition, "_create_missing_stops", fake_guard)
+    monkeypatch.setattr(competition, "_ensure_leverage", lambda *_args: None)
     monkeypatch.setattr(competition, "rebalance", fake_rebalance)
     monkeypatch.setattr(competition, "_flatten_and_cleanup", fake_flatten_cleanup)
-    monkeypatch.setattr(competition, "_target", lambda *_args: ({"BTC": 100.0}, {"BTC": 100.0}))
+    monkeypatch.setattr(
+        competition,
+        "_target",
+        lambda *_args: ({"BTC": 100.0, "ETH": -100.0}, {"BTC": 100.0, "ETH": 100.0}),
+    )
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
     monkeypatch.setattr(competition, "JOURNAL_PATH", tmp_path / "journal.jsonl")
@@ -443,13 +449,18 @@ def test_journal_failure_after_order_triggers_recovery_flatten(tmp_path, monkeyp
     )
     monkeypatch.setattr(competition, "ProprClient", Client)
     monkeypatch.setattr(competition, "_create_missing_stops", lambda *_args: [])
+    monkeypatch.setattr(competition, "_ensure_leverage", lambda *_args: None)
     monkeypatch.setattr(competition, "rebalance", fake_rebalance)
     monkeypatch.setattr(
         competition, "_append_journal",
         lambda *_args: (_ for _ in ()).throw(OSError("disk full")),
     )
     monkeypatch.setattr(competition, "_flatten_and_cleanup", fake_flatten)
-    monkeypatch.setattr(competition, "_target", lambda *_args: ({"BTC": 100.0}, {"BTC": 100.0}))
+    monkeypatch.setattr(
+        competition,
+        "_target",
+        lambda *_args: ({"BTC": 100.0, "ETH": -100.0}, {"BTC": 100.0, "ETH": 100.0}),
+    )
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
 
@@ -496,7 +507,14 @@ def test_nonfinite_target_is_blocked_before_any_order(tmp_path, monkeypatch):
         "_flatten_and_cleanup",
         lambda _client, positions, reason: events.append(("flatten", reason, len(positions))),
     )
-    monkeypatch.setattr(competition, "_target", lambda *_args: ({"BTC": float("nan")}, {"BTC": 100.0}))
+    monkeypatch.setattr(
+        competition,
+        "_target",
+        lambda *_args: (
+            {"BTC": float("nan"), "ETH": -100.0},
+            {"BTC": 100.0, "ETH": 100.0},
+        ),
+    )
     monkeypatch.setattr(
         competition,
         "rebalance",
@@ -505,10 +523,10 @@ def test_nonfinite_target_is_blocked_before_any_order(tmp_path, monkeypatch):
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
 
-    with pytest.raises(competition.ProprError, match="rebalance_recovery"):
+    with pytest.raises(competition.ProprError, match="target_recovery"):
         competition.manage()
 
-    assert events == [("flatten", "rebalance_recovery", 0)]
+    assert events == [("flatten", "target_recovery", 0)]
 
 
 def test_flatten_requires_empty_position_readback(tmp_path, monkeypatch):
@@ -784,7 +802,7 @@ def test_stop_contract_rejects_far_trigger_even_with_expected_intent():
 def test_crossed_stop_causes_guard_recovery_flatten(tmp_path, monkeypatch):
     import scripts.propr_competition as competition
 
-    position = _position(mark="95", entry="100", notional="95")
+    position = _position(mark="91", entry="100", notional="91")
     plan = competition._stop_plan(position)
     order = {
         "orderId": "stop-1",
@@ -936,6 +954,311 @@ def test_runtime_book_drift_rejects_missing_target_for_nonempty_book():
     )
 
     assert competition._book_drift(state, [_position()]) is True
+
+
+def test_legacy_state_migration_preserves_risk_and_forces_rebalance():
+    import scripts.propr_competition as competition
+
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        strategy=competition.LEGACY_STRATEGY_ID,
+        day_start_equity=49_900,
+        high_water_mark=50_120,
+        last_equity=50_050,
+        last_rebalance_ts="2026-07-23T18:39:00+00:00",
+    )
+
+    migrated = competition._migrate_state(state)
+
+    assert state["strategy"] == competition.LEGACY_STRATEGY_ID
+    assert migrated["strategy"] == competition.STRATEGY_ID
+    assert migrated["day_start_equity"] == 49_900
+    assert migrated["high_water_mark"] == 50_120
+    assert migrated["last_equity"] == 50_050
+    assert migrated["migration"]["forced_rebalance"] is True
+    assert competition._due(
+        migrated,
+        datetime(2026, 7, 23, 19, 5, tzinfo=timezone.utc),
+    ) is True
+
+
+def test_unknown_strategy_state_is_rejected():
+    import scripts.propr_competition as competition
+
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        strategy="unknown",
+    )
+
+    with pytest.raises(competition.ProprError, match="strategy"):
+        competition._validate_state(state, "competition-1")
+
+
+def test_runtime_accepts_exact_legacy_stop_during_migration():
+    import scripts.propr_competition as competition
+
+    position = _position()
+    plan = competition._stop_plan(position, legacy=True)
+    order = {
+        "orderId": "legacy-stop",
+        "intentId": plan["intent_id"],
+        "positionId": plan["position_id"],
+        "type": "stop_market",
+        "side": plan["side"],
+        "positionSide": plan["position_side"],
+        "quantity": plan["quantity"],
+        "triggerPrice": plan["trigger_price"],
+        "reduceOnly": True,
+        "closePosition": True,
+    }
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        strategy=competition.LEGACY_STRATEGY_ID,
+        expected_assets=["BTC"],
+        expected_sides={"BTC": "long"},
+        expected_quantities={"BTC": "1"},
+        last_target={"BTC": 100.0},
+        last_rebalance_ts="2026-07-23T18:39:00+00:00",
+    )
+
+    assert competition._runtime_book_errors(state, [position], [order]) == []
+    assert competition._is_exact_protection(position, order) is False
+
+
+@pytest.mark.parametrize("entrypoint", ["guard", "manage"])
+def test_legacy_drift_is_blocked_before_migration_or_normal_stop_writes(
+    tmp_path,
+    monkeypatch,
+    entrypoint,
+):
+    import scripts.propr_competition as competition
+
+    position = _position()
+
+    class Client:
+        def __init__(self, *, read_only=False):
+            assert read_only is False
+            self.active_attempt = _attempt()
+
+        def setup(self, **_kwargs):
+            return None
+
+        def get_positions(self):
+            return [position]
+
+        def get_account(self):
+            return _account()
+
+        def get_active_orders(self):
+            return []
+
+        def create_order(self, **_kwargs):
+            pytest.fail("legacy drift reached stop creation")
+
+        def cancel_order(self, _order_id):
+            pytest.fail("legacy drift reached stop cancellation")
+
+    def fake_recovery(_client, state, _now, reason, error):
+        assert state["strategy"] == competition.LEGACY_STRATEGY_ID
+        assert reason == "legacy_migration_preflight"
+        assert "BTC:stop_count=0" in str(error)
+        raise competition.ProprError(reason)
+
+    monkeypatch.setenv("PROPR_COMPETITION_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_COMPETITION_AUTOMANAGE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_COMPETITION_ACCOUNT_ID", "competition-1")
+    monkeypatch.setattr(
+        competition, "_now",
+        lambda: datetime(2026, 7, 23, 19, 20, tzinfo=timezone.utc),
+    )
+    monkeypatch.setattr(competition, "ProprClient", Client)
+    monkeypatch.setattr(competition, "_recover_after_write", fake_recovery)
+    monkeypatch.setattr(
+        competition,
+        "_migrate_state",
+        lambda _state: pytest.fail("legacy drift reached migration"),
+    )
+    monkeypatch.setattr(
+        competition,
+        "_create_missing_stops",
+        lambda *_args: pytest.fail("legacy drift reached normal stop path"),
+    )
+    monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
+        strategy=competition.LEGACY_STRATEGY_ID,
+        expected_assets=["BTC"],
+        expected_sides={"BTC": "long"},
+        expected_quantities={"BTC": "1"},
+        last_target={"BTC": 100.0},
+        last_rebalance_ts="2026-07-23T18:39:00+00:00",
+    )
+    competition.STATE_PATH.write_text(json.dumps(state))
+
+    with pytest.raises(competition.ProprError, match="legacy_migration_preflight"):
+        getattr(competition, entrypoint)()
+
+
+def test_stop_replacement_creates_before_cancelling_legacy(
+    tmp_path,
+    monkeypatch,
+):
+    import scripts.propr_competition as competition
+
+    position = _position()
+    legacy_plan = competition._stop_plan(position, legacy=True)
+    old_order = {
+        "orderId": "legacy-stop",
+        "intentId": legacy_plan["intent_id"],
+        "positionId": legacy_plan["position_id"],
+        "type": "stop_market",
+        "side": legacy_plan["side"],
+        "positionSide": legacy_plan["position_side"],
+        "quantity": legacy_plan["quantity"],
+        "triggerPrice": legacy_plan["trigger_price"],
+        "reduceOnly": True,
+        "closePosition": True,
+    }
+
+    class Client:
+        def __init__(self):
+            self.orders = [old_order]
+            self.events = []
+
+        def get_active_orders(self):
+            return list(self.orders)
+
+        def create_order(self, **kwargs):
+            self.events.append("create")
+            order = {
+                "orderId": "new-stop",
+                "status": "pending",
+                "type": kwargs["order_type"],
+                "asset": kwargs["asset"],
+                "side": kwargs["side"],
+                "positionSide": kwargs["position_side"],
+                "quantity": kwargs["quantity"],
+                "triggerPrice": kwargs["trigger_price"],
+                "intentId": kwargs["intent_id"],
+                "positionId": kwargs["position_id"],
+                "reduceOnly": kwargs["reduce_only"],
+                "closePosition": kwargs["close_position"],
+            }
+            self.orders.append(order)
+            return [order]
+
+        def cancel_order(self, order_id):
+            self.events.append("cancel")
+            self.orders = [order for order in self.orders if order["orderId"] != order_id]
+            return {"orderId": order_id, "status": "cancelled"}
+
+    client = Client()
+    monkeypatch.setattr(competition, "JOURNAL_PATH", tmp_path / "journal.jsonl")
+
+    competition._create_missing_stops(client, [position])
+
+    assert client.events == ["create", "cancel"]
+    assert [order["orderId"] for order in client.orders] == ["new-stop"]
+
+
+def test_stop_create_failure_keeps_legacy_stop():
+    import scripts.propr_competition as competition
+
+    position = _position()
+    legacy_plan = competition._stop_plan(position, legacy=True)
+    old_order = {
+        "orderId": "legacy-stop",
+        "intentId": legacy_plan["intent_id"],
+        "positionId": legacy_plan["position_id"],
+        "type": "stop_market",
+        "side": legacy_plan["side"],
+        "positionSide": legacy_plan["position_side"],
+        "quantity": legacy_plan["quantity"],
+        "triggerPrice": legacy_plan["trigger_price"],
+        "reduceOnly": True,
+        "closePosition": True,
+    }
+
+    class Client:
+        def get_active_orders(self):
+            return [old_order]
+
+        def create_order(self, **_kwargs):
+            raise competition.ProprError("create failed")
+
+        def cancel_order(self, _order_id):
+            pytest.fail("legacy stop cancelled after create failure")
+
+    with pytest.raises(competition.ProprError, match="create failed"):
+        competition._create_missing_stops(Client(), [position])
+
+
+def test_leverage_is_updated_and_read_back_before_trading(tmp_path, monkeypatch):
+    import scripts.propr_competition as competition
+
+    class Client:
+        def __init__(self):
+            self.configs = {
+                asset: {
+                    "configId": f"cfg-{asset}",
+                    "asset": asset,
+                    "leverage": 1,
+                    "marginMode": "cross",
+                }
+                for asset in ("NEAR", "SUI")
+            }
+            self.events = []
+
+        def get_leverage_limits(self):
+            self.events.append("limits")
+            return {"defaults": {"crypto": 2}, "overrides": {"BTC": 5, "ETH": 5}}
+
+        def get_margin_config(self, asset):
+            self.events.append(f"get:{asset}")
+            return dict(self.configs[asset])
+
+        def update_margin_config(self, config_id, asset, leverage, margin_mode="cross"):
+            self.events.append(f"put:{asset}")
+            assert config_id == f"cfg-{asset}"
+            self.configs[asset].update(leverage=leverage, marginMode=margin_mode)
+            return dict(self.configs[asset])
+
+    client = Client()
+    monkeypatch.setattr(competition, "JOURNAL_PATH", tmp_path / "journal.jsonl")
+
+    competition._ensure_leverage(client, ["SUI", "NEAR"])
+
+    assert client.configs["NEAR"]["leverage"] == competition.LEVERAGE
+    assert client.configs["SUI"]["leverage"] == competition.LEVERAGE
+    assert client.events.index("put:NEAR") > client.events.index("get:SUI")
+    assert client.events[-2:] == ["get:NEAR", "get:SUI"]
+
+
+def test_leverage_cap_failure_happens_before_config_write():
+    import scripts.propr_competition as competition
+
+    class Client:
+        def __init__(self):
+            self.updated = False
+
+        def get_leverage_limits(self):
+            return {"defaults": {"crypto": 1}}
+
+        def get_margin_config(self, _asset):
+            pytest.fail("config read reached after leverage cap failure")
+
+        def update_margin_config(self, *_args, **_kwargs):
+            self.updated = True
+
+    client = Client()
+    with pytest.raises(competition.ProprError, match="non disponibile"):
+        competition._ensure_leverage(client, ["SUI"])
+    assert client.updated is False
 
 
 def test_workflow_keeps_competition_dormant_by_default():
