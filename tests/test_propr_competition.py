@@ -56,6 +56,93 @@ def _state(competition, now, **updates):
     return state
 
 
+def _native_stop(
+    competition,
+    position,
+    *,
+    order_id=None,
+    status="open",
+    filled_at="2026-07-24T13:30:00+00:00",
+):
+    plan = competition._stop_plan(position)
+    order = {
+        "orderId": order_id or f"stop-{position['base']}",
+        "intentId": plan["intent_id"],
+        "accountId": "urn:prp-account:competition-1",
+        "positionId": plan["position_id"],
+        "type": "stop_market",
+        "asset": plan["asset"],
+        "side": plan["side"],
+        "positionSide": plan["position_side"],
+        "quantity": plan["quantity"],
+        "triggerPrice": plan["trigger_price"],
+        "reduceOnly": True,
+        "closePosition": True,
+        "status": status,
+    }
+    if status == "filled":
+        order.update({
+            "cumulativeQuantity": plan["quantity"],
+            "averageFillPrice": position["markPrice"],
+            "filledAt": filled_at,
+        })
+    return order
+
+
+def _stop_trade(
+    position,
+    order,
+    *,
+    trade_id=None,
+    executed_at="2026-07-24T13:29:00+00:00",
+):
+    return {
+        "tradeId": trade_id or f"trade-{position['base']}",
+        "accountId": "competition-1",
+        "orderId": order["orderId"],
+        "positionId": position["positionId"],
+        "asset": position["base"],
+        "type": "close",
+        "side": order["side"],
+        "positionSide": position["positionSide"],
+        "quantity": order["cumulativeQuantity"],
+        "isLiquidation": False,
+        "executedAt": executed_at,
+    }
+
+
+def _stopped_position_record(position, *, quantity="0"):
+    return {
+        "accountId": "urn:prp-account:competition-1",
+        "positionId": position["positionId"],
+        "asset": position["base"],
+        "status": "closed",
+        "quantity": quantity,
+    }
+
+
+def _neutral_state_with_stops(competition):
+    now = datetime(2026, 7, 24, 13, 0, tzinfo=timezone.utc)
+    btc = _position("BTC", "long")
+    eth = _position("ETH", "short")
+    btc_stop = _native_stop(competition, btc)
+    eth_stop = _native_stop(competition, eth)
+    state = _state(
+        competition,
+        now,
+        expected_assets=["BTC", "ETH"],
+        expected_sides={"BTC": "long", "ETH": "short"},
+        expected_quantities={"BTC": "1", "ETH": "1"},
+        last_target={"BTC": 100.0, "ETH": -100.0},
+        last_rebalance_ts=now.isoformat(),
+        stop_receipts={
+            "BTC": competition._stop_receipt(btc, btc_stop),
+            "ETH": competition._stop_receipt(eth, eth_stop),
+        },
+    )
+    return state, btc, eth, btc_stop, eth_stop
+
+
 def test_manage_kill_switch_blocks_before_client(monkeypatch):
     import scripts.propr_competition as competition
 
@@ -206,6 +293,161 @@ def test_client_setup_competition_rejects_inaccessible_or_wrong_account(
             expected_competition_id="urn:prp-competition:XSLPfvuHDUtT",
             expected_competition_slug="lighter-propr-trading-tournament",
         )
+
+
+def test_client_filters_filled_order_and_trades_by_order_id(monkeypatch):
+    from scripts.propr_client import ProprClient
+
+    client = ProprClient(api_key="test", read_only=True)
+    client.account_id = "competition-1"
+    calls = []
+
+    def request(method, path, **kwargs):
+        calls.append((method, path, kwargs["params"]))
+        item_id = "order-1" if path.endswith("/orders") else "trade-1"
+        key = "orderId" if path.endswith("/orders") else "tradeId"
+        return {"data": [{key: item_id}], "total": 1, "offset": 0}
+
+    monkeypatch.setattr(client, "_req", request)
+
+    assert client.get_orders(status="filled", order_id="order-1")[0]["orderId"] == "order-1"
+    assert client.get_trades(order_id="order-1")[0]["tradeId"] == "trade-1"
+    assert calls == [
+        (
+            "GET",
+            "/accounts/competition-1/orders",
+            {"status": "filled", "limit": 20, "offset": 0, "orderId": "order-1"},
+        ),
+        (
+            "GET",
+            "/accounts/competition-1/trades",
+            {"orderId": "order-1", "limit": 20, "offset": 0},
+        ),
+    ]
+
+
+def test_client_reads_exact_zero_position_without_open_status(monkeypatch):
+    from scripts.propr_client import ProprClient
+
+    client = ProprClient(api_key="test", read_only=True)
+    client.account_id = "competition-1"
+    calls = []
+    record = {
+        "positionId": "pos-BTC",
+        "asset": "BTC",
+        "status": "closed",
+        "quantity": "0",
+    }
+
+    def request(method, path, **kwargs):
+        calls.append((method, path, kwargs["params"]))
+        return {"data": [record], "total": 1, "offset": 0}
+
+    monkeypatch.setattr(client, "_req", request)
+
+    assert client.get_positions(
+        status=None,
+        position_id="pos-BTC",
+        include_zero=True,
+    ) == [record]
+    assert calls == [
+        (
+            "GET",
+            "/accounts/competition-1/positions",
+            {"limit": 20, "offset": 0, "positionId": "pos-BTC"},
+        ),
+    ]
+
+
+@pytest.mark.parametrize("position_filter", [None, "pos-pin"])
+def test_client_position_pagination_keeps_optional_filter(
+    monkeypatch,
+    position_filter,
+):
+    from scripts.propr_client import ProprClient
+
+    client = ProprClient(api_key="test", read_only=True)
+    client.account_id = "competition-1"
+    positions = [
+        {"positionId": f"pos-{index}", "quantity": "1"}
+        for index in range(21)
+    ]
+    calls = []
+
+    def request(_method, _path, **kwargs):
+        params = kwargs["params"]
+        calls.append(dict(params))
+        offset = params["offset"]
+        return {
+            "data": positions[offset:offset + 20],
+            "total": 21,
+            "offset": offset,
+        }
+
+    monkeypatch.setattr(client, "_req", request)
+
+    assert client.get_positions(
+        position_id=position_filter,
+        include_zero=True,
+    ) == positions
+    assert [call.get("positionId") for call in calls] == [
+        position_filter,
+        position_filter,
+    ]
+
+
+@pytest.mark.parametrize("pagination_case", ["truncated", "unstable"])
+def test_bad_position_pagination_cannot_reach_native_stop_proof(
+    monkeypatch,
+    pagination_case,
+):
+    import scripts.propr_competition as competition
+    from scripts.propr_client import ProprClient, ProprError
+
+    client = ProprClient(api_key="test", read_only=True)
+    client.account_id = "competition-1"
+    if pagination_case == "truncated":
+        pages = [{
+            "data": [{"positionId": "pos-0", "quantity": "1"}],
+            "total": 2,
+            "offset": 0,
+        }]
+        expected_error = "paginazione posizioni incompleta"
+    else:
+        pages = [
+            {
+                "data": [
+                    {"positionId": f"pos-{index}", "quantity": "1"}
+                    for index in range(20)
+                ],
+                "total": 21,
+                "offset": 0,
+            },
+            {
+                "data": [{"positionId": "pos-20", "quantity": "0"}],
+                "total": 22,
+                "offset": 20,
+            },
+        ]
+        expected_error = "paginazione posizioni instabile"
+    reached_native_proof = False
+
+    def request(_method, _path, **_kwargs):
+        return pages.pop(0)
+
+    def native_proof(*_args, **_kwargs):
+        nonlocal reached_native_proof
+        reached_native_proof = True
+        return True
+
+    monkeypatch.setattr(client, "_req", request)
+    monkeypatch.setattr(competition, "_native_stop_filled", native_proof)
+
+    with pytest.raises(ProprError, match=expected_error):
+        positions = client.get_positions()
+        competition._native_stop_filled(client, {}, positions, [])
+
+    assert reached_native_proof is False
 
 
 def test_check_uses_read_only_client_and_never_orders(tmp_path, monkeypatch):
@@ -428,7 +670,7 @@ def test_rebalance_timeout_after_write_is_guarded_and_flattened(tmp_path, monkey
         def get_active_orders(self):
             return []
 
-    def fake_guard(_client, positions):
+    def fake_guard(_client, positions, **_kwargs):
         events.append(("guard", len(positions)))
         return []
 
@@ -519,7 +761,11 @@ def test_journal_failure_after_order_triggers_recovery_flatten(tmp_path, monkeyp
         lambda: datetime(2026, 7, 23, 13, 10, tzinfo=timezone.utc),
     )
     monkeypatch.setattr(competition, "ProprClient", Client)
-    monkeypatch.setattr(competition, "_create_missing_stops", lambda *_args: [])
+    monkeypatch.setattr(
+        competition,
+        "_create_missing_stops",
+        lambda *_args, **_kwargs: [],
+    )
     monkeypatch.setattr(competition, "_ensure_leverage", lambda *_args: None)
     monkeypatch.setattr(competition, "rebalance", fake_rebalance)
     monkeypatch.setattr(
@@ -572,7 +818,11 @@ def test_nonfinite_target_is_blocked_before_any_order(tmp_path, monkeypatch):
         lambda: datetime(2026, 7, 23, 13, 10, tzinfo=timezone.utc),
     )
     monkeypatch.setattr(competition, "ProprClient", Client)
-    monkeypatch.setattr(competition, "_create_missing_stops", lambda *_args: [])
+    monkeypatch.setattr(
+        competition,
+        "_create_missing_stops",
+        lambda *_args, **_kwargs: [],
+    )
     monkeypatch.setattr(
         competition,
         "_flatten_and_cleanup",
@@ -639,7 +889,11 @@ def test_recovery_retries_transient_position_readback(tmp_path, monkeypatch):
 
     client = Client()
     state = _state(competition, datetime(2026, 7, 23, 13, 10, tzinfo=timezone.utc))
-    monkeypatch.setattr(competition, "_create_missing_stops", lambda *_args: events.append("guard"))
+    monkeypatch.setattr(
+        competition,
+        "_create_missing_stops",
+        lambda *_args, **_kwargs: events.append("guard"),
+    )
     monkeypatch.setattr(
         competition,
         "_flatten_and_cleanup",
@@ -705,7 +959,11 @@ def test_no_state_unsafe_account_guard_recovers_and_halts(
         lambda: datetime(2026, 7, 23, 13, 10, tzinfo=timezone.utc),
     )
     monkeypatch.setattr(competition, "ProprClient", Client)
-    monkeypatch.setattr(competition, "_create_missing_stops", lambda *_args: [])
+    monkeypatch.setattr(
+        competition,
+        "_create_missing_stops",
+        lambda *_args, **_kwargs: [],
+    )
     monkeypatch.setattr(competition, "_flatten_and_cleanup", fake_flatten)
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
@@ -765,7 +1023,11 @@ def test_semantically_corrupt_state_routes_to_recovery(
         lambda: datetime(2026, 7, 23, 13, 10, tzinfo=timezone.utc),
     )
     monkeypatch.setattr(competition, "ProprClient", Client)
-    monkeypatch.setattr(competition, "_create_missing_stops", lambda *_args: [])
+    monkeypatch.setattr(
+        competition,
+        "_create_missing_stops",
+        lambda *_args, **_kwargs: [],
+    )
     monkeypatch.setattr(competition, "_flatten_and_cleanup", fake_flatten)
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
@@ -835,7 +1097,11 @@ def test_invalid_position_schema_routes_to_recovery(
         lambda: datetime(2026, 7, 23, 13, 10, tzinfo=timezone.utc),
     )
     monkeypatch.setattr(competition, "ProprClient", Client)
-    monkeypatch.setattr(competition, "_create_missing_stops", lambda *_args: [])
+    monkeypatch.setattr(
+        competition,
+        "_create_missing_stops",
+        lambda *_args, **_kwargs: [],
+    )
     monkeypatch.setattr(competition, "_flatten_and_cleanup", fake_flatten)
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
@@ -1201,7 +1467,9 @@ def test_legacy_drift_is_blocked_before_migration_or_normal_stop_writes(
     monkeypatch.setattr(
         competition,
         "_create_missing_stops",
-        lambda *_args: pytest.fail("legacy drift reached normal stop path"),
+        lambda *_args, **_kwargs: pytest.fail(
+            "legacy drift reached normal stop path"
+        ),
     )
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
@@ -1275,12 +1543,23 @@ def test_stop_replacement_creates_before_cancelling_legacy(
             return {"orderId": order_id, "status": "cancelled"}
 
     client = Client()
+    state = {}
     monkeypatch.setattr(competition, "JOURNAL_PATH", tmp_path / "journal.jsonl")
 
-    competition._create_missing_stops(client, [position])
+    competition._create_missing_stops(client, [position], state=state)
 
     assert client.events == ["create", "cancel"]
     assert [order["orderId"] for order in client.orders] == ["new-stop"]
+    assert state["stop_receipts"] == {
+        "BTC": {
+            "orderId": "new-stop",
+            "intentId": competition._stop_plan(position)["intent_id"],
+            "positionId": "pos-BTC",
+            "asset": "BTC",
+            "quantity": "1",
+            "trigger": "97",
+        },
+    }
 
 
 def test_stop_create_failure_keeps_legacy_stop():
@@ -1313,6 +1592,297 @@ def test_stop_create_failure_keeps_legacy_stop():
 
     with pytest.raises(competition.ProprError, match="create failed"):
         competition._create_missing_stops(Client(), [position])
+
+
+def test_live_v3_without_receipts_reconstructs_them_from_healthy_book():
+    import scripts.propr_competition as competition
+
+    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    state.pop("stop_receipts")
+    competition._validate_state(state, "competition-1")
+
+    class Client:
+        def get_active_orders(self):
+            return [btc_stop, eth_stop]
+
+    competition._create_missing_stops(Client(), [btc, eth], state=state)
+
+    assert set(state["stop_receipts"]) == {"BTC", "ETH"}
+    assert state["stop_receipts"]["BTC"]["positionId"] == "pos-BTC"
+
+
+def test_healthy_book_does_not_query_filled_order_history():
+    import scripts.propr_competition as competition
+
+    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+
+    class Client:
+        account_id = "competition-1"
+
+        def get_orders(self, *_args, **_kwargs):
+            pytest.fail("healthy book queried filled order history")
+
+    assert competition._native_stop_filled(
+        Client(),
+        state,
+        [btc, eth],
+        [btc_stop, eth_stop],
+    ) is False
+
+
+def test_healthy_book_rejects_reopened_position_before_rewriting_receipt():
+    import scripts.propr_competition as competition
+
+    state, btc, eth, _btc_stop, _eth_stop = _neutral_state_with_stops(competition)
+    reopened_btc = {**btc, "positionId": "pos-BTC-reopened"}
+
+    class Client:
+        def get_active_orders(self):
+            pytest.fail("receipt position mismatch reached order processing")
+
+    with pytest.raises(competition.ProprError, match="positionId cambiato"):
+        competition._create_missing_stops(
+            Client(),
+            [reopened_btc, eth],
+            state=state,
+        )
+
+
+@pytest.mark.parametrize("receipt_case", ["missing", "forged"])
+def test_unproven_stop_receipt_keeps_book_drift_permanent(receipt_case):
+    import scripts.propr_competition as competition
+
+    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    filled = _native_stop(
+        competition,
+        btc,
+        order_id=btc_stop["orderId"],
+        status="filled",
+    )
+    trade = _stop_trade(btc, filled)
+    if receipt_case == "missing":
+        state["stop_receipts"] = {}
+    else:
+        state["stop_receipts"]["BTC"]["orderId"] = "forged-stop"
+
+    class Client:
+        account_id = "competition-1"
+
+        def get_orders(self, status, *, order_id):
+            assert status == "filled"
+            assert order_id in ("forged-stop", btc_stop["orderId"])
+            return [filled]
+
+        def get_trades(self, *, order_id):
+            assert order_id == btc_stop["orderId"]
+            return [trade]
+
+    verified = competition._native_stop_filled(
+        Client(),
+        state,
+        [eth],
+        [eth_stop],
+    )
+
+    assert verified is False
+    assert competition._risk_reason(
+        state,
+        [eth],
+        50_000,
+        datetime(2026, 7, 24, 14, 0, tzinfo=timezone.utc),
+        native_stop_filled=verified,
+    ) == ("native_stop_or_external_drift", True)
+
+
+@pytest.mark.parametrize(
+    ("target", "update"),
+    [
+        ("order", {"accountId": "other"}),
+        ("order", {"averageFillPrice": "0"}),
+        ("order", {"side": "buy"}),
+        ("trade", {"accountId": "other"}),
+        ("trade", {"isLiquidation": True}),
+        ("trade", {"quantity": "0.5"}),
+        ("trade", {"positionSide": "short"}),
+        ("trade", {"executedAt": "2026-07-24T12:59:59+00:00"}),
+    ],
+)
+def test_native_stop_fill_proof_is_fail_closed(target, update):
+    import scripts.propr_competition as competition
+
+    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    filled = _native_stop(
+        competition,
+        btc,
+        order_id=btc_stop["orderId"],
+        status="filled",
+    )
+    trade = _stop_trade(btc, filled)
+    (filled if target == "order" else trade).update(update)
+
+    class Client:
+        account_id = "competition-1"
+
+        def get_orders(self, status, *, order_id):
+            assert (status, order_id) == ("filled", btc_stop["orderId"])
+            return [filled]
+
+        def get_trades(self, *, order_id):
+            assert order_id == btc_stop["orderId"]
+            return [trade]
+
+    assert competition._native_stop_filled(
+        Client(),
+        state,
+        [eth],
+        [eth_stop],
+    ) is False
+
+
+@pytest.mark.parametrize("position_case", ["missing", "residual"])
+def test_native_stop_requires_exact_zero_position_record(position_case):
+    import scripts.propr_competition as competition
+
+    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    filled = _native_stop(
+        competition,
+        btc,
+        order_id=btc_stop["orderId"],
+        status="filled",
+    )
+    trade = _stop_trade(btc, filled)
+    records = (
+        []
+        if position_case == "missing"
+        else [_stopped_position_record(btc, quantity="0.01")]
+    )
+
+    class Client:
+        account_id = "competition-1"
+
+        def get_orders(self, status, *, order_id):
+            assert (status, order_id) == ("filled", btc_stop["orderId"])
+            return [filled]
+
+        def get_trades(self, *, order_id):
+            assert order_id == btc_stop["orderId"]
+            return [trade]
+
+        def get_positions(self, status, *, position_id, include_zero):
+            assert status is None
+            assert position_id == btc["positionId"]
+            assert include_zero is True
+            return records
+
+    verified = competition._native_stop_filled(
+        Client(),
+        state,
+        [eth],
+        [eth_stop],
+    )
+
+    assert verified is False
+    assert competition._risk_reason(
+        state,
+        [eth],
+        50_000,
+        datetime(2026, 7, 24, 14, 0, tzinfo=timezone.utc),
+        native_stop_filled=verified,
+    ) == ("native_stop_or_external_drift", True)
+
+
+def test_verified_native_stop_flattens_survivor_then_daily_rollover_recovers(
+    tmp_path,
+    monkeypatch,
+):
+    import scripts.propr_competition as competition
+
+    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    filled = _native_stop(
+        competition,
+        btc,
+        order_id=btc_stop["orderId"],
+        status="filled",
+    )
+    trade = _stop_trade(btc, filled)
+    events = []
+
+    class Client:
+        account_id = "competition-1"
+
+        def __init__(self, *, read_only=False):
+            assert read_only is False
+            self.active_attempt = _attempt()
+
+        def setup(self, **_kwargs):
+            return None
+
+        def get_positions(
+            self,
+            status="open",
+            *,
+            position_id=None,
+            include_zero=False,
+        ):
+            if position_id:
+                assert status is None
+                assert include_zero is True
+                assert position_id == btc["positionId"]
+                return [_stopped_position_record(btc)]
+            assert status == "open"
+            assert include_zero is False
+            return [eth]
+
+        def get_account(self):
+            return _account()
+
+        def get_active_orders(self):
+            return [eth_stop]
+
+        def get_orders(self, status, *, order_id):
+            assert (status, order_id) == ("filled", btc_stop["orderId"])
+            return [filled]
+
+        def get_trades(self, *, order_id):
+            assert order_id == btc_stop["orderId"]
+            return [trade]
+
+    monkeypatch.setenv("PROPR_COMPETITION_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_COMPETITION_ACCOUNT_ID", "competition-1")
+    monkeypatch.setattr(
+        competition,
+        "_now",
+        lambda: datetime(2026, 7, 24, 14, 0, tzinfo=timezone.utc),
+    )
+    monkeypatch.setattr(competition, "ProprClient", Client)
+    monkeypatch.setattr(
+        competition,
+        "_flatten_and_cleanup",
+        lambda _client, positions, reason: events.append(
+            (reason, [position["base"] for position in positions])
+        ),
+    )
+    monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
+    competition.STATE_PATH.write_text(json.dumps(state))
+
+    with pytest.raises(competition.ProprError, match="native_stop_filled"):
+        competition.guard()
+
+    saved = json.loads(competition.STATE_PATH.read_text())
+    assert events == [("native_stop_filled", ["ETH"])]
+    assert saved["halted_today"] is True
+    assert saved["halt_kind"] == "daily"
+    assert saved["permanently_halted"] is False
+    assert saved["stop_receipts"] == {}
+    competition._roll_day(
+        saved,
+        [],
+        50_000,
+        datetime(2026, 7, 25, 0, 10, tzinfo=timezone.utc),
+    )
+    assert saved["halted_today"] is False
+    assert saved["halt_reason"] == ""
 
 
 def test_leverage_is_updated_and_read_back_before_trading(tmp_path, monkeypatch):
@@ -1470,7 +2040,7 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
 
     client = Client()
 
-    def fake_guard(active_client, positions):
+    def fake_guard(active_client, positions, **_kwargs):
         events.append(("guard", [position["base"] for position in positions]))
         active_client.orders = []
         for position in positions:
@@ -1672,7 +2242,11 @@ def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
         if read_only is False
         else pytest.fail("manage requested read-only client"),
     )
-    monkeypatch.setattr(competition, "_create_missing_stops", lambda *_args: [])
+    monkeypatch.setattr(
+        competition,
+        "_create_missing_stops",
+        lambda *_args, **_kwargs: [],
+    )
     monkeypatch.setattr(competition, "_ensure_leverage", fake_leverage)
     monkeypatch.setattr(competition, "rebalance", fake_rebalance)
     monkeypatch.setattr(
