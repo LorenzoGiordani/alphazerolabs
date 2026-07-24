@@ -19,21 +19,50 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from backtest.evidence import verify_propr_paper_evidence
+from backtest.strategy import load
 from scripts.propr_client import ProprClient, ProprError
+from scripts.propr_contract import (
+    EXPECTED_CHALLENGE_SLUG,
+    EXPECTED_INITIAL_BALANCE,
+    GUARD_MAX_CREATES,
+    GUARD_STOP_DISTANCE,
+    GUARD_VERSION,
+    RULEBOOK,
+    SPEC_REL,
+    execution_contract,
+)
 
 
 JOURNAL = ROOT / "paper/propr_guard_journal.jsonl"
-EXPECTED_CHALLENGE_SLUG = "free-trial"
-EXPECTED_INITIAL_BALANCE = Decimal("5000")
-STOP_DISTANCE = Decimal("0.04")
-MAX_CREATES = 8
-GUARD_VERSION = "propr-guard-v2"
+EXPECTED_RULES = {
+    "profitTargetPercent": Decimal(str(RULEBOOK["profit_target_pct"])),
+    "maxDailyLossPercent": Decimal(str(RULEBOOK["max_daily_loss_pct"])),
+    "maxDrawdownPercent": Decimal(str(RULEBOOK["max_drawdown_pct"])),
+}
+STOP_DISTANCE = Decimal(str(GUARD_STOP_DISTANCE))
+MAX_CREATES = GUARD_MAX_CREATES
 _FALLBACK_ULID_MS = 1_577_836_800_000  # 2020-01-01 UTC; stable if API omits createdAt.
 _CROCKFORD32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 
 
 def _enabled(name: str) -> bool:
     return os.environ.get(name, "").strip().lower() == "true"
+
+
+def _require_write_evidence(expected_account_id: str) -> dict:
+    spec = load(ROOT / SPEC_REL)
+    evidence = verify_propr_paper_evidence(
+        spec,
+        ROOT,
+        account_id=expected_account_id,
+        execution_contract=execution_contract(spec),
+    )
+    if not evidence["verified"]:
+        raise ProprError(
+            "evidenza paper non verificata: " + ", ".join(evidence["reasons"])
+        )
+    return evidence
 
 
 def _parse_decimal(value: object, field: str) -> Decimal:
@@ -102,8 +131,16 @@ def _validate_attempt(attempt: dict | None, expected_account_id: str | None) -> 
     if challenge.get("slug") != EXPECTED_CHALLENGE_SLUG:
         raise ProprError(f"challenge inattesa: {challenge.get('slug')}")
     balance = _parse_decimal(challenge.get("initialBalance"), "initialBalance")
-    if balance != EXPECTED_INITIAL_BALANCE:
+    if balance != Decimal(str(EXPECTED_INITIAL_BALANCE)):
         raise ProprError(f"balance iniziale inatteso: {balance}")
+    phases = challenge.get("phases")
+    if not isinstance(phases, list) or not phases:
+        raise ProprError("regole challenge assenti")
+    phase = phases[0]
+    for field, expected in EXPECTED_RULES.items():
+        observed = _parse_decimal(phase.get(field), field)
+        if observed != expected:
+            raise ProprError(f"{field} inatteso: {observed}")
 
 
 def _is_protective_order(position: dict, order: dict) -> bool:
@@ -118,6 +155,60 @@ def _is_protective_order(position: dict, order: dict) -> bool:
         and order.get("reduceOnly") is True
         and order.get("closePosition") is True
     )
+
+
+def reconciliation_summary(positions: list[dict], active_orders: list[dict]) -> dict:
+    position_ids = [str(position.get("positionId", "")) for position in positions]
+    unique_positions = (
+        all(position_ids)
+        and len(position_ids) == len(set(position_ids))
+    )
+    position_by_id = {
+        str(position["positionId"]): position
+        for position in positions
+        if position.get("positionId")
+    }
+    counts = {position_id: 0 for position_id in position_by_id}
+    unmatched = 0
+    protective_orders = 0
+    unexpected_orders = 0
+    for order in active_orders:
+        if not (
+            order.get("type") == "stop_market"
+            and order.get("reduceOnly") is True
+            and order.get("closePosition") is True
+        ):
+            unexpected_orders += 1
+            continue
+        protective_orders += 1
+        position = position_by_id.get(str(order.get("positionId", "")))
+        if position and _is_protective_order(position, order):
+            counts[str(position["positionId"])] += 1
+        else:
+            unmatched += 1
+    protected = sum(count > 0 for count in counts.values())
+    duplicates = sum(max(0, count - 1) for count in counts.values())
+    prewrite_safe = (
+        unique_positions
+        and duplicates == 0
+        and unmatched == 0
+        and unexpected_orders == 0
+    )
+    exact = (
+        prewrite_safe
+        and all(count == 1 for count in counts.values())
+    )
+    return {
+        "open_positions": len(position_by_id),
+        "active_protective_orders": protective_orders,
+        "protected_positions": protected,
+        "duplicate_protective_orders": duplicates,
+        "unmatched_protective_orders": unmatched,
+        "unexpected_active_orders": unexpected_orders,
+        "prewrite_safe": prewrite_safe,
+        "fully_protected": unique_positions and protected == len(position_by_id),
+        "exactly_one_per_position": exact,
+    }
 
 
 def _build_plan(positions: list[dict], open_orders: list[dict], canary: str) -> tuple[list[dict], int]:
@@ -214,6 +305,7 @@ def dedupe(*, expected_duplicates: int) -> dict:
     expected_account_id = os.environ.get("PROPR_EXPECTED_ACCOUNT_ID", "").strip()
     if not expected_account_id:
         raise ProprError("PROPR_EXPECTED_ACCOUNT_ID obbligatorio con --dedupe")
+    _require_write_evidence(expected_account_id)
 
     client = ProprClient(read_only=False)
     account_id = client.setup(
@@ -253,6 +345,8 @@ def main(*, execute: bool = False) -> dict:
         raise ProprError("guard disabilitato: PROPR_GUARD_ENABLED deve essere true")
     if execute and not expected_account_id:
         raise ProprError("PROPR_EXPECTED_ACCOUNT_ID obbligatorio con --execute")
+    if execute:
+        _require_write_evidence(expected_account_id)
 
     canary = os.environ.get("PROPR_GUARD_CANARY_ASSET", "*").strip().upper() or "*"
     client = ProprClient(read_only=not execute)
@@ -264,9 +358,17 @@ def main(*, execute: bool = False) -> dict:
     positions = client.get_positions()
     active_orders = client.get_active_orders()
     plans, skipped_existing = _build_plan(positions, active_orders, canary)
+    reconciliation = reconciliation_summary(positions, active_orders)
 
     actions: list[dict] = []
     if execute:
+        if not reconciliation["prewrite_safe"]:
+            raise ProprError(
+                "preflight stop non sicuro: "
+                f"duplicates={reconciliation['duplicate_protective_orders']} "
+                f"unmatched={reconciliation['unmatched_protective_orders']} "
+                f"unexpected={reconciliation['unexpected_active_orders']}"
+            )
         for plan in plans:
             action = plan.copy()
             try:
@@ -293,6 +395,20 @@ def main(*, execute: bool = False) -> dict:
             action["order_id"] = response[0]["orderId"]
             actions.append(action)
         _append_journal(account_id, actions, status="created")
+        reconciliation = reconciliation_summary(
+            client.get_positions(),
+            client.get_active_orders(),
+        )
+        if not reconciliation["exactly_one_per_position"]:
+            _append_journal(account_id, actions, status="reconciliation_failed")
+            raise ProprError(
+                "riconciliazione stop non esatta: "
+                f"positions={reconciliation['open_positions']} "
+                f"orders={reconciliation['active_protective_orders']} "
+                f"duplicates={reconciliation['duplicate_protective_orders']} "
+                f"unmatched={reconciliation['unmatched_protective_orders']} "
+                f"unexpected={reconciliation['unexpected_active_orders']}"
+            )
 
     result = {
         "mode": "execute" if execute else "plan",
@@ -303,6 +419,7 @@ def main(*, execute: bool = False) -> dict:
         "stop_distance_pct": float(STOP_DISTANCE * 100),
         "planned_count": len(plans),
         "skipped_existing": skipped_existing,
+        "reconciliation": reconciliation,
         "plans": plans,
         "created_count": len(actions),
     }

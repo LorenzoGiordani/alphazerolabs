@@ -109,6 +109,10 @@ def test_guard_only_snapshot_reports_native_protection(tmp_path, monkeypatch):
         "id": "alpha-port-v1", "status": "champion", "engine": "portfolio"})
     monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
         "verified": False, "status": "blocked", "reasons": ["checker_missing"]})
+    monkeypatch.setattr(propr, "verify_propr_paper_evidence",
+                        lambda *_args, **_kwargs: {
+                            "verified": False, "status": "blocked",
+                            "reasons": ["paper_checker_missing"]})
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "false")
     monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
@@ -143,9 +147,22 @@ def test_guard_only_snapshot_reports_native_protection(tmp_path, monkeypatch):
 
     propr.main(snapshot_only=True)
 
-    protection = json.loads(status.read_text())["realtime_protection"]
-    assert protection == {"mode": "native-stop-market", "open_positions": 1,
-                          "protected_positions": 1, "fully_protected": True}
+    payload = json.loads(status.read_text())
+    protection = payload["realtime_protection"]
+    assert protection == {
+        "mode": "native-stop-market",
+        "open_positions": 1,
+        "active_protective_orders": 1,
+        "protected_positions": 1,
+        "duplicate_protective_orders": 0,
+        "unmatched_protective_orders": 0,
+        "unexpected_active_orders": 0,
+        "prewrite_safe": True,
+        "fully_protected": True,
+        "exactly_one_per_position": True,
+    }
+    assert payload["trading_blocked"] is True
+    assert payload["trading_block_reason"] == "paper_execution_evidence_not_verified"
 
 
 def test_propr_manage_kill_switch_blocks_before_client(monkeypatch):
@@ -195,6 +212,39 @@ def test_propr_manage_requires_account_pin_before_client(monkeypatch):
         propr.main(manage_paper=True)
 
 
+def test_propr_manage_blocks_invalid_paper_receipt_before_client(tmp_path, monkeypatch):
+    import scripts.propr_paper as propr
+
+    status = tmp_path / "propr_status.json"
+    monkeypatch.setattr(propr, "STATUS_PATH", status)
+    monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
+    monkeypatch.setattr(propr, "load", lambda _path: {
+        "id": "alpha-port-v1", "status": "champion", "engine": "portfolio",
+        "risk": {"max_leverage": 2},
+    })
+    monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
+        "verified": False, "status": "blocked", "reasons": ["checker_missing"]})
+    monkeypatch.setattr(propr, "verify_propr_paper_evidence",
+                        lambda *_args, **_kwargs: {
+                            "verified": False,
+                            "status": "blocked",
+                            "reasons": ["paper_checker_missing"],
+                        })
+    monkeypatch.setattr(propr, "ProprClient",
+                        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+                            AssertionError("client reached before paper evidence gate")))
+
+    with pytest.raises(SystemExit) as exc:
+        propr.main(manage_paper=True)
+
+    assert exc.value.code == 2
+    payload = json.loads(status.read_text())
+    assert payload["trading_block_reason"] == "paper_execution_evidence_not_verified"
+    assert payload["paper_execution_evidence"]["reasons"] == ["paper_checker_missing"]
+
+
 def test_fresh_management_state_discards_legacy_targets():
     from datetime import datetime, timezone
     import scripts.propr_paper as propr
@@ -204,6 +254,38 @@ def test_fresh_management_state_discards_legacy_targets():
     assert state["day_start_equity"] == 5028.23
     assert "last_target" not in state
     assert "tranches" not in state
+
+
+@pytest.mark.parametrize("target", [
+    {"SUI": 100.0, "BTC": -100.0},
+    {"BTC": 1000.0, "ETH": -1000.0},
+    {"BTC": 200.0, "ETH": -100.0},
+    {"BTC": float("nan")},
+])
+def test_propr_target_validation_rejects_universe_gross_neutrality_and_nonfinite(target):
+    from scripts.propr_client import ProprError
+    import scripts.propr_paper as propr
+
+    with pytest.raises(ProprError):
+        propr._validate_target(target, ["BTC", "ETH"], 5000.0)
+
+
+def test_propr_management_state_binds_last_target_to_bounded_tranches():
+    from scripts.propr_client import ProprError
+    import scripts.propr_paper as propr
+
+    valid = {
+        "tranches": {
+            "0": {"BTC": 100.0, "ETH": -100.0},
+            "1": {"BTC": -100.0, "ETH": 100.0},
+        },
+        "last_target": {},
+    }
+    propr._validate_management_state(valid, ["BTC", "ETH"], 5000.0, 7)
+
+    invalid = {**valid, "last_target": {"BTC": 750.0, "ETH": -750.0}}
+    with pytest.raises(ProprError, match="incoerente"):
+        propr._validate_management_state(invalid, ["BTC", "ETH"], 5000.0, 7)
 
 
 def test_protection_summary_counts_only_native_reduce_only_closes():
@@ -582,6 +664,9 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
     })
     monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
         "verified": False, "status": "blocked", "reasons": ["checker_missing"]})
+    monkeypatch.setattr(propr, "verify_propr_paper_evidence",
+                        lambda *_args, **_kwargs: {
+                            "verified": True, "status": "verified", "reasons": []})
     monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "true")
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
@@ -605,6 +690,9 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
         def get_positions(self):
             return []
 
+        def get_active_orders(self):
+            return []
+
     monkeypatch.setattr(propr, "ProprClient", PaperClient)
     propr.main(manage_paper=True)
 
@@ -625,6 +713,11 @@ def test_paper_run_requires_both_propr_kill_switches_for_management():
             "steps.propr_guard_pre.outcome == 'success'") in workflow
     assert workflow.index("id: propr_guard_pre") < workflow.index("id: propr_manage")
     assert workflow.index("id: propr_manage") < workflow.index("id: propr_guard\n")
+    assert workflow.index("id: propr_guard\n") < workflow.index("id: propr_gate")
+    assert '--critical "propr_gate=${{ steps.propr_gate.outcome }}"' in workflow
+    assert ("if: always() && steps.health.outcome == 'success' && "
+            "steps.propr_gate.outcome == 'success'") in workflow
+    assert "fetch-depth: 0" in workflow
 
 
 @pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])

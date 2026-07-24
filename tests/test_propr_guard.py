@@ -13,7 +13,15 @@ def _attempt(account_id="paper-1", *, slug="free-trial", balance=5000):
         "accountId": account_id,
         "status": "active",
         "createdAt": "2026-07-17T10:00:00Z",
-        "challenge": {"slug": slug, "initialBalance": balance},
+        "challenge": {
+            "slug": slug,
+            "initialBalance": balance,
+            "phases": [{
+                "profitTargetPercent": 10,
+                "maxDailyLossPercent": 3,
+                "maxDrawdownPercent": 6,
+            }],
+        },
     }
 
 
@@ -115,6 +123,28 @@ def test_execute_requires_both_kill_switch_and_exact_account_before_client(monke
         guard.main(execute=True)
 
 
+def test_execute_requires_paper_evidence_before_client(monkeypatch):
+    import scripts.propr_guard as guard
+    from scripts.propr_client import ProprError
+
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
+    monkeypatch.setattr(
+        guard,
+        "_require_write_evidence",
+        lambda _account_id: (_ for _ in ()).throw(
+            ProprError("evidenza paper non verificata")),
+    )
+    monkeypatch.setattr(
+        guard,
+        "ProprClient",
+        lambda **_kwargs: pytest.fail("client reached before evidence gate"),
+    )
+
+    with pytest.raises(ProprError, match="evidenza paper non verificata"):
+        guard.main(execute=True)
+
+
 def test_read_only_plan_uses_canary_opposite_side_and_skips_existing(monkeypatch):
     import scripts.propr_guard as guard
 
@@ -192,6 +222,71 @@ def test_wrong_side_stop_does_not_count_as_protection():
     assert plans[0]["position_side"] == "long"
 
 
+def test_reconciliation_requires_one_stop_per_position_without_orphans():
+    import scripts.propr_guard as guard
+
+    btc = _position("BTC", "pos-btc")
+    eth = _position("ETH", "pos-eth", "short")
+    exact = guard.reconciliation_summary(
+        [btc, eth],
+        [_stop("btc", btc, "2026-07-24T09:00:00Z"),
+         _stop("eth", eth, "2026-07-24T09:00:00Z")],
+    )
+    assert exact["exactly_one_per_position"] is True
+
+    duplicate = guard.reconciliation_summary(
+        [btc, eth],
+        [_stop("btc-old", btc, "2026-07-24T09:00:00Z"),
+         _stop("btc-new", btc, "2026-07-24T09:01:00Z"),
+         _stop("eth", eth, "2026-07-24T09:00:00Z"),
+         _stop("orphan", _position("SUI", "pos-gone"), "2026-07-24T09:00:00Z"),
+         {"orderId": "limit", "type": "limit"}],
+    )
+    assert duplicate["duplicate_protective_orders"] == 1
+    assert duplicate["unmatched_protective_orders"] == 1
+    assert duplicate["unexpected_active_orders"] == 1
+    assert duplicate["exactly_one_per_position"] is False
+
+
+def test_guard_rejects_duplicate_plus_missing_before_first_write(tmp_path, monkeypatch):
+    import scripts.propr_guard as guard
+    from scripts.propr_client import ProprError
+
+    btc = _position("BTC", "pos-btc")
+    eth = _position("ETH", "pos-eth")
+
+    class FakeClient:
+        def __init__(self, *, read_only=False):
+            assert read_only is False
+            self.active_attempt = _attempt()
+
+        def setup(self, **_kwargs):
+            return "paper-1"
+
+        def get_positions(self):
+            return [btc, eth]
+
+        def get_active_orders(self):
+            return [
+                _stop("btc-old", btc, "2026-07-24T09:00:00Z"),
+                _stop("btc-new", btc, "2026-07-24T09:01:00Z"),
+            ]
+
+        def create_order(self, **_kwargs):
+            pytest.fail("write reached with duplicate preflight")
+
+    monkeypatch.setattr(guard, "ProprClient", FakeClient)
+    monkeypatch.setattr(guard, "_require_write_evidence", lambda _account_id: {})
+    monkeypatch.setattr(guard, "JOURNAL", tmp_path / "guard.jsonl")
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
+
+    with pytest.raises(ProprError, match="preflight stop non sicuro"):
+        guard.main(execute=True)
+
+    assert not guard.JOURNAL.exists()
+
+
 def test_execute_rejects_more_than_eight_stops_before_first_write(tmp_path, monkeypatch):
     import scripts.propr_guard as guard
     from scripts.propr_client import ProprError
@@ -221,6 +316,7 @@ def test_execute_rejects_more_than_eight_stops_before_first_write(tmp_path, monk
                      "status": "open"}]
 
     monkeypatch.setattr(guard, "ProprClient", FakeClient)
+    monkeypatch.setattr(guard, "_require_write_evidence", lambda _account_id: {})
     monkeypatch.setattr(guard, "JOURNAL", tmp_path / "guard.jsonl")
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
@@ -255,6 +351,7 @@ def test_guard_rejects_unverifiable_create_response(tmp_path, monkeypatch):
             return []
 
     monkeypatch.setattr(guard, "ProprClient", FakeClient)
+    monkeypatch.setattr(guard, "_require_write_evidence", lambda _account_id: {})
     monkeypatch.setattr(guard, "JOURNAL", tmp_path / "guard.jsonl")
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
@@ -316,6 +413,7 @@ def test_dedupe_cancels_exact_expected_count_and_journals(tmp_path, monkeypatch)
             return {"orderId": order_id, "status": "cancelled"}
 
     monkeypatch.setattr(guard, "ProprClient", FakeClient)
+    monkeypatch.setattr(guard, "_require_write_evidence", lambda _account_id: {})
     monkeypatch.setattr(guard, "JOURNAL", tmp_path / "guard.jsonl")
     monkeypatch.setenv("PROPR_DEDUPE_ENABLED", "true")
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "false")
@@ -354,6 +452,7 @@ def test_dedupe_count_mismatch_fails_before_cancel(tmp_path, monkeypatch):
             pytest.fail("cancel reached before exact-count validation")
 
     monkeypatch.setattr(guard, "ProprClient", FakeClient)
+    monkeypatch.setattr(guard, "_require_write_evidence", lambda _account_id: {})
     monkeypatch.setattr(guard, "JOURNAL", tmp_path / "guard.jsonl")
     monkeypatch.setenv("PROPR_DEDUPE_ENABLED", "true")
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "false")
@@ -439,6 +538,7 @@ def test_execute_rejects_non_5k_attempt_before_orders(monkeypatch):
             pytest.fail("positions reached before challenge validation")
 
     monkeypatch.setattr(guard, "ProprClient", FakeClient)
+    monkeypatch.setattr(guard, "_require_write_evidence", lambda _account_id: {})
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
     with pytest.raises(ProprError, match="balance iniziale inatteso"):

@@ -39,6 +39,8 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
 
       - name: inizializza coverage del run
@@ -119,6 +121,35 @@ jobs:
         continue-on-error: true
         run: uv run scripts/propr_paper.py --snapshot-only
 
+      - name: propr — gate critico lane Free Trial
+        id: propr_gate
+        if: always()
+        env:
+          PROPR_MAINTENANCE: ${{ inputs.propr_maintenance }}
+        run: |
+          if [ -z "$PROPR_API_KEY" ]; then
+            [ "$PROPR_GUARD_ENABLED" != "true" ]
+            [ "$PROPR_AUTOMANAGE_ENABLED" != "true" ]
+            [ -z "$PROPR_MAINTENANCE" ]
+            exit 0
+          fi
+          [ "${{ steps.propr.outcome }}" = "success" ]
+          if [ "$PROPR_GUARD_ENABLED" = "true" ] || [ "$PROPR_AUTOMANAGE_ENABLED" = "true" ]; then
+            [ -n "$PROPR_EXPECTED_ACCOUNT_ID" ]
+          fi
+          if [ "$PROPR_GUARD_ENABLED" = "true" ]; then
+            [ "${{ steps.propr_guard_pre.outcome }}" = "success" ]
+            [ "${{ steps.propr_guard.outcome }}" = "success" ]
+          fi
+          if [ "$PROPR_AUTOMANAGE_ENABLED" = "true" ]; then
+            [ "$PROPR_GUARD_ENABLED" = "true" ]
+            [ "$PROPR_GUARD_CANARY_ASSET" = "*" ]
+            [ "${{ steps.propr_manage.outcome }}" = "success" ]
+          fi
+          if [ -n "$PROPR_MAINTENANCE" ]; then
+            [ "${{ steps.propr_dedupe.outcome }}" = "success" ]
+          fi
+
       - name: polymarket forecast journal (F7 — risoluzione storico)
         id: polymarket
         if: always()
@@ -157,6 +188,7 @@ jobs:
           --critical "portfolio_all=${{ steps.portfolio_all.outcome }}"
           --critical "promote=${{ steps.promote.outcome }}"
           --critical "exits=${{ steps.exits.outcome }}"
+          --critical "propr_gate=${{ steps.propr_gate.outcome }}"
           --optional "cot=${{ steps.cot.outcome }}"
           --optional "agents_rr2=${{ steps.agents_rr2.outcome }}"
           --optional "propr_dedupe=${{ steps.propr_dedupe.outcome }}"
@@ -182,7 +214,7 @@ jobs:
           npx -y wrangler@4.107.0 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
 
       - name: publish
-        if: always() && (steps.health.outcome == 'success' || steps.health.outcome == 'failure')
+        if: always() && steps.health.outcome == 'success' && steps.propr_gate.outcome == 'success'
         run: |
           git config user.name "lux-ai-cron"
           git config user.email "actions@users.noreply.github.com"

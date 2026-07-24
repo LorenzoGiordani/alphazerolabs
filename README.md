@@ -130,6 +130,10 @@ Il percorso ufficiale resta bloccato prima del client finché la strategia non s
 il contratto di evidenza. Dal 17/07 esiste inoltre una corsia sperimentale esplicitamente
 autorizzata per il solo paper: `--manage-paper` richiede `PROPR_AUTOMANAGE_ENABLED=true`,
 pin esatto `PROPR_EXPECTED_ACCOUNT_ID` e challenge `free-trial` attiva da $5.000.
+La corsia richiede inoltre il manifest e receipt indipendente
+`evidence/propr/`: sono vincolati all'implementazione, all'account, alle regole
+e al risk overlay correnti, ma non soddisfano né aggirano il gate DSR/OOS
+ufficiale.
 Il runner verifica account e rischio ogni ora, aggiorna una tranche ogni 24h e non
 riusa lo stato legacy alla prima attivazione. `propr_guard.py --execute` richiede il
 secondo kill switch `PROPR_GUARD_ENABLED=true` e mantiene stop `stop_market`

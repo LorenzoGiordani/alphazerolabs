@@ -5,53 +5,61 @@
  "day_date": "2026-07-24",
  "day_start_equity": 50094.812385,
  "expected_assets": [
-  "NEAR",
-  "XRP"
+  "BTC",
+  "NEAR"
  ],
  "expected_quantities": {
-  "NEAR": "25166.3",
-  "XRP": "42731.2"
+  "BTC": "3.388",
+  "NEAR": "3729.3"
  },
  "expected_sides": {
-  "NEAR": "short",
-  "XRP": "long"
+  "BTC": "long",
+  "NEAR": "short"
  },
  "halt_kind": "",
  "halt_reason": "",
  "halted_today": false,
  "high_water_mark": 50157.444185,
- "last_equity": 49531.200379,
- "last_manage_ts": "2026-07-24T09:11:17.626704+00:00",
- "last_rebalance_ts": "2026-07-23T23:05:11.972192+00:00",
+ "last_equity": 49746.732462,
+ "last_manage_ts": "2026-07-24T10:15:40.594829+00:00",
+ "last_rebalance_ts": "2026-07-24T10:13:08.010877+00:00",
+ "last_signals": {
+  "BTC": 0.03294558265754688,
+  "ETH": 0.028558971005014255,
+  "NEAR": -0.00556109333193433,
+  "SOL": 0.012676037465328527,
+  "SUI": 0.0017832591443078805,
+  "XRP": 0.021388402323223143
+ },
  "last_target": {
-  "NEAR": -47500.0,
-  "XRP": 47500.0
+  "BTC": 220535.71,
+  "NEAR": -6785.71
  },
  "migration": {
-  "completed_at": "2026-07-23T23:05:11.972192+00:00",
+  "completed_at": "2026-07-24T10:13:08.010877+00:00",
   "forced_rebalance": false,
-  "from": "tsmom-abs2-tournament-20260723-v2",
-  "to": "xsmom-neutral2-tournament-20260724-v3"
+  "from": "xsmom-neutral2-tournament-20260724-v3",
+  "to": "hybrid-tsmom90-xsmom10-tournament-20260724-v4"
  },
  "permanently_halted": false,
  "stop_receipts": {
+  "BTC": {
+   "asset": "BTC",
+   "intentId": "01KY9SV0A31XG1HQ5K2Y02ZFS5",
+   "orderId": "urn:prp-order:AoATjdkf5pLp",
+   "positionId": "urn:prp-position:7H6zEuLDcrFq",
+   "quantity": "3.388",
+   "trigger": "63039"
+  },
   "NEAR": {
    "asset": "NEAR",
-   "intentId": "01KY89B411XQQ3M1F9GF567HEP",
-   "orderId": "urn:prp-order:yHWXVwVMGMA9",
+   "intentId": "01KY89B4113X0WCPR13TK5J9ND",
+   "orderId": "urn:prp-order:sbZHfinCWogL",
    "positionId": "urn:prp-position:69MyzwiTqzfh",
-   "quantity": "25166.3",
+   "quantity": "3729.3",
    "trigger": "1.9382"
-  },
-  "XRP": {
-   "asset": "XRP",
-   "intentId": "01KY8KM1X0JTR406J2XA30M5PE",
-   "orderId": "urn:prp-order:JYSFFUecwBud",
-   "positionId": "urn:prp-position:4EWNhtNfbiQr",
-   "quantity": "42731.2",
-   "trigger": "1.0775"
   }
  },
- "strategy": "xsmom-neutral2-tournament-20260724-v3",
+ "strategy": "hybrid-tsmom90-xsmom10-tournament-20260724-v4",
  "version": "propr-competition-state-v2"
 }

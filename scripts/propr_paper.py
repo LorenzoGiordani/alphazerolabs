@@ -22,46 +22,37 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from backtest.evidence import verify_evidence
+from backtest.evidence import verify_evidence, verify_propr_paper_evidence
 from backtest.portfolio import xs_momentum_weights
 from backtest.strategy import load
 from pipeline.live import atomic_write_text
 from scripts.portfolio_paper import trailing_returns
 from scripts.propr_client import ProprClient, ProprError
+from scripts.propr_contract import (
+    AUTOMANAGE_VERSION,
+    EXPECTED_CHALLENGE_SLUG,
+    EXPECTED_INITIAL_BALANCE,
+    MAX_ORDERS_PER_ACTION,
+    PROPR_DAILY_STOP_PCT,
+    PROPR_GROSS_OVERRIDE,
+    PROPR_TRANCHE_H,
+    RULEBOOK,
+    SPEC_REL,
+    execution_contract,
+)
+from scripts.propr_guard import reconciliation_summary
 
-SPEC_PATH = ROOT / "strategies/generated/xsmom-multihorizon-v1.yaml"
+SPEC_PATH = ROOT / SPEC_REL
 JOURNAL = ROOT / "paper/propr_journal.jsonl"
 STATUS_PATH = ROOT / "paper/propr_status.json"
 STATE_PATH = ROOT / "paper/propr_state.json"
 
-# Risk overlay Propr-aware, non nello spec (quello resta la champion "pura" per
-# backtest/paper interno). Simulazione esatta challenge (daily loss 3% $150,
-# drawdown statico 6% $4.7k, path orario 12 mesi): a gross 1.0 sizing su equity
-# compounded la challenge si passa al giorno 63 ma l'account muore 3gg dopo per
-# breach daily-loss. Solo gross ~0.3 con sizing fisso su balance iniziale (non
-# compounded) sopravvive tutto l'anno senza breach. Vedi daily note 2026-07-09.
-PROPR_GROSS_OVERRIDE = 0.3
-# Circuit breaker giornaliero: se il P&L di giornata (da snapshot equity al primo
-# run del giorno UTC) scende sotto -2% del balance iniziale ($100 su $5k), flat
-# totale fino a mezzanotte UTC, poi re-entry sull'ultimo target salvato. Monte
-# Carlo (1000 path bootstrap 168h): breach 12m 6.4% -> 2.6%, pass 94.3% -> 95.4%,
-# stesso tempo mediano. Latenza 1h del cron orario già modellata nella sim.
-# Il vol targeting è stato testato e FALSIFICATO (peggiora: vol clustering).
-PROPR_DAILY_STOP_PCT = 0.02
-# Tranching (portafogli sovrapposti alla Jegadeesh-Titman): il backtest reb168
-# è fragile alla FASE del rebalance (Sharpe 1.10-2.86, media 2.15, a seconda
-# dell'ora in cui cade il ribilancio settimanale). Fix: 7 sub-book da 1/7 del
-# capitale, ognuno ribilanciato settimanalmente ma in un giorno diverso (slot =
-# ordinale del giorno UTC % 7). Elimina la lotteria di fase e alza lo Sharpe
-# fase-mediato a 2.51 (test 2.57). Costi modellati per sub-book: il netting
-# reale degli ordini a livello asset può solo ridurli. Vedi daily 2026-07-09.
-PROPR_TRANCHE_H = 24
-AUTOMANAGE_VERSION = "systematic-paper-automanage-v1"
-MAX_ORDERS_PER_ACTION = 12
-
-
 def _enabled(name: str) -> bool:
     return os.environ.get(name, "").strip().lower() == "true"
+
+
+def _paper_execution_contract(spec: dict) -> dict:
+    return execution_contract(spec)
 
 
 def _read_state() -> dict:
@@ -82,41 +73,100 @@ def _fresh_management_state(equity: float, now: datetime) -> dict:
     }
 
 
+def _validate_target(
+    target: dict,
+    symbols: list[str],
+    sizing_base: float,
+    *,
+    gross_cap: float = PROPR_GROSS_OVERRIDE,
+) -> dict[str, float]:
+    if not isinstance(target, dict):
+        raise ProprError("target Propr non valido")
+    allowed = set(symbols)
+    normalized: dict[str, float] = {}
+    for asset, value in target.items():
+        if not isinstance(asset, str) or asset not in allowed or isinstance(value, bool):
+            raise ProprError(f"target Propr non valido per {asset!r}")
+        try:
+            notional = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ProprError(f"target Propr non valido per {asset}") from exc
+        if not math.isfinite(notional):
+            raise ProprError(f"target Propr non finito per {asset}")
+        normalized[asset] = notional
+    gross = sum(abs(value) for value in normalized.values())
+    if gross > sizing_base * gross_cap + 0.10:
+        raise ProprError(f"target Propr oltre gross cap: {gross:.2f}")
+    if abs(sum(normalized.values())) > 0.10:
+        raise ProprError("target Propr non dollar-neutral")
+    return normalized
+
+
+def _validate_management_state(
+    state: dict,
+    symbols: list[str],
+    sizing_base: float,
+    n_tranches: int,
+) -> None:
+    tranches = state.get("tranches")
+    last_target = state.get("last_target")
+    if tranches is None and last_target is None:
+        return
+    if not isinstance(tranches, dict) or not tranches or len(tranches) > n_tranches:
+        raise ProprError("stato tranche Propr non valido")
+    allowed_slots = {str(slot) for slot in range(n_tranches)}
+    if not set(tranches).issubset(allowed_slots):
+        raise ProprError("slot tranche Propr non valido")
+    aggregate: dict[str, float] = {}
+    for tranche in tranches.values():
+        validated = _validate_target(
+            tranche,
+            symbols,
+            sizing_base,
+            gross_cap=PROPR_GROSS_OVERRIDE / n_tranches,
+        )
+        for asset, value in validated.items():
+            aggregate[asset] = aggregate.get(asset, 0.0) + value
+    aggregate = {asset: value for asset, value in aggregate.items() if abs(value) > 1e-9}
+    aggregate = _validate_target(aggregate, symbols, sizing_base)
+    persisted = _validate_target(last_target, symbols, sizing_base)
+    if set(aggregate) != set(persisted) or any(
+        abs(aggregate[asset] - persisted[asset]) > 0.10 for asset in aggregate
+    ):
+        raise ProprError("last_target Propr incoerente con le tranche")
+
+
 def _validate_paper_attempt(attempt: dict, expected_account_id: str) -> None:
     challenge = attempt.get("challenge") or {}
     if attempt.get("accountId") != expected_account_id:
         raise ProprError("account Propr diverso dal Free Trial autorizzato")
     if attempt.get("status") != "active":
         raise ProprError(f"challenge non attiva (status={attempt.get('status')})")
-    if challenge.get("slug") != "free-trial":
+    if challenge.get("slug") != EXPECTED_CHALLENGE_SLUG:
         raise ProprError("challenge Propr non free-trial")
-    if float(challenge.get("initialBalance", 0)) != 5000.0:
+    if float(challenge.get("initialBalance", 0)) != float(EXPECTED_INITIAL_BALANCE):
         raise ProprError("balance iniziale Propr diverso da $5.000 paper")
+    phases = challenge.get("phases")
+    if not isinstance(phases, list) or not phases:
+        raise ProprError("regole challenge Propr assenti")
+    phase = phases[0]
+    expected_rules = {
+        "profitTargetPercent": float(RULEBOOK["profit_target_pct"]),
+        "maxDailyLossPercent": float(RULEBOOK["max_daily_loss_pct"]),
+        "maxDrawdownPercent": float(RULEBOOK["max_drawdown_pct"]),
+    }
+    try:
+        observed_rules = {name: float(phase.get(name)) for name in expected_rules}
+    except (TypeError, ValueError):
+        observed_rules = {}
+    if observed_rules != expected_rules:
+        raise ProprError(f"regole challenge Propr inattese: {observed_rules}")
 
 
 def _protection_summary(positions: list[dict], open_orders: list[dict]) -> dict:
-    position_by_id = {str(p["positionId"]): p for p in positions if p.get("positionId")}
-    position_ids = set(position_by_id)
-    protected_ids = set()
-    for order in open_orders:
-        position_id = str(order.get("positionId", ""))
-        position = position_by_id.get(position_id)
-        if not position:
-            continue
-        position_side = str(position.get("positionSide", "")).lower()
-        closing_side = "sell" if position_side == "long" else "buy" if position_side == "short" else ""
-        order_position_side = "long" if closing_side == "buy" else "short" if closing_side else ""
-        if (order.get("type") == "stop_market" and closing_side
-                and str(order.get("side", "")).lower() == closing_side
-                and str(order.get("positionSide", "")).lower() == order_position_side
-                and order.get("reduceOnly") is True and order.get("closePosition") is True):
-            protected_ids.add(position_id)
-    covered = position_ids & protected_ids
     return {
         "mode": "native-stop-market",
-        "open_positions": len(position_ids),
-        "protected_positions": len(covered),
-        "fully_protected": covered == position_ids,
+        **reconciliation_summary(positions, open_orders),
     }
 
 # decimali quantità per prezzo — approssimazione conservativa, l'API rifiuta
@@ -444,7 +494,8 @@ def _strategy_detail(spec: dict) -> dict:
 def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list[dict],
                  last_rebalance_ts: str, *, discretionary: bool = False,
                  automanage: bool = False, protection: dict | None = None,
-                 evidence: dict | None = None) -> None:
+                 evidence: dict | None = None,
+                 paper_execution_evidence: dict | None = None) -> None:
     """Snapshot pubblico per la dashboard: stato challenge Propr vs le sue stesse
     regole (target/daily-loss/drawdown), letto dal server — non ricalcolato qui."""
     acct = client.get_account()
@@ -465,7 +516,7 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
     if automanage:
         execution_mode = "systematic-paper-automanage"
         guard_note = ("stop nativi server-side verificati"
-                      if protection and protection.get("fully_protected")
+                      if protection and protection.get("exactly_one_per_position")
                       else "copertura stop in verifica o incompleta")
         management_note = ("Gestione automatica del solo Free Trial paper: account e rischio "
                            "verificati ogni ora, target aggiornato per tranche ogni 24h, "
@@ -477,6 +528,10 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
     else:
         execution_mode = "systematic"
         management_note = ""
+    paper_execution_blocked = (
+        paper_execution_evidence is not None
+        and not paper_execution_evidence.get("verified", False)
+    )
 
     status = {
         "strategy": "llm-discretionary-v1" if discretionary else spec["id"],
@@ -505,8 +560,13 @@ def write_status(client: ProprClient, spec: dict, attempt: dict, positions: list
         "last_rebalance_ts": last_rebalance_ts,
         "equity_history": history,
         "strategy_detail": None if discretionary else _strategy_detail(spec),
-        "trading_blocked": False,
+        "trading_blocked": paper_execution_blocked,
+        "trading_block_reason": (
+            "paper_execution_evidence_not_verified"
+            if paper_execution_blocked else None
+        ),
         "evidence": evidence or verify_evidence(spec, ROOT),
+        "paper_execution_evidence": paper_execution_evidence,
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     atomic_write_text(STATUS_PATH, json.dumps(status, indent=1))
@@ -534,6 +594,16 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
         expected_account_id = os.environ.get("PROPR_EXPECTED_ACCOUNT_ID", "").strip()
         if protected_mode_requested and not expected_account_id:
             raise SystemExit("PROPR_EXPECTED_ACCOUNT_ID obbligatorio con guard o automanage")
+        paper_execution_evidence = (
+            verify_propr_paper_evidence(
+                spec,
+                ROOT,
+                account_id=expected_account_id,
+                execution_contract=_paper_execution_contract(spec),
+            )
+            if protected_mode_requested
+            else None
+        )
         client = ProprClient(read_only=True)
         client.setup(expected_account_id=expected_account_id or None,
                      expected_challenge_slug="free-trial" if protected_mode_requested else None)
@@ -548,7 +618,8 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
                       if guard_requested else None)
         write_status(client, spec, attempt, positions, state.get("last_rebalance_ts", ""),
                      discretionary=not automanage, automanage=automanage,
-                     protection=protection, evidence=evidence)
+                     protection=protection, evidence=evidence,
+                     paper_execution_evidence=paper_execution_evidence)
         print("propr snapshot read-only aggiornato; nessun ordine automatico")
         return
     if manage_paper and not _enabled("PROPR_AUTOMANAGE_ENABLED"):
@@ -559,7 +630,26 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
         return
     if manage_paper and not os.environ.get("PROPR_EXPECTED_ACCOUNT_ID", "").strip():
         raise SystemExit("PROPR_EXPECTED_ACCOUNT_ID obbligatorio con --manage-paper")
-    if not manage_paper and not evidence["verified"]:
+    paper_execution_evidence = None
+    blocked_reason = None
+    blocked_evidence = evidence
+    blocked_evidence_key = "evidence"
+    if manage_paper:
+        paper_execution_evidence = verify_propr_paper_evidence(
+            spec,
+            ROOT,
+            account_id=os.environ["PROPR_EXPECTED_ACCOUNT_ID"].strip(),
+            execution_contract=_paper_execution_contract(spec),
+        )
+        if not paper_execution_evidence["verified"]:
+            blocked_reason = "paper_execution_evidence_not_verified"
+            blocked_evidence = paper_execution_evidence
+            blocked_evidence_key = "paper_execution_evidence"
+    elif not evidence["verified"]:
+        blocked_reason = ("portfolio_execution_contract_not_verified"
+                          if evidence_was_verified and spec.get("engine") == "portfolio"
+                          else "evidence_not_verified")
+    if blocked_reason:
         # Gate before ProprClient: no account, market-data or order endpoint is
         # reachable while the maker/checker evidence pair is absent or invalid.
         try:
@@ -569,14 +659,13 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
         previous.update({
             "strategy": spec.get("id"),
             "trading_blocked": True,
-            "trading_block_reason": ("portfolio_execution_contract_not_verified"
-                                      if evidence_was_verified and spec.get("engine") == "portfolio"
-                                      else "evidence_not_verified"),
-            "evidence": evidence,
+            "trading_block_reason": blocked_reason,
+            blocked_evidence_key: blocked_evidence,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         })
         atomic_write_text(STATUS_PATH, json.dumps(previous, indent=1))
-        print(f"propr bloccato: evidenza non verificata ({', '.join(evidence['reasons'])})",
+        print(f"propr bloccato: evidenza non verificata "
+              f"({', '.join(blocked_evidence['reasons'])})",
               file=sys.stderr)
         raise SystemExit(2)
     pf = spec["portfolio"]
@@ -593,6 +682,19 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
     attempt = client.active_attempt
     if manage_paper:
         _validate_paper_attempt(attempt, expected_account_id)
+        protection = _protection_summary(
+            client.get_positions(),
+            client.get_active_orders(),
+        )
+        if not protection["exactly_one_per_position"]:
+            raise ProprError(
+                "automanage bloccato: riconciliazione stop non esatta "
+                f"(positions={protection['open_positions']}, "
+                f"orders={protection['active_protective_orders']}, "
+                f"duplicates={protection['duplicate_protective_orders']}, "
+                f"unmatched={protection['unmatched_protective_orders']}, "
+                f"unexpected={protection['unexpected_active_orders']})"
+            )
     if attempt["status"] != "active":
         print(f"challenge non attiva (status={attempt['status']}), skip trading")
         return
@@ -613,6 +715,8 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
     # con tranching il runner gira ogni PROPR_TRANCHE_H (sostituisce 1 tranche);
     # la cadenza effettiva per sub-book resta rebalance_h dello spec
     n_tranches = max(1, int(rebalance_h) // PROPR_TRANCHE_H)
+    if manage_paper:
+        _validate_management_state(local_state, symbols, sizing_base, n_tranches)
     due = (not last_rb or
            datetime.now(timezone.utc) - datetime.fromisoformat(last_rb) >= timedelta(hours=PROPR_TRANCHE_H))
 
@@ -644,14 +748,15 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
     if halted:
         print("  halted da circuit breaker, no trading fino a mezzanotte UTC")
     elif due or reenter:
-        _set_leverage(client, symbols, int(spec.get("risk", {}).get("max_leverage", 2)))
         rets, px = trailing_returns(symbols, lookback_h, multi_horizon)
         if not px:
             print("nessun prezzo disponibile, skip rebalance")
         elif reenter and not due:
             # re-entry post-breaker: ripristina il target dell'ultimo rebalance
-            target = {k: float(v) for k, v in local_state["last_target"].items()}
+            target = _validate_target(
+                local_state["last_target"], symbols, sizing_base)
             print(f"  RE-ENTRY post-breaker: ripristino {len(target)} gambe")
+            _set_leverage(client, symbols, int(spec.get("risk", {}).get("max_leverage", 2)))
             results = rebalance(client, target, px, positions)
             log_event({"type": "reentry", "strategy": spec["id"], "account_id": account_id,
                        "equity": round(equity, 2), "target": {k: round(v, 2) for k, v in target.items()},
@@ -679,7 +784,9 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
                 for a, v in t.items():
                     target[a] = target.get(a, 0.0) + float(v)
             target = {a: v for a, v in target.items() if abs(v) > 1e-9}
+            target = _validate_target(target, symbols, sizing_base)
             print(f"  TRANCHE {slot}/{n_tranches}: target book {len(target)} gambe su {len(px)} prezzi")
+            _set_leverage(client, symbols, int(spec.get("risk", {}).get("max_leverage", 2)))
             results = rebalance(client, target, px, positions)
             log_event({"type": "rebalance", "strategy": spec["id"], "account_id": account_id,
                        "equity": round(equity, 2), "tranche_slot": slot,
@@ -699,7 +806,7 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
     atomic_write_text(STATE_PATH, json.dumps(local_state, indent=1))
 
     write_status(client, spec, attempt, positions, last_rb, automanage=manage_paper,
-                 evidence=evidence)
+                 evidence=evidence, paper_execution_evidence=paper_execution_evidence)
     acct_after = client.get_account()
     print(f"fine: balance {acct_after['balance']}$, hwm {acct_after.get('highWaterMark')}$")
 

@@ -56,6 +56,29 @@ def _state(competition, now, **updates):
     return state
 
 
+def _v4_signals(**updates):
+    values = {
+        "BTC": 0.04208,
+        "ETH": 0.03692,
+        "SOL": 0.01942,
+        "XRP": 0.02779,
+        "SUI": 0.01772,
+        "NEAR": -0.01964,
+    }
+    values.update(updates)
+    return values
+
+
+def _v4_plan():
+    signals = _v4_signals()
+    prices = {asset: 100.0 for asset in signals}
+    target = {
+        "BTC": 220_535.7142857143,
+        "NEAR": -6_785.714285714285,
+    }
+    return target, prices, signals
+
+
 def _native_stop(
     competition,
     position,
@@ -121,10 +144,11 @@ def _stopped_position_record(position, *, quantity="0"):
     }
 
 
-def _neutral_state_with_stops(competition):
+def _v4_state_with_stops(competition):
     now = datetime(2026, 7, 24, 13, 0, tzinfo=timezone.utc)
-    btc = _position("BTC", "long")
-    eth = _position("ETH", "short")
+    signals = _v4_signals(ETH=-0.5, BTC=0.6, NEAR=-0.1)
+    btc = _position("BTC", "long", notional="225625")
+    eth = _position("ETH", "short", notional="11875")
     btc_stop = _native_stop(competition, btc)
     eth_stop = _native_stop(competition, eth)
     state = _state(
@@ -133,7 +157,8 @@ def _neutral_state_with_stops(competition):
         expected_assets=["BTC", "ETH"],
         expected_sides={"BTC": "long", "ETH": "short"},
         expected_quantities={"BTC": "1", "ETH": "1"},
-        last_target={"BTC": 100.0, "ETH": -100.0},
+        last_target={"BTC": 225_625.0, "ETH": -11_875.0},
+        last_signals=signals,
         last_rebalance_ts=now.isoformat(),
         stop_receipts={
             "BTC": competition._stop_receipt(btc, btc_stop),
@@ -488,67 +513,31 @@ def test_check_uses_read_only_client_and_never_orders(tmp_path, monkeypatch):
     assert json.loads(competition.STATUS_PATH.read_text())["mode"] == "check"
 
 
-def test_target_is_dollar_neutral_with_max_margin_utilization(monkeypatch):
+def test_hybrid_frozen_example_uses_exact_10_90_margin_profile(monkeypatch):
     import scripts.propr_competition as competition
 
-    signals = pd.Series({
-        "BTC": 0.1, "ETH": 0.2, "SOL": -0.1,
-        "XRP": -0.2, "SUI": 0.3, "NEAR": -0.3,
-    })
+    signals = pd.Series(_v4_signals())
     prices = {asset: 100.0 for asset in competition.SYMBOLS}
     monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
 
-    target, observed_prices = competition._target(50_000)
+    target, observed_prices, observed_signals = competition._target(50_000)
 
-    assert set(target) == {"SUI", "NEAR"}
-    assert target == {"SUI": 47_500.0, "NEAR": -47_500.0}
+    assert target == pytest.approx({
+        "BTC": 220_535.7142857143,
+        "NEAR": -6_785.714285714285,
+    })
+    assert sum(abs(value) for value in target.values()) == pytest.approx(227_321.428571)
+    assert sum(target.values()) == pytest.approx(213_750)
     assert sum(
         abs(value) / competition.MAX_LEVERAGE_BY_ASSET[asset]
         for asset, value in target.items()
     ) == pytest.approx(47_500)
     assert competition.GROSS * float(competition.STOP_DISTANCE) <= competition.DAILY_STOP_PCT
-    assert target["SUI"] > 0 and target["NEAR"] < 0
     assert observed_prices == prices
+    assert observed_signals == _v4_signals()
 
 
-def test_btc_eth_abs2_uses_their_full_five_x_caps(monkeypatch):
-    import scripts.propr_competition as competition
-
-    signals = pd.Series({
-        "BTC": 0.6, "ETH": -0.5, "SOL": 0.1,
-        "XRP": -0.2, "SUI": 0.3, "NEAR": -0.3,
-    })
-    prices = {asset: 100.0 for asset in competition.SYMBOLS}
-    monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
-
-    target, _observed_prices = competition._target(50_000)
-
-    assert target == {"BTC": 118_750.0, "ETH": -118_750.0}
-    assert sum(abs(value) for value in target.values()) == pytest.approx(237_500)
-
-
-def test_mixed_leverage_legs_use_full_margin_and_equal_notionals(monkeypatch):
-    import scripts.propr_competition as competition
-
-    signals = pd.Series({
-        "BTC": 0.6, "ETH": 0.2, "SOL": 0.1,
-        "XRP": -0.2, "SUI": 0.3, "NEAR": -0.5,
-    })
-    prices = {asset: 100.0 for asset in competition.SYMBOLS}
-    monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
-
-    target, _observed_prices = competition._target(50_000)
-
-    expected = 47_500 / ((1 / 5) + (1 / 2))
-    assert target == pytest.approx({"BTC": expected, "NEAR": -expected})
-    assert sum(target.values()) == pytest.approx(0)
-    assert sum(
-        abs(value) / competition.MAX_LEVERAGE_BY_ASSET[asset]
-        for asset, value in target.items()
-    ) == pytest.approx(47_500)
-
-
-def test_all_positive_signals_still_trade_relative_winner_vs_loser(monkeypatch):
+def test_hybrid_both_positive_overlays_top(monkeypatch):
     import scripts.propr_competition as competition
 
     signals = pd.Series({
@@ -558,23 +547,129 @@ def test_all_positive_signals_still_trade_relative_winner_vs_loser(monkeypatch):
     prices = {asset: 100.0 for asset in competition.SYMBOLS}
     monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
 
-    target, _observed_prices = competition._target(50_000)
+    target, _prices, _signals = competition._target(50_000)
 
-    assert set(target) == {"BTC", "NEAR"}
-    assert target["BTC"] == pytest.approx(-target["NEAR"])
-    assert target["BTC"] > 0
+    assert target == pytest.approx({
+        "BTC": 220_535.7142857143,
+        "NEAR": -6_785.714285714285,
+    })
 
 
-def test_target_validation_rejects_unbalanced_leverage_weighting():
+def test_hybrid_both_negative_overlays_bottom(monkeypatch):
+    import scripts.propr_competition as competition
+
+    signals = pd.Series({
+        "BTC": -0.1, "ETH": -0.2, "SOL": -0.3,
+        "XRP": -0.4, "SUI": -0.5, "NEAR": -0.6,
+    })
+    prices = {asset: 100.0 for asset in competition.SYMBOLS}
+    monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
+
+    target, _prices, _signals = competition._target(50_000)
+
+    assert target == pytest.approx({
+        "BTC": 6_785.714285714285,
+        "NEAR": -92_285.71428571429,
+    })
+
+
+def test_hybrid_straddle_uses_leverage_adjusted_overlay_score(monkeypatch):
+    import scripts.propr_competition as competition
+
+    signals = pd.Series({
+        "BTC": 0.1, "ETH": -0.2, "SOL": 0.05,
+        "XRP": 0.0, "SUI": 0.3, "NEAR": -0.1,
+    })
+    prices = {asset: 100.0 for asset in competition.SYMBOLS}
+    monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
+
+    target, _prices, _signals = competition._target(50_000)
+
+    assert target == pytest.approx({
+        "SUI": 6_785.714285714285,
+        "ETH": -220_535.7142857143,
+    })
+
+
+def test_hybrid_overlay_score_tie_deterministically_prefers_top(monkeypatch):
+    import scripts.propr_competition as competition
+
+    signals = pd.Series({
+        "BTC": 0.2, "ETH": 0.1, "SOL": 0.05,
+        "XRP": 0.0, "SUI": -0.1, "NEAR": -0.5,
+    })
+    prices = {asset: 100.0 for asset in competition.SYMBOLS}
+    monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
+
+    target, _prices, _signals = competition._target(50_000)
+
+    assert target == pytest.approx({
+        "BTC": 220_535.7142857143,
+        "NEAR": -6_785.714285714285,
+    })
+
+
+def test_validate_target_rejects_wrong_10_90_profile_at_full_margin():
     import scripts.propr_competition as competition
 
     prices = {asset: 100.0 for asset in competition.SYMBOLS}
+    signals = _v4_signals()
+    wrong_core = 9_500 / ((1 / 5) + (1 / 2))
 
-    with pytest.raises(competition.ProprError, match="non dollar-neutral"):
+    with pytest.raises(competition.ProprError, match="profilo 10/90"):
         competition._validate_target(
-            {"BTC": 118_750.0, "NEAR": -47_500.0},
+            {"BTC": 190_000 + wrong_core, "NEAR": -wrong_core},
             prices,
+            signals,
         )
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        {"BTC": 220_535.71},
+        {"BTC": 220_535.71, "NEAR": 6_785.71},
+        {"BTC": 1_000_000.0, "NEAR": -6_785.71},
+        {"BTC": float("nan"), "NEAR": -6_785.71},
+    ],
+)
+def test_validate_target_rejects_one_sided_nonfinite_or_oversize_books(target):
+    import scripts.propr_competition as competition
+
+    _valid_target, prices, signals = _v4_plan()
+
+    with pytest.raises(competition.ProprError):
+        competition._validate_target(target, prices, signals)
+
+
+@pytest.mark.parametrize(
+    "signals",
+    [
+        {asset: 0.1 for asset in ("BTC", "ETH", "SOL", "XRP", "SUI")},
+        {**_v4_signals(), "DOGE": 0.1},
+        {**_v4_signals(), "BTC": float("nan")},
+        {**_v4_signals(), "BTC": float("inf")},
+        {**_v4_signals(), "BTC": "not-a-number"},
+    ],
+)
+def test_validate_target_rejects_malformed_signal_profile(signals):
+    import scripts.propr_competition as competition
+
+    target, prices, _valid_signals = _v4_plan()
+
+    with pytest.raises(competition.ProprError):
+        competition._validate_target(target, prices, signals)
+
+
+def test_hybrid_rejects_zero_dispersion(monkeypatch):
+    import scripts.propr_competition as competition
+
+    signals = pd.Series({asset: 0.0 for asset in competition.SYMBOLS})
+    prices = {asset: 100.0 for asset in competition.SYMBOLS}
+    monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
+
+    with pytest.raises(competition.ProprError, match="dispersione"):
+        competition._target(50_000)
 
 
 def test_guard_flattens_at_end_even_when_automanage_is_off(tmp_path, monkeypatch):
@@ -628,7 +723,7 @@ def test_guard_flattens_at_end_even_when_automanage_is_off(tmp_path, monkeypatch
     state = _state(
         competition,
         datetime(2026, 7, 29, 11, 10, tzinfo=timezone.utc),
-        strategy=competition.PREVIOUS_STRATEGY_ID,
+        strategy=competition.COMPAT_STRATEGY_ID,
         last_rebalance_ts="2026-07-29T11:10:00+00:00",
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
@@ -698,7 +793,7 @@ def test_rebalance_timeout_after_write_is_guarded_and_flattened(tmp_path, monkey
     monkeypatch.setattr(
         competition,
         "_target",
-        lambda *_args: ({"BTC": 100.0, "ETH": -100.0}, {"BTC": 100.0, "ETH": 100.0}),
+        lambda *_args: _v4_plan(),
     )
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
@@ -776,7 +871,7 @@ def test_journal_failure_after_order_triggers_recovery_flatten(tmp_path, monkeyp
     monkeypatch.setattr(
         competition,
         "_target",
-        lambda *_args: ({"BTC": 100.0, "ETH": -100.0}, {"BTC": 100.0, "ETH": 100.0}),
+        lambda *_args: _v4_plan(),
     )
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
@@ -792,6 +887,7 @@ def test_nonfinite_target_is_blocked_before_any_order(tmp_path, monkeypatch):
     import scripts.propr_competition as competition
 
     events = []
+    target, prices, signals = _v4_plan()
 
     class Client:
         def __init__(self, *, read_only=False):
@@ -832,8 +928,9 @@ def test_nonfinite_target_is_blocked_before_any_order(tmp_path, monkeypatch):
         competition,
         "_target",
         lambda *_args: (
-            {"BTC": float("nan"), "ETH": -100.0},
-            {"BTC": 100.0, "ETH": 100.0},
+            {**target, "BTC": float("nan")},
+            prices,
+            signals,
         ),
     )
     monkeypatch.setattr(
@@ -1035,7 +1132,7 @@ def test_semantically_corrupt_state_routes_to_recovery(
     state = _state(
         competition,
         datetime(2026, 7, 23, 13, 0, tzinfo=timezone.utc),
-        strategy=competition.PREVIOUS_STRATEGY_ID,
+        strategy=competition.COMPAT_STRATEGY_ID,
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
         expected_quantities={"BTC": "1"},
@@ -1192,7 +1289,7 @@ def test_crossed_stop_causes_guard_recovery_flatten(tmp_path, monkeypatch):
     state = _state(
         competition,
         datetime(2026, 7, 23, 13, 0, tzinfo=timezone.utc),
-        strategy=competition.PREVIOUS_STRATEGY_ID,
+        strategy=competition.COMPAT_STRATEGY_ID,
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
         expected_quantities={"BTC": "1"},
@@ -1323,7 +1420,68 @@ def test_legacy_state_migration_preserves_risk_and_forces_rebalance():
     ) is True
 
 
-def test_previous_aggressive_state_migrates_to_neutral_v3():
+def test_v3_state_migrates_to_v4_once_and_preserves_risk_and_stop_receipts():
+    import scripts.propr_competition as competition
+
+    btc = _position("BTC", "long")
+    near = _position("NEAR", "short")
+    btc_stop = _native_stop(competition, btc)
+    near_stop = _native_stop(competition, near)
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 22, 11, tzinfo=timezone.utc),
+        strategy=competition.PREVIOUS_STRATEGY_ID,
+        expected_assets=["BTC", "NEAR"],
+        expected_sides={"BTC": "long", "NEAR": "short"},
+        expected_quantities={"BTC": "1", "NEAR": "1"},
+        last_target={"BTC": 47_500.0, "NEAR": -47_500.0},
+        last_rebalance_ts="2026-07-23T20:05:35+00:00",
+        day_start_equity=49_900,
+        high_water_mark=50_120,
+        last_equity=50_050,
+        stop_receipts={
+            "BTC": competition._stop_receipt(btc, btc_stop),
+            "NEAR": competition._stop_receipt(near, near_stop),
+        },
+    )
+
+    migrated = competition._migrate_state(state)
+
+    assert state["strategy"] == competition.PREVIOUS_STRATEGY_ID
+    assert migrated["strategy"] == competition.STRATEGY_ID
+    assert migrated["day_start_equity"] == 49_900
+    assert migrated["high_water_mark"] == 50_120
+    assert migrated["last_equity"] == 50_050
+    assert migrated["stop_receipts"] == state["stop_receipts"]
+    assert migrated["last_target"] == state["last_target"]
+    assert migrated["migration"] == {
+        "from": competition.PREVIOUS_STRATEGY_ID,
+        "to": competition.STRATEGY_ID,
+        "forced_rebalance": True,
+    }
+    competition._validate_state(migrated, "competition-1")
+
+
+def test_v3_pending_leverage_migration_is_not_reinterpreted_as_v4():
+    import scripts.propr_competition as competition
+
+    state = _state(
+        competition,
+        datetime(2026, 7, 23, 22, 11, tzinfo=timezone.utc),
+        strategy=competition.PREVIOUS_STRATEGY_ID,
+        expected_assets=["BTC", "NEAR"],
+        expected_sides={"BTC": "long", "NEAR": "short"},
+        expected_quantities={"BTC": "1", "NEAR": "1"},
+        last_target={"BTC": 100.0, "NEAR": -100.0},
+        last_rebalance_ts="2026-07-23T20:05:35+00:00",
+        migration={"phase": competition.LEVERAGE_MIGRATION_PHASE},
+    )
+
+    assert competition._migrate_state(state) is state
+    assert state["strategy"] == competition.PREVIOUS_STRATEGY_ID
+
+
+def test_v3_state_must_remain_dollar_neutral_before_migration():
     import scripts.propr_competition as competition
 
     state = _state(
@@ -1337,19 +1495,11 @@ def test_previous_aggressive_state_migrates_to_neutral_v3():
         last_rebalance_ts="2026-07-23T20:05:35+00:00",
     )
 
-    migrated = competition._migrate_state(state)
-
-    assert state["strategy"] == competition.PREVIOUS_STRATEGY_ID
-    assert migrated["strategy"] == competition.STRATEGY_ID
-    assert migrated["migration"] == {
-        "from": competition.PREVIOUS_STRATEGY_ID,
-        "to": competition.STRATEGY_ID,
-        "forced_rebalance": True,
-    }
-    competition._validate_state(migrated, "competition-1")
+    with pytest.raises(competition.ProprError, match="non dollar-neutral"):
+        competition._validate_state(state, "competition-1")
 
 
-def test_completed_v3_state_must_be_dollar_neutral():
+def test_v3_target_is_not_reinterpreted_as_completed_v4_state():
     import scripts.propr_competition as competition
 
     state = _state(
@@ -1357,12 +1507,53 @@ def test_completed_v3_state_must_be_dollar_neutral():
         datetime(2026, 7, 23, 22, 11, tzinfo=timezone.utc),
         expected_assets=["BTC", "NEAR"],
         expected_sides={"BTC": "long", "NEAR": "short"},
-        expected_quantities={"BTC": "1.832", "NEAR": "25311.7"},
-        last_target={"BTC": 118_750.0, "NEAR": -47_500.0},
+        expected_quantities={"BTC": "1", "NEAR": "1"},
+        last_target={"BTC": 47_500.0, "NEAR": -47_500.0},
+        last_signals=_v4_signals(),
         last_rebalance_ts="2026-07-23T20:05:35+00:00",
     )
 
-    with pytest.raises(competition.ProprError, match="non dollar-neutral"):
+    with pytest.raises(competition.ProprError, match="profilo 10/90"):
+        competition._validate_state(state, "competition-1")
+
+
+def test_completed_v4_state_accepts_cent_rounded_target_and_rejects_bad_signals():
+    import scripts.propr_competition as competition
+
+    target, _prices, signals = _v4_plan()
+    state = _state(
+        competition,
+        datetime(2026, 7, 24, 13, 0, tzinfo=timezone.utc),
+        expected_assets=sorted(target),
+        expected_sides={"BTC": "long", "NEAR": "short"},
+        expected_quantities={"BTC": "2205.3571", "NEAR": "67.8571"},
+        last_target={asset: round(value, 2) for asset, value in target.items()},
+        last_signals=signals,
+        last_rebalance_ts="2026-07-24T13:00:00+00:00",
+    )
+
+    competition._validate_state(state, "competition-1")
+
+    state["last_signals"] = {**signals, "BTC": float("nan")}
+    with pytest.raises(competition.ProprError, match="non finito"):
+        competition._validate_state(state, "competition-1")
+
+
+def test_v4_state_cannot_use_malformed_forced_migration_to_bypass_profile():
+    import scripts.propr_competition as competition
+
+    state = _state(
+        competition,
+        datetime(2026, 7, 24, 13, 0, tzinfo=timezone.utc),
+        expected_assets=["BTC"],
+        expected_sides={"BTC": "long"},
+        expected_quantities={"BTC": "1"},
+        last_target={"BTC": 100.0},
+        last_rebalance_ts="2026-07-24T13:00:00+00:00",
+        migration={"forced_rebalance": True},
+    )
+
+    with pytest.raises(competition.ProprError, match="migrazione forzata"):
         competition._validate_state(state, "competition-1")
 
 
@@ -1594,12 +1785,13 @@ def test_stop_create_failure_keeps_legacy_stop():
         competition._create_missing_stops(Client(), [position])
 
 
-def test_live_v3_without_receipts_reconstructs_them_from_healthy_book():
+def test_live_v4_directional_book_reconstructs_missing_stop_receipts():
     import scripts.propr_competition as competition
 
-    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    state, btc, eth, btc_stop, eth_stop = _v4_state_with_stops(competition)
     state.pop("stop_receipts")
     competition._validate_state(state, "competition-1")
+    assert sum(state["last_target"].values()) == pytest.approx(213_750)
 
     class Client:
         def get_active_orders(self):
@@ -1614,7 +1806,7 @@ def test_live_v3_without_receipts_reconstructs_them_from_healthy_book():
 def test_healthy_book_does_not_query_filled_order_history():
     import scripts.propr_competition as competition
 
-    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    state, btc, eth, btc_stop, eth_stop = _v4_state_with_stops(competition)
 
     class Client:
         account_id = "competition-1"
@@ -1630,10 +1822,91 @@ def test_healthy_book_does_not_query_filled_order_history():
     ) is False
 
 
+def test_v3_native_stop_fill_is_proven_by_preflight_before_migration(
+    tmp_path,
+    monkeypatch,
+):
+    import scripts.propr_competition as competition
+
+    state, btc, eth, btc_stop, eth_stop = _v4_state_with_stops(competition)
+    state.update({
+        "strategy": competition.PREVIOUS_STRATEGY_ID,
+        "last_target": {"BTC": 11_875.0, "ETH": -11_875.0},
+        "last_signals": {},
+    })
+    filled = _native_stop(
+        competition,
+        btc,
+        order_id=btc_stop["orderId"],
+        status="filled",
+    )
+    trade = _stop_trade(btc, filled)
+
+    class Client:
+        account_id = "competition-1"
+
+        def __init__(self, *, read_only=False):
+            assert read_only is True
+            self.active_attempt = _attempt()
+
+        def setup(self, **_kwargs):
+            return None
+
+        def get_positions(
+            self,
+            status="open",
+            *,
+            position_id=None,
+            include_zero=False,
+        ):
+            if position_id:
+                assert status is None
+                assert include_zero is True
+                assert position_id == btc["positionId"]
+                return [_stopped_position_record(btc)]
+            assert status == "open"
+            assert include_zero is False
+            return [eth]
+
+        def get_account(self):
+            return _account()
+
+        def get_active_orders(self):
+            return [eth_stop]
+
+        def get_orders(self, status, *, order_id):
+            assert (status, order_id) == ("filled", btc_stop["orderId"])
+            return [filled]
+
+        def get_trades(self, *, order_id):
+            assert order_id == btc_stop["orderId"]
+            return [trade]
+
+    client = Client(read_only=True)
+    assert competition._native_stop_filled(
+        client,
+        state,
+        [eth],
+        [eth_stop],
+    ) is True
+
+    monkeypatch.setenv("PROPR_COMPETITION_ACCOUNT_ID", "competition-1")
+    monkeypatch.setattr(competition, "ProprClient", Client)
+    monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
+    competition.STATE_PATH.write_text(json.dumps(state))
+
+    result = competition.check()
+
+    assert result["mode"] == "check"
+    assert result["positions"] == 1
+    assert result["writes"] == 0
+
+
 def test_healthy_book_rejects_reopened_position_before_rewriting_receipt():
     import scripts.propr_competition as competition
 
-    state, btc, eth, _btc_stop, _eth_stop = _neutral_state_with_stops(competition)
+    state, btc, eth, _btc_stop, _eth_stop = _v4_state_with_stops(competition)
     reopened_btc = {**btc, "positionId": "pos-BTC-reopened"}
 
     class Client:
@@ -1652,7 +1925,7 @@ def test_healthy_book_rejects_reopened_position_before_rewriting_receipt():
 def test_unproven_stop_receipt_keeps_book_drift_permanent(receipt_case):
     import scripts.propr_competition as competition
 
-    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    state, btc, eth, btc_stop, eth_stop = _v4_state_with_stops(competition)
     filled = _native_stop(
         competition,
         btc,
@@ -1710,7 +1983,7 @@ def test_unproven_stop_receipt_keeps_book_drift_permanent(receipt_case):
 def test_native_stop_fill_proof_is_fail_closed(target, update):
     import scripts.propr_competition as competition
 
-    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    state, btc, eth, btc_stop, eth_stop = _v4_state_with_stops(competition)
     filled = _native_stop(
         competition,
         btc,
@@ -1743,7 +2016,7 @@ def test_native_stop_fill_proof_is_fail_closed(target, update):
 def test_native_stop_requires_exact_zero_position_record(position_case):
     import scripts.propr_competition as competition
 
-    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    state, btc, eth, btc_stop, eth_stop = _v4_state_with_stops(competition)
     filled = _native_stop(
         competition,
         btc,
@@ -1791,13 +2064,21 @@ def test_native_stop_requires_exact_zero_position_record(position_case):
     ) == ("native_stop_or_external_drift", True)
 
 
+@pytest.mark.parametrize("previous_strategy", [False, True])
 def test_verified_native_stop_flattens_survivor_then_daily_rollover_recovers(
     tmp_path,
     monkeypatch,
+    previous_strategy,
 ):
     import scripts.propr_competition as competition
 
-    state, btc, eth, btc_stop, eth_stop = _neutral_state_with_stops(competition)
+    state, btc, eth, btc_stop, eth_stop = _v4_state_with_stops(competition)
+    if previous_strategy:
+        state.update({
+            "strategy": competition.PREVIOUS_STRATEGY_ID,
+            "last_target": {"BTC": 11_875.0, "ETH": -11_875.0},
+            "last_signals": {},
+        })
     filled = _native_stop(
         competition,
         btc,
@@ -2023,7 +2304,10 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
     class Client:
         def __init__(self):
             self.active_attempt = _attempt()
-            self.positions = [_position()]
+            self.positions = [
+                _position("BTC", "long"),
+                _position("NEAR", "short"),
+            ]
             self.orders = []
 
         def setup(self, **_kwargs):
@@ -2064,23 +2348,34 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
         active_client.positions = []
         active_client.orders = []
 
-    def fake_rebalance(active_client, _target, _prices, positions):
+    def fake_rebalance(active_client, target, _prices, positions):
         assert positions == []
+        assert target == pytest.approx(_v4_plan()[0], abs=0.01)
         events.append(("rebalance",))
         active_client.positions = [
-            _position("NEAR", "short", quantity="475", notional="47500"),
-            _position("XRP", "long", quantity="475", notional="47500"),
+            _position(
+                "BTC",
+                "long",
+                quantity="2205.357142857143",
+                notional="220535.7142857143",
+            ),
+            _position(
+                "NEAR",
+                "short",
+                quantity="67.85714285714285",
+                notional="6785.714285714285",
+            ),
         ]
         return [
+            {
+                "asset": "BTC",
+                "action": "adjust",
+                "resp": [{"orderId": "btc", "status": "filled"}],
+            },
             {
                 "asset": "NEAR",
                 "action": "adjust",
                 "resp": [{"orderId": "near", "status": "filled"}],
-            },
-            {
-                "asset": "XRP",
-                "action": "adjust",
-                "resp": [{"orderId": "xrp", "status": "filled"}],
             },
         ]
 
@@ -2115,10 +2410,7 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
     monkeypatch.setattr(
         competition,
         "_target",
-        lambda *_args: (
-            {"NEAR": -47_500.0, "XRP": 47_500.0},
-            {"NEAR": 100.0, "XRP": 100.0},
-        ),
+        lambda *_args: _v4_plan(),
     )
     monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
@@ -2127,10 +2419,10 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
         competition,
         datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
         strategy=competition.PREVIOUS_STRATEGY_ID,
-        expected_assets=["BTC"],
-        expected_sides={"BTC": "long"},
-        expected_quantities={"BTC": "1"},
-        last_target={"BTC": 100.0},
+        expected_assets=["BTC", "NEAR"],
+        expected_sides={"BTC": "long", "NEAR": "short"},
+        expected_quantities={"BTC": "1", "NEAR": "1"},
+        last_target={"BTC": 100.0, "NEAR": -100.0},
         last_rebalance_ts="2026-07-23T01:00:00+00:00",
     )
     competition.STATE_PATH.write_text(json.dumps(state))
@@ -2138,16 +2430,17 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
     prepared = competition.manage()
 
     assert prepared["action"] == competition.LEVERAGE_MIGRATION_PHASE
-    assert prepared["positions"] == 1
+    assert prepared["positions"] == 2
     prepared_state = json.loads(competition.STATE_PATH.read_text())
-    assert prepared_state["expected_assets"] == ["BTC"]
+    assert prepared_state["expected_assets"] == ["BTC", "NEAR"]
     assert prepared_state["migration"]["phase"] == competition.LEVERAGE_MIGRATION_PHASE
     assert prepared_state["migration"]["pending_target"] == {
-        "NEAR": -47_500.0,
-        "XRP": 47_500.0,
+        "BTC": 220_535.71,
+        "NEAR": -6_785.71,
     }
+    assert prepared_state["migration"]["pending_signals"] == _v4_signals()
     assert events == [
-        ("guard", ["BTC"]),
+        ("guard", ["BTC", "NEAR"]),
         ("inspect_leverage",),
     ]
 
@@ -2156,16 +2449,17 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
     assert migrated["action"] == "rebalance"
     assert migrated["positions"] == 2
     assert events == [
-        ("guard", ["BTC"]),
+        ("guard", ["BTC", "NEAR"]),
         ("inspect_leverage",),
-        ("guard", ["BTC"]),
-        ("flatten", "leverage_migration", ["BTC"]),
+        ("guard", ["BTC", "NEAR"]),
+        ("flatten", "leverage_migration", ["BTC", "NEAR"]),
         ("set_leverage", tuple(competition.SYMBOLS)),
         ("rebalance",),
-        ("guard", ["NEAR", "XRP"]),
+        ("guard", ["BTC", "NEAR"]),
     ]
     saved = json.loads(competition.STATE_PATH.read_text())
-    assert saved["expected_assets"] == ["NEAR", "XRP"]
+    assert saved["expected_assets"] == ["BTC", "NEAR"]
+    assert saved["last_signals"] == _v4_signals()
     assert saved["permanently_halted"] is False
     assert saved["migration"]["phase"] == "complete"
     assert saved["migration"]["forced_rebalance"] is False
@@ -2173,7 +2467,22 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
     third = competition.manage()
 
     assert third["action"] == "guard_only"
-    assert events[-1] == ("guard", ["NEAR", "XRP"])
+    assert events[-1] == ("guard", ["BTC", "NEAR"])
+
+
+def test_pending_migration_requires_persisted_signals():
+    import scripts.propr_competition as competition
+
+    target, prices, _signals = _v4_plan()
+    state = {
+        "migration": {
+            "pending_target": target,
+            "pending_prices": prices,
+        },
+    }
+
+    with pytest.raises(competition.ProprError, match="target leverage migration assente"):
+        competition._pending_migration_target(state)
 
 
 def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
@@ -2209,22 +2518,33 @@ def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
         if leverage_attempts == 1:
             raise competition.ProprError("update failed after partial PUT")
 
-    def fake_rebalance(active_client, _target, _prices, positions):
+    def fake_rebalance(active_client, target, _prices, positions):
         assert positions == []
+        assert target == pytest.approx(_v4_plan()[0])
         active_client.positions = [
-            _position("NEAR", "short", quantity="475", notional="47500"),
-            _position("XRP", "long", quantity="475", notional="47500"),
+            _position(
+                "BTC",
+                "long",
+                quantity="2205.3571",
+                notional="220535.71",
+            ),
+            _position(
+                "NEAR",
+                "short",
+                quantity="67.8571",
+                notional="6785.71",
+            ),
         ]
         return [
+            {
+                "asset": "BTC",
+                "action": "adjust",
+                "resp": [{"orderId": "btc", "status": "filled"}],
+            },
             {
                 "asset": "NEAR",
                 "action": "adjust",
                 "resp": [{"orderId": "near", "status": "filled"}],
-            },
-            {
-                "asset": "XRP",
-                "action": "adjust",
-                "resp": [{"orderId": "xrp", "status": "filled"}],
             },
         ]
 
@@ -2261,15 +2581,18 @@ def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
         competition,
         datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
         strategy=competition.STRATEGY_ID,
-        expected_assets=["BTC"],
-        expected_sides={"BTC": "long"},
-        expected_quantities={"BTC": "1"},
-        last_target={"BTC": 100.0},
+        expected_assets=[],
+        expected_sides={},
+        expected_quantities={},
+        last_target={},
         last_rebalance_ts="2026-07-23T01:00:00+00:00",
         migration={
+            "from": competition.PREVIOUS_STRATEGY_ID,
+            "to": competition.STRATEGY_ID,
             "phase": competition.LEVERAGE_MIGRATION_PHASE,
-            "pending_target": {"NEAR": -47_500.0, "XRP": 47_500.0},
-            "pending_prices": {"NEAR": 100.0, "XRP": 100.0},
+            "pending_target": _v4_plan()[0],
+            "pending_prices": _v4_plan()[1],
+            "pending_signals": _v4_plan()[2],
             "forced_rebalance": True,
         },
     )
@@ -2292,7 +2615,7 @@ def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
     assert resumed["positions"] == 2
     assert leverage_attempts == 2
     completed = json.loads(competition.STATE_PATH.read_text())
-    assert completed["expected_assets"] == ["NEAR", "XRP"]
+    assert completed["expected_assets"] == ["BTC", "NEAR"]
     assert completed["migration"]["phase"] == "complete"
 
     assert competition.manage()["action"] == "guard_only"
@@ -2330,7 +2653,7 @@ def test_check_accepts_pending_migration_after_crash_left_account_flat(
     state = _state(
         competition,
         datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
-        strategy=competition.PREVIOUS_STRATEGY_ID,
+        strategy=competition.COMPAT_STRATEGY_ID,
         expected_assets=["BTC"],
         expected_sides={"BTC": "long"},
         expected_quantities={"BTC": "1"},
