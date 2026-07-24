@@ -5,26 +5,26 @@
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.15,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 49759.54,
+ "equity": 49746.73,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 4.75,
  "margin_utilization": 0.95,
- "mode": "check",
- "note": "preflight API read-only; status locale aggiornato",
+ "mode": "manage",
+ "note": "guard_only",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
    "asset": "BTC",
-   "notional": 220160.71,
+   "notional": 220147.16,
    "side": "long",
-   "unrealized_pnl": -22.02
+   "unrealized_pnl": -35.57
   },
   {
    "asset": "NEAR",
-   "notional": 7034.58,
+   "notional": 7033.83,
    "side": "short",
-   "unrealized_pnl": -16.82
+   "unrealized_pnl": -16.08
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -50,8 +50,8 @@
   "halt_reason": "",
   "halted_today": false,
   "high_water_mark": 50157.444185,
-  "last_equity": 49789.205667,
-  "last_manage_ts": "2026-07-24T10:13:08.010877+00:00",
+  "last_equity": 49746.732462,
+  "last_manage_ts": "2026-07-24T10:15:40.594829+00:00",
   "last_rebalance_ts": "2026-07-24T10:13:08.010877+00:00",
   "last_signals": {
    "BTC": 0.03294558265754688,
@@ -95,5 +95,5 @@
  },
  "strategy": "hybrid-tsmom90-xsmom10-tournament-20260724-v4",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-24T10:14:36.977023+00:00"
+ "updated_at": "2026-07-24T10:15:43.789422+00:00"
 }
