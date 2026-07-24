@@ -1,30 +1,30 @@
 {
  "account_id": "SzSKErmBBPN6",
  "attempt_status": "active",
- "balance": 49765.89,
+ "balance": 49763.15,
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.15,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 47190.69,
+ "equity": 47160.44,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 4.75,
  "margin_utilization": 0.95,
- "mode": "manage",
- "note": "guard_only",
+ "mode": "error",
+ "note": "ProprError: rebalance_recovery: ProprError: partial_rebalance: NEAR:error,NEAR:notional(-6745.74!=-92285.71); recovery verified flat",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
    "asset": "BTC",
-   "notional": 217338.51,
+   "notional": 217308.01,
    "side": "long",
-   "unrealized_pnl": -2844.23
+   "unrealized_pnl": -2874.72
   },
   {
    "asset": "NEAR",
-   "notional": 6748.73,
+   "notional": 6745.74,
    "side": "short",
-   "unrealized_pnl": 269.03
+   "unrealized_pnl": 272.01
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -34,66 +34,30 @@
   "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
   "day_date": "2026-07-24",
   "day_start_equity": 50094.812385,
-  "expected_assets": [
-   "BTC",
-   "NEAR"
-  ],
-  "expected_quantities": {
-   "BTC": "3.388",
-   "NEAR": "3729.3"
-  },
-  "expected_sides": {
-   "BTC": "long",
-   "NEAR": "short"
-  },
-  "halt_kind": "",
-  "halt_reason": "",
-  "halted_today": false,
+  "expected_assets": [],
+  "expected_quantities": {},
+  "expected_sides": {},
+  "halt_kind": "operational",
+  "halt_reason": "rebalance_recovery",
+  "halted_today": true,
   "high_water_mark": 50157.444185,
-  "last_equity": 47190.688441,
-  "last_manage_ts": "2026-07-24T22:11:11.250266+00:00",
+  "last_equity": 47034.282644,
+  "last_manage_ts": "2026-07-24T23:11:11.096581+00:00",
   "last_rebalance_ts": "2026-07-24T10:13:08.010877+00:00",
-  "last_signals": {
-   "BTC": 0.03294558265754688,
-   "ETH": 0.028558971005014255,
-   "NEAR": -0.00556109333193433,
-   "SOL": 0.012676037465328527,
-   "SUI": 0.0017832591443078805,
-   "XRP": 0.021388402323223143
-  },
-  "last_target": {
-   "BTC": 220535.71,
-   "NEAR": -6785.71
-  },
+  "last_signals": {},
+  "last_target": {},
   "migration": {
    "completed_at": "2026-07-24T10:13:08.010877+00:00",
    "forced_rebalance": false,
    "from": "xsmom-neutral2-tournament-20260724-v3",
    "to": "hybrid-tsmom90-xsmom10-tournament-20260724-v4"
   },
-  "permanently_halted": false,
-  "stop_receipts": {
-   "BTC": {
-    "asset": "BTC",
-    "intentId": "01KY9SV0A31XG1HQ5K2Y02ZFS5",
-    "orderId": "urn:prp-order:AoATjdkf5pLp",
-    "positionId": "urn:prp-position:7H6zEuLDcrFq",
-    "quantity": "3.388",
-    "trigger": "63039"
-   },
-   "NEAR": {
-    "asset": "NEAR",
-    "intentId": "01KY89B4113X0WCPR13TK5J9ND",
-    "orderId": "urn:prp-order:sbZHfinCWogL",
-    "positionId": "urn:prp-position:69MyzwiTqzfh",
-    "quantity": "3729.3",
-    "trigger": "1.9382"
-   }
-  },
+  "permanently_halted": true,
+  "stop_receipts": {},
   "strategy": "hybrid-tsmom90-xsmom10-tournament-20260724-v4",
   "version": "propr-competition-state-v2"
  },
  "strategy": "hybrid-tsmom90-xsmom10-tournament-20260724-v4",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-24T22:11:13.635399+00:00"
+ "updated_at": "2026-07-24T23:11:29.713371+00:00"
 }
