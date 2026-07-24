@@ -31,6 +31,7 @@ GUARD_MAX_CREATES = 8
 
 TRUSTED_PATHS = (
     ".github/workflows/paper-run.yml",
+    "backtest/__init__.py",
     "backtest/engine.py",
     "backtest/evidence.py",
     "backtest/lifecycle.py",
@@ -38,8 +39,10 @@ TRUSTED_PATHS = (
     "backtest/risk.py",
     "backtest/signals.py",
     "backtest/strategy.py",
+    "pipeline/__init__.py",
     "pipeline/live.py",
     "pyproject.toml",
+    "scripts/__init__.py",
     "scripts/portfolio_paper.py",
     "scripts/paper_trade.py",
     "scripts/propr_client.py",

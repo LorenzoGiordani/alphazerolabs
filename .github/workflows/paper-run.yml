@@ -90,42 +90,9 @@ jobs:
         continue-on-error: true
         run: uv run scripts/paper_exits.py
 
-      - name: propr — rimuovi esattamente tre stop duplicati Free Trial
-        id: propr_dedupe
-        if: always() && inputs.propr_maintenance == 'DEDUPE_FREE_TRIAL_3' && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED != 'true' && env.PROPR_AUTOMANAGE_ENABLED != 'true'
-        env:
-          PROPR_DEDUPE_ENABLED: "true"
-        run: uv run scripts/propr_guard.py --dedupe --expected-duplicates 3
-
-      - name: propr — pre-check protezioni native
-        id: propr_guard_pre
-        if: always() && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED == 'true'
-        continue-on-error: true
-        run: uv run scripts/propr_guard.py --execute
-
-      - name: propr — gestione sistematica Free Trial paper
-        id: propr_manage
-        if: always() && env.PROPR_API_KEY != '' && env.PROPR_AUTOMANAGE_ENABLED == 'true' && env.PROPR_GUARD_ENABLED == 'true' && env.PROPR_GUARD_CANARY_ASSET == '*' && steps.propr_guard_pre.outcome == 'success'
-        continue-on-error: true
-        run: uv run scripts/propr_paper.py --manage-paper
-
-      - name: propr — post-check protezioni native
-        id: propr_guard
-        if: always() && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED == 'true'
-        continue-on-error: true
-        run: uv run scripts/propr_guard.py --execute
-
-      - name: propr — snapshot live account paper (sola lettura)
-        id: propr
-        if: always() && env.PROPR_API_KEY != ''
-        continue-on-error: true
-        run: uv run scripts/propr_paper.py --snapshot-only
-
-      - name: propr — gate critico lane Free Trial
-        id: propr_gate
+      - name: propr — configurazione canonica
+        id: propr_config
         if: always()
-        env:
-          PROPR_MAINTENANCE: ${{ inputs.propr_maintenance }}
         run: |
           case "$PROPR_GUARD_ENABLED" in
             ""|true|false) ;;
@@ -135,6 +102,45 @@ jobs:
             ""|true|false) ;;
             *) exit 1 ;;
           esac
+
+      - name: propr — rimuovi esattamente tre stop duplicati Free Trial
+        id: propr_dedupe
+        if: always() && steps.propr_config.outcome == 'success' && inputs.propr_maintenance == 'DEDUPE_FREE_TRIAL_3' && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED != 'true' && env.PROPR_AUTOMANAGE_ENABLED != 'true'
+        env:
+          PROPR_DEDUPE_ENABLED: "true"
+        run: uv run scripts/propr_guard.py --dedupe --expected-duplicates 3
+
+      - name: propr — pre-check protezioni native
+        id: propr_guard_pre
+        if: always() && steps.propr_config.outcome == 'success' && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED == 'true'
+        continue-on-error: true
+        run: uv run scripts/propr_guard.py --execute
+
+      - name: propr — gestione sistematica Free Trial paper
+        id: propr_manage
+        if: always() && steps.propr_config.outcome == 'success' && env.PROPR_API_KEY != '' && env.PROPR_AUTOMANAGE_ENABLED == 'true' && env.PROPR_GUARD_ENABLED == 'true' && env.PROPR_GUARD_CANARY_ASSET == '*' && steps.propr_guard_pre.outcome == 'success'
+        continue-on-error: true
+        run: uv run scripts/propr_paper.py --manage-paper
+
+      - name: propr — post-check protezioni native
+        id: propr_guard
+        if: always() && steps.propr_config.outcome == 'success' && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED == 'true'
+        continue-on-error: true
+        run: uv run scripts/propr_guard.py --execute
+
+      - name: propr — snapshot live account paper (sola lettura)
+        id: propr
+        if: always() && steps.propr_config.outcome == 'success' && env.PROPR_API_KEY != ''
+        continue-on-error: true
+        run: uv run scripts/propr_paper.py --snapshot-only
+
+      - name: propr — gate critico lane Free Trial
+        id: propr_gate
+        if: always()
+        env:
+          PROPR_MAINTENANCE: ${{ inputs.propr_maintenance }}
+        run: |
+          [ "${{ steps.propr_config.outcome }}" = "success" ]
           if [ -z "$PROPR_API_KEY" ]; then
             [ "$PROPR_GUARD_ENABLED" != "true" ]
             [ "$PROPR_AUTOMANAGE_ENABLED" != "true" ]

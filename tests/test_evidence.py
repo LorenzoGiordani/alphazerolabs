@@ -217,10 +217,13 @@ def test_valid_propr_paper_execution_pair_is_verified(tmp_path):
 
 def test_propr_trusted_paths_close_local_imports_and_detect_tamper(tmp_path):
     required = {
+        "backtest/__init__.py",
         "backtest/engine.py",
         "backtest/risk.py",
         "backtest/signals.py",
         "backtest/lifecycle.py",
+        "pipeline/__init__.py",
+        "scripts/__init__.py",
         "scripts/paper_trade.py",
         "scripts/runtime_health.py",
     }

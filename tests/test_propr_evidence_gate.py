@@ -779,11 +779,22 @@ def test_paper_run_requires_both_propr_kill_switches_for_management():
     workflow = (Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml").read_text()
     assert "DEDUPE_FREE_TRIAL_3" in workflow
     assert "scripts/propr_guard.py --dedupe --expected-duplicates 3" in workflow
-    assert ("if: always() && env.PROPR_API_KEY != '' && "
+    assert workflow.index("id: propr_config") < workflow.index("id: propr_dedupe")
+    assert ("if: always() && steps.propr_config.outcome == 'success' && "
+            "inputs.propr_maintenance == 'DEDUPE_FREE_TRIAL_3' && "
+            "env.PROPR_API_KEY != '' && "
+            "env.PROPR_GUARD_ENABLED != 'true' && "
+            "env.PROPR_AUTOMANAGE_ENABLED != 'true'") in workflow
+    assert ("if: always() && steps.propr_config.outcome == 'success' && "
+            "env.PROPR_API_KEY != '' && "
             "env.PROPR_AUTOMANAGE_ENABLED == 'true' && "
             "env.PROPR_GUARD_ENABLED == 'true' && "
             "env.PROPR_GUARD_CANARY_ASSET == '*' && "
             "steps.propr_guard_pre.outcome == 'success'") in workflow
+    assert workflow.count(
+        "if: always() && steps.propr_config.outcome == 'success'"
+    ) == 5
+    assert '[ "${{ steps.propr_config.outcome }}" = "success" ]' in workflow
     assert workflow.index("id: propr_guard_pre") < workflow.index("id: propr_manage")
     assert workflow.index("id: propr_manage") < workflow.index("id: propr_guard\n")
     assert workflow.index("id: propr_guard\n") < workflow.index("id: propr_gate")
@@ -797,13 +808,13 @@ def test_paper_run_requires_both_propr_kill_switches_for_management():
     "PROPR_GUARD_ENABLED",
     "PROPR_AUTOMANAGE_ENABLED",
 ])
-@pytest.mark.parametrize("value", ["TRUE", "true "])
+@pytest.mark.parametrize("value", ["TRUE", "true ", "yes", "false "])
 def test_paper_run_rejects_noncanonical_boolean_env(variable, value):
     workflow = (
         Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml"
     ).read_text()
     start = workflow.index('          case "$PROPR_GUARD_ENABLED"')
-    end = workflow.index('          if [ -z "$PROPR_API_KEY" ]', start)
+    end = workflow.index("\n\n      - name: propr — rimuovi", start)
     validator = textwrap.dedent(workflow[start:end])
     env = {
         **os.environ,
@@ -829,7 +840,7 @@ def test_paper_run_accepts_canonical_boolean_env(value):
         Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml"
     ).read_text()
     start = workflow.index('          case "$PROPR_GUARD_ENABLED"')
-    end = workflow.index('          if [ -z "$PROPR_API_KEY" ]', start)
+    end = workflow.index("\n\n      - name: propr — rimuovi", start)
     validator = textwrap.dedent(workflow[start:end])
 
     result = subprocess.run(
