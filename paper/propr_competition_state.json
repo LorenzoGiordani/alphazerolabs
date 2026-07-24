@@ -20,8 +20,8 @@
  "halt_reason": "",
  "halted_today": false,
  "high_water_mark": 50157.444185,
- "last_equity": 49833.50372,
- "last_manage_ts": "2026-07-24T02:11:16.870895+00:00",
+ "last_equity": 50103.822314,
+ "last_manage_ts": "2026-07-24T03:11:10.460129+00:00",
  "last_rebalance_ts": "2026-07-23T23:05:11.972192+00:00",
  "last_target": {
   "NEAR": -47500.0,
