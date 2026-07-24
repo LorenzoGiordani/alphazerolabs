@@ -7,9 +7,9 @@
  "official_candidate": false,
  "realtime_protection": {
   "mode": "native-stop-market",
-  "open_positions": 5,
-  "active_protective_orders": 5,
-  "protected_positions": 5,
+  "open_positions": 8,
+  "active_protective_orders": 8,
+  "protected_positions": 8,
   "duplicate_protective_orders": 0,
   "unmatched_protective_orders": 0,
   "unexpected_active_orders": 0,
@@ -23,50 +23,68 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5040.99,
- "balance": 4987.51,
+ "equity": 5039.62,
+ "balance": 4989.18,
  "high_water_mark": 5060.986444,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.82,
+ "profit_target_progress_pct": 0.79,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.82,
+ "drawdown_room_pct": 6.79,
  "passed": false,
  "breached": false,
  "positions": [
   {
+   "asset": "XRP",
+   "side": "long",
+   "notional": 107.2,
+   "unrealized_pnl": 0.0
+  },
+  {
+   "asset": "SUI",
+   "side": "long",
+   "notional": 35.54,
+   "unrealized_pnl": 0.0
+  },
+  {
+   "asset": "CRV",
+   "side": "long",
+   "notional": 35.82,
+   "unrealized_pnl": 0.0
+  },
+  {
    "asset": "WLD",
    "side": "short",
-   "notional": 160.16,
-   "unrealized_pnl": 20.33
+   "notional": 197.25,
+   "unrealized_pnl": 18.83
   },
   {
    "asset": "SOL",
    "side": "short",
-   "notional": 138.62,
-   "unrealized_pnl": 8.18
+   "notional": 107.12,
+   "unrealized_pnl": 6.11
   },
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 64.13,
-   "unrealized_pnl": -2.2
+   "notional": 130.47,
+   "unrealized_pnl": -2.19
   },
   {
    "asset": "NEAR",
    "side": "short",
-   "notional": 242.81,
-   "unrealized_pnl": 14.23
+   "notional": 264.45,
+   "unrealized_pnl": 14.59
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 247.11,
-   "unrealized_pnl": 12.94
+   "notional": 247.28,
+   "unrealized_pnl": 13.11
   }
  ],
- "last_rebalance_ts": "2026-07-23T22:14:32.333040+00:00",
+ "last_rebalance_ts": "2026-07-24T23:14:34.248422+00:00",
  "equity_history": [
   {
    "ts": "2026-07-09T08:40:18.846362+00:00",
@@ -1567,6 +1585,14 @@
   {
    "ts": "2026-07-24T22:14:34.747633+00:00",
    "equity": 5040.99
+  },
+  {
+   "ts": "2026-07-24T23:14:35.017852+00:00",
+   "equity": 5039.62
+  },
+  {
+   "ts": "2026-07-24T23:14:40.648292+00:00",
+   "equity": 5039.62
   }
  ],
  "strategy_detail": {
@@ -1636,5 +1662,5 @@
   "maker_run_id": "maker-propr-gate-9ff17bbd69b4",
   "checker_run_id": "checker-propr-gate-20260724-final"
  },
- "updated_at": "2026-07-24T22:14:34.747879+00:00"
+ "updated_at": "2026-07-24T23:14:40.648573+00:00"
 }
