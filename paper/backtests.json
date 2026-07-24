@@ -3,7 +3,7 @@
  "months_requested": 12,
  "impact_k": 0.5,
  "funding_mode": "storico (dove disponibile)",
- "generated_at": "2026-07-24T08:14 UTC",
+ "generated_at": "2026-07-24T09:14 UTC",
  "strategies": [
   {
    "id": "highvol-port-v1",
@@ -15,9 +15,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.06,
-    "mean_return": 0.173,
-    "worst_drawdown": -0.1594,
+    "mean_sharpe": 1.03,
+    "mean_return": 0.1671,
+    "worst_drawdown": -0.1659,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -33,9 +33,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": -0.32,
-    "mean_return": -0.0617,
-    "worst_drawdown": -0.1927,
+    "mean_sharpe": -0.42,
+    "mean_return": -0.0757,
+    "worst_drawdown": -0.2446,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -51,9 +51,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 2.14,
-    "mean_return": 0.7692,
-    "worst_drawdown": -0.178,
+    "mean_sharpe": 2.48,
+    "mean_return": 0.9447,
+    "worst_drawdown": -0.1742,
     "positive_symbols": "market-neutral",
     "consistency": "5/6 fold positivi"
    },
@@ -69,9 +69,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.66,
-    "mean_return": 0.2772,
-    "worst_drawdown": -0.1609,
+    "mean_sharpe": 1.35,
+    "mean_return": 0.215,
+    "worst_drawdown": -0.1779,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -87,11 +87,11 @@
    "basket_size": 9,
    "vol_target": "on (m medio 0.81)",
    "aggregate": {
-    "mean_sharpe": 1.64,
-    "mean_return": 0.1993,
-    "worst_drawdown": -0.1316,
+    "mean_sharpe": 1.53,
+    "mean_return": 0.1832,
+    "worst_drawdown": -0.1443,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -105,11 +105,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 2.05,
-    "mean_return": 0.358,
-    "worst_drawdown": -0.1288,
+    "mean_sharpe": 1.73,
+    "mean_return": 0.2891,
+    "worst_drawdown": -0.1193,
     "positive_symbols": "market-neutral",
-    "consistency": "4/6 fold positivi"
+    "consistency": "3/6 fold positivi"
    },
    "per_symbol": []
   },
@@ -123,9 +123,9 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.57,
-    "mean_return": 0.2594,
-    "worst_drawdown": -0.1726,
+    "mean_sharpe": 1.45,
+    "mean_return": 0.2338,
+    "worst_drawdown": -0.1802,
     "positive_symbols": "market-neutral",
     "consistency": "3/6 fold positivi"
    },
@@ -141,11 +141,11 @@
    "basket_size": 9,
    "vol_target": "off",
    "aggregate": {
-    "mean_sharpe": 1.87,
-    "mean_return": 0.3229,
-    "worst_drawdown": -0.116,
+    "mean_sharpe": 2.11,
+    "mean_return": 0.3673,
+    "worst_drawdown": -0.1105,
     "positive_symbols": "market-neutral",
-    "consistency": "5/6 fold positivi"
+    "consistency": "6/6 fold positivi"
    },
    "per_symbol": []
   }
