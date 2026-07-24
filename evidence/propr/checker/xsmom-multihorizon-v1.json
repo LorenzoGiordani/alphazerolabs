@@ -1,0 +1,9 @@
+{
+  "checker_run_id": "checker-propr-gate-20260724-final",
+  "maker_run_id": "maker-propr-gate-9ff17bbd69b4",
+  "manifest_sha256": "2c3aa0e88dabdf64b3c18ac99161191716ceb36656ba2db88880f1aea2d05f5b",
+  "schema_version": 1,
+  "scope": "propr-free-trial-paper",
+  "strategy_id": "xsmom-multihorizon-v1",
+  "verdict": "APPROVE_PROPR_PAPER_EXECUTION"
+}
