@@ -1,11 +1,11 @@
 {
  "account_id": "SzSKErmBBPN6",
  "attempt_status": "active",
- "balance": 49771.36,
+ "balance": 49768.62,
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.15,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 47263.06,
+ "equity": 47136.08,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 4.75,
  "margin_utilization": 0.95,
@@ -16,15 +16,15 @@
  "positions": [
   {
    "asset": "BTC",
-   "notional": 217413.04,
+   "notional": 217287.69,
    "side": "long",
-   "unrealized_pnl": -2769.69
+   "unrealized_pnl": -2895.05
   },
   {
    "asset": "NEAR",
-   "notional": 6756.37,
+   "notional": 6755.25,
    "side": "short",
-   "unrealized_pnl": 261.38
+   "unrealized_pnl": 262.5
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -50,8 +50,8 @@
   "halt_reason": "",
   "halted_today": false,
   "high_water_mark": 50157.444185,
-  "last_equity": 47263.055614,
-  "last_manage_ts": "2026-07-24T20:11:17.517148+00:00",
+  "last_equity": 47136.080021,
+  "last_manage_ts": "2026-07-24T21:11:16.899259+00:00",
   "last_rebalance_ts": "2026-07-24T10:13:08.010877+00:00",
   "last_signals": {
    "BTC": 0.03294558265754688,
@@ -95,5 +95,5 @@
  },
  "strategy": "hybrid-tsmom90-xsmom10-tournament-20260724-v4",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-24T20:11:20.804519+00:00"
+ "updated_at": "2026-07-24T21:11:20.276937+00:00"
 }
