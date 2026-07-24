@@ -39,6 +39,8 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
 
       - name: inizializza coverage del run
@@ -88,36 +90,79 @@ jobs:
         continue-on-error: true
         run: uv run scripts/paper_exits.py
 
+      - name: propr — configurazione canonica
+        id: propr_config
+        if: always()
+        run: |
+          case "$PROPR_GUARD_ENABLED" in
+            ""|true|false) ;;
+            *) exit 1 ;;
+          esac
+          case "$PROPR_AUTOMANAGE_ENABLED" in
+            ""|true|false) ;;
+            *) exit 1 ;;
+          esac
+
       - name: propr — rimuovi esattamente tre stop duplicati Free Trial
         id: propr_dedupe
-        if: always() && inputs.propr_maintenance == 'DEDUPE_FREE_TRIAL_3' && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED != 'true' && env.PROPR_AUTOMANAGE_ENABLED != 'true'
+        if: always() && steps.propr_config.outcome == 'success' && inputs.propr_maintenance == 'DEDUPE_FREE_TRIAL_3' && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED != 'true' && env.PROPR_AUTOMANAGE_ENABLED != 'true'
         env:
           PROPR_DEDUPE_ENABLED: "true"
         run: uv run scripts/propr_guard.py --dedupe --expected-duplicates 3
 
       - name: propr — pre-check protezioni native
         id: propr_guard_pre
-        if: always() && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED == 'true'
+        if: always() && steps.propr_config.outcome == 'success' && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED == 'true'
         continue-on-error: true
         run: uv run scripts/propr_guard.py --execute
 
       - name: propr — gestione sistematica Free Trial paper
         id: propr_manage
-        if: always() && env.PROPR_API_KEY != '' && env.PROPR_AUTOMANAGE_ENABLED == 'true' && env.PROPR_GUARD_ENABLED == 'true' && env.PROPR_GUARD_CANARY_ASSET == '*' && steps.propr_guard_pre.outcome == 'success'
+        if: always() && steps.propr_config.outcome == 'success' && env.PROPR_API_KEY != '' && env.PROPR_AUTOMANAGE_ENABLED == 'true' && env.PROPR_GUARD_ENABLED == 'true' && env.PROPR_GUARD_CANARY_ASSET == '*' && steps.propr_guard_pre.outcome == 'success'
         continue-on-error: true
         run: uv run scripts/propr_paper.py --manage-paper
 
       - name: propr — post-check protezioni native
         id: propr_guard
-        if: always() && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED == 'true'
+        if: always() && steps.propr_config.outcome == 'success' && env.PROPR_API_KEY != '' && env.PROPR_GUARD_ENABLED == 'true'
         continue-on-error: true
         run: uv run scripts/propr_guard.py --execute
 
       - name: propr — snapshot live account paper (sola lettura)
         id: propr
-        if: always() && env.PROPR_API_KEY != ''
+        if: always() && steps.propr_config.outcome == 'success' && env.PROPR_API_KEY != ''
         continue-on-error: true
         run: uv run scripts/propr_paper.py --snapshot-only
+
+      - name: propr — gate critico lane Free Trial
+        id: propr_gate
+        if: always()
+        env:
+          PROPR_MAINTENANCE: ${{ inputs.propr_maintenance }}
+        run: |
+          [ "${{ steps.propr_config.outcome }}" = "success" ]
+          if [ -z "$PROPR_API_KEY" ]; then
+            [ "$PROPR_GUARD_ENABLED" != "true" ]
+            [ "$PROPR_AUTOMANAGE_ENABLED" != "true" ]
+            [ -z "$PROPR_MAINTENANCE" ]
+            exit 0
+          fi
+          [ "${{ steps.propr.outcome }}" = "success" ]
+          if [ "$PROPR_GUARD_ENABLED" = "true" ] || [ "$PROPR_AUTOMANAGE_ENABLED" = "true" ]; then
+            [ -n "$PROPR_EXPECTED_ACCOUNT_ID" ]
+          fi
+          if [ "$PROPR_GUARD_ENABLED" = "true" ]; then
+            [ "${{ steps.propr_guard_pre.outcome }}" = "success" ]
+            [ "${{ steps.propr_guard.outcome }}" = "success" ]
+          fi
+          if [ "$PROPR_AUTOMANAGE_ENABLED" = "true" ]; then
+            [ "$PROPR_GUARD_ENABLED" = "true" ]
+            [ "$PROPR_GUARD_CANARY_ASSET" = "*" ]
+            [ "${{ steps.propr_manage.outcome }}" = "success" ]
+          fi
+          if [ -n "$PROPR_MAINTENANCE" ]; then
+            [ "${{ steps.propr_dedupe.outcome }}" = "success" ]
+          fi
 
       - name: polymarket forecast journal (F7 — risoluzione storico)
         id: polymarket
@@ -157,6 +202,7 @@ jobs:
           --critical "portfolio_all=${{ steps.portfolio_all.outcome }}"
           --critical "promote=${{ steps.promote.outcome }}"
           --critical "exits=${{ steps.exits.outcome }}"
+          --critical "propr_gate=${{ steps.propr_gate.outcome }}"
           --optional "cot=${{ steps.cot.outcome }}"
           --optional "agents_rr2=${{ steps.agents_rr2.outcome }}"
           --optional "propr_dedupe=${{ steps.propr_dedupe.outcome }}"
@@ -182,7 +228,7 @@ jobs:
           npx -y wrangler@4.107.0 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
 
       - name: publish
-        if: always() && (steps.health.outcome == 'success' || steps.health.outcome == 'failure')
+        if: always() && steps.health.outcome == 'success' && steps.propr_gate.outcome == 'success'
         run: |
           git config user.name "lux-ai-cron"
           git config user.email "actions@users.noreply.github.com"

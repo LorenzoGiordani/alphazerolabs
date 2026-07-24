@@ -1,5 +1,8 @@
 import json
+import os
+import subprocess
 import sys
+import textwrap
 from pathlib import Path
 
 import pytest
@@ -109,6 +112,10 @@ def test_guard_only_snapshot_reports_native_protection(tmp_path, monkeypatch):
         "id": "alpha-port-v1", "status": "champion", "engine": "portfolio"})
     monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
         "verified": False, "status": "blocked", "reasons": ["checker_missing"]})
+    monkeypatch.setattr(propr, "verify_propr_paper_evidence",
+                        lambda *_args, **_kwargs: {
+                            "verified": False, "status": "blocked",
+                            "reasons": ["paper_checker_missing"]})
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "false")
     monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
@@ -129,12 +136,14 @@ def test_guard_only_snapshot_reports_native_protection(tmp_path, monkeypatch):
 
         def get_positions(self):
             return [{"positionId": "pos-1", "base": "ETH", "positionSide": "long",
-                     "notionalValue": "250", "unrealizedPnl": "12"}]
+                     "notionalValue": "250", "unrealizedPnl": "12",
+                     "markPrice": "100", "quantity": "2"}]
 
         def get_active_orders(self):
             return [{"orderId": "order-1", "positionId": "pos-1", "type": "stop_market",
-                     "side": "sell", "positionSide": "short", "reduceOnly": True,
-                     "closePosition": True}]
+                     "asset": "ETH", "side": "sell", "positionSide": "short",
+                     "quantity": "2", "triggerPrice": "96",
+                     "reduceOnly": True, "closePosition": True}]
 
         def get_account(self):
             return {"balance": "5004", "totalUnrealizedPnl": "12", "highWaterMark": "5030"}
@@ -143,9 +152,22 @@ def test_guard_only_snapshot_reports_native_protection(tmp_path, monkeypatch):
 
     propr.main(snapshot_only=True)
 
-    protection = json.loads(status.read_text())["realtime_protection"]
-    assert protection == {"mode": "native-stop-market", "open_positions": 1,
-                          "protected_positions": 1, "fully_protected": True}
+    payload = json.loads(status.read_text())
+    protection = payload["realtime_protection"]
+    assert protection == {
+        "mode": "native-stop-market",
+        "open_positions": 1,
+        "active_protective_orders": 1,
+        "protected_positions": 1,
+        "duplicate_protective_orders": 0,
+        "unmatched_protective_orders": 0,
+        "unexpected_active_orders": 0,
+        "prewrite_safe": True,
+        "fully_protected": True,
+        "exactly_one_per_position": True,
+    }
+    assert payload["trading_blocked"] is True
+    assert payload["trading_block_reason"] == "paper_execution_evidence_not_verified"
 
 
 def test_propr_manage_kill_switch_blocks_before_client(monkeypatch):
@@ -195,6 +217,39 @@ def test_propr_manage_requires_account_pin_before_client(monkeypatch):
         propr.main(manage_paper=True)
 
 
+def test_propr_manage_blocks_invalid_paper_receipt_before_client(tmp_path, monkeypatch):
+    import scripts.propr_paper as propr
+
+    status = tmp_path / "propr_status.json"
+    monkeypatch.setattr(propr, "STATUS_PATH", status)
+    monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "true")
+    monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
+    monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
+    monkeypatch.setattr(propr, "load", lambda _path: {
+        "id": "alpha-port-v1", "status": "champion", "engine": "portfolio",
+        "risk": {"max_leverage": 2},
+    })
+    monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
+        "verified": False, "status": "blocked", "reasons": ["checker_missing"]})
+    monkeypatch.setattr(propr, "verify_propr_paper_evidence",
+                        lambda *_args, **_kwargs: {
+                            "verified": False,
+                            "status": "blocked",
+                            "reasons": ["paper_checker_missing"],
+                        })
+    monkeypatch.setattr(propr, "ProprClient",
+                        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+                            AssertionError("client reached before paper evidence gate")))
+
+    with pytest.raises(SystemExit) as exc:
+        propr.main(manage_paper=True)
+
+    assert exc.value.code == 2
+    payload = json.loads(status.read_text())
+    assert payload["trading_block_reason"] == "paper_execution_evidence_not_verified"
+    assert payload["paper_execution_evidence"]["reasons"] == ["paper_checker_missing"]
+
+
 def test_fresh_management_state_discards_legacy_targets():
     from datetime import datetime, timezone
     import scripts.propr_paper as propr
@@ -206,18 +261,118 @@ def test_fresh_management_state_discards_legacy_targets():
     assert "tranches" not in state
 
 
+@pytest.mark.parametrize("target", [
+    {"SUI": 100.0, "BTC": -100.0},
+    {"BTC": 1000.0, "ETH": -1000.0},
+    {"BTC": 200.0, "ETH": -100.0},
+    {"BTC": float("nan")},
+])
+def test_propr_target_validation_rejects_universe_gross_neutrality_and_nonfinite(target):
+    from scripts.propr_client import ProprError
+    import scripts.propr_paper as propr
+
+    with pytest.raises(ProprError):
+        propr._validate_target(target, ["BTC", "ETH"], 5000.0)
+
+
+def test_propr_management_state_binds_last_target_to_bounded_tranches():
+    from scripts.propr_client import ProprError
+    import scripts.propr_paper as propr
+
+    valid = {
+        "tranches": {
+            "0": {"BTC": 100.0, "ETH": -100.0},
+            "1": {"BTC": -100.0, "ETH": 100.0},
+        },
+        "last_target": {},
+    }
+    propr._validate_management_state(valid, ["BTC", "ETH"], 5000.0, 7)
+
+    invalid = {**valid, "last_target": {"BTC": 750.0, "ETH": -750.0}}
+    with pytest.raises(ProprError, match="incoerente"):
+        propr._validate_management_state(invalid, ["BTC", "ETH"], 5000.0, 7)
+
+
+def test_propr_leverage_preflight_is_read_only_and_accepts_safer_config():
+    import scripts.propr_paper as propr
+
+    class Client:
+        def get_leverage_limits(self):
+            return {"defaultMax": 3, "overrides": {"ETH": 2}}
+
+        def get_margin_config(self, asset):
+            return {
+                "asset": asset,
+                "configId": f"cfg-{asset}",
+                "marginMode": "cross",
+                "leverage": 1 if asset == "ETH" else 2,
+            }
+
+        def update_margin_config(self, *_args, **_kwargs):
+            raise AssertionError("leverage preflight attempted a provider write")
+
+    result = propr._preflight_leverage(Client(), ["ETH", "BTC"], 2)
+
+    assert result == {
+        "BTC": {"configured": 2, "provider_cap": 3, "margin_mode": "cross"},
+        "ETH": {"configured": 1, "provider_cap": 2, "margin_mode": "cross"},
+    }
+
+
+def test_propr_leverage_preflight_blocks_contract_or_config_over_cap():
+    from scripts.propr_client import ProprError
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self, configured=2):
+            self.configured = configured
+
+        def get_leverage_limits(self):
+            return {"defaultMax": 2}
+
+        def get_margin_config(self, asset):
+            return {
+                "asset": asset,
+                "configId": f"cfg-{asset}",
+                "marginMode": "cross",
+                "leverage": self.configured,
+            }
+
+        def update_margin_config(self, *_args, **_kwargs):
+            raise AssertionError("invalid preflight attempted a provider write")
+
+    with pytest.raises(ProprError, match="contrattuale oltre cap"):
+        propr._preflight_leverage(Client(), ["BTC"], 3)
+    with pytest.raises(ProprError, match="configurata oltre cap"):
+        propr._preflight_leverage(Client(configured=3), ["BTC"], 2)
+
+
+def test_propr_contract_pins_daily_equity_floor_formula():
+    import scripts.propr_paper as propr
+
+    contract = propr._paper_execution_contract(propr.load(propr.SPEC_PATH))
+
+    assert contract["rulebook"]["daily_equity_floor_formula"] == (
+        "day_start_equity - daily_loss_allowance"
+    )
+
+
 def test_protection_summary_counts_only_native_reduce_only_closes():
     import scripts.propr_paper as propr
 
     positions = [
-        {"positionId": "p1", "positionSide": "long"},
-        {"positionId": "p2", "positionSide": "short"},
+        {"positionId": "p1", "base": "BTC", "positionSide": "long",
+         "quantity": "2", "markPrice": "100"},
+        {"positionId": "p2", "base": "ETH", "positionSide": "short",
+         "quantity": "3", "markPrice": "200"},
     ]
     orders = [
-        {"positionId": "p1", "type": "stop_market", "side": "sell", "positionSide": "short",
-         "reduceOnly": True, "closePosition": True},
-        {"positionId": "p2", "type": "stop_market", "side": "buy", "positionSide": "short",
-         "reduceOnly": True, "closePosition": True},
+        {"positionId": "p1", "asset": "BTC", "type": "stop_market",
+         "side": "sell", "positionSide": "short", "quantity": "99",
+         "triggerPrice": "96", "reduceOnly": True, "closePosition": True},
+        {"positionId": "p2", "asset": "ETH", "type": "stop_market",
+         "side": "buy", "positionSide": "short", "quantity": "3",
+         "triggerPrice": "208", "reduceOnly": True, "closePosition": True},
     ]
     summary = propr._protection_summary(positions, orders)
     assert summary["protected_positions"] == 1
@@ -565,7 +720,7 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
     monkeypatch.setattr(propr, "STATE_PATH", state)
     monkeypatch.setattr(propr, "STATUS_PATH", status)
     monkeypatch.setattr(propr, "log_event", lambda _event: None)
-    monkeypatch.setattr(propr, "_set_leverage", lambda *_args: None)
+    monkeypatch.setattr(propr, "_preflight_leverage", lambda *_args: {})
     monkeypatch.setattr(propr, "trailing_returns",
                         lambda *_args: ({"BTC": 0.1, "ETH": -0.1}, {"BTC": 100.0, "ETH": 10.0}))
     monkeypatch.setattr(propr, "xs_momentum_weights", lambda *_args, **_kwargs:
@@ -582,6 +737,9 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
     })
     monkeypatch.setattr(propr, "verify_evidence", lambda _spec, _root: {
         "verified": False, "status": "blocked", "reasons": ["checker_missing"]})
+    monkeypatch.setattr(propr, "verify_propr_paper_evidence",
+                        lambda *_args, **_kwargs: {
+                            "verified": True, "status": "verified", "reasons": []})
     monkeypatch.setenv("PROPR_AUTOMANAGE_ENABLED", "true")
     monkeypatch.setenv("PROPR_GUARD_ENABLED", "true")
     monkeypatch.setenv("PROPR_EXPECTED_ACCOUNT_ID", "paper-1")
@@ -605,6 +763,9 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
         def get_positions(self):
             return []
 
+        def get_active_orders(self):
+            return []
+
     monkeypatch.setattr(propr, "ProprClient", PaperClient)
     propr.main(manage_paper=True)
 
@@ -618,13 +779,83 @@ def test_paper_run_requires_both_propr_kill_switches_for_management():
     workflow = (Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml").read_text()
     assert "DEDUPE_FREE_TRIAL_3" in workflow
     assert "scripts/propr_guard.py --dedupe --expected-duplicates 3" in workflow
-    assert ("if: always() && env.PROPR_API_KEY != '' && "
+    assert workflow.index("id: propr_config") < workflow.index("id: propr_dedupe")
+    assert ("if: always() && steps.propr_config.outcome == 'success' && "
+            "inputs.propr_maintenance == 'DEDUPE_FREE_TRIAL_3' && "
+            "env.PROPR_API_KEY != '' && "
+            "env.PROPR_GUARD_ENABLED != 'true' && "
+            "env.PROPR_AUTOMANAGE_ENABLED != 'true'") in workflow
+    assert ("if: always() && steps.propr_config.outcome == 'success' && "
+            "env.PROPR_API_KEY != '' && "
             "env.PROPR_AUTOMANAGE_ENABLED == 'true' && "
             "env.PROPR_GUARD_ENABLED == 'true' && "
             "env.PROPR_GUARD_CANARY_ASSET == '*' && "
             "steps.propr_guard_pre.outcome == 'success'") in workflow
+    assert workflow.count(
+        "if: always() && steps.propr_config.outcome == 'success'"
+    ) == 5
+    assert '[ "${{ steps.propr_config.outcome }}" = "success" ]' in workflow
     assert workflow.index("id: propr_guard_pre") < workflow.index("id: propr_manage")
     assert workflow.index("id: propr_manage") < workflow.index("id: propr_guard\n")
+    assert workflow.index("id: propr_guard\n") < workflow.index("id: propr_gate")
+    assert '--critical "propr_gate=${{ steps.propr_gate.outcome }}"' in workflow
+    assert ("if: always() && steps.health.outcome == 'success' && "
+            "steps.propr_gate.outcome == 'success'") in workflow
+    assert "fetch-depth: 0" in workflow
+
+
+@pytest.mark.parametrize("variable", [
+    "PROPR_GUARD_ENABLED",
+    "PROPR_AUTOMANAGE_ENABLED",
+])
+@pytest.mark.parametrize("value", ["TRUE", "true ", "yes", "false "])
+def test_paper_run_rejects_noncanonical_boolean_env(variable, value):
+    workflow = (
+        Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml"
+    ).read_text()
+    start = workflow.index('          case "$PROPR_GUARD_ENABLED"')
+    end = workflow.index("\n\n      - name: propr — rimuovi", start)
+    validator = textwrap.dedent(workflow[start:end])
+    env = {
+        **os.environ,
+        "PROPR_GUARD_ENABLED": "false",
+        "PROPR_AUTOMANAGE_ENABLED": "false",
+        variable: value,
+    }
+
+    result = subprocess.run(
+        ["bash", "-c", validator],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+
+
+@pytest.mark.parametrize("value", ["", "true", "false"])
+def test_paper_run_accepts_canonical_boolean_env(value):
+    workflow = (
+        Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml"
+    ).read_text()
+    start = workflow.index('          case "$PROPR_GUARD_ENABLED"')
+    end = workflow.index("\n\n      - name: propr — rimuovi", start)
+    validator = textwrap.dedent(workflow[start:end])
+
+    result = subprocess.run(
+        ["bash", "-c", validator],
+        env={
+            **os.environ,
+            "PROPR_GUARD_ENABLED": value,
+            "PROPR_AUTOMANAGE_ENABLED": value,
+        },
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
 
 
 @pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])

@@ -75,3 +75,23 @@ heartbeats are autocorrelated and therefore never satisfy the automatic
 trade-count promotion gate. The current Propr executor also applies a different
 universe/risk overlay, so it stays blocked even when evidence is valid until an
 independent execution-contract test proves it reproduces the hashed strategy.
+
+## Propr Free Trial paper execution
+
+`evidence/propr/` is a separate paper-only exception. It never satisfies the
+DSR/OOS promotion contract above and never authorizes paid accounts or capital.
+Provider writes require both:
+
+1. `propr/manifests/<strategy-id>.json`, made after a frozen implementation
+   commit;
+2. `propr/checker/<strategy-id>.json`, with verdict
+   `APPROVE_PROPR_PAPER_EXECUTION` from a different run.
+
+The manifest pins the exact account, Free Trial $5k scope, strategy logic,
+rulebook version/formula, runtime overlay and SHA-256 of every trusted source,
+workflow and dependency-lock file listed in `scripts/propr_contract.py`.
+`implementation_commit` identifies the code-only commit; evidence can be added
+in a later commit without a self-referential hash because the verifier requires
+the current trusted files to remain identical to that implementation commit.
+Any missing file, source drift, malformed receipt or maker/checker collision
+blocks `--manage-paper`, guard execution and maintenance before provider access.

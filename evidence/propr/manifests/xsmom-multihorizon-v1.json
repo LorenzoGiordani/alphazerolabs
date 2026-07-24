@@ -1,0 +1,149 @@
+{
+  "account_id": "urn:prp-account:Ek4s7FRgDDmi",
+  "challenge_slug": "free-trial",
+  "execution_contract": {
+    "automanage_version": "systematic-paper-automanage-v1",
+    "daily_stop_pct": 0.02,
+    "dollar_neutral": true,
+    "engine": "portfolio",
+    "gross_override": 0.3,
+    "guard_max_creates": 8,
+    "guard_stop_distance_pct": 4.0,
+    "guard_version": "propr-guard-v2",
+    "lookbacks_h": [
+      96,
+      168,
+      336
+    ],
+    "max_leverage": 2,
+    "max_orders_per_action": 12,
+    "paper_symbols": [
+      "BTC",
+      "ETH",
+      "SOL",
+      "XRP",
+      "SUI",
+      "NEAR",
+      "WLD",
+      "ZEC",
+      "CRV"
+    ],
+    "rebalance_h": 168,
+    "requires_account_pin": true,
+    "requires_guard": true,
+    "rulebook": {
+      "daily_equity_floor_formula": "day_start_equity - daily_loss_allowance",
+      "daily_loss_allowance_formula": "0.03 * max(starting_balance, day_start_realized_balance)",
+      "daily_reset": "00:00 UTC",
+      "drawdown_type": "static",
+      "max_daily_loss_pct": 3,
+      "max_drawdown_pct": 6,
+      "profit_target_pct": 10,
+      "source": "https://www.propr.xyz/rules",
+      "version": "1.0.4"
+    },
+    "sizing_base": "challenge_initial_balance",
+    "strategy_id": "xsmom-multihorizon-v1",
+    "strategy_path": "strategies/generated/xsmom-multihorizon-v1.yaml",
+    "strategy_status": "champion",
+    "tranche_h": 24
+  },
+  "implementation_commit": "9ff17bbd69b43e9515f10e43d0c04d5d9234ea54",
+  "initial_balance": 5000,
+  "maker_run_id": "maker-propr-gate-9ff17bbd69b4",
+  "paper_only": true,
+  "schema_version": 1,
+  "scope": "propr-free-trial-paper",
+  "strategy_id": "xsmom-multihorizon-v1",
+  "strategy_logic_sha256": "49886a2cc6c88149578997c5de2cb6ffced89261678c256b1cb207187155bfb8",
+  "trusted_artifacts": {
+    ".github/workflows/paper-run.yml": {
+      "artifact_path": ".github/workflows/paper-run.yml",
+      "artifact_sha256": "fcd1495d510e8c9a4476e9369f7b4ec8854f867a79ccc64dc4c90d55aa17ad94"
+    },
+    "backtest/__init__.py": {
+      "artifact_path": "backtest/__init__.py",
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "backtest/engine.py": {
+      "artifact_path": "backtest/engine.py",
+      "artifact_sha256": "5a2a1fd1bb0f1d77707ecdeac4661f44eedb035555c2c7ec30d27515836878ba"
+    },
+    "backtest/evidence.py": {
+      "artifact_path": "backtest/evidence.py",
+      "artifact_sha256": "626280574216547f92fda941cfe1859c998a87f28f13a3bab838463caa0f80fb"
+    },
+    "backtest/lifecycle.py": {
+      "artifact_path": "backtest/lifecycle.py",
+      "artifact_sha256": "b4950a1b91bb021550be8b1ca7751e9eda754bdcdb3478499f1052f0f40a8066"
+    },
+    "backtest/portfolio.py": {
+      "artifact_path": "backtest/portfolio.py",
+      "artifact_sha256": "dd72b00a8a3cbd37d585badaf6ffe029a5abfd9e95bed1d01e7b0a1ae150c5ee"
+    },
+    "backtest/risk.py": {
+      "artifact_path": "backtest/risk.py",
+      "artifact_sha256": "247b47772fd37a7fb6ec8b0bf0cf1462ec21ebd1a6b94a3e08d84c68e623a63d"
+    },
+    "backtest/signals.py": {
+      "artifact_path": "backtest/signals.py",
+      "artifact_sha256": "4015b3c28918b855b6fafbe3ef5c2d535af41cc199b6468fa5b6ea2488bd6161"
+    },
+    "backtest/strategy.py": {
+      "artifact_path": "backtest/strategy.py",
+      "artifact_sha256": "393bfccc4946c85be28de346c79e2fe8d316548ff06e060d7b7ac141440f7030"
+    },
+    "pipeline/__init__.py": {
+      "artifact_path": "pipeline/__init__.py",
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pipeline/live.py": {
+      "artifact_path": "pipeline/live.py",
+      "artifact_sha256": "403f4ee34cf680bad6365f86c2f5ebda2c01e989463a0103e39bea7e5918c883"
+    },
+    "pyproject.toml": {
+      "artifact_path": "pyproject.toml",
+      "artifact_sha256": "366c7209b05879b0942a8b50ed2487ec68e8b5f28f984be3e83d4bc32008c412"
+    },
+    "scripts/__init__.py": {
+      "artifact_path": "scripts/__init__.py",
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scripts/paper_trade.py": {
+      "artifact_path": "scripts/paper_trade.py",
+      "artifact_sha256": "f62572e0210b078945229e61445e6bf890e9cc92d63d3619584ae7a3b20606eb"
+    },
+    "scripts/portfolio_paper.py": {
+      "artifact_path": "scripts/portfolio_paper.py",
+      "artifact_sha256": "85c18909ac719f31eeb0715915551ee4e06027e3d7c74f0b373c111dfed94df9"
+    },
+    "scripts/propr_client.py": {
+      "artifact_path": "scripts/propr_client.py",
+      "artifact_sha256": "1ed1f99dd93962eb6e4b028e0c4554e7a185c708abda6ba5025e118424fa101e"
+    },
+    "scripts/propr_contract.py": {
+      "artifact_path": "scripts/propr_contract.py",
+      "artifact_sha256": "747e10268a8bc36cdc6e9d905499c3e9063fa22589169191dc61530b2a1e4b57"
+    },
+    "scripts/propr_guard.py": {
+      "artifact_path": "scripts/propr_guard.py",
+      "artifact_sha256": "f975e48dbe85d2948cd9d73378b00e28950d9374195606b52a79fb29337b79a7"
+    },
+    "scripts/propr_paper.py": {
+      "artifact_path": "scripts/propr_paper.py",
+      "artifact_sha256": "774fd9d120ae49bd0f31d0447f6964abd0c83e915357daddb08d5e5ffbdc69a6"
+    },
+    "scripts/runtime_health.py": {
+      "artifact_path": "scripts/runtime_health.py",
+      "artifact_sha256": "5cbb73ea4f18f7a57314000bd814cb9a9bb84f70ea510e09535da70e3737915c"
+    },
+    "strategies/generated/xsmom-multihorizon-v1.yaml": {
+      "artifact_path": "strategies/generated/xsmom-multihorizon-v1.yaml",
+      "artifact_sha256": "eee9ec1cf62304002096467b2ebb3223c81db0b3f92893dd3062598acaa1e218"
+    },
+    "uv.lock": {
+      "artifact_path": "uv.lock",
+      "artifact_sha256": "3d9fa052beed83992ae1cf7f39c150f32a0105a223fa9875a2735cfb438c4892"
+    }
+  }
+}
