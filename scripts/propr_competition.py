@@ -1477,7 +1477,7 @@ def _native_stop_filled(
     active_orders: list[dict],
 ) -> bool:
     if (
-        state.get("strategy") != STRATEGY_ID
+        state.get("strategy") not in (PREVIOUS_STRATEGY_ID, STRATEGY_ID)
         or _leverage_migration_pending(state)
         or not _book_drift(state, positions)
         or not _surviving_book_matches(state, positions)

@@ -1822,6 +1822,87 @@ def test_healthy_book_does_not_query_filled_order_history():
     ) is False
 
 
+def test_v3_native_stop_fill_is_proven_by_preflight_before_migration(
+    tmp_path,
+    monkeypatch,
+):
+    import scripts.propr_competition as competition
+
+    state, btc, eth, btc_stop, eth_stop = _v4_state_with_stops(competition)
+    state.update({
+        "strategy": competition.PREVIOUS_STRATEGY_ID,
+        "last_target": {"BTC": 11_875.0, "ETH": -11_875.0},
+        "last_signals": {},
+    })
+    filled = _native_stop(
+        competition,
+        btc,
+        order_id=btc_stop["orderId"],
+        status="filled",
+    )
+    trade = _stop_trade(btc, filled)
+
+    class Client:
+        account_id = "competition-1"
+
+        def __init__(self, *, read_only=False):
+            assert read_only is True
+            self.active_attempt = _attempt()
+
+        def setup(self, **_kwargs):
+            return None
+
+        def get_positions(
+            self,
+            status="open",
+            *,
+            position_id=None,
+            include_zero=False,
+        ):
+            if position_id:
+                assert status is None
+                assert include_zero is True
+                assert position_id == btc["positionId"]
+                return [_stopped_position_record(btc)]
+            assert status == "open"
+            assert include_zero is False
+            return [eth]
+
+        def get_account(self):
+            return _account()
+
+        def get_active_orders(self):
+            return [eth_stop]
+
+        def get_orders(self, status, *, order_id):
+            assert (status, order_id) == ("filled", btc_stop["orderId"])
+            return [filled]
+
+        def get_trades(self, *, order_id):
+            assert order_id == btc_stop["orderId"]
+            return [trade]
+
+    client = Client(read_only=True)
+    assert competition._native_stop_filled(
+        client,
+        state,
+        [eth],
+        [eth_stop],
+    ) is True
+
+    monkeypatch.setenv("PROPR_COMPETITION_ACCOUNT_ID", "competition-1")
+    monkeypatch.setattr(competition, "ProprClient", Client)
+    monkeypatch.setattr(competition, "STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr(competition, "STATUS_PATH", tmp_path / "status.json")
+    competition.STATE_PATH.write_text(json.dumps(state))
+
+    result = competition.check()
+
+    assert result["mode"] == "check"
+    assert result["positions"] == 1
+    assert result["writes"] == 0
+
+
 def test_healthy_book_rejects_reopened_position_before_rewriting_receipt():
     import scripts.propr_competition as competition
 
@@ -1983,13 +2064,21 @@ def test_native_stop_requires_exact_zero_position_record(position_case):
     ) == ("native_stop_or_external_drift", True)
 
 
+@pytest.mark.parametrize("previous_strategy", [False, True])
 def test_verified_native_stop_flattens_survivor_then_daily_rollover_recovers(
     tmp_path,
     monkeypatch,
+    previous_strategy,
 ):
     import scripts.propr_competition as competition
 
     state, btc, eth, btc_stop, eth_stop = _v4_state_with_stops(competition)
+    if previous_strategy:
+        state.update({
+            "strategy": competition.PREVIOUS_STRATEGY_ID,
+            "last_target": {"BTC": 11_875.0, "ETH": -11_875.0},
+            "last_signals": {},
+        })
     filled = _native_stop(
         competition,
         btc,
