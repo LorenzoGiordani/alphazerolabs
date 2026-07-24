@@ -1,11 +1,11 @@
 {
  "account_id": "SzSKErmBBPN6",
  "attempt_status": "active",
- "balance": 50253.32,
+ "balance": 50254.04,
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.15,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 49939.23,
+ "equity": 49531.2,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 4.75,
  "margin_utilization": 0.95,
@@ -16,15 +16,15 @@
  "positions": [
   {
    "asset": "XRP",
-   "notional": 47591.87,
+   "notional": 47420.95,
    "side": "long",
-   "unrealized_pnl": 125.33
+   "unrealized_pnl": -45.59
   },
   {
    "asset": "NEAR",
-   "notional": 47797.1,
+   "notional": 48034.92,
    "side": "short",
-   "unrealized_pnl": -439.43
+   "unrealized_pnl": -677.25
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -50,8 +50,8 @@
   "halt_reason": "",
   "halted_today": false,
   "high_water_mark": 50157.444185,
-  "last_equity": 49939.226756,
-  "last_manage_ts": "2026-07-24T08:11:10.870552+00:00",
+  "last_equity": 49531.200379,
+  "last_manage_ts": "2026-07-24T09:11:17.626704+00:00",
   "last_rebalance_ts": "2026-07-23T23:05:11.972192+00:00",
   "last_target": {
    "NEAR": -47500.0,
@@ -87,5 +87,5 @@
  },
  "strategy": "xsmom-neutral2-tournament-20260724-v3",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-24T08:11:13.251829+00:00"
+ "updated_at": "2026-07-24T09:11:20.850584+00:00"
 }
