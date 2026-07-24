@@ -1,0 +1,112 @@
+{
+  "account_id": "urn:prp-account:Ek4s7FRgDDmi",
+  "challenge_slug": "free-trial",
+  "execution_contract": {
+    "automanage_version": "systematic-paper-automanage-v1",
+    "daily_stop_pct": 0.02,
+    "dollar_neutral": true,
+    "engine": "portfolio",
+    "gross_override": 0.3,
+    "guard_max_creates": 8,
+    "guard_stop_distance_pct": 4.0,
+    "guard_version": "propr-guard-v2",
+    "lookbacks_h": [
+      96,
+      168,
+      336
+    ],
+    "max_leverage": 2,
+    "max_orders_per_action": 12,
+    "paper_symbols": [
+      "BTC",
+      "ETH",
+      "SOL",
+      "XRP",
+      "SUI",
+      "NEAR",
+      "WLD",
+      "ZEC",
+      "CRV"
+    ],
+    "rebalance_h": 168,
+    "requires_account_pin": true,
+    "requires_guard": true,
+    "rulebook": {
+      "daily_loss_allowance_formula": "0.03 * max(starting_balance, day_start_realized_balance)",
+      "daily_reset": "00:00 UTC",
+      "drawdown_type": "static",
+      "max_daily_loss_pct": 3,
+      "max_drawdown_pct": 6,
+      "profit_target_pct": 10,
+      "source": "https://www.propr.xyz/rules",
+      "version": "1.0.4"
+    },
+    "sizing_base": "challenge_initial_balance",
+    "strategy_id": "xsmom-multihorizon-v1",
+    "strategy_path": "strategies/generated/xsmom-multihorizon-v1.yaml",
+    "strategy_status": "champion",
+    "tranche_h": 24
+  },
+  "implementation_commit": "e8734d6d8b0666e23eab75ab6c616e69c76581b7",
+  "initial_balance": 5000,
+  "maker_run_id": "maker-propr-gate-e8734d6d8b06",
+  "paper_only": true,
+  "schema_version": 1,
+  "scope": "propr-free-trial-paper",
+  "strategy_id": "xsmom-multihorizon-v1",
+  "strategy_logic_sha256": "49886a2cc6c88149578997c5de2cb6ffced89261678c256b1cb207187155bfb8",
+  "trusted_artifacts": {
+    ".github/workflows/paper-run.yml": {
+      "artifact_path": ".github/workflows/paper-run.yml",
+      "artifact_sha256": "228bdebbda148e93596023d4c449775da8fe167942cffac49b5f7a649c79258e"
+    },
+    "backtest/evidence.py": {
+      "artifact_path": "backtest/evidence.py",
+      "artifact_sha256": "626280574216547f92fda941cfe1859c998a87f28f13a3bab838463caa0f80fb"
+    },
+    "backtest/portfolio.py": {
+      "artifact_path": "backtest/portfolio.py",
+      "artifact_sha256": "dd72b00a8a3cbd37d585badaf6ffe029a5abfd9e95bed1d01e7b0a1ae150c5ee"
+    },
+    "backtest/strategy.py": {
+      "artifact_path": "backtest/strategy.py",
+      "artifact_sha256": "393bfccc4946c85be28de346c79e2fe8d316548ff06e060d7b7ac141440f7030"
+    },
+    "pipeline/live.py": {
+      "artifact_path": "pipeline/live.py",
+      "artifact_sha256": "403f4ee34cf680bad6365f86c2f5ebda2c01e989463a0103e39bea7e5918c883"
+    },
+    "pyproject.toml": {
+      "artifact_path": "pyproject.toml",
+      "artifact_sha256": "366c7209b05879b0942a8b50ed2487ec68e8b5f28f984be3e83d4bc32008c412"
+    },
+    "scripts/portfolio_paper.py": {
+      "artifact_path": "scripts/portfolio_paper.py",
+      "artifact_sha256": "85c18909ac719f31eeb0715915551ee4e06027e3d7c74f0b373c111dfed94df9"
+    },
+    "scripts/propr_client.py": {
+      "artifact_path": "scripts/propr_client.py",
+      "artifact_sha256": "1ed1f99dd93962eb6e4b028e0c4554e7a185c708abda6ba5025e118424fa101e"
+    },
+    "scripts/propr_contract.py": {
+      "artifact_path": "scripts/propr_contract.py",
+      "artifact_sha256": "aed3fe67aee78b69f06aea4c738ffdb4079bb4063a948bde87bb2d1ec2a246bc"
+    },
+    "scripts/propr_guard.py": {
+      "artifact_path": "scripts/propr_guard.py",
+      "artifact_sha256": "f7c05332b9ef74dc543a6e3003113a1e74acfebb69f9ea1d4cccefebe7275eaf"
+    },
+    "scripts/propr_paper.py": {
+      "artifact_path": "scripts/propr_paper.py",
+      "artifact_sha256": "b33467544f7e0f8cccfc267ae42ff463cc7c1d70e3bceb9eb7054da56b722c51"
+    },
+    "strategies/generated/xsmom-multihorizon-v1.yaml": {
+      "artifact_path": "strategies/generated/xsmom-multihorizon-v1.yaml",
+      "artifact_sha256": "eee9ec1cf62304002096467b2ebb3223c81db0b3f92893dd3062598acaa1e218"
+    },
+    "uv.lock": {
+      "artifact_path": "uv.lock",
+      "artifact_sha256": "3d9fa052beed83992ae1cf7f39c150f32a0105a223fa9875a2735cfb438c4892"
+    }
+  }
+}
