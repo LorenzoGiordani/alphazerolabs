@@ -23,7 +23,7 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5030.48,
+ "equity": 5030.41,
  "balance": 4987.53,
  "high_water_mark": 5060.986444,
  "profit_target_pct": 10.0,
@@ -38,32 +38,32 @@
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 171.28,
-   "unrealized_pnl": 9.21
+   "notional": 170.64,
+   "unrealized_pnl": 9.85
   },
   {
    "asset": "SOL",
    "side": "short",
-   "notional": 138.75,
-   "unrealized_pnl": 8.06
+   "notional": 138.93,
+   "unrealized_pnl": 7.88
   },
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 64.14,
-   "unrealized_pnl": -2.19
+   "notional": 64.19,
+   "unrealized_pnl": -2.14
   },
   {
    "asset": "NEAR",
    "side": "short",
-   "notional": 242.14,
-   "unrealized_pnl": 14.9
+   "notional": 243.3,
+   "unrealized_pnl": 13.74
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 247.15,
-   "unrealized_pnl": 12.98
+   "notional": 247.73,
+   "unrealized_pnl": 13.56
   }
  ],
  "last_rebalance_ts": "2026-07-23T22:14:32.333040+00:00",
@@ -1543,6 +1543,14 @@
   {
    "ts": "2026-07-24T19:14:32.531823+00:00",
    "equity": 5030.48
+  },
+  {
+   "ts": "2026-07-24T20:14:23.916279+00:00",
+   "equity": 5030.41
+  },
+  {
+   "ts": "2026-07-24T20:14:28.027905+00:00",
+   "equity": 5030.41
   }
  ],
  "strategy_detail": {
@@ -1612,5 +1620,5 @@
   "maker_run_id": "maker-propr-gate-9ff17bbd69b4",
   "checker_run_id": "checker-propr-gate-20260724-final"
  },
- "updated_at": "2026-07-24T19:14:32.532058+00:00"
+ "updated_at": "2026-07-24T20:14:28.028156+00:00"
 }
