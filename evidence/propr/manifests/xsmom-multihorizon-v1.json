@@ -48,9 +48,9 @@
     "strategy_status": "champion",
     "tranche_h": 24
   },
-  "implementation_commit": "7c4d93ef7097ea7747a46714a020cd83af6cccb0",
+  "implementation_commit": "9ff17bbd69b43e9515f10e43d0c04d5d9234ea54",
   "initial_balance": 5000,
-  "maker_run_id": "maker-propr-gate-7c4d93ef7097",
+  "maker_run_id": "maker-propr-gate-9ff17bbd69b4",
   "paper_only": true,
   "schema_version": 1,
   "scope": "propr-free-trial-paper",
@@ -59,7 +59,11 @@
   "trusted_artifacts": {
     ".github/workflows/paper-run.yml": {
       "artifact_path": ".github/workflows/paper-run.yml",
-      "artifact_sha256": "9dd302da14b83c2529f2070266cc6694fce9165e5a8328eda676884395621f04"
+      "artifact_sha256": "fcd1495d510e8c9a4476e9369f7b4ec8854f867a79ccc64dc4c90d55aa17ad94"
+    },
+    "backtest/__init__.py": {
+      "artifact_path": "backtest/__init__.py",
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "backtest/engine.py": {
       "artifact_path": "backtest/engine.py",
@@ -89,6 +93,10 @@
       "artifact_path": "backtest/strategy.py",
       "artifact_sha256": "393bfccc4946c85be28de346c79e2fe8d316548ff06e060d7b7ac141440f7030"
     },
+    "pipeline/__init__.py": {
+      "artifact_path": "pipeline/__init__.py",
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
     "pipeline/live.py": {
       "artifact_path": "pipeline/live.py",
       "artifact_sha256": "403f4ee34cf680bad6365f86c2f5ebda2c01e989463a0103e39bea7e5918c883"
@@ -96,6 +104,10 @@
     "pyproject.toml": {
       "artifact_path": "pyproject.toml",
       "artifact_sha256": "366c7209b05879b0942a8b50ed2487ec68e8b5f28f984be3e83d4bc32008c412"
+    },
+    "scripts/__init__.py": {
+      "artifact_path": "scripts/__init__.py",
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "scripts/paper_trade.py": {
       "artifact_path": "scripts/paper_trade.py",
@@ -111,7 +123,7 @@
     },
     "scripts/propr_contract.py": {
       "artifact_path": "scripts/propr_contract.py",
-      "artifact_sha256": "8e0a186983f1582c08da44bc64c60021c89269a3dff10e4e9e048b35808503f3"
+      "artifact_sha256": "747e10268a8bc36cdc6e9d905499c3e9063fa22589169191dc61530b2a1e4b57"
     },
     "scripts/propr_guard.py": {
       "artifact_path": "scripts/propr_guard.py",
