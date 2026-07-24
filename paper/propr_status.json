@@ -17,65 +17,65 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5015.23,
+ "equity": 5015.96,
  "balance": 4994.79,
  "high_water_mark": 5060.986444,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.3,
+ "profit_target_progress_pct": 0.32,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.3,
+ "drawdown_room_pct": 6.32,
  "passed": false,
  "breached": false,
  "positions": [
   {
    "asset": "ZEC",
    "side": "long",
-   "notional": 71.23,
-   "unrealized_pnl": -0.67
+   "notional": 71.35,
+   "unrealized_pnl": -0.56
   },
   {
    "asset": "XRP",
    "side": "long",
-   "notional": 69.37,
+   "notional": 69.38,
    "unrealized_pnl": -1.98
   },
   {
    "asset": "WLD",
    "side": "short",
-   "notional": 177.56,
-   "unrealized_pnl": 2.93
+   "notional": 177.43,
+   "unrealized_pnl": 3.06
   },
   {
    "asset": "SUI",
    "side": "long",
-   "notional": 34.99,
-   "unrealized_pnl": -0.97
+   "notional": 34.93,
+   "unrealized_pnl": -1.04
   },
   {
    "asset": "SOL",
    "side": "short",
-   "notional": 142.26,
-   "unrealized_pnl": 4.54
+   "notional": 142.42,
+   "unrealized_pnl": 4.39
   },
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 65.37,
-   "unrealized_pnl": -0.96
+   "notional": 65.34,
+   "unrealized_pnl": -0.99
   },
   {
    "asset": "NEAR",
    "side": "short",
-   "notional": 255.21,
-   "unrealized_pnl": 1.83
+   "notional": 254.56,
+   "unrealized_pnl": 2.48
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 249.89,
-   "unrealized_pnl": 15.72
+   "notional": 249.97,
+   "unrealized_pnl": 15.79
   }
  ],
  "last_rebalance_ts": "2026-07-23T22:14:32.333040+00:00",
@@ -1435,6 +1435,14 @@
   {
    "ts": "2026-07-24T04:14:27.578560+00:00",
    "equity": 5015.23
+  },
+  {
+   "ts": "2026-07-24T05:14:20.159850+00:00",
+   "equity": 5015.96
+  },
+  {
+   "ts": "2026-07-24T05:14:24.023061+00:00",
+   "equity": 5015.96
   }
  ],
  "strategy_detail": {
@@ -1494,5 +1502,5 @@
   "maker_run_id": null,
   "checker_run_id": null
  },
- "updated_at": "2026-07-24T04:14:27.578797+00:00"
+ "updated_at": "2026-07-24T05:14:24.023313+00:00"
 }
