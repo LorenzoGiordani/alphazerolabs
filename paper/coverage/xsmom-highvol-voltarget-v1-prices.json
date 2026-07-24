@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "30055428809-1",
-  "generated_at": "2026-07-24T00:14:14.822711+00:00",
+  "run_id": "30058269649-1",
+  "generated_at": "2026-07-24T01:15:04.561233+00:00",
   "component": "xsmom-highvol-voltarget-v1-prices",
   "critical": true,
   "expected_count": 136,

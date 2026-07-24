@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "30055428809-1",
-  "generated_at": "2026-07-24T00:14:13.146849+00:00",
+  "run_id": "30058269649-1",
+  "generated_at": "2026-07-24T01:15:03.159090+00:00",
   "component": "xsmom-multihorizon-v1-signal-eligible",
   "critical": false,
-  "expected_count": 131,
-  "observed_count": 129,
+  "expected_count": 130,
+  "observed_count": 128,
   "missing": [
     "CASHCAT",
     "xyz:CXMT"
