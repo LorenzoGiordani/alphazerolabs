@@ -16,6 +16,7 @@ import math
 import os
 import sys
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -137,6 +138,59 @@ def log_event(ev: dict) -> None:
         f.write(json.dumps(ev, default=str) + "\n")
 
 
+def _signed_notionals(positions: list[dict]) -> dict[str, float]:
+    notionals: dict[str, float] = {}
+    for position in positions:
+        asset = str(position.get("base", ""))
+        side = str(position.get("positionSide", "")).lower()
+        try:
+            notional = float(position.get("notionalValue"))
+        except (TypeError, ValueError) as exc:
+            raise ProprError(f"notional posizione non valido per {asset}") from exc
+        if (
+            not asset
+            or asset in notionals
+            or side not in ("long", "short")
+            or not math.isfinite(notional)
+            or notional < 0
+        ):
+            raise ProprError(f"book Propr non valido per {asset or '<vuoto>'}")
+        notionals[asset] = notional if side == "long" else -notional
+    return notionals
+
+
+def _exact_position_quantity(position: dict, asset: str) -> str:
+    try:
+        quantity = abs(Decimal(str(position.get("quantity"))))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise ProprError(f"quantity posizione non valida per {asset}") from exc
+    if not quantity.is_finite() or quantity <= 0:
+        raise ProprError(f"quantity posizione non valida per {asset}")
+    return format(quantity, "f")
+
+
+def _reduction_barrier_errors(
+    expected: dict[str, float],
+    positions: list[dict],
+) -> list[str]:
+    observed = _signed_notionals(positions)
+    expected_assets = {asset for asset, value in expected.items() if value != 0}
+    errors = []
+    if set(observed) != expected_assets:
+        errors.append(
+            "asset("
+            f"{','.join(sorted(observed))}!={','.join(sorted(expected_assets))}"
+            ")"
+        )
+    for asset in sorted(expected_assets & set(observed)):
+        want = expected[asset]
+        have = observed[asset]
+        tolerance = max(25.0, abs(want) * 0.05)
+        if want * have <= 0 or abs(have - want) > tolerance:
+            errors.append(f"{asset}:notional({have:.2f}!={want:.2f})")
+    return errors
+
+
 def rebalance(client: ProprClient, target: dict[str, float], px: dict[str, float],
               positions: list[dict]) -> list[dict]:
     """target: {asset: notional con segno}, assenti = flat.
@@ -148,22 +202,26 @@ def rebalance(client: ProprClient, target: dict[str, float], px: dict[str, float
     uno short si manda buy+long con reduceOnly=true, che netta contro lo short
     esistente). Qui basta calcolare il delta con segno e scegliere side di
     conseguenza — niente bucket long/short separati da gestire."""
-    current: dict[str, float] = {}
+    current = _signed_notionals(positions)
+    position_by_asset: dict[str, dict] = {}
     position_prices: dict[str, float] = {}
     for p in positions:
-        sign = 1.0 if p["positionSide"] == "long" else -1.0
-        current[p["base"]] = current.get(p["base"], 0.0) + sign * float(p["notionalValue"])
+        position_by_asset[p["base"]] = p
         if p.get("markPrice") is not None:
             position_prices[p["base"]] = float(p["markPrice"])
 
     assets = sorted(set(target) | set(current))
-    plan = []
+    reductions = []
+    increases = []
+    barrier_target = dict(current)
     preflight_errors = []
     for asset in assets:
-        want = target.get(asset, 0.0)
+        want = float(target.get(asset, 0.0))
         have = current.get(asset, 0.0)
         delta = want - have
-        if abs(delta) < 5.0:
+        closing = have != 0 and want == 0
+        flipping = have != 0 and want != 0 and want * have < 0
+        if not closing and not flipping and abs(delta) < 5.0:
             continue
         price = px.get(asset, position_prices.get(asset))
         if price is None or not math.isfinite(float(price)) or float(price) <= 0:
@@ -171,31 +229,96 @@ def rebalance(client: ProprClient, target: dict[str, float], px: dict[str, float
             continue
         price = float(price)
         dec = _qty_decimals(price)
+
+        if closing or flipping:
+            try:
+                quantity = _exact_position_quantity(position_by_asset[asset], asset)
+            except (KeyError, ProprError):
+                preflight_errors.append(asset)
+                continue
+            close_delta = -have
+            reductions.append((
+                asset,
+                close_delta,
+                quantity,
+                "buy" if close_delta > 0 else "sell",
+                "long" if close_delta > 0 else "short",
+                True,
+            ))
+            barrier_target[asset] = 0.0
+            if closing:
+                continue
+            delta = want
+
         qty = round(abs(delta) / price, dec)
         if qty <= 0:
             continue
         side = "buy" if delta > 0 else "sell"
         position_side = "long" if delta > 0 else "short"
-        reduce_only = have != 0 and (want == 0 or (want * have > 0 and abs(want) < abs(have)))
-        plan.append((asset, delta, qty, side, position_side, reduce_only))
+        reduce_only = (
+            not flipping
+            and have != 0
+            and want * have > 0
+            and abs(want) < abs(have)
+        )
+        order = (asset, delta, str(qty), side, position_side, reduce_only)
+        (reductions if reduce_only else increases).append(order)
+        if reduce_only:
+            barrier_target[asset] = want
     if preflight_errors:
         raise ProprError("rebalance preflight: prezzo mancante/non valido per "
                          + ", ".join(preflight_errors))
+    plan = reductions + increases
     if len(plan) > MAX_ORDERS_PER_ACTION:
         raise ProprError(f"rebalance rifiutato: {len(plan)} ordini > cap {MAX_ORDERS_PER_ACTION}")
 
     results = []
-    for asset, delta, qty, side, position_side, reduce_only in plan:
+    reduction_failed = False
+    for asset, delta, quantity, side, position_side, reduce_only in reductions:
         try:
             r = client.create_order(side=side, position_side=position_side, order_type="market",
-                                     asset=asset, quantity=str(qty),
+                                     asset=asset, quantity=quantity,
                                      reduce_only=reduce_only, close_position=False)
             results.append({"asset": asset, "action": "adjust", "side": side,
-                             "qty": qty, "delta_usd": round(delta, 2), "resp": r})
-            print(f"  {asset}: {side} {qty} (reduceOnly={reduce_only}) delta {delta:+.0f}$")
+                             "qty": float(quantity), "delta_usd": round(delta, 2), "resp": r})
+            print(f"  {asset}: {side} {quantity} (reduceOnly={reduce_only}) "
+                  f"delta {delta:+.0f}$")
         except ProprError as e:
             print(f"  {asset}: ordine fallito: {e}", file=sys.stderr)
             results.append({"asset": asset, "action": "error", "error": str(e)})
+            reduction_failed = True
+
+    if reduction_failed:
+        return results
+    if reductions:
+        try:
+            barrier_errors = _reduction_barrier_errors(
+                barrier_target,
+                client.get_positions(),
+            )
+        except Exception as exc:
+            barrier_errors = [f"readback:{type(exc).__name__}:{exc}"]
+        if barrier_errors:
+            results.append({
+                "asset": "barrier",
+                "action": "error",
+                "error": "riduzioni non confermate: " + ",".join(barrier_errors),
+            })
+            return results
+
+    for asset, delta, quantity, side, position_side, reduce_only in increases:
+        try:
+            r = client.create_order(side=side, position_side=position_side, order_type="market",
+                                    asset=asset, quantity=quantity,
+                                    reduce_only=reduce_only, close_position=False)
+            results.append({"asset": asset, "action": "adjust", "side": side,
+                            "qty": float(quantity), "delta_usd": round(delta, 2), "resp": r})
+            print(f"  {asset}: {side} {quantity} (reduceOnly={reduce_only}) "
+                  f"delta {delta:+.0f}$")
+        except ProprError as e:
+            print(f"  {asset}: ordine fallito: {e}", file=sys.stderr)
+            results.append({"asset": asset, "action": "error", "error": str(e)})
+            break
     return results
 
 
