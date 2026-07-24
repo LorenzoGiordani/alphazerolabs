@@ -1,8 +1,8 @@
 {
  "management_mode": "systematic-paper-automanage-v1",
  "activated_at": "2026-07-17T22:04:05.447154+00:00",
- "day_date": "2026-07-23",
- "day_start_equity": 5031.444216999999,
+ "day_date": "2026-07-24",
+ "day_start_equity": 5018.379744,
  "halted_today": false,
  "last_rebalance_ts": "2026-07-23T22:14:32.333040+00:00",
  "tranches": {
@@ -74,5 +74,5 @@
   "XRP": 71.42,
   "SUI": 35.71
  },
- "last_manage_check_ts": "2026-07-23T23:14:23.622050+00:00"
+ "last_manage_check_ts": "2026-07-24T00:14:24.593506+00:00"
 }
