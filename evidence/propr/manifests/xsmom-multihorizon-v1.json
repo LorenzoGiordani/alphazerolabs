@@ -48,9 +48,9 @@
     "strategy_status": "champion",
     "tranche_h": 24
   },
-  "implementation_commit": "6158b46333bb23135d420e25d908258e1693eda4",
+  "implementation_commit": "7c4d93ef7097ea7747a46714a020cd83af6cccb0",
   "initial_balance": 5000,
-  "maker_run_id": "maker-propr-gate-6158b46333bb",
+  "maker_run_id": "maker-propr-gate-7c4d93ef7097",
   "paper_only": true,
   "schema_version": 1,
   "scope": "propr-free-trial-paper",
@@ -59,15 +59,31 @@
   "trusted_artifacts": {
     ".github/workflows/paper-run.yml": {
       "artifact_path": ".github/workflows/paper-run.yml",
-      "artifact_sha256": "228bdebbda148e93596023d4c449775da8fe167942cffac49b5f7a649c79258e"
+      "artifact_sha256": "9dd302da14b83c2529f2070266cc6694fce9165e5a8328eda676884395621f04"
+    },
+    "backtest/engine.py": {
+      "artifact_path": "backtest/engine.py",
+      "artifact_sha256": "5a2a1fd1bb0f1d77707ecdeac4661f44eedb035555c2c7ec30d27515836878ba"
     },
     "backtest/evidence.py": {
       "artifact_path": "backtest/evidence.py",
       "artifact_sha256": "626280574216547f92fda941cfe1859c998a87f28f13a3bab838463caa0f80fb"
     },
+    "backtest/lifecycle.py": {
+      "artifact_path": "backtest/lifecycle.py",
+      "artifact_sha256": "b4950a1b91bb021550be8b1ca7751e9eda754bdcdb3478499f1052f0f40a8066"
+    },
     "backtest/portfolio.py": {
       "artifact_path": "backtest/portfolio.py",
       "artifact_sha256": "dd72b00a8a3cbd37d585badaf6ffe029a5abfd9e95bed1d01e7b0a1ae150c5ee"
+    },
+    "backtest/risk.py": {
+      "artifact_path": "backtest/risk.py",
+      "artifact_sha256": "247b47772fd37a7fb6ec8b0bf0cf1462ec21ebd1a6b94a3e08d84c68e623a63d"
+    },
+    "backtest/signals.py": {
+      "artifact_path": "backtest/signals.py",
+      "artifact_sha256": "4015b3c28918b855b6fafbe3ef5c2d535af41cc199b6468fa5b6ea2488bd6161"
     },
     "backtest/strategy.py": {
       "artifact_path": "backtest/strategy.py",
@@ -81,6 +97,10 @@
       "artifact_path": "pyproject.toml",
       "artifact_sha256": "366c7209b05879b0942a8b50ed2487ec68e8b5f28f984be3e83d4bc32008c412"
     },
+    "scripts/paper_trade.py": {
+      "artifact_path": "scripts/paper_trade.py",
+      "artifact_sha256": "f62572e0210b078945229e61445e6bf890e9cc92d63d3619584ae7a3b20606eb"
+    },
     "scripts/portfolio_paper.py": {
       "artifact_path": "scripts/portfolio_paper.py",
       "artifact_sha256": "85c18909ac719f31eeb0715915551ee4e06027e3d7c74f0b373c111dfed94df9"
@@ -91,15 +111,19 @@
     },
     "scripts/propr_contract.py": {
       "artifact_path": "scripts/propr_contract.py",
-      "artifact_sha256": "d8b900ec54104baf9c12bcdb79eca9742f671fd4fc012acd00a0aa3330bb922b"
+      "artifact_sha256": "8e0a186983f1582c08da44bc64c60021c89269a3dff10e4e9e048b35808503f3"
     },
     "scripts/propr_guard.py": {
       "artifact_path": "scripts/propr_guard.py",
-      "artifact_sha256": "f7c05332b9ef74dc543a6e3003113a1e74acfebb69f9ea1d4cccefebe7275eaf"
+      "artifact_sha256": "f975e48dbe85d2948cd9d73378b00e28950d9374195606b52a79fb29337b79a7"
     },
     "scripts/propr_paper.py": {
       "artifact_path": "scripts/propr_paper.py",
       "artifact_sha256": "774fd9d120ae49bd0f31d0447f6964abd0c83e915357daddb08d5e5ffbdc69a6"
+    },
+    "scripts/runtime_health.py": {
+      "artifact_path": "scripts/runtime_health.py",
+      "artifact_sha256": "5cbb73ea4f18f7a57314000bd814cb9a9bb84f70ea510e09535da70e3737915c"
     },
     "strategies/generated/xsmom-multihorizon-v1.yaml": {
       "artifact_path": "strategies/generated/xsmom-multihorizon-v1.yaml",
