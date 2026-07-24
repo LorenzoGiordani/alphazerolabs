@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "run_id": "30088674239-1",
-  "generated_at": "2026-07-24T11:11:09.116554+00:00",
+  "run_id": "30092142687-1",
+  "generated_at": "2026-07-24T12:11:07.609211+00:00",
   "component": "agents-v1",
   "critical": true,
   "expected_count": 0,
