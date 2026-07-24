@@ -32,6 +32,7 @@
     "requires_account_pin": true,
     "requires_guard": true,
     "rulebook": {
+      "daily_equity_floor_formula": "day_start_equity - daily_loss_allowance",
       "daily_loss_allowance_formula": "0.03 * max(starting_balance, day_start_realized_balance)",
       "daily_reset": "00:00 UTC",
       "drawdown_type": "static",
@@ -47,9 +48,9 @@
     "strategy_status": "champion",
     "tranche_h": 24
   },
-  "implementation_commit": "e8734d6d8b0666e23eab75ab6c616e69c76581b7",
+  "implementation_commit": "6158b46333bb23135d420e25d908258e1693eda4",
   "initial_balance": 5000,
-  "maker_run_id": "maker-propr-gate-e8734d6d8b06",
+  "maker_run_id": "maker-propr-gate-6158b46333bb",
   "paper_only": true,
   "schema_version": 1,
   "scope": "propr-free-trial-paper",
@@ -90,7 +91,7 @@
     },
     "scripts/propr_contract.py": {
       "artifact_path": "scripts/propr_contract.py",
-      "artifact_sha256": "aed3fe67aee78b69f06aea4c738ffdb4079bb4063a948bde87bb2d1ec2a246bc"
+      "artifact_sha256": "d8b900ec54104baf9c12bcdb79eca9742f671fd4fc012acd00a0aa3330bb922b"
     },
     "scripts/propr_guard.py": {
       "artifact_path": "scripts/propr_guard.py",
@@ -98,7 +99,7 @@
     },
     "scripts/propr_paper.py": {
       "artifact_path": "scripts/propr_paper.py",
-      "artifact_sha256": "b33467544f7e0f8cccfc267ae42ff463cc7c1d70e3bceb9eb7054da56b722c51"
+      "artifact_sha256": "774fd9d120ae49bd0f31d0447f6964abd0c83e915357daddb08d5e5ffbdc69a6"
     },
     "strategies/generated/xsmom-multihorizon-v1.yaml": {
       "artifact_path": "strategies/generated/xsmom-multihorizon-v1.yaml",
