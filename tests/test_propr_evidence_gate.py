@@ -245,7 +245,12 @@ def test_rebalance_order_cap_is_checked_before_first_write():
             raise AssertionError("write reached before order-cap validation")
 
     positions = [
-        {"base": f"A{i:02}", "positionSide": "long", "notionalValue": "10"}
+        {
+            "base": f"A{i:02}",
+            "positionSide": "long",
+            "notionalValue": "10",
+            "quantity": "10",
+        }
         for i in range(propr.MAX_ORDERS_PER_ACTION + 1)
     ]
     prices = {p["base"]: 1.0 for p in positions}
@@ -264,6 +269,287 @@ def test_rebalance_missing_price_fails_preflight_before_first_write():
     position = {"base": "BTC", "positionSide": "long", "notionalValue": "250"}
     with pytest.raises(ProprError, match="prezzo mancante"):
         propr.rebalance(NoWriteClient(), {}, {}, [position])
+
+
+def test_rebalance_releases_margin_before_opening_replacement_leg():
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self):
+            self.positions = [
+                {
+                    "base": "XRP",
+                    "positionSide": "long",
+                    "notionalValue": "47591.87",
+                    "markPrice": "1.1135",
+                    "quantity": "42731.2",
+                },
+                {
+                    "base": "NEAR",
+                    "positionSide": "short",
+                    "notionalValue": "47797.10",
+                    "markPrice": "1.8993",
+                    "quantity": "25166.3",
+                },
+            ]
+            self.events = []
+
+        def create_order(self, **order):
+            self.events.append((
+                "order",
+                order["asset"],
+                order["reduce_only"],
+                order["quantity"],
+            ))
+            if order["asset"] == "XRP":
+                self.positions = [
+                    position
+                    for position in self.positions
+                    if position["base"] != "XRP"
+                ]
+            return [{"orderId": f"order-{order['asset']}", "status": "filled"}]
+
+        def get_positions(self):
+            self.events.append(("readback",))
+            return list(self.positions)
+
+    client = Client()
+    results = propr.rebalance(
+        client,
+        {"BTC": 67_857.142857, "NEAR": -67_857.142857},
+        {"BTC": 65_000.0, "NEAR": 1.8993, "XRP": 1.1135},
+        list(client.positions),
+    )
+
+    assert client.events == [
+        ("order", "XRP", True, "42731.2"),
+        ("readback",),
+        ("order", "BTC", False, "1.044"),
+        ("order", "NEAR", False, "10561.8"),
+    ]
+    assert [result["asset"] for result in results] == ["XRP", "BTC", "NEAR"]
+
+
+def test_rebalance_side_flip_closes_exact_quantity_before_reopening():
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self):
+            self.positions = [{
+                "base": "XRP",
+                "positionSide": "long",
+                "notionalValue": "100",
+                "markPrice": "10",
+                "quantity": "10.25",
+            }]
+            self.events = []
+
+        def create_order(self, **order):
+            self.events.append((
+                "order",
+                order["side"],
+                order["position_side"],
+                order["reduce_only"],
+                order["quantity"],
+            ))
+            if order["reduce_only"]:
+                self.positions = []
+            return [{"orderId": f"order-{len(self.events)}", "status": "filled"}]
+
+        def get_positions(self):
+            self.events.append(("readback",))
+            return list(self.positions)
+
+    client = Client()
+    results = propr.rebalance(
+        client,
+        {"XRP": -100.0},
+        {"XRP": 10.0},
+        list(client.positions),
+    )
+
+    assert client.events == [
+        ("order", "sell", "short", True, "10.25"),
+        ("readback",),
+        ("order", "sell", "short", False, "10.0"),
+    ]
+    assert [result["delta_usd"] for result in results] == [-100.0, -100.0]
+
+
+def test_rebalance_barrier_blocks_increases_when_reduction_is_not_visible():
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self):
+            self.positions = [{
+                "base": "XRP",
+                "positionSide": "long",
+                "notionalValue": "100",
+                "markPrice": "10",
+                "quantity": "10",
+            }]
+            self.created_assets = []
+
+        def create_order(self, **order):
+            self.created_assets.append(order["asset"])
+            return [{"orderId": f"order-{order['asset']}", "status": "filled"}]
+
+        def get_positions(self):
+            return list(self.positions)
+
+    client = Client()
+    results = propr.rebalance(
+        client,
+        {"BTC": 100.0},
+        {"BTC": 100.0, "XRP": 10.0},
+        list(client.positions),
+    )
+
+    assert client.created_assets == ["XRP"]
+    assert results[-1]["asset"] == "barrier"
+    assert results[-1]["action"] == "error"
+    assert "riduzioni non confermate" in results[-1]["error"]
+
+
+def test_rebalance_pending_reduction_blocks_increase_even_if_position_is_gone():
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self):
+            self.positions = [{
+                "base": "XRP",
+                "positionSide": "long",
+                "notionalValue": "100",
+                "markPrice": "10",
+                "quantity": "10",
+            }]
+            self.events = []
+
+        def create_order(self, **order):
+            self.events.append(("order", order["asset"]))
+            if order["asset"] == "XRP":
+                self.positions = []
+                return [{"orderId": "order-XRP", "status": "pending"}]
+            return [{"orderId": "order-BTC", "status": "filled"}]
+
+        def get_positions(self):
+            self.events.append(("readback",))
+            return list(self.positions)
+
+    client = Client()
+    results = propr.rebalance(
+        client,
+        {"BTC": 100.0},
+        {"BTC": 100.0, "XRP": 10.0},
+        list(client.positions),
+    )
+
+    assert client.events == [("order", "XRP")]
+    assert results == [{
+        "asset": "XRP",
+        "action": "error",
+        "error": "riduzione non confermata come filled per XRP",
+    }]
+
+
+@pytest.mark.parametrize("order_id", [7, "   "])
+def test_rebalance_invalid_reduction_order_id_blocks_readback_and_increase(order_id):
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self):
+            self.positions = [{
+                "base": "XRP",
+                "positionSide": "long",
+                "notionalValue": "100",
+                "markPrice": "10",
+                "quantity": "10",
+            }]
+            self.events = []
+
+        def create_order(self, **order):
+            self.events.append(("order", order["asset"]))
+            if order["asset"] == "XRP":
+                self.positions = []
+                return [{"orderId": order_id, "status": "filled"}]
+            return [{"orderId": "order-BTC", "status": "filled"}]
+
+        def get_positions(self):
+            self.events.append(("readback",))
+            return list(self.positions)
+
+    client = Client()
+    results = propr.rebalance(
+        client,
+        {"BTC": 100.0},
+        {"BTC": 100.0, "XRP": 10.0},
+        list(client.positions),
+    )
+
+    assert client.events == [("order", "XRP")]
+    assert results[-1]["asset"] == "XRP"
+    assert results[-1]["action"] == "error"
+    assert "riduzione non confermata come filled" in results[-1]["error"]
+
+
+def test_rebalance_barrier_rejects_unchanged_same_side_partial_reduction():
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self):
+            self.positions = [{
+                "base": "XRP",
+                "positionSide": "long",
+                "notionalValue": "100",
+                "markPrice": "10",
+                "quantity": "10",
+            }]
+            self.created_assets = []
+
+        def create_order(self, **order):
+            self.created_assets.append(order["asset"])
+            return [{"orderId": f"order-{order['asset']}", "status": "filled"}]
+
+        def get_positions(self):
+            return list(self.positions)
+
+    client = Client()
+    results = propr.rebalance(
+        client,
+        {"BTC": 100.0, "XRP": 90.0},
+        {"BTC": 100.0, "XRP": 10.0},
+        list(client.positions),
+    )
+
+    assert client.created_assets == ["XRP"]
+    assert results[-1]["asset"] == "barrier"
+    assert results[-1]["action"] == "error"
+    assert "XRP:quantity(10!=9.0)" in results[-1]["error"]
+
+
+def test_rebalance_side_flip_split_is_included_in_preflight_order_cap():
+    from scripts.propr_client import ProprError
+    import scripts.propr_paper as propr
+
+    class NoWriteClient:
+        def create_order(self, **_kwargs):
+            raise AssertionError("write reached before expanded order-cap validation")
+
+    positions = [
+        {
+            "base": f"A{i}",
+            "positionSide": "long",
+            "notionalValue": "100",
+            "markPrice": "10",
+            "quantity": "10",
+        }
+        for i in range(7)
+    ]
+    target = {position["base"]: -100.0 for position in positions}
+    prices = {position["base"]: 10.0 for position in positions}
+
+    with pytest.raises(ProprError, match="14 ordini > cap 12"):
+        propr.rebalance(NoWriteClient(), target, prices, positions)
 
 
 def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monkeypatch):
