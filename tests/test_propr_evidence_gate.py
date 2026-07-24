@@ -288,6 +288,70 @@ def test_propr_management_state_binds_last_target_to_bounded_tranches():
         propr._validate_management_state(invalid, ["BTC", "ETH"], 5000.0, 7)
 
 
+def test_propr_leverage_preflight_is_read_only_and_accepts_safer_config():
+    import scripts.propr_paper as propr
+
+    class Client:
+        def get_leverage_limits(self):
+            return {"defaultMax": 3, "overrides": {"ETH": 2}}
+
+        def get_margin_config(self, asset):
+            return {
+                "asset": asset,
+                "configId": f"cfg-{asset}",
+                "marginMode": "cross",
+                "leverage": 1 if asset == "ETH" else 2,
+            }
+
+        def update_margin_config(self, *_args, **_kwargs):
+            raise AssertionError("leverage preflight attempted a provider write")
+
+    result = propr._preflight_leverage(Client(), ["ETH", "BTC"], 2)
+
+    assert result == {
+        "BTC": {"configured": 2, "provider_cap": 3, "margin_mode": "cross"},
+        "ETH": {"configured": 1, "provider_cap": 2, "margin_mode": "cross"},
+    }
+
+
+def test_propr_leverage_preflight_blocks_contract_or_config_over_cap():
+    from scripts.propr_client import ProprError
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self, configured=2):
+            self.configured = configured
+
+        def get_leverage_limits(self):
+            return {"defaultMax": 2}
+
+        def get_margin_config(self, asset):
+            return {
+                "asset": asset,
+                "configId": f"cfg-{asset}",
+                "marginMode": "cross",
+                "leverage": self.configured,
+            }
+
+        def update_margin_config(self, *_args, **_kwargs):
+            raise AssertionError("invalid preflight attempted a provider write")
+
+    with pytest.raises(ProprError, match="contrattuale oltre cap"):
+        propr._preflight_leverage(Client(), ["BTC"], 3)
+    with pytest.raises(ProprError, match="configurata oltre cap"):
+        propr._preflight_leverage(Client(configured=3), ["BTC"], 2)
+
+
+def test_propr_contract_pins_daily_equity_floor_formula():
+    import scripts.propr_paper as propr
+
+    contract = propr._paper_execution_contract(propr.load(propr.SPEC_PATH))
+
+    assert contract["rulebook"]["daily_equity_floor_formula"] == (
+        "day_start_equity - daily_loss_allowance"
+    )
+
+
 def test_protection_summary_counts_only_native_reduce_only_closes():
     import scripts.propr_paper as propr
 
@@ -647,7 +711,7 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
     monkeypatch.setattr(propr, "STATE_PATH", state)
     monkeypatch.setattr(propr, "STATUS_PATH", status)
     monkeypatch.setattr(propr, "log_event", lambda _event: None)
-    monkeypatch.setattr(propr, "_set_leverage", lambda *_args: None)
+    monkeypatch.setattr(propr, "_preflight_leverage", lambda *_args: {})
     monkeypatch.setattr(propr, "trailing_returns",
                         lambda *_args: ({"BTC": 0.1, "ETH": -0.1}, {"BTC": 100.0, "ETH": 10.0}))
     monkeypatch.setattr(propr, "xs_momentum_weights", lambda *_args, **_kwargs:

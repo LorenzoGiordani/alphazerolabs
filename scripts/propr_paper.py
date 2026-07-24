@@ -431,22 +431,66 @@ def _raise_on_order_errors(results: list[dict]) -> None:
         raise ProprError(f"azione Propr parziale; ordini falliti: {', '.join(failed)}")
 
 
-def _set_leverage(client: ProprClient, symbols: list[str], want: int) -> None:
-    """Alza la leva cross al max consentito (cap dello spec) per ogni asset
-    dell'universo — di default Propr apre a leva 1x e con gross=1.0 dollar-neutral
-    su N gambe il margine finisce prima di piazzare l'ultima."""
+def _positive_integer(value: object, label: str) -> int:
+    try:
+        parsed = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise ProprError(f"{label} non valido") from exc
+    if not parsed.is_finite() or parsed <= 0 or parsed != parsed.to_integral_value():
+        raise ProprError(f"{label} non intero positivo")
+    return int(parsed)
+
+
+def _preflight_leverage(
+    client: ProprClient,
+    symbols: list[str],
+    contract_cap: int,
+) -> dict[str, dict]:
+    """Verifica la configurazione esistente senza modificarla."""
+    contract_cap = _positive_integer(contract_cap, "leva contrattuale")
     limits = client.get_leverage_limits()
-    for asset in symbols:
-        cap = limits.get("overrides", {}).get(asset, limits.get("defaultMax", 2))
-        lev = min(want, cap)
-        try:
-            cfg = client.get_margin_config(asset)
-            if int(float(cfg.get("leverage", 1))) >= lev:
-                continue
-            client.update_margin_config(cfg["configId"], asset, lev)
-            print(f"  leverage {asset} -> {lev}x")
-        except ProprError as e:
-            print(f"  {asset}: leverage config fallita: {e}", file=sys.stderr)
+    if not isinstance(limits, dict):
+        raise ProprError("leverage limits Propr non strutturati")
+    overrides = limits.get("overrides") or {}
+    defaults = limits.get("defaults") or {}
+    if not isinstance(overrides, dict) or not isinstance(defaults, dict):
+        raise ProprError("leverage limits Propr ambigui")
+
+    result = {}
+    for asset in sorted(set(symbols)):
+        raw_cap = overrides.get(asset)
+        if raw_cap is None:
+            raw_cap = limits.get("defaultMax", defaults.get("crypto"))
+        provider_cap = _positive_integer(raw_cap, f"leva massima {asset}")
+        if contract_cap > provider_cap:
+            raise ProprError(
+                f"leva contrattuale oltre cap provider: {asset} "
+                f"{contract_cap}>{provider_cap}"
+            )
+        config = client.get_margin_config(asset)
+        if (
+            not isinstance(config, dict)
+            or config.get("asset") != asset
+            or not str(config.get("configId", "")).strip()
+            or str(config.get("marginMode", "")).lower() != "cross"
+        ):
+            raise ProprError(f"margin config Propr non valida per {asset}")
+        configured = _positive_integer(
+            config.get("leverage"), f"leva configurata {asset}")
+        if configured > provider_cap or configured > contract_cap:
+            raise ProprError(
+                f"leva configurata oltre cap: {asset}={configured}"
+            )
+        if PROPR_GROSS_OVERRIDE > configured:
+            raise ProprError(
+                f"leva configurata insufficiente al gross: {asset}={configured}"
+            )
+        result[asset] = {
+            "configured": configured,
+            "provider_cap": provider_cap,
+            "margin_mode": "cross",
+        }
+    return result
 
 
 def _paper_track_record(strategy_id: str) -> dict | None:
@@ -756,7 +800,8 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
             target = _validate_target(
                 local_state["last_target"], symbols, sizing_base)
             print(f"  RE-ENTRY post-breaker: ripristino {len(target)} gambe")
-            _set_leverage(client, symbols, int(spec.get("risk", {}).get("max_leverage", 2)))
+            _preflight_leverage(
+                client, symbols, spec.get("risk", {}).get("max_leverage", 2))
             results = rebalance(client, target, px, positions)
             log_event({"type": "reentry", "strategy": spec["id"], "account_id": account_id,
                        "equity": round(equity, 2), "target": {k: round(v, 2) for k, v in target.items()},
@@ -786,7 +831,8 @@ def main(snapshot_only: bool = False, manage_paper: bool = False) -> None:
             target = {a: v for a, v in target.items() if abs(v) > 1e-9}
             target = _validate_target(target, symbols, sizing_base)
             print(f"  TRANCHE {slot}/{n_tranches}: target book {len(target)} gambe su {len(px)} prezzi")
-            _set_leverage(client, symbols, int(spec.get("risk", {}).get("max_leverage", 2)))
+            _preflight_leverage(
+                client, symbols, spec.get("risk", {}).get("max_leverage", 2))
             results = rebalance(client, target, px, positions)
             log_event({"type": "rebalance", "strategy": spec["id"], "account_id": account_id,
                        "equity": round(equity, 2), "tranche_slot": slot,

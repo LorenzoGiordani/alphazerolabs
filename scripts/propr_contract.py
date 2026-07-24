@@ -13,6 +13,7 @@ RULEBOOK = {
     "daily_loss_allowance_formula": (
         "0.03 * max(starting_balance, day_start_realized_balance)"
     ),
+    "daily_equity_floor_formula": "day_start_equity - daily_loss_allowance",
     "daily_reset": "00:00 UTC",
     "max_drawdown_pct": 6,
     "drawdown_type": "static",
