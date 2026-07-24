@@ -31,16 +31,22 @@ GUARD_MAX_CREATES = 8
 
 TRUSTED_PATHS = (
     ".github/workflows/paper-run.yml",
+    "backtest/engine.py",
     "backtest/evidence.py",
+    "backtest/lifecycle.py",
     "backtest/portfolio.py",
+    "backtest/risk.py",
+    "backtest/signals.py",
     "backtest/strategy.py",
     "pipeline/live.py",
     "pyproject.toml",
     "scripts/portfolio_paper.py",
+    "scripts/paper_trade.py",
     "scripts/propr_client.py",
     "scripts/propr_contract.py",
     "scripts/propr_guard.py",
     "scripts/propr_paper.py",
+    "scripts/runtime_health.py",
     SPEC_REL,
     "uv.lock",
 )

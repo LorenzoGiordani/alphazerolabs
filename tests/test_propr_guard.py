@@ -38,13 +38,17 @@ def _position(asset="BTC", position_id="pos-1", side="long", mark="100", quantit
 
 def _stop(order_id, position, created_at):
     is_long = position["positionSide"] == "long"
+    mark = float(position["markPrice"])
     return {
         "orderId": order_id,
         "intentId": f"intent-{order_id}",
         "positionId": position["positionId"],
+        "asset": position["base"],
         "type": "stop_market",
         "side": "sell" if is_long else "buy",
         "positionSide": "short" if is_long else "long",
+        "quantity": position["quantity"],
+        "triggerPrice": str(mark * (0.96 if is_long else 1.04)),
         "reduceOnly": True,
         "closePosition": True,
         "createdAt": created_at,
@@ -167,9 +171,11 @@ def test_read_only_plan_uses_canary_opposite_side_and_skips_existing(monkeypatch
             ]
 
         def get_active_orders(self):
-            return [{"positionId": "pos-btc", "type": "stop_market",
-                     "side": "sell", "positionSide": "short",
-                     "reduceOnly": True, "closePosition": True}]
+            return [_stop(
+                "stop-btc",
+                _position("BTC", "pos-btc", "long", "100", "2"),
+                "2026-07-24T09:00:00Z",
+            )]
 
         def create_order(self, **_kwargs):
             pytest.fail("read-only plan attempted a write")
@@ -213,13 +219,41 @@ def test_wrong_side_stop_does_not_count_as_protection():
     import scripts.propr_guard as guard
 
     position = _position("ETH", "pos-eth", "short", "200", "3")
-    wrong = {"positionId": "pos-eth", "type": "stop_market", "side": "buy",
-             "positionSide": "short", "reduceOnly": True, "closePosition": True}
+    wrong = _stop("wrong", position, "2026-07-24T09:00:00Z")
+    wrong["positionSide"] = "short"
     plans, skipped = guard._build_plan([position], [wrong], "*")
     assert skipped == 0
     assert len(plans) == 1
     assert plans[0]["side"] == "buy"
     assert plans[0]["position_side"] == "long"
+
+
+@pytest.mark.parametrize("updates", [
+    {"asset": "ETH"},
+    {"quantity": "NaN"},
+    {"quantity": "0"},
+    {"triggerPrice": "NaN"},
+    {"triggerPrice": "0"},
+    {"triggerPrice": "101"},
+])
+def test_protective_order_rejects_wrong_asset_or_invalid_risk_fields(updates):
+    import scripts.propr_guard as guard
+
+    position = _position("BTC", "pos-btc", "long", "100", "2")
+    order = _stop("stop-btc", position, "2026-07-24T09:00:00Z")
+    order.update(updates)
+
+    assert guard._is_protective_order(position, order) is False
+
+
+def test_protective_order_accepts_stale_positive_quantity_with_close_position():
+    import scripts.propr_guard as guard
+
+    position = _position("BTC", "pos-btc", "long", "100", "2")
+    order = _stop("stop-btc", position, "2026-07-24T09:00:00Z")
+    order["quantity"] = "999"
+
+    assert guard._is_protective_order(position, order) is True
 
 
 def test_reconciliation_requires_one_stop_per_position_without_orphans():

@@ -144,16 +144,39 @@ def _validate_attempt(attempt: dict | None, expected_account_id: str | None) -> 
 
 
 def _is_protective_order(position: dict, order: dict) -> bool:
+    position_asset = str(position.get("base", "")).upper()
     position_side = str(position.get("positionSide", "")).lower()
     closing_side = "sell" if position_side == "long" else "buy" if position_side == "short" else ""
     order_position_side = "long" if closing_side == "buy" else "short" if closing_side else ""
+    order_assets = {
+        str(order[field]).upper()
+        for field in ("base", "asset")
+        if field in order
+    }
+    try:
+        quantity = _parse_decimal(order.get("quantity"), "stop quantity")
+        trigger = _parse_decimal(order.get("triggerPrice"), "stop triggerPrice")
+        mark = _parse_decimal(position.get("markPrice"), "position markPrice")
+    except ProprError:
+        return False
+    protective_price = (
+        trigger < mark if position_side == "long"
+        else trigger > mark if position_side == "short"
+        else False
+    )
     return bool(
-        order.get("type") == "stop_market"
+        position_asset
+        and (not order_assets or order_assets == {position_asset})
+        and order.get("type") == "stop_market"
         and str(order.get("positionId", "")) == str(position.get("positionId", ""))
         and str(order.get("side", "")).lower() == closing_side
         and str(order.get("positionSide", "")).lower() == order_position_side
         and order.get("reduceOnly") is True
         and order.get("closePosition") is True
+        and quantity > 0
+        and trigger > 0
+        and mark > 0
+        and protective_price
     )
 
 

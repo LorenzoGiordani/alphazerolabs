@@ -1,5 +1,8 @@
 import json
+import os
+import subprocess
 import sys
+import textwrap
 from pathlib import Path
 
 import pytest
@@ -133,12 +136,14 @@ def test_guard_only_snapshot_reports_native_protection(tmp_path, monkeypatch):
 
         def get_positions(self):
             return [{"positionId": "pos-1", "base": "ETH", "positionSide": "long",
-                     "notionalValue": "250", "unrealizedPnl": "12"}]
+                     "notionalValue": "250", "unrealizedPnl": "12",
+                     "markPrice": "100", "quantity": "2"}]
 
         def get_active_orders(self):
             return [{"orderId": "order-1", "positionId": "pos-1", "type": "stop_market",
-                     "side": "sell", "positionSide": "short", "reduceOnly": True,
-                     "closePosition": True}]
+                     "asset": "ETH", "side": "sell", "positionSide": "short",
+                     "quantity": "2", "triggerPrice": "96",
+                     "reduceOnly": True, "closePosition": True}]
 
         def get_account(self):
             return {"balance": "5004", "totalUnrealizedPnl": "12", "highWaterMark": "5030"}
@@ -356,14 +361,18 @@ def test_protection_summary_counts_only_native_reduce_only_closes():
     import scripts.propr_paper as propr
 
     positions = [
-        {"positionId": "p1", "positionSide": "long"},
-        {"positionId": "p2", "positionSide": "short"},
+        {"positionId": "p1", "base": "BTC", "positionSide": "long",
+         "quantity": "2", "markPrice": "100"},
+        {"positionId": "p2", "base": "ETH", "positionSide": "short",
+         "quantity": "3", "markPrice": "200"},
     ]
     orders = [
-        {"positionId": "p1", "type": "stop_market", "side": "sell", "positionSide": "short",
-         "reduceOnly": True, "closePosition": True},
-        {"positionId": "p2", "type": "stop_market", "side": "buy", "positionSide": "short",
-         "reduceOnly": True, "closePosition": True},
+        {"positionId": "p1", "asset": "BTC", "type": "stop_market",
+         "side": "sell", "positionSide": "short", "quantity": "99",
+         "triggerPrice": "96", "reduceOnly": True, "closePosition": True},
+        {"positionId": "p2", "asset": "ETH", "type": "stop_market",
+         "side": "buy", "positionSide": "short", "quantity": "3",
+         "triggerPrice": "208", "reduceOnly": True, "closePosition": True},
     ]
     summary = propr._protection_summary(positions, orders)
     assert summary["protected_positions"] == 1
@@ -782,6 +791,60 @@ def test_paper_run_requires_both_propr_kill_switches_for_management():
     assert ("if: always() && steps.health.outcome == 'success' && "
             "steps.propr_gate.outcome == 'success'") in workflow
     assert "fetch-depth: 0" in workflow
+
+
+@pytest.mark.parametrize("variable", [
+    "PROPR_GUARD_ENABLED",
+    "PROPR_AUTOMANAGE_ENABLED",
+])
+@pytest.mark.parametrize("value", ["TRUE", "true "])
+def test_paper_run_rejects_noncanonical_boolean_env(variable, value):
+    workflow = (
+        Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml"
+    ).read_text()
+    start = workflow.index('          case "$PROPR_GUARD_ENABLED"')
+    end = workflow.index('          if [ -z "$PROPR_API_KEY" ]', start)
+    validator = textwrap.dedent(workflow[start:end])
+    env = {
+        **os.environ,
+        "PROPR_GUARD_ENABLED": "false",
+        "PROPR_AUTOMANAGE_ENABLED": "false",
+        variable: value,
+    }
+
+    result = subprocess.run(
+        ["bash", "-c", validator],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+
+
+@pytest.mark.parametrize("value", ["", "true", "false"])
+def test_paper_run_accepts_canonical_boolean_env(value):
+    workflow = (
+        Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml"
+    ).read_text()
+    start = workflow.index('          case "$PROPR_GUARD_ENABLED"')
+    end = workflow.index('          if [ -z "$PROPR_API_KEY" ]', start)
+    validator = textwrap.dedent(workflow[start:end])
+
+    result = subprocess.run(
+        ["bash", "-c", validator],
+        env={
+            **os.environ,
+            "PROPR_GUARD_ENABLED": value,
+            "PROPR_AUTOMANAGE_ENABLED": value,
+        },
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
 
 
 @pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])

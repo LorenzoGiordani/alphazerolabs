@@ -215,6 +215,33 @@ def test_valid_propr_paper_execution_pair_is_verified(tmp_path):
     assert result["scope"] == "propr-free-trial-paper"
 
 
+def test_propr_trusted_paths_close_local_imports_and_detect_tamper(tmp_path):
+    required = {
+        "backtest/engine.py",
+        "backtest/risk.py",
+        "backtest/signals.py",
+        "backtest/lifecycle.py",
+        "scripts/paper_trade.py",
+        "scripts/runtime_health.py",
+    }
+    assert required.issubset(TRUSTED_PATHS)
+    spec = {"id": "alpha-v1", "status": "champion", "engine": "portfolio"}
+    account_id = "urn:prp-account:paper-1"
+    contract = {"gross_override": 0.3}
+    _valid_propr_pair(tmp_path, spec, account_id, contract)
+
+    for relative in sorted(required):
+        path = tmp_path / relative
+        original = path.read_text()
+        path.write_text(original + "# tampered\n")
+        result = verify_propr_paper_evidence(
+            spec, tmp_path, account_id=account_id,
+            execution_contract=contract)
+        assert any(reason.endswith("_artifact_hash_mismatch")
+                   for reason in result["reasons"]), relative
+        path.write_text(original)
+
+
 def test_propr_paper_pair_binds_account_runner_and_overlay(tmp_path):
     spec = {"id": "alpha-v1", "status": "champion", "engine": "portfolio"}
     account_id = "urn:prp-account:paper-1"

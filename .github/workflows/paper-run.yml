@@ -127,6 +127,14 @@ jobs:
         env:
           PROPR_MAINTENANCE: ${{ inputs.propr_maintenance }}
         run: |
+          case "$PROPR_GUARD_ENABLED" in
+            ""|true|false) ;;
+            *) exit 1 ;;
+          esac
+          case "$PROPR_AUTOMANAGE_ENABLED" in
+            ""|true|false) ;;
+            *) exit 1 ;;
+          esac
           if [ -z "$PROPR_API_KEY" ]; then
             [ "$PROPR_GUARD_ENABLED" != "true" ]
             [ "$PROPR_AUTOMANAGE_ENABLED" != "true" ]
