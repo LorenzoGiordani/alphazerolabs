@@ -2,8 +2,8 @@
  "account_id": "SzSKErmBBPN6",
  "activated_at": "2026-07-23T18:38:41.986777+00:00",
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
- "day_date": "2026-07-23",
- "day_start_equity": 50000.0,
+ "day_date": "2026-07-24",
+ "day_start_equity": 50094.812385,
  "expected_assets": [
   "NEAR",
   "XRP"
@@ -20,8 +20,8 @@
  "halt_reason": "",
  "halted_today": false,
  "high_water_mark": 50157.444185,
- "last_equity": 50000.291271,
- "last_manage_ts": "2026-07-23T23:51:44.689951+00:00",
+ "last_equity": 50094.812385,
+ "last_manage_ts": "2026-07-24T00:11:10.697516+00:00",
  "last_rebalance_ts": "2026-07-23T23:05:11.972192+00:00",
  "last_target": {
   "NEAR": -47500.0,

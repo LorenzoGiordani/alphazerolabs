@@ -1,30 +1,30 @@
 {
  "account_id": "SzSKErmBBPN6",
  "attempt_status": "active",
- "balance": 50251.11,
+ "balance": 50251.45,
  "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
  "daily_stop_pct": 0.15,
  "end_at": "2026-07-30T13:00:00+00:00",
- "equity": 50016.15,
+ "equity": 50094.81,
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 4.75,
  "margin_utilization": 0.95,
- "mode": "check",
- "note": "preflight API read-only; status locale aggiornato",
+ "mode": "manage",
+ "note": "guard_only",
  "official_candidate": false,
  "paper_only": true,
  "positions": [
   {
    "asset": "XRP",
-   "notional": 47288.48,
+   "notional": 47237.21,
    "side": "long",
-   "unrealized_pnl": -178.06
+   "unrealized_pnl": -229.34
   },
   {
    "asset": "NEAR",
-   "notional": 47414.57,
+   "notional": 47284.96,
    "side": "short",
-   "unrealized_pnl": -56.9
+   "unrealized_pnl": 72.71
   }
  ],
  "start_at": "2026-07-23T13:00:00+00:00",
@@ -32,8 +32,8 @@
   "account_id": "SzSKErmBBPN6",
   "activated_at": "2026-07-23T18:38:41.986777+00:00",
   "competition_id": "urn:prp-competition:XSLPfvuHDUtT",
-  "day_date": "2026-07-23",
-  "day_start_equity": 50000.0,
+  "day_date": "2026-07-24",
+  "day_start_equity": 50094.812385,
   "expected_assets": [
    "NEAR",
    "XRP"
@@ -50,8 +50,8 @@
   "halt_reason": "",
   "halted_today": false,
   "high_water_mark": 50157.444185,
-  "last_equity": 50000.291271,
-  "last_manage_ts": "2026-07-23T23:51:44.689951+00:00",
+  "last_equity": 50094.812385,
+  "last_manage_ts": "2026-07-24T00:11:10.697516+00:00",
   "last_rebalance_ts": "2026-07-23T23:05:11.972192+00:00",
   "last_target": {
    "NEAR": -47500.0,
@@ -87,5 +87,5 @@
  },
  "strategy": "xsmom-neutral2-tournament-20260724-v3",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-23T23:54:03.405601+00:00"
+ "updated_at": "2026-07-24T00:11:13.746028+00:00"
 }
