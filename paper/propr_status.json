@@ -7,9 +7,9 @@
  "official_candidate": false,
  "realtime_protection": {
   "mode": "native-stop-market",
-  "open_positions": 7,
-  "active_protective_orders": 7,
-  "protected_positions": 7,
+  "open_positions": 5,
+  "active_protective_orders": 5,
+  "protected_positions": 5,
   "duplicate_protective_orders": 0,
   "unmatched_protective_orders": 0,
   "unexpected_active_orders": 0,
@@ -23,59 +23,47 @@
  "attempt_status": "active",
  "started_at": "2026-07-08T10:39:47.092Z",
  "start_balance": 5000.0,
- "equity": 5020.96,
- "balance": 4993.33,
+ "equity": 5025.76,
+ "balance": 4987.53,
  "high_water_mark": 5060.986444,
  "profit_target_pct": 10.0,
- "profit_target_progress_pct": 0.42,
+ "profit_target_progress_pct": 0.52,
  "max_daily_loss_pct": 3.0,
  "max_drawdown_pct": 6.0,
  "max_drawdown_equity_limit": 4700.0,
- "drawdown_room_pct": 6.42,
+ "drawdown_room_pct": 6.52,
  "passed": false,
  "breached": false,
  "positions": [
   {
-   "asset": "ZEC",
-   "side": "long",
-   "notional": 70.22,
-   "unrealized_pnl": -1.68
-  },
-  {
-   "asset": "XRP",
-   "side": "long",
-   "notional": 69.08,
-   "unrealized_pnl": -2.28
-  },
-  {
    "asset": "WLD",
    "side": "short",
-   "notional": 174.43,
-   "unrealized_pnl": 6.06
+   "notional": 171.54,
+   "unrealized_pnl": 8.95
   },
   {
    "asset": "SOL",
    "side": "short",
-   "notional": 141.27,
-   "unrealized_pnl": 5.53
+   "notional": 139.9,
+   "unrealized_pnl": 6.91
   },
   {
    "asset": "BTC",
    "side": "long",
-   "notional": 65.05,
-   "unrealized_pnl": -1.28
+   "notional": 64.34,
+   "unrealized_pnl": -1.99
   },
   {
    "asset": "NEAR",
    "side": "short",
-   "notional": 252.03,
-   "unrealized_pnl": 5.01
+   "notional": 246.03,
+   "unrealized_pnl": 11.01
   },
   {
    "asset": "ETH",
    "side": "long",
-   "notional": 250.43,
-   "unrealized_pnl": 16.26
+   "notional": 247.52,
+   "unrealized_pnl": 13.35
   }
  ],
  "last_rebalance_ts": "2026-07-23T22:14:32.333040+00:00",
@@ -1499,6 +1487,14 @@
   {
    "ts": "2026-07-24T12:14:22.964151+00:00",
    "equity": 5020.96
+  },
+  {
+   "ts": "2026-07-24T13:14:25.324577+00:00",
+   "equity": 5025.76
+  },
+  {
+   "ts": "2026-07-24T13:14:30.119678+00:00",
+   "equity": 5025.76
   }
  ],
  "strategy_detail": {
@@ -1568,5 +1564,5 @@
   "maker_run_id": "maker-propr-gate-9ff17bbd69b4",
   "checker_run_id": "checker-propr-gate-20260724-final"
  },
- "updated_at": "2026-07-24T12:14:22.964400+00:00"
+ "updated_at": "2026-07-24T13:14:30.119944+00:00"
 }
