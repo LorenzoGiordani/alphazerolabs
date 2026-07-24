@@ -452,6 +452,46 @@ def test_rebalance_pending_reduction_blocks_increase_even_if_position_is_gone():
     }]
 
 
+@pytest.mark.parametrize("order_id", [7, "   "])
+def test_rebalance_invalid_reduction_order_id_blocks_readback_and_increase(order_id):
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self):
+            self.positions = [{
+                "base": "XRP",
+                "positionSide": "long",
+                "notionalValue": "100",
+                "markPrice": "10",
+                "quantity": "10",
+            }]
+            self.events = []
+
+        def create_order(self, **order):
+            self.events.append(("order", order["asset"]))
+            if order["asset"] == "XRP":
+                self.positions = []
+                return [{"orderId": order_id, "status": "filled"}]
+            return [{"orderId": "order-BTC", "status": "filled"}]
+
+        def get_positions(self):
+            self.events.append(("readback",))
+            return list(self.positions)
+
+    client = Client()
+    results = propr.rebalance(
+        client,
+        {"BTC": 100.0},
+        {"BTC": 100.0, "XRP": 10.0},
+        list(client.positions),
+    )
+
+    assert client.events == [("order", "XRP")]
+    assert results[-1]["asset"] == "XRP"
+    assert results[-1]["action"] == "error"
+    assert "riduzione non confermata come filled" in results[-1]["error"]
+
+
 def test_rebalance_barrier_rejects_unchanged_same_side_partial_reduction():
     import scripts.propr_paper as propr
 

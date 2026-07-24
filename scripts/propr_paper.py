@@ -186,7 +186,8 @@ def _require_filled_reduction(response: object, asset: str) -> None:
         not isinstance(response, list)
         or len(response) != 1
         or not isinstance(response[0], dict)
-        or not response[0].get("orderId")
+        or not isinstance(response[0].get("orderId"), str)
+        or not response[0]["orderId"].strip()
         or response[0].get("status") != "filled"
     ):
         raise ProprError(f"riduzione non confermata come filled per {asset}")
