@@ -411,6 +411,82 @@ def test_rebalance_barrier_blocks_increases_when_reduction_is_not_visible():
     assert "riduzioni non confermate" in results[-1]["error"]
 
 
+def test_rebalance_pending_reduction_blocks_increase_even_if_position_is_gone():
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self):
+            self.positions = [{
+                "base": "XRP",
+                "positionSide": "long",
+                "notionalValue": "100",
+                "markPrice": "10",
+                "quantity": "10",
+            }]
+            self.events = []
+
+        def create_order(self, **order):
+            self.events.append(("order", order["asset"]))
+            if order["asset"] == "XRP":
+                self.positions = []
+                return [{"orderId": "order-XRP", "status": "pending"}]
+            return [{"orderId": "order-BTC", "status": "filled"}]
+
+        def get_positions(self):
+            self.events.append(("readback",))
+            return list(self.positions)
+
+    client = Client()
+    results = propr.rebalance(
+        client,
+        {"BTC": 100.0},
+        {"BTC": 100.0, "XRP": 10.0},
+        list(client.positions),
+    )
+
+    assert client.events == [("order", "XRP")]
+    assert results == [{
+        "asset": "XRP",
+        "action": "error",
+        "error": "riduzione non confermata come filled per XRP",
+    }]
+
+
+def test_rebalance_barrier_rejects_unchanged_same_side_partial_reduction():
+    import scripts.propr_paper as propr
+
+    class Client:
+        def __init__(self):
+            self.positions = [{
+                "base": "XRP",
+                "positionSide": "long",
+                "notionalValue": "100",
+                "markPrice": "10",
+                "quantity": "10",
+            }]
+            self.created_assets = []
+
+        def create_order(self, **order):
+            self.created_assets.append(order["asset"])
+            return [{"orderId": f"order-{order['asset']}", "status": "filled"}]
+
+        def get_positions(self):
+            return list(self.positions)
+
+    client = Client()
+    results = propr.rebalance(
+        client,
+        {"BTC": 100.0, "XRP": 90.0},
+        {"BTC": 100.0, "XRP": 10.0},
+        list(client.positions),
+    )
+
+    assert client.created_assets == ["XRP"]
+    assert results[-1]["asset"] == "barrier"
+    assert results[-1]["action"] == "error"
+    assert "XRP:quantity(10!=9.0)" in results[-1]["error"]
+
+
 def test_rebalance_side_flip_split_is_included_in_preflight_order_cap():
     from scripts.propr_client import ProprError
     import scripts.propr_paper as propr
