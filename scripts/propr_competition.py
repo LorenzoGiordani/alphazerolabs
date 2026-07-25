@@ -39,7 +39,7 @@ START_AT = datetime(2026, 7, 23, 13, 0, tzinfo=timezone.utc)
 FLATTEN_AT = datetime(2026, 7, 30, 11, 0, tzinfo=timezone.utc)
 END_AT = datetime(2026, 7, 30, 13, 0, tzinfo=timezone.utc)
 EXPECTED_INITIAL_BALANCE = Decimal("50000")
-SYMBOLS = ("BTC", "ETH", "SOL", "XRP", "SUI", "NEAR")
+SYMBOLS = ("BTC", "ETH", "SOL", "XRP", "SUI")
 LOOKBACK_H = 168
 REBALANCE_H = 12
 TARGET_POSITIONS = 2
@@ -54,7 +54,6 @@ MAX_LEVERAGE_BY_ASSET = {
     "SOL": 2,
     "XRP": 2,
     "SUI": 2,
-    "NEAR": 2,
 }
 GROSS = 4.75
 LEVERAGE_MIGRATION_PHASE = "leverage_migration_pending"
