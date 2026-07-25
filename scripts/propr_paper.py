@@ -131,7 +131,8 @@ def _validate_management_state(
     aggregate = _validate_target(aggregate, symbols, sizing_base)
     persisted = _validate_target(last_target, symbols, sizing_base)
     if set(aggregate) != set(persisted) or any(
-        abs(aggregate[asset] - persisted[asset]) > 0.10 for asset in aggregate
+        abs(aggregate.get(asset, 0.0) - persisted.get(asset, 0.0)) > 0.10
+        for asset in set(aggregate) | set(persisted)
     ):
         raise ProprError("last_target Propr incoerente con le tranche")
 
