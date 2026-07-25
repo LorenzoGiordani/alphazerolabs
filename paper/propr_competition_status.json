@@ -10,7 +10,7 @@
  "gross": 4.75,
  "margin_utilization": 0.95,
  "mode": "error",
- "note": "ProprError: competition halted: native_stop_or_external_drift",
+ "note": "ProprError: GET /accounts/SzSKErmBBPN6 -> 401: {\"code\":10002,\"message\":\"unauthorized\"}",
  "official_candidate": false,
  "paper_only": true,
  "positions": [],
@@ -46,5 +46,5 @@
  },
  "strategy": "hybrid-tsmom90-xsmom10-tournament-20260724-v4",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-25T10:11:17.742269+00:00"
+ "updated_at": "2026-07-25T11:11:07.968025+00:00"
 }
