@@ -63,7 +63,6 @@ def _v4_signals(**updates):
         "SOL": 0.01942,
         "XRP": 0.02779,
         "SUI": 0.01772,
-        "NEAR": -0.01964,
     }
     values.update(updates)
     return values
@@ -74,7 +73,7 @@ def _v4_plan():
     prices = {asset: 100.0 for asset in signals}
     target = {
         "BTC": 220_535.7142857143,
-        "NEAR": -6_785.714285714285,
+        "SUI": -6_785.714285714285,
     }
     return target, prices, signals
 
@@ -146,7 +145,7 @@ def _stopped_position_record(position, *, quantity="0"):
 
 def _v4_state_with_stops(competition):
     now = datetime(2026, 7, 24, 13, 0, tzinfo=timezone.utc)
-    signals = _v4_signals(ETH=-0.5, BTC=0.6, NEAR=-0.1)
+    signals = _v4_signals(ETH=-0.5, BTC=0.6, SUI=-0.1)
     btc = _position("BTC", "long", notional="225625")
     eth = _position("ETH", "short", notional="11875")
     btc_stop = _native_stop(competition, btc)
@@ -524,7 +523,7 @@ def test_hybrid_frozen_example_uses_exact_10_90_margin_profile(monkeypatch):
 
     assert target == pytest.approx({
         "BTC": 220_535.7142857143,
-        "NEAR": -6_785.714285714285,
+        "SUI": -6_785.714285714285,
     })
     assert sum(abs(value) for value in target.values()) == pytest.approx(227_321.428571)
     assert sum(target.values()) == pytest.approx(213_750)
@@ -542,7 +541,7 @@ def test_hybrid_both_positive_overlays_top(monkeypatch):
 
     signals = pd.Series({
         "BTC": 0.6, "ETH": 0.5, "SOL": 0.4,
-        "XRP": 0.3, "SUI": 0.2, "NEAR": 0.1,
+        "XRP": 0.3, "SUI": 0.2,
     })
     prices = {asset: 100.0 for asset in competition.SYMBOLS}
     monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
@@ -551,7 +550,7 @@ def test_hybrid_both_positive_overlays_top(monkeypatch):
 
     assert target == pytest.approx({
         "BTC": 220_535.7142857143,
-        "NEAR": -6_785.714285714285,
+        "SUI": -6_785.714285714285,
     })
 
 
@@ -560,7 +559,7 @@ def test_hybrid_both_negative_overlays_bottom(monkeypatch):
 
     signals = pd.Series({
         "BTC": -0.1, "ETH": -0.2, "SOL": -0.3,
-        "XRP": -0.4, "SUI": -0.5, "NEAR": -0.6,
+        "XRP": -0.4, "SUI": -0.6,
     })
     prices = {asset: 100.0 for asset in competition.SYMBOLS}
     monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
@@ -569,7 +568,7 @@ def test_hybrid_both_negative_overlays_bottom(monkeypatch):
 
     assert target == pytest.approx({
         "BTC": 6_785.714285714285,
-        "NEAR": -92_285.71428571429,
+        "SUI": -92_285.71428571429,
     })
 
 
@@ -578,7 +577,7 @@ def test_hybrid_straddle_uses_leverage_adjusted_overlay_score(monkeypatch):
 
     signals = pd.Series({
         "BTC": 0.1, "ETH": -0.2, "SOL": 0.05,
-        "XRP": 0.0, "SUI": 0.3, "NEAR": -0.1,
+        "XRP": 0.0, "SUI": 0.3,
     })
     prices = {asset: 100.0 for asset in competition.SYMBOLS}
     monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
@@ -596,7 +595,7 @@ def test_hybrid_overlay_score_tie_deterministically_prefers_top(monkeypatch):
 
     signals = pd.Series({
         "BTC": 0.2, "ETH": 0.1, "SOL": 0.05,
-        "XRP": 0.0, "SUI": -0.1, "NEAR": -0.5,
+        "XRP": 0.0, "SUI": -0.5,
     })
     prices = {asset: 100.0 for asset in competition.SYMBOLS}
     monkeypatch.setattr(competition, "trailing_returns", lambda *_args: (signals, prices))
@@ -605,7 +604,7 @@ def test_hybrid_overlay_score_tie_deterministically_prefers_top(monkeypatch):
 
     assert target == pytest.approx({
         "BTC": 220_535.7142857143,
-        "NEAR": -6_785.714285714285,
+        "SUI": -6_785.714285714285,
     })
 
 
@@ -618,7 +617,7 @@ def test_validate_target_rejects_wrong_10_90_profile_at_full_margin():
 
     with pytest.raises(competition.ProprError, match="profilo 10/90"):
         competition._validate_target(
-            {"BTC": 190_000 + wrong_core, "NEAR": -wrong_core},
+            {"BTC": 190_000 + wrong_core, "SUI": -wrong_core},
             prices,
             signals,
         )
@@ -628,9 +627,9 @@ def test_validate_target_rejects_wrong_10_90_profile_at_full_margin():
     "target",
     [
         {"BTC": 220_535.71},
-        {"BTC": 220_535.71, "NEAR": 6_785.71},
-        {"BTC": 1_000_000.0, "NEAR": -6_785.71},
-        {"BTC": float("nan"), "NEAR": -6_785.71},
+        {"BTC": 220_535.71, "SUI": 6_785.71},
+        {"BTC": 1_000_000.0, "SUI": -6_785.71},
+        {"BTC": float("nan"), "SUI": -6_785.71},
     ],
 )
 def test_validate_target_rejects_one_sided_nonfinite_or_oversize_books(target):
@@ -1424,24 +1423,24 @@ def test_v3_state_migrates_to_v4_once_and_preserves_risk_and_stop_receipts():
     import scripts.propr_competition as competition
 
     btc = _position("BTC", "long")
-    near = _position("NEAR", "short")
+    sui = _position("SUI", "short")
     btc_stop = _native_stop(competition, btc)
-    near_stop = _native_stop(competition, near)
+    sui_stop = _native_stop(competition, sui)
     state = _state(
         competition,
         datetime(2026, 7, 23, 22, 11, tzinfo=timezone.utc),
         strategy=competition.PREVIOUS_STRATEGY_ID,
-        expected_assets=["BTC", "NEAR"],
-        expected_sides={"BTC": "long", "NEAR": "short"},
-        expected_quantities={"BTC": "1", "NEAR": "1"},
-        last_target={"BTC": 47_500.0, "NEAR": -47_500.0},
+        expected_assets=["BTC", "SUI"],
+        expected_sides={"BTC": "long", "SUI": "short"},
+        expected_quantities={"BTC": "1", "SUI": "1"},
+        last_target={"BTC": 47_500.0, "SUI": -47_500.0},
         last_rebalance_ts="2026-07-23T20:05:35+00:00",
         day_start_equity=49_900,
         high_water_mark=50_120,
         last_equity=50_050,
         stop_receipts={
             "BTC": competition._stop_receipt(btc, btc_stop),
-            "NEAR": competition._stop_receipt(near, near_stop),
+            "SUI": competition._stop_receipt(sui, sui_stop),
         },
     )
 
@@ -1469,10 +1468,10 @@ def test_v3_pending_leverage_migration_is_not_reinterpreted_as_v4():
         competition,
         datetime(2026, 7, 23, 22, 11, tzinfo=timezone.utc),
         strategy=competition.PREVIOUS_STRATEGY_ID,
-        expected_assets=["BTC", "NEAR"],
-        expected_sides={"BTC": "long", "NEAR": "short"},
-        expected_quantities={"BTC": "1", "NEAR": "1"},
-        last_target={"BTC": 100.0, "NEAR": -100.0},
+        expected_assets=["BTC", "SUI"],
+        expected_sides={"BTC": "long", "SUI": "short"},
+        expected_quantities={"BTC": "1", "SUI": "1"},
+        last_target={"BTC": 100.0, "SUI": -100.0},
         last_rebalance_ts="2026-07-23T20:05:35+00:00",
         migration={"phase": competition.LEVERAGE_MIGRATION_PHASE},
     )
@@ -1488,10 +1487,10 @@ def test_v3_state_must_remain_dollar_neutral_before_migration():
         competition,
         datetime(2026, 7, 23, 22, 11, tzinfo=timezone.utc),
         strategy=competition.PREVIOUS_STRATEGY_ID,
-        expected_assets=["BTC", "NEAR"],
-        expected_sides={"BTC": "long", "NEAR": "short"},
-        expected_quantities={"BTC": "1.832", "NEAR": "25311.7"},
-        last_target={"BTC": 118_750.0, "NEAR": -47_500.0},
+        expected_assets=["BTC", "SUI"],
+        expected_sides={"BTC": "long", "SUI": "short"},
+        expected_quantities={"BTC": "1.832", "SUI": "25311.7"},
+        last_target={"BTC": 118_750.0, "SUI": -47_500.0},
         last_rebalance_ts="2026-07-23T20:05:35+00:00",
     )
 
@@ -1505,10 +1504,10 @@ def test_v3_target_is_not_reinterpreted_as_completed_v4_state():
     state = _state(
         competition,
         datetime(2026, 7, 23, 22, 11, tzinfo=timezone.utc),
-        expected_assets=["BTC", "NEAR"],
-        expected_sides={"BTC": "long", "NEAR": "short"},
-        expected_quantities={"BTC": "1", "NEAR": "1"},
-        last_target={"BTC": 47_500.0, "NEAR": -47_500.0},
+        expected_assets=["BTC", "SUI"],
+        expected_sides={"BTC": "long", "SUI": "short"},
+        expected_quantities={"BTC": "1", "SUI": "1"},
+        last_target={"BTC": 47_500.0, "SUI": -47_500.0},
         last_signals=_v4_signals(),
         last_rebalance_ts="2026-07-23T20:05:35+00:00",
     )
@@ -1525,8 +1524,8 @@ def test_completed_v4_state_accepts_cent_rounded_target_and_rejects_bad_signals(
         competition,
         datetime(2026, 7, 24, 13, 0, tzinfo=timezone.utc),
         expected_assets=sorted(target),
-        expected_sides={"BTC": "long", "NEAR": "short"},
-        expected_quantities={"BTC": "2205.3571", "NEAR": "67.8571"},
+        expected_sides={"BTC": "long", "SUI": "short"},
+        expected_quantities={"BTC": "2205.3571", "SUI": "67.8571"},
         last_target={asset: round(value, 2) for asset, value in target.items()},
         last_signals=signals,
         last_rebalance_ts="2026-07-24T13:00:00+00:00",
@@ -2178,7 +2177,7 @@ def test_leverage_is_updated_and_read_back_before_trading(tmp_path, monkeypatch)
                     "leverage": 1,
                     "marginMode": "cross",
                 }
-                for asset in ("NEAR", "SUI")
+                for asset in ("SOL", "SUI")
             }
             self.events = []
 
@@ -2199,12 +2198,12 @@ def test_leverage_is_updated_and_read_back_before_trading(tmp_path, monkeypatch)
     client = Client()
     monkeypatch.setattr(competition, "JOURNAL_PATH", tmp_path / "journal.jsonl")
 
-    competition._ensure_leverage(client, ["SUI", "NEAR"])
+    competition._ensure_leverage(client, ["SOL", "SUI"])
 
-    assert client.configs["NEAR"]["leverage"] == competition.MAX_LEVERAGE_BY_ASSET["NEAR"]
+    assert client.configs["SOL"]["leverage"] == competition.MAX_LEVERAGE_BY_ASSET["SOL"]
     assert client.configs["SUI"]["leverage"] == competition.MAX_LEVERAGE_BY_ASSET["SUI"]
-    assert client.events.index("put:NEAR") > client.events.index("get:SUI")
-    assert client.events[-2:] == ["get:NEAR", "get:SUI"]
+    assert client.events.index("put:SOL") > client.events.index("get:SUI")
+    assert client.events[-2:] == ["get:SOL", "get:SUI"]
 
 
 def test_leverage_update_detection_is_read_only():
@@ -2224,7 +2223,7 @@ def test_leverage_update_detection_is_read_only():
                 "configId": f"cfg-{asset}",
                 "asset": asset,
                 "leverage": (
-                    1 if asset == "NEAR"
+                    1 if asset == "SOL"
                     else competition.MAX_LEVERAGE_BY_ASSET[asset]
                 ),
                 "marginMode": "cross",
@@ -2235,8 +2234,8 @@ def test_leverage_update_detection_is_read_only():
 
     client = Client()
 
-    assert competition._leverage_needs_update(client, ["XRP", "NEAR"]) is True
-    assert client.events == ["limits", "get:NEAR", "get:XRP"]
+    assert competition._leverage_needs_update(client, ["XRP", "SOL"]) is True
+    assert client.events == ["limits", "get:SOL", "get:XRP"]
 
 
 def test_global_leverage_detection_sees_alt_mismatch_when_btc_eth_are_maxed():
@@ -2306,7 +2305,7 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
             self.active_attempt = _attempt()
             self.positions = [
                 _position("BTC", "long"),
-                _position("NEAR", "short"),
+                _position("SUI", "short"),
             ]
             self.orders = []
 
@@ -2360,7 +2359,7 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
                 notional="220535.7142857143",
             ),
             _position(
-                "NEAR",
+                "SUI",
                 "short",
                 quantity="67.85714285714285",
                 notional="6785.714285714285",
@@ -2373,9 +2372,9 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
                 "resp": [{"orderId": "btc", "status": "filled"}],
             },
             {
-                "asset": "NEAR",
+                "asset": "SUI",
                 "action": "adjust",
-                "resp": [{"orderId": "near", "status": "filled"}],
+                "resp": [{"orderId": "sui", "status": "filled"}],
             },
         ]
 
@@ -2419,10 +2418,10 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
         competition,
         datetime(2026, 7, 23, 18, 38, tzinfo=timezone.utc),
         strategy=competition.PREVIOUS_STRATEGY_ID,
-        expected_assets=["BTC", "NEAR"],
-        expected_sides={"BTC": "long", "NEAR": "short"},
-        expected_quantities={"BTC": "1", "NEAR": "1"},
-        last_target={"BTC": 100.0, "NEAR": -100.0},
+        expected_assets=["BTC", "SUI"],
+        expected_sides={"BTC": "long", "SUI": "short"},
+        expected_quantities={"BTC": "1", "SUI": "1"},
+        last_target={"BTC": 100.0, "SUI": -100.0},
         last_rebalance_ts="2026-07-23T01:00:00+00:00",
     )
     competition.STATE_PATH.write_text(json.dumps(state))
@@ -2432,15 +2431,15 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
     assert prepared["action"] == competition.LEVERAGE_MIGRATION_PHASE
     assert prepared["positions"] == 2
     prepared_state = json.loads(competition.STATE_PATH.read_text())
-    assert prepared_state["expected_assets"] == ["BTC", "NEAR"]
+    assert prepared_state["expected_assets"] == ["BTC", "SUI"]
     assert prepared_state["migration"]["phase"] == competition.LEVERAGE_MIGRATION_PHASE
     assert prepared_state["migration"]["pending_target"] == {
         "BTC": 220_535.71,
-        "NEAR": -6_785.71,
+        "SUI": -6_785.71,
     }
     assert prepared_state["migration"]["pending_signals"] == _v4_signals()
     assert events == [
-        ("guard", ["BTC", "NEAR"]),
+        ("guard", ["BTC", "SUI"]),
         ("inspect_leverage",),
     ]
 
@@ -2449,16 +2448,16 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
     assert migrated["action"] == "rebalance"
     assert migrated["positions"] == 2
     assert events == [
-        ("guard", ["BTC", "NEAR"]),
+        ("guard", ["BTC", "SUI"]),
         ("inspect_leverage",),
-        ("guard", ["BTC", "NEAR"]),
-        ("flatten", "leverage_migration", ["BTC", "NEAR"]),
+        ("guard", ["BTC", "SUI"]),
+        ("flatten", "leverage_migration", ["BTC", "SUI"]),
         ("set_leverage", tuple(competition.SYMBOLS)),
         ("rebalance",),
-        ("guard", ["BTC", "NEAR"]),
+        ("guard", ["BTC", "SUI"]),
     ]
     saved = json.loads(competition.STATE_PATH.read_text())
-    assert saved["expected_assets"] == ["BTC", "NEAR"]
+    assert saved["expected_assets"] == ["BTC", "SUI"]
     assert saved["last_signals"] == _v4_signals()
     assert saved["permanently_halted"] is False
     assert saved["migration"]["phase"] == "complete"
@@ -2467,7 +2466,7 @@ def test_manage_persists_marker_then_migrates_and_is_idempotent(
     third = competition.manage()
 
     assert third["action"] == "guard_only"
-    assert events[-1] == ("guard", ["BTC", "NEAR"])
+    assert events[-1] == ("guard", ["BTC", "SUI"])
 
 
 def test_pending_migration_requires_persisted_signals():
@@ -2529,7 +2528,7 @@ def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
                 notional="220535.71",
             ),
             _position(
-                "NEAR",
+                "SUI",
                 "short",
                 quantity="67.8571",
                 notional="6785.71",
@@ -2542,9 +2541,9 @@ def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
                 "resp": [{"orderId": "btc", "status": "filled"}],
             },
             {
-                "asset": "NEAR",
+                "asset": "SUI",
                 "action": "adjust",
-                "resp": [{"orderId": "near", "status": "filled"}],
+                "resp": [{"orderId": "sui", "status": "filled"}],
             },
         ]
 
@@ -2615,7 +2614,7 @@ def test_pending_migration_resumes_from_remote_old_state_and_live_flat(
     assert resumed["positions"] == 2
     assert leverage_attempts == 2
     completed = json.loads(competition.STATE_PATH.read_text())
-    assert completed["expected_assets"] == ["BTC", "NEAR"]
+    assert completed["expected_assets"] == ["BTC", "SUI"]
     assert completed["migration"]["phase"] == "complete"
 
     assert competition.manage()["action"] == "guard_only"
