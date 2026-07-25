@@ -7,9 +7,9 @@
  "expected_assets": [],
  "expected_quantities": {},
  "expected_sides": {},
- "halt_kind": "operational",
- "halt_reason": "rebalance_recovery",
- "halted_today": true,
+ "halt_kind": "",
+ "halt_reason": "",
+ "halted_today": false,
  "high_water_mark": 50157.444185,
  "last_equity": 47034.282644,
  "last_manage_ts": "2026-07-25T08:11:07.639449+00:00",
@@ -22,7 +22,7 @@
   "from": "xsmom-neutral2-tournament-20260724-v3",
   "to": "hybrid-tsmom90-xsmom10-tournament-20260724-v4"
  },
- "permanently_halted": true,
+ "permanently_halted": false,
  "stop_receipts": {},
  "strategy": "hybrid-tsmom90-xsmom10-tournament-20260724-v4",
  "version": "propr-competition-state-v2"
