@@ -48,7 +48,7 @@
     "strategy_status": "champion",
     "tranche_h": 24
   },
-  "implementation_commit": "ae77c17f0ddbb2b79efdd140c6114c92478fcf3c",
+  "implementation_commit": "6627dddfe89ff5932e9d798acb7b3178d2059308",
   "initial_balance": 5000,
   "maker_run_id": "maker-propr-gate-ae77c17f0ddb",
   "paper_only": true,
@@ -109,13 +109,13 @@
       "artifact_path": "scripts/__init__.py",
       "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
-    "scripts/paper_trade.py": {
-      "artifact_path": "scripts/paper_trade.py",
-      "artifact_sha256": "f62572e0210b078945229e61445e6bf890e9cc92d63d3619584ae7a3b20606eb"
-    },
     "scripts/portfolio_paper.py": {
       "artifact_path": "scripts/portfolio_paper.py",
       "artifact_sha256": "85c18909ac719f31eeb0715915551ee4e06027e3d7c74f0b373c111dfed94df9"
+    },
+    "scripts/paper_trade.py": {
+      "artifact_path": "scripts/paper_trade.py",
+      "artifact_sha256": "f62572e0210b078945229e61445e6bf890e9cc92d63d3619584ae7a3b20606eb"
     },
     "scripts/propr_client.py": {
       "artifact_path": "scripts/propr_client.py",
