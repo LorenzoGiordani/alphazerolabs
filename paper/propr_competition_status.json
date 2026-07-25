@@ -9,8 +9,8 @@
  "flatten_at": "2026-07-30T11:00:00+00:00",
  "gross": 4.75,
  "margin_utilization": 0.95,
- "mode": "check",
- "note": "preflight API read-only; status locale aggiornato",
+ "mode": "error",
+ "note": "ProprError: rebalance_recovery: ProprError: partial_rebalance: NEAR:error,NEAR:side; recovery verified flat",
  "official_candidate": false,
  "paper_only": true,
  "positions": [],
@@ -24,12 +24,12 @@
   "expected_assets": [],
   "expected_quantities": {},
   "expected_sides": {},
-  "halt_kind": "",
-  "halt_reason": "",
-  "halted_today": false,
+  "halt_kind": "operational",
+  "halt_reason": "rebalance_recovery",
+  "halted_today": true,
   "high_water_mark": 50157.444185,
-  "last_equity": 47034.282644,
-  "last_manage_ts": "2026-07-25T08:11:07.639449+00:00",
+  "last_equity": 47027.809701,
+  "last_manage_ts": "2026-07-25T09:10:27.283735+00:00",
   "last_rebalance_ts": "2026-07-24T10:13:08.010877+00:00",
   "last_signals": {},
   "last_target": {},
@@ -39,12 +39,12 @@
    "from": "xsmom-neutral2-tournament-20260724-v3",
    "to": "hybrid-tsmom90-xsmom10-tournament-20260724-v4"
   },
-  "permanently_halted": false,
+  "permanently_halted": true,
   "stop_receipts": {},
   "strategy": "hybrid-tsmom90-xsmom10-tournament-20260724-v4",
   "version": "propr-competition-state-v2"
  },
  "strategy": "hybrid-tsmom90-xsmom10-tournament-20260724-v4",
  "total_stop_pct": 0.2,
- "updated_at": "2026-07-25T09:09:42.869704+00:00"
+ "updated_at": "2026-07-25T09:10:44.261491+00:00"
 }
