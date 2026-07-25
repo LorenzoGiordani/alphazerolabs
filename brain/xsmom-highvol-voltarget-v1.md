@@ -4,9 +4,10 @@
 
 ## Anagrafica
 
-- **status**: challenger
+- **status**: champion
 - **parent**: [[xsmom-highvol-combo-v1]]
 - **created**: 2026-06-26
+- **family**: xsmom-highvol-voltarget
 
 ## Tesi
 
@@ -26,24 +27,99 @@ v1 seed: combo 50/50 + vol-target sigma*=20%. Mutazioni: sigma* (25%, 30%), vol_
 
 ## Performance (paper)
 
-- equity: $10,282.22
-- trade chiusi: 107 · win rate: 57%
-- PnL totale: $282.22
-- posizioni aperte ora: 6
+- equity: $10,509.98
+- trade chiusi: 443 · win rate: 49%
+- PnL totale: $509.98
+- posizioni aperte ora: 76
 
 ### Posizioni aperte
 
 | symbol | dir | entry | stop | target | size |
 |---|---|---|---|---|---|
 | BTC |  |  |  |  | — |
-| SOL |  |  |  |  | — |
-| SUI |  |  |  |  | — |
+| ETH |  |  |  |  | — |
+| xyz:SNDK |  |  |  |  | — |
+| xyz:SKHX |  |  |  |  | — |
+| xyz:MU |  |  |  |  | — |
+| HYPE |  |  |  |  | — |
+| xyz:CL |  |  |  |  | — |
+| xyz:DRAM |  |  |  |  | — |
+| xyz:SPCX |  |  |  |  | — |
+| xyz:BRENTOIL |  |  |  |  | — |
+| ZEC |  |  |  |  | — |
+| xyz:AAPL |  |  |  |  | — |
+| xyz:EWY |  |  |  |  | — |
+| xyz:SMSN |  |  |  |  | — |
+| CASHCAT |  |  |  |  | — |
+| xyz:INTC |  |  |  |  | — |
+| xyz:MRVL |  |  |  |  | — |
+| xyz:AMD |  |  |  |  | — |
+| xyz:NBIS |  |  |  |  | — |
+| ONDO |  |  |  |  | — |
+| LIT |  |  |  |  | — |
+| xyz:MSFT |  |  |  |  | — |
+| PUMP |  |  |  |  | — |
+| xyz:ORCL |  |  |  |  | — |
+| KAITO |  |  |  |  | — |
+| xyz:NATGAS |  |  |  |  | — |
+| xyz:AMZN |  |  |  |  | — |
+| xyz:CBRS |  |  |  |  | — |
+| FARTCOIN |  |  |  |  | — |
+| xyz:MSTR |  |  |  |  | — |
+| xyz:HOOD |  |  |  |  | — |
+| VVV |  |  |  |  | — |
 | NEAR |  |  |  |  | — |
-| WLD |  |  |  |  | — |
+| UNI |  |  |  |  | — |
+| kBONK |  |  |  |  | — |
+| TRUMP |  |  |  |  | — |
+| ADA |  |  |  |  | — |
+| xyz:BB |  |  |  |  | — |
+| SUI |  |  |  |  | — |
+| LINK |  |  |  |  | — |
+| BNB |  |  |  |  | — |
+| xyz:CRWV |  |  |  |  | — |
+| kPEPE |  |  |  |  | — |
+| xyz:PURRDAT |  |  |  |  | — |
+| xyz:COPPER |  |  |  |  | — |
+| xyz:ARM |  |  |  |  | — |
+| ENA |  |  |  |  | — |
+| xyz:KIOXIA |  |  |  |  | — |
+| XMR |  |  |  |  | — |
+| xyz:RKLB |  |  |  |  | — |
+| xyz:JPY |  |  |  |  | — |
+| ETHFI |  |  |  |  | — |
+| xyz:BABA |  |  |  |  | — |
+| xyz:SHAZ |  |  |  |  | — |
+| xyz:PLATINUM |  |  |  |  | — |
+| xyz:PLTR |  |  |  |  | — |
+| AERO |  |  |  |  | — |
+| BCH |  |  |  |  | — |
+| xyz:BE |  |  |  |  | — |
+| INJ |  |  |  |  | — |
+| xyz:QNT |  |  |  |  | — |
 | CRV |  |  |  |  | — |
+| EIGEN |  |  |  |  | — |
+| LDO |  |  |  |  | — |
+| GRAM |  |  |  |  | — |
+| VIRTUAL |  |  |  |  | — |
+| xyz:NOW |  |  |  |  | — |
+| LTC |  |  |  |  | — |
+| xyz:NOK |  |  |  |  | — |
+| ENS |  |  |  |  | — |
+| ZRO |  |  |  |  | — |
+| JTO |  |  |  |  | — |
+| xyz:ZM |  |  |  |  | — |
+| VINE |  |  |  |  | — |
+| xyz:IBM |  |  |  |  | — |
+| xyz:WDC |  |  |  |  | — |
 
 ## Lezioni
 
 - **deployed** (basket, —): VOL-TARGET OVERLAY CABLATO nel paper engine live (portfolio_paper.py). Prima era solo backtest: il candidato xsmom-highvol-voltarget-v1.yaml era orfano. Implementazione: (1) _vol_target_multiplier calcola m=clip(target_vol/realized_vol, floor, cap) dalla vol realizzata DEL BOOK sui returns tra heartbeat (cron 4h, annualizzo sqrt(2190 periodi/anno)); (2) equity_history append-only nel state.json (trim 720 punti ~120g), anti-lookahead (usa solo passato); (3) warmup m=1.0 finche' non ci sono abbastossi punti (min 30). Backtest aveva mostrato: combo 50/50 sigma*=20% abbassa coda5% DD da -23% a -18% con costo Sharpe nullo. RISCHIO onesto: la vol realizzata su heartbeat 4h e' una stima piu' grezza di quella oraria del backtest (meno campioni), e il candidato non ha track record forward. Ma e' PAPER (nessun soldo reale) e il gate M5 e' TEMPO: ora puo' accumulare track record reale. ATTIVO in produzione: aggiunto al glob pattern del cron locale e del workflow cloud (*voltarget-v1.yaml). Regression test test_vol_target_overlay_multiplier (118 totali). Filosofia: il vol-target e' RISK MANAGEMENT, non un nuovo edge — non alza lo Sharpe, abbassa la coda del drawdown. #vol_target #deploy #portfolio_paper #risk_management #moreira_muir #production #robustness
+- **thesis_right** (basket, —): Promossa a CHAMPION: 118 trade paper, basket_sharpe 0.479, DSR 0.92, win 0.53, PnL 140.53$. Primo champion della famiglia. #lifecycle #promote #paper #champion
+
+## Eventi lifecycle
+
+- **promote** (2026-07-06): 
 
 [[lessons|Tutte le lezioni]] · [[timeline|Timeline]]

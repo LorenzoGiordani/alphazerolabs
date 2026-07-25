@@ -1,0 +1,25 @@
+id: agents-v1
+parent: null
+status: retired
+engine: desk
+created: '2026-06-04'
+thesis: >
+  Prima strategia desk del progetto. Layer LLM (prima Claude, poi GPT-5) agisce
+  come Portfolio Manager discrezionale: analizza il basket per setup confluenti
+  (tsmom, vol_compression, funding_squeeze, vwap_zscore, range_breakout) usando
+  il giudizio LLM per selezionare direzione e sizing, non per prevedere il prezzo.
+  Gate: nessun gate sistematico formale — l'LLM valuta i segnali disponibili e
+  decide se entrare. Falsificata se: non batte il benchmark buy&hold nel paper
+  trading su rolling 30gg. Ritirata il 2026-07-25: creata prima dello schema YAML
+  obbligatorio, sostituita da strategie desk con specifica formale (geopolitics-v1)
+  e gate sistematico piu' rigoroso. Lo stato runtime in paper/state.json e' storico.
+signals: []
+exit:
+  stop_pct: 3.0
+  target_r: 2.0
+  time_stop_h: 96
+risk:
+  max_leverage: 2
+  risk_per_trade_pct: 1.0
+  max_concurrent_positions: 3
+backtest: {}

@@ -21,10 +21,10 @@ v1 seed: high-vol lb72. Mutazioni: vol_lookback (72 ottimo dallo sweep), gross, 
 
 ## Performance (paper)
 
-- equity: $9,835.89
-- trade chiusi: 157 · win rate: 47%
-- PnL totale: $-164.11
-- posizioni aperte ora: 6
+- equity: $9,103.58
+- trade chiusi: 656 · win rate: 49%
+- PnL totale: $-896.42
+- posizioni aperte ora: 90
 
 ### Posizioni aperte
 
@@ -32,10 +32,94 @@ v1 seed: high-vol lb72. Mutazioni: vol_lookback (72 ottimo dallo sweep), gross, 
 |---|---|---|---|---|---|
 | BTC |  |  |  |  | — |
 | ETH |  |  |  |  | — |
-| XRP |  |  |  |  | — |
-| WLD |  |  |  |  | — |
+| xyz:SKHX |  |  |  |  | — |
+| xyz:XYZ100 |  |  |  |  | — |
+| xyz:SNDK |  |  |  |  | — |
+| xyz:MU |  |  |  |  | — |
+| xyz:DRAM |  |  |  |  | — |
+| xyz:SKHY |  |  |  |  | — |
+| xyz:CL |  |  |  |  | — |
+| xyz:SP500 |  |  |  |  | — |
+| xyz:SILVER |  |  |  |  | — |
+| SOL |  |  |  |  | — |
+| xyz:BRENTOIL |  |  |  |  | — |
 | ZEC |  |  |  |  | — |
-| CRV |  |  |  |  | — |
+| xyz:NVDA |  |  |  |  | — |
+| xyz:AAPL |  |  |  |  | — |
+| xyz:SMSN |  |  |  |  | — |
+| CASHCAT |  |  |  |  | — |
+| xyz:INTC |  |  |  |  | — |
+| xyz:AMD |  |  |  |  | — |
+| xyz:GOLD |  |  |  |  | — |
+| xyz:MRVL |  |  |  |  | — |
+| xyz:NBIS |  |  |  |  | — |
+| LIT |  |  |  |  | — |
+| xyz:MSFT |  |  |  |  | — |
+| PUMP |  |  |  |  | — |
+| xyz:AMZN |  |  |  |  | — |
+| XRP |  |  |  |  | — |
+| xyz:TSLA |  |  |  |  | — |
+| ONDO |  |  |  |  | — |
+| xyz:NFLX |  |  |  |  | — |
+| KAITO |  |  |  |  | — |
+| xyz:CBRS |  |  |  |  | — |
+| xyz:NATGAS |  |  |  |  | — |
+| mkts:USTECH |  |  |  |  | — |
+| xyz:KIOXIA |  |  |  |  | — |
+| SUI |  |  |  |  | — |
+| AAVE |  |  |  |  | — |
+| xyz:ZHIPU |  |  |  |  | — |
+| xyz:PURRDAT |  |  |  |  | — |
+| xyz:BB |  |  |  |  | — |
+| BNB |  |  |  |  | — |
+| LINK |  |  |  |  | — |
+| xyz:RKLB |  |  |  |  | — |
+| VVV |  |  |  |  | — |
+| XMR |  |  |  |  | — |
+| xyz:ZM |  |  |  |  | — |
+| VIRTUAL |  |  |  |  | — |
+| xyz:BE |  |  |  |  | — |
+| xyz:ARM |  |  |  |  | — |
+| XPL |  |  |  |  | — |
+| xyz:LITE |  |  |  |  | — |
+| TRX |  |  |  |  | — |
+| xyz:NOK |  |  |  |  | — |
+| DOGE |  |  |  |  | — |
+| EIGEN |  |  |  |  | — |
+| AERO |  |  |  |  | — |
+| LTC |  |  |  |  | — |
+| xyz:JP225 |  |  |  |  | — |
+| mkts:US500 |  |  |  |  | — |
+| xyz:COPPER |  |  |  |  | — |
+| xyz:LLY |  |  |  |  | — |
+| AVAX |  |  |  |  | — |
+| xyz:DELL |  |  |  |  | — |
+| xyz:JPY |  |  |  |  | — |
+| JTO |  |  |  |  | — |
+| xyz:SHAZ |  |  |  |  | — |
+| xyz:AVGO |  |  |  |  | — |
+| ETHFI |  |  |  |  | — |
+| xyz:PLATINUM |  |  |  |  | — |
+| xyz:MINIMAX |  |  |  |  | — |
+| LDO |  |  |  |  | — |
+| xyz:WDC |  |  |  |  | — |
+| TRUMP |  |  |  |  | — |
+| xyz:QNT |  |  |  |  | — |
+| xyz:STRC |  |  |  |  | — |
+| PAXG |  |  |  |  | — |
+| WLFI |  |  |  |  | — |
+| MET |  |  |  |  | — |
+| xyz:BOT |  |  |  |  | — |
+| xyz:QCOM |  |  |  |  | — |
+| xyz:EWJ |  |  |  |  | — |
+| xyz:EBAY |  |  |  |  | — |
+| xyz:SOFTBANK |  |  |  |  | — |
+| xyz:COST |  |  |  |  | — |
+| MORPHO |  |  |  |  | — |
+| APT |  |  |  |  | — |
+| xyz:RIVN |  |  |  |  | — |
+| xyz:GME |  |  |  |  | — |
+| PURR |  |  |  |  | — |
 
 ## Lezioni
 

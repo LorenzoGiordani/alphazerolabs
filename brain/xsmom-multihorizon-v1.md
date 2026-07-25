@@ -4,9 +4,10 @@
 
 ## Anagrafica
 
-- **status**: challenger
+- **status**: champion
 - **parent**: [[xsmom-port-v1]]
 - **created**: 2026-06-26
+- **family**: xsmom-multihorizon
 
 ## Tesi
 
@@ -18,20 +19,81 @@ v1 seed: media di 3 orizzonti (lb 96+168+336). Mutazioni: aggiunta/rimozione ori
 
 ## Performance (paper)
 
-- equity: $10,248.13
-- trade chiusi: 78 · win rate: 60%
-- PnL totale: $248.13
-- posizioni aperte ora: 6
+- equity: $10,597.18
+- trade chiusi: 485 · win rate: 51%
+- PnL totale: $597.18
+- posizioni aperte ora: 59
 
 ### Posizioni aperte
 
 | symbol | dir | entry | stop | target | size |
 |---|---|---|---|---|---|
 | BTC |  |  |  |  | — |
-| SOL |  |  |  |  | — |
-| SUI |  |  |  |  | — |
-| NEAR |  |  |  |  | — |
+| ETH |  |  |  |  | — |
+| HYPE |  |  |  |  | — |
+| xyz:CL |  |  |  |  | — |
+| xyz:SKHX |  |  |  |  | — |
+| ZEC |  |  |  |  | — |
+| xyz:BRENTOIL |  |  |  |  | — |
+| xyz:MU |  |  |  |  | — |
+| xyz:SPCX |  |  |  |  | — |
+| xyz:SNDK |  |  |  |  | — |
+| xyz:DRAM |  |  |  |  | — |
+| LIT |  |  |  |  | — |
+| ONDO |  |  |  |  | — |
+| kBONK |  |  |  |  | — |
 | WLD |  |  |  |  | — |
+| xyz:AAPL |  |  |  |  | — |
+| xyz:SMSN |  |  |  |  | — |
+| LTC |  |  |  |  | — |
+| xyz:CRCL |  |  |  |  | — |
+| FARTCOIN |  |  |  |  | — |
+| XPL |  |  |  |  | — |
+| xyz:INTC |  |  |  |  | — |
+| xyz:EWY |  |  |  |  | — |
+| KAITO |  |  |  |  | — |
+| ETHFI |  |  |  |  | — |
+| VVV |  |  |  |  | — |
+| xyz:META |  |  |  |  | — |
+| xyz:MRVL |  |  |  |  | — |
+| xyz:MSFT |  |  |  |  | — |
+| xyz:NBIS |  |  |  |  | — |
+| SUI |  |  |  |  | — |
+| TRUMP |  |  |  |  | — |
+| XMR |  |  |  |  | — |
+| xyz:AMD |  |  |  |  | — |
+| ACE |  |  |  |  | — |
+| PUMP |  |  |  |  | — |
+| kPEPE |  |  |  |  | — |
+| ENA |  |  |  |  | — |
+| xyz:HYUNDAI |  |  |  |  | — |
+| UNI |  |  |  |  | — |
+| xyz:BX |  |  |  |  | — |
+| xyz:BB |  |  |  |  | — |
+| TRX |  |  |  |  | — |
+| xyz:TSM |  |  |  |  | — |
+| xyz:JPY |  |  |  |  | — |
+| ARB |  |  |  |  | — |
+| xyz:BABA |  |  |  |  | — |
+| xyz:ZM |  |  |  |  | — |
+| LINK |  |  |  |  | — |
+| xyz:LITE |  |  |  |  | — |
+| xyz:DELL |  |  |  |  | — |
+| ZRO |  |  |  |  | — |
+| xyz:CRWV |  |  |  |  | — |
 | CRV |  |  |  |  | — |
+| INJ |  |  |  |  | — |
+| SPX |  |  |  |  | — |
+| xyz:QNT |  |  |  |  | — |
+| AERO |  |  |  |  | — |
+| xyz:AMZN |  |  |  |  | — |
+
+## Lezioni
+
+- **thesis_right** (basket, —): Promossa a CHAMPION: 108 trade paper, basket_sharpe 0.818, DSR 0.7, win 0.607, PnL 372.52$. Primo champion della famiglia. #lifecycle #promote #paper #champion
+
+## Eventi lifecycle
+
+- **promote** (2026-07-06): 
 
 [[lessons|Tutte le lezioni]] · [[timeline|Timeline]]

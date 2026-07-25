@@ -4,21 +4,19 @@
 
 ## Anagrafica
 
-- **status**: live
-- _nessuno spec YAML: pagina da dati runtime_
+- **status**: retired
+- **created**: 2026-06-04
+
+## Tesi
+
+Prima strategia desk del progetto. Layer LLM (prima Claude, poi GPT-5) agisce come Portfolio Manager discrezionale: analizza il basket per setup confluenti (tsmom, vol_compression, funding_squeeze, vwap_zscore, range_breakout) usando il giudizio LLM per selezionare direzione e sizing, non per prevedere il prezzo. Gate: nessun gate sistematico formale — l'LLM valuta i segnali disponibili e decide se entrare. Falsificata se: non batte il benchmark buy&hold nel paper trading su rolling 30gg. Ritirata il 2026-07-25: creata prima dello schema YAML obbligatorio, sostituita da strategie desk con specifica formale (geopolitics-v1) e gate sistematico piu' rigoroso. Lo stato runtime in paper/state.json e' storico.
 
 ## Performance (paper)
 
-- equity: $10,294.62
-- trade chiusi: 16 · win rate: 56%
-- PnL totale: $344.17
-- posizioni aperte ora: 1
-
-### Posizioni aperte
-
-| symbol | dir | entry | stop | target | size |
-|---|---|---|---|---|---|
-| SOL | long | 81.096216 | 77.0414052 | 91.9103964036 | $1,441.75 |
+- equity: $10,058.37
+- trade chiusi: 27 · win rate: 44%
+- PnL totale: $219.86
+- posizioni aperte ora: 0
 
 ### Trade chiusi
 
@@ -41,6 +39,18 @@
 | ETH | time_stop | 1578.01554 | $1.57 |
 | SOL | time_stop | 73.4063158 | $65.76 |
 | ETH | time_stop | 1600.8201 | $-39.80 |
+| SUI | stopped | 0.7616797661328082 | $-44.77 |
+| SOL | time_stop | 80.9428082 | $-3.38 |
+| ZEC | stopped | 442.47665730093297 | $-26.09 |
+| ZEC | target | 488.880405444783 | $56.52 |
+| ZEC | stopped | 494.27285522908505 | $-36.99 |
+| SOL | stopped | 77.28741333850334 | $-34.55 |
+| ETH | stopped | 1718.0081312796722 | $-104.07 |
+| SUI | stopped | 0.7388259204469619 | $-18.28 |
+| ETH | time_stop | 1810.5378200000002 | $47.52 |
+| BTC | time_stop | 64019.1936 | $30.50 |
+| SUI | time_stop | 0.7315936519999999 | $-16.90 |
+| ZEC | stopped | 511.22471665101057 | $-77.89 |
 
 ## Lezioni
 
@@ -62,5 +72,15 @@
 - **thesis_wrong** (ETH, $1.57): Un efficiency_ratio=1 e un momentum già sviluppato (-7.9% in 7g) descrivono lo stato PAST del trend, non la sua persistenza futura: senza un catalizzatore fresco e confermato (es. BTC che effettivamente perde il livello chiave), entrare short su 'trend persistence' significa comprare il ritardo del segnale. La tesi conteneva un condizionale ('SE BTC perde $60K') che non si è materializzato: il trade era quindi una scommessa su trend continuation senza trigger attivo. Lezione: nei trade di momentum con segnali lagging (efficiency_ratio, tsmom), richiedere conferma di break di livello intra-session prima di entrare, o entrare solo con il catalizzatore già in atto — non anticiparlo. #momentum_lag #efficiency_ratio #conditional_catalyst #time_stop_discipline #trend_persistence #BTC_correlation
 - **thesis_wrong** (SOL, $65.76): La forza relativa in regime bear + funding negativo è un edge valido, ma il salto logico verso 'squeeze imminente' richiede un catalizzatore attivo (breakout di range, flush di liquidità, cambio di narrativa). Senza un trigger identificabile — e il trade stesso lo riconosceva ('nessun lux_confluence allineato') — la dinamica è un grind lento, non un'esplosione. Il time-stop a 72h era coerente con la tesi di squeeze 'imminente', ma la tesi sopravvalutava la velocità: funding negativo + RS identifica polvere da sparo, ma la polvere ha bisogno di un fiammifero. Lezione generale: le tesi squeeze senza catalizzatore attivo hanno expected move troppo lenta per giustificare time-stop corti; o si allunga l'orizzonte o si aspetta il trigger prima di entrare. #relative_strength #funding_squeeze #no_catalyst #time_stop #bear_regime #catalyst_dependency
 - **thesis_wrong** (ETH, $-39.80): Quando la tesi si basa sulla 'persistence di un drift lento senza capitulazione' (longs che escono silenziosamente), manca il catalizzatore che converte drift in breakdown. Efficiency_ratio=1 in regime chop-classificato non è sufficiente edge direzionale: il drift può esaurirsi tanto quanto accelerare. In questi casi servirebbe aspettare la conferma del breakdown (es. BTC che perde effettivamente $60K, o spike di volume/OI) prima di entrare, o ridurre ulteriormente size e accorciare il time-stop a 24-48h: un trade di trend-persistence che non si muove nella direzione attesa entro 2-3 sessioni è già invalidato. #trend_persistence #efficiency_ratio #chop_regime #time_stop #no_catalyst #conditional_thesis
+- **execution_issue** (SUI, $-44.77): Le operazioni dipendenti da catalizzatore su asset high-beta richiedono uno stop che sopravviva al rumore pre-catalizzatore. Entrare su SUI con ATR 0.93% e stop a 1.47% (~1.6 ATR) significa essere fermati dal rumore normale entro 2 ore, prima che il catalizzatore (breakout BTC entro 72h) abbia tempo di materializzarsi. Regola generale: se la tesi è 'aspetto il catalizzatore X entro Nh', allora o (a) aspetto la conferma del catalizzatore prima di entrare — accettando un peggior entry ma con conviction più alta — oppure (b) se entro pre-catalizzatore, lo stop deve essere almeno 2.5–3 ATR per dare respiro alla volatilità alta-beta. La combinazione 'alta beta = optionality' + stop a 1.6 ATR + ingresso pre-catalizzatore è internamente contraddittoria: stai pagando per l'optionality ma la tagli via con uno stop che non la lascia respirare. Inoltre, quando il framework sistematico dice 'no confluence' (lux score 1/5), l'override discrezionale richiede ancora più margine di errore, non meno — la size ridotta (0.5x) era necessaria ma non sufficiente. #pre-catalyst-entry #tight-stop-vs-beta #atr-stop-sizing #confluence-override #high-beta-noise #catalyst-timing-mismatch
+- **thesis_wrong** (SOL, $-3.38): Un setup di squeeze basato su funding negativo + catalizzatore fondamentale ha bisogno di conferma di flusso reale prima dell'entry, non solo della coesistenza delle condizioni. In questo trade il funding era negativo e il catalizzatore (Securitize $295M) era reale, ma nei 72h successivi il prezzo è rimasto piatto (81.10 → 80.94): il meccanismo causa-effetto della tesi (catalizzatore → squeeze → momentum expansion) non si è attivato. Lezione generale: quando la tesi dipende da un catalizzatore che 'dovrebbe' innescare una struttura compressa (squeeze), l'entry deve essere post-confirmazione (prima espansione di volume / primo candle di breakout sopra VWAP con funding ancora negativo) non contemporaneo alla news. Il funding negativo in regime bull è condizione necessaria ma non sufficiente: senza evidence che i flussi stanno effettivamente arrivando (volume spike + price expansion), si paga carry e theta su un'opzione che non trova il suo delta. In regime post +22% 7d il market può也已经 essere saturo di aspettative, rendendo il catalizzatore 'priced in' nonostante il funding contraddica. Richiede sempre un trigger di price-action, non solo uno trigger narrativo. #squeeze_setup #funding_negative #catalyst_confirmation #entry_timing #volume_expansion #bull_regime #time_stop_correct #false_trigger
+- **execution_issue** (ZEC, $-26.09): Quando la tesi richiede un livello di conferma condizionale (es. 'long solo su close >X'), entrare prima del trigger annulla il bordo statistico del setup. Un'entrata anticipata senza confirm non è una versione 'più aggressiva' dello stesso trade — è un trade diverso con un profilo rischio/rendimento peggiore. Se la conferma non arriva entro time-stop, il trade semplicemente non esiste: non c'è setup. Inoltre, il livello di stop deve coincidere con il livello di invalidazione della tesi: spostarlo più indietro 'per dare respiro' aumenta solo la perdita quando la tesi era già sbagliata. #conditional_entry_violation #stop_vs_invalidation_mismatch #funding_squeeze #confirmation_discipline #size_reduction_not_enough
+- **thesis_right** (ZEC, $56.52): Quando un asset è il momentum leader del desk (7+ segnali simultanei) CON funding piatto al percentile 0 (zero crowding long), il setup breakout-continuation ha probabilità di successo molto elevata: in questi trade un target al +4% è spesso conservativo e l'upside può estendersi al +6-8%. Regola pratica: in presenza di momentum estremo + funding piatto, valutare target extension (scala-out al 60% al primo target, trail sul resto) per non lasciare troppo PnL sul tavolo, anche quando un caveat (lux_confluence mancante) suggerisce size ridotta. #momentum_breakout #flat_funding #target_too_conservative #scaling_out #lux_confluence_absent
+- **thesis_wrong** (ZEC, $-36.99): Su asset già estesi (es. +20%+ in 7 giorni), la congerie di segnali momentum che si accendono simultaneamente è un pattern di LATE confirmation (blow-off top), non di early-stage continuation. Più indicatori lagging si allineano su un move maturo, più la probabilità che il move sia terminal aumenta. La distinzione chiave: per trade di continuation cercare 2-3 segnali leading (funding shift, orderflow) su asset NON ancora estesi, non 8 conferme lagging su asset già +26%." #momentum-late-entry #signal-conflation #funding-misinterpretation #blow-off-top #ZEC #extreme-extension
+- **thesis_wrong** (SOL, $-34.55): Un vol-compression coil in ambiente low-confluence (nessun lux_confluence allineato) non ha edge direzionale anche se il regime 7d è bull: la compressione può risolversi in entrambe le direzioni e il trend precedente non basta a biasare il verso. Entrare sul break iniziale senza confirmation-retest in un setup secondario = essentially a coin flip con leva. Regola: per i coil direzionali serve EITHER confluence allineata (≥2 asset che confermano la stessa direzione) OR entrare post-breakout con retest della base rotta, mai pre-posizionarsi sul break iniziale quando il desk non ha confluence. Il 7d trend è una condizione necessaria ma non sufficiente per inferire la direzione di risoluzione di un coil. #vol_compression_coil #low_confluence #directional_bias #breakout_confirmation #secondary_setup #false_breakout #trend_regime_insufficient
+- **thesis_wrong** (ETH, $-104.07): Funding near-zero in un trend ribassisto NON è solo 'entry pulita' — è anche assenza di resistenza a un reversal long. Quando interpreti il low funding come 'nessun rischio squeeze', devi anche chiederti: cosa impedisce ai buyer di rientrare? La risposta (niente) è esattamente il rischio. Il deleveraging senza capitolazione va letto come potenziale esaurimento del selling, non come conferma di continuation. Inoltre: un time-stop esiste per essere eseguito, non come suggerimento — 88h rispettate avrebbero limitato il danno del 50%+. #funding_misread #time_stop_violation #stop_overshoot #deleveraging_exhaustion_vs_continuation #low_funding_double_edged #execution_discipline
+- **thesis_wrong** (SUI, $-18.28): Funding al percentile estremo (0°) non significa 'short economico senza crowding': indica il contrario, cioè shorts già affollati e rischio di squeeze. Nei fade trade su altcoin minori, il funding percentile va interpretato direzionalmente (funding molto negativo = shorts crowdati = rischio squeeze; funding vicino a zero = neutro). Usare il funding come filtro di affollamento richiede di verificarne il segno, non solo il percentile rank. #funding_misread #squeeze_risk #altcoin_fade #signal_interpretation #false_distribution
+- **thesis_right** (ETH, $47.52): In trade di continuation confermati (direzione intatta, nessun trigger di invalidazione), un time-stop flat a 84h su asset ad alta convexità taglia prematuramente il R/R: meglio convertire il time-stop in un trailing stop (breakeven o lock-in minimo) dopo 48-72h di conferma direzionale, lasciando correre il trade verso il target. #time_stop_premature #trailing_vs_flat #continuation_trade #rr_truncation #ETH #thesis_confirmed
+- **thesis_right** (BTC, $30.50): In un low-signal regime dichiarato (size minimal, 'trend non conviction'), il target va calibrato sull'energia attesa del drift, non sul R:R nominale del setup tsmom. Qui la tesi diceva 'drift +1.7%' ma il target era a +5% — disallineamento strutturale tra diagnosi (bassa energia) e obiettivo (ampiezza da conviction). Risultato: il prezzo ha fatto esattamente il drift previsto (~+1.6% in 72h) ma il trade è uscito per time-stop senza mai sfiorare il target. Lezione: quando il regime è esplicitamente low-energy, scala il target al 1.5–2x del drift osservato (es. target a $64–64.5k invece di $66.2k) oppure usa trailing exit che catturi il drift invece di un target fisso ambizioso. Il time-stop ha fatto correttamente il suo lavoro — il problema è che non c'era un target realistico da raggiungere prima che scattasse. #target-calibration #low-signal-regime #tsmom #time-stop #btc #funding-floor #r:r-mismatch #trend-following
 
 [[lessons|Tutte le lezioni]] · [[timeline|Timeline]]

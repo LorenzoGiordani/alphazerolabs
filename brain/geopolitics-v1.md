@@ -18,9 +18,9 @@ v1 — gate news_event(geopolitics) + desk LLM cross-asset. Prima strategia engi
 
 ## Performance (paper)
 
-- equity: $9,983.36
-- trade chiusi: 7 · win rate: 43%
-- PnL totale: $-14.36
+- equity: $9,882.71
+- trade chiusi: 14 · win rate: 36%
+- PnL totale: $-101.62
 - posizioni aperte ora: 0
 
 ### Trade chiusi
@@ -36,6 +36,13 @@ v1 — gate news_event(geopolitics) + desk LLM cross-asset. Prima strategia engi
 | xyz:NATGAS | time_stop | 3.25724842 | $-1.98 |
 | xyz:NATGAS | time_stop | 3.25724842 | $-1.98 |
 | xyz:CL | time_stop | 69.80603599999999 | $-16.28 |
+| xyz:GOLD | stopped | 4138.298834468041 | $-62.03 |
+| xyz:SILVER | stopped | 60.40113718395441 | $-71.04 |
+| xyz:CL | stopped | 72.01834161926621 | $-80.81 |
+| xyz:GOLD | stopped | 4040.14683839412 | $-79.38 |
+| xyz:GOLD | stopped | 4095.300760187963 | $-106.79 |
+| xyz:BRENTOIL | target | 84.03505351359773 | $96.29 |
+| xyz:CL | target | 80.66859877325592 | $216.50 |
 
 ## Lezioni
 
@@ -48,6 +55,11 @@ v1 — gate news_event(geopolitics) + desk LLM cross-asset. Prima strategia engi
 - **thesis_right** (BTC, $35.95): Nei fade geopolitici su crypto, il time-stop (72h) è spesso più importante del target fisico: il deleveraging meccanico è un burst di intensità decrescente, non un trend persistente. Se entro 48-72h il prezzo non ha raggiunto il target, la pressione di vendita si è esaurita e il carry del posizionamento corto diventa negativo. Ridurre il target al 50% dell'AEA e stringere il time-stop a 48h migliora il risk-reward in questi scenari. #geopolitics #crypto #time-stop #deleveraging #btc #fade #risk-off
 - **thesis_wrong** (xyz:NATGAS, $-1.98): Essere 'l'unico asset con momentum positivo' in tape risk-off è informazione ambigua: può indicare flusso direzionale genuino, ma anche semplice inerzia/lag dove il commodity non ha ancora liquidato come il resto. Un segnale LUX+tsmom su NG senza un catalizzatore specifico (inventory report, weather shift, pipeline event) entro la finestra di time-stop produce di frequente chop morto: il momentum relativo non si traduce in momentum assoluto. Lezione: per trade tsmom su commodity in regime risk-off, richiedere oltre al signal alignment anche (a) un catalizzatore calendarizzato entro il time-stop window, oppure (b) un time-stop più lungo (120-168h) che permetta al trend di svilupparsi — 72h su NG è spesso troppo stretto e cattura solo noise di consolidamento post-segnale. #tsmom_commodity #risk_off_relative_strength #time_stop_calibration #lux_signal_follow_through #natural_gas #momentum_ambiguity
 - **thesis_wrong** (xyz:CL, $-16.28): In un regime bear con tsmom -1 e vol-compression, andare long su un catalyst geopolitico richiede che lo shock sia già cinetico e pricing-breaking entro le prime 12-24h. Se il premium non esplode immediatamente (CL si è mosso -0.7% in 96h), il mercato sta dicendo che la disruption non è credibile o è già priced-in. Il "short squeeze contro trend-follower" è una narrazione seducente ma spesso illusoria in regime bear: i trend-follower sono lì perché i fondamentali sono bearish, e un headline shock viene tipicamente venduto, non comprato. La lesson generale: i trade long-exogenous-catalyst contro tsmom -1 hanno un窗口 di edge strettissimo (sub-24h); se il move non arriva entro la prima sessione, l'edge è evaporato e il time-stop va accorciato drasticamente, non esteso a 96h. #geopolitics #tsmom-contrarian #bear-regime #short-squeeze-narrative #time-stop #war-risk-premium #vol-compression #CL
+- **execution_issue** (xyz:GOLD, $-62.03): In una setup di compressione ATR estrema (coil), entrare *prima* della rottura direzionale confermata converte un trade asimmetrico in un coin-flip. La tesi descriveva correttamente il pattern (coil, compressione, potenziale breakout) ma poi entrava long anticipando la direzione del breakout invece di aspettarne la conferma: risultato, il coil ha risolto al ribasso e lo stop è scattato in 14 ore con un move di ~25 ATR. Per i setup geopolitici con ATR compressa, l'esecuzione corretta è: (1) aspettare la chiusura sopra la compressione per entrare long sul breakout confermato, oppure (2) se si vuole pre-posizionare, usare uno stop molto più stretto (es. 5-8 ATR, non 25) accettando un higher hit-rate di fermo in cambio di un costo per tentativo minimo — non piazzare uno stop "di tesi" largo 25 ATR su un mercato che non ha ancora mostrato direzione. #atr-compression #premature-entry #breakout-confirmation #geopolitical-premium #coil-setup #gold #stop-placement #asymmetry-miscalibration
+- **execution_issue** (xyz:SILVER, $-71.04): Quando esprimi una tesi geopolitica multi-giorno (72h time-stop, momentum 7g) tramite silver — asset con ATR tipica 2-4% giornaliera — un stop a -2.8% è incompat con l'orizzonte della tesi: viene fagocitato dal noise intraday prima che i flussi safe-haven abbiano il tempo di materializzarsi. La corretta esecuzione è stop più largo (es. -5/6%, sotto il livello di consolidamento reale) con size proporzionalmente ridotta per mantenere lo stesso risk $, non stop stretto che ti fa uscire in 8h su una tesi da 72h. Il mismatch timeframe-tesi vs ampiezza-stop è il killer silenzioso sui high-beta metals. #silver #high-beta #stop-distance #timeframe-mismatch #geopolitics #safe-haven #position-sizing #volatility-adjusted-stop
+- **thesis_wrong** (xyz:CL, $-80.81): Dichiarare 'morto' un risk premium geopolitico sulla sola base del tempo trascorso (8 giorni) è una trappola narrativa: il premium geopolitico nel crude oil può re-inflettersi su un singolo headline entro ore. Un fade geopolitico richiede conferma cinetica di de-escalation (o almeno un catalizzatore di offerta già schedulato e vicino) prima di entrare short, non solo il passaggio del tempo. Senza un catalizzatore hard e datato, il fade è una scommessa direzionale su una non-notizia esposta a ribid improvvisi. #geopolitics-fade #crude-oil #premature-thesis #uncatalyzed-entry #risk-premium-reinflation
+- **thesis_wrong** (xyz:GOLD, $-79.38): Nei trade geopolitici su safe-haven (gold, JPY, Treasuries), il risk premium viene priced-in nei primi 3-5 giorni dallo shock. Entrare long dopo un run >4% in 7gg sull'identico catalizzatore significa comprare nella zona di exhaustion dove l'asimmetria è sfavorevole: il mercato ha già assorbito la notizia e resta esposto a profit-taking/de-escalation rumor. Regola actionable: se l'asset target ha già moved >3-4% sull'evento geopolitico corrente, NON inseguire — cerca piuttosto il cross non ancora mossi (es. silver vs gold, o il b spread) o aspetta un pullback al 50% del move prima di entrare. #geopolitics #gold #momentum-exhaustion #late-entry #safe-haven #risk-premium-already-priced #mean-reversion #timing
+- **thesis_wrong** (xyz:GOLD, $-106.79): I trade di cross-asset gap su eventi geopolitici falliscono quando il meccanismo di trasmissione differisce: Oil prezza il rischio di supply disruption (Ucraina → infrastrutture energetiche), Gold prezza rischio sistemico + real rates + USD. Assumere che "Oil ha reagito, Gold deve recuperare" ignora che i due asset possono legittimamente divergere se il rischio è di supply e non sistemico. Prima di entrare in un fade di gap geopolitico, verificare il canale di trasmissione effettivo: se i real yields stanno salendo o il DXY è forte, il gap di Gold è giustificato e non un'opportunità. Un coil di ATR da solo non basta. #cross-asset-gap #geopolitics #gold-oil-divergence #transmission-mechanism #coil-fade #false-catchup #real-rates #safe-haven-myth
 
 ## Eventi lifecycle
 

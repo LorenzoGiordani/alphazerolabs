@@ -4,6 +4,157 @@
 
 _Eventi lifecycle + open/close, più recenti in alto._
 
+- `2026-07-20T02:13:32` 🔴 close [[commodities-trend-v1]] xyz_GOLD — retired $14.05
+- `2026-07-20T02:13:31` 🔄 lifecycle **retire** [[commodities-trend-v1]] — basket_mean_r_negative
+- `2026-07-20T02:11:11` 🔴 close [[commodities-trend-v1]] xyz_SILVER — stopped $-97.70
+- `2026-07-17T18:11:16` 🟢 open [[commodities-trend-v1]] xyz_GOLD short
+- `2026-07-17T17:11:14` 🔴 close [[commodities-trend-v1]] xyz_GOLD — stopped $-101.32
+- `2026-07-17T13:04:08` 🔴 close [[geopolitics-v1]] xyz:CL — target $216.50
+- `2026-07-16T14:10:35` 🟢 open [[commodities-trend-v1]] xyz_SILVER short
+- `2026-07-16T14:10:35` 🟢 open [[commodities-trend-v1]] xyz_GOLD short
+- `2026-07-16T13:10:31` 🔴 close [[commodities-trend-v1]] xyz_SILVER — target $161.24
+- `2026-07-16T13:10:31` 🔴 close [[commodities-trend-v1]] xyz_GOLD — target $155.08
+- `2026-07-15T18:10:40` 🟢 open [[commodities-trend-v1]] xyz_SILVER short
+- `2026-07-15T17:10:43` 🔴 close [[commodities-trend-v1]] xyz_SILVER — target $158.28
+- `2026-07-14T14:10:55` 🟢 open [[commodities-trend-v1]] xyz_SILVER short
+- `2026-07-14T14:10:55` 🟢 open [[commodities-trend-v1]] xyz_GOLD short
+- `2026-07-14T13:14:09` 🔴 close [[tsmom-aggressive-v1]] xyz_MU — retired $-2.05
+- `2026-07-14T13:14:09` 🔴 close [[tsmom-aggressive-v1]] xyz_SP500 — retired $-10.99
+- `2026-07-14T13:14:09` 🔴 close [[tsmom-aggressive-v1]] ETH — retired $169.85
+- `2026-07-14T13:14:09` 🔴 close [[tsmom-aggressive-v1]] BTC — retired $85.82
+- `2026-07-14T13:14:08` 🔄 lifecycle **retire** [[tsmom-aggressive-v1]] — drawdown_breach
+- `2026-07-14T13:10:46` 🟢 open [[tsmom-aggressive-v1]] xyz_MU long
+- `2026-07-14T13:10:46` 🟢 open [[tsmom-aggressive-v1]] xyz_SP500 long
+- `2026-07-14T13:10:46` 🔴 close [[tsmom-aggressive-v1]] xyz_SILVER — stopped $-135.74
+- `2026-07-14T13:10:46` 🔴 close [[tsmom-aggressive-v1]] xyz_GOLD — stopped $-139.73
+- `2026-07-14T13:10:43` 🔴 close [[commodities-trend-v1]] xyz_SILVER — stopped $-95.81
+- `2026-07-14T13:10:43` 🔴 close [[commodities-trend-v1]] xyz_GOLD — stopped $-97.20
+- `2026-07-14T07:10:47` 🟢 open [[commodities-trend-v1]] xyz_SILVER short
+- `2026-07-14T06:10:21` 🔴 close [[commodities-trend-v1]] xyz_SILVER — stopped $-96.38
+- `2026-07-14T02:10:21` 🟢 open [[commodities-trend-v1]] xyz_SILVER short
+- `2026-07-14T01:10:28` 🔴 close [[commodities-trend-v1]] xyz_SILVER — target $160.42
+- `2026-07-13T23:45:22` 🔴 close [[geopolitics-v1]] xyz:BRENTOIL — target $96.29
+- `2026-07-13T15:10:24` 🟢 open [[tsmom-aggressive-v1]] xyz_GOLD short
+- `2026-07-13T15:10:20` 🟢 open [[commodities-trend-v1]] xyz_GOLD short
+- `2026-07-13T13:21:41` 🟢 open [[commodities-trend-v1]] xyz_SILVER short
+- `2026-07-13T11:15:39` 🔴 close [[agents-v1]] ZEC — stopped $-77.89
+- `2026-07-13T11:15:38` 🔴 close [[agents-v1]] SUI — time_stop $-16.90
+- `2026-07-13T06:16:13` 🔴 close [[commodities-trend-v1]] xyz_SILVER — target $157.54
+- `2026-07-13T02:16:18` 🟢 open [[tsmom-aggressive-v1]] xyz_SILVER short
+- `2026-07-12T20:21:30` 🔴 close [[agents-rr2-v1]] ZEC — retired $-0.77
+- `2026-07-12T20:21:06` 🟢 open [[agents-rr2-v1]] ZEC long
+- `2026-07-12T15:27:40` 🔴 close [[agents-rr2-v1]] ZEC — retired $-0.55
+- `2026-07-12T15:27:16` 🟢 open [[agents-rr2-v1]] ZEC long
+- `2026-07-12T14:22:28` 🔴 close [[agents-rr2-v1]] ZEC — retired $-1.71
+- `2026-07-12T14:22:02` 🟢 open [[agents-rr2-v1]] ZEC long
+- `2026-07-12T14:22:01` 🟢 open [[agents-v1]] ZEC long
+- `2026-07-12T14:16:21` 🔴 close [[agents-v1]] BTC — time_stop $30.50
+- `2026-07-12T04:16:18` 🔴 close [[agents-v1]] ETH — time_stop $47.52
+- `2026-07-10T19:15:59` 🟢 open [[commodities-trend-v1]] xyz_SILVER short
+- `2026-07-10T14:34:03` 🟢 open [[geopolitics-v1]] xyz:BRENTOIL long
+- `2026-07-10T13:34:48` 🔴 close [[geopolitics-v1]] xyz:GOLD — stopped $-106.79
+- `2026-07-10T11:32:05` 🔴 close [[agents-rr2-v1]] SUI — retired $-0.64
+- `2026-07-10T11:24:56` 🟢 open [[agents-rr2-v1]] SUI long
+- `2026-07-10T11:24:56` 🟢 open [[agents-v1]] SUI long
+- `2026-07-10T10:18:03` 🔴 close [[agents-v1]] SUI — stopped $-18.28
+- `2026-07-09T15:30:25` 🟢 open [[geopolitics-v1]] xyz:CL long
+- `2026-07-09T14:31:36` 🔴 close [[agents-rr2-v1]] BTC — retired $-1.29
+- `2026-07-09T14:31:25` 🟢 open [[geopolitics-v1]] xyz:GOLD long
+- `2026-07-09T14:26:24` 🟢 open [[agents-rr2-v1]] BTC long
+- `2026-07-09T14:26:23` 🟢 open [[agents-v1]] BTC long
+- `2026-07-09T14:16:07` 🔴 close [[tsmom-aggressive-v1]] xyz_SILVER — stopped $-141.42
+- `2026-07-09T14:16:07` 🔴 close [[tsmom-aggressive-v1]] xyz_GOLD — stopped $-142.45
+- `2026-07-09T14:15:58` 🔴 close [[commodities-trend-v1]] xyz_SILVER — stopped $-95.08
+- `2026-07-09T14:15:57` 🔴 close [[commodities-trend-v1]] xyz_GOLD — stopped $-96.32
+- `2026-07-09T07:22:46` 🔴 close [[agents-rr2-v1]] ETH — retired $-0.23
+- `2026-07-09T07:22:36` 🟢 open [[agents-rr2-v1]] ETH long
+- `2026-07-09T06:28:49` 🔴 close [[agents-rr2-v1]] SUI — retired $-0.60
+- `2026-07-09T06:28:37` 🟢 open [[agents-rr2-v1]] SUI short
+- `2026-07-09T06:28:37` 🟢 open [[agents-v1]] SUI short
+- `2026-07-08T23:16:07` 🟢 open [[tsmom-aggressive-v1]] xyz_GOLD short
+- `2026-07-08T23:15:59` 🟢 open [[commodities-trend-v1]] xyz_GOLD short
+- `2026-07-08T19:16:30` 🔴 close [[tsmom-aggressive-v1]] xyz_GOLD — stopped $-145.34
+- `2026-07-08T19:16:22` 🔴 close [[commodities-trend-v1]] xyz_GOLD — stopped $-97.74
+- `2026-07-08T16:16:16` 🟢 open [[agents-v1]] ETH long
+- `2026-07-08T16:16:14` 🟢 open [[tsmom-aggressive-v1]] xyz_GOLD short
+- `2026-07-08T16:16:03` 🟢 open [[commodities-trend-v1]] xyz_GOLD short
+- `2026-07-08T15:27:32` 🔴 close [[agents-v1]] ETH — stopped $-104.07
+- `2026-07-08T14:45:53` 🔴 close [[geopolitics-v1]] xyz:GOLD — stopped $-79.38
+- `2026-07-08T14:16:44` 🟢 open [[tsmom-aggressive-v1]] xyz_SILVER short
+- `2026-07-08T14:16:35` 🟢 open [[commodities-trend-v1]] xyz_SILVER short
+- `2026-07-08T08:27:55` 🔴 close [[tsmom-aggressive-v1]] xyz_CL — stopped $-145.55
+- `2026-07-08T08:27:52` 🔴 close [[commodities-trend-v1]] xyz_CL — stopped $-97.32
+- `2026-07-08T08:27:50` 🔴 close [[agents-v1]] SOL — stopped $-34.55
+- `2026-07-08T07:28:39` 🔴 close [[agents-rr2-v1]] ETH — retired $-1.12
+- `2026-07-08T07:28:25` 🟢 open [[agents-rr2-v1]] ETH long
+- `2026-07-07T22:20:56` 🔄 lifecycle **promote** [[tsmom-neutral-v1]] — 
+- `2026-07-07T20:16:28` 🟢 open [[tsmom-aggressive-v1]] xyz_CL short
+- `2026-07-07T20:16:06` 🟢 open [[commodities-trend-v1]] xyz_CL short
+- `2026-07-07T19:28:57` 🔴 close [[tsmom-aggressive-v1]] xyz_CL — stopped $-151.62
+- `2026-07-07T19:28:54` 🔴 close [[commodities-trend-v1]] xyz_CL — stopped $-100.25
+- `2026-07-07T19:28:52` 🔴 close [[geopolitics-v1]] xyz:CL — stopped $-80.81
+- `2026-07-07T19:01:03` 🔴 close [[tsmom-aggressive-v1]] xyz_BRENTOIL — stopped $-152.26
+- `2026-07-07T19:01:00` 🔴 close [[commodities-trend-v1]] xyz_BRENTOIL — stopped $-100.70
+- `2026-07-07T19:00:57` 🔴 close [[agents-v1]] ZEC — stopped $-36.99
+- `2026-07-07T18:25:53` 🔴 close [[agents-rr2-v1]] ZEC — retired $-0.22
+- `2026-07-07T18:25:38` 🟢 open [[agents-rr2-v1]] ZEC long
+- `2026-07-07T17:22:42` 🔴 close [[agents-rr2-v1]] ZEC — retired $-1.01
+- `2026-07-07T17:22:26` 🟢 open [[agents-rr2-v1]] ZEC long
+- `2026-07-07T17:22:25` 🟢 open [[agents-v1]] ZEC long
+- `2026-07-07T15:45:57` 🔴 close [[agents-v1]] ZEC — target $56.52
+- `2026-07-07T15:27:17` 🔴 close [[agents-rr2-v1]] ZEC — retired $-0.93
+- `2026-07-07T15:27:11` 🔄 lifecycle **promote** [[xsmom-port-v1]] — 
+- `2026-07-07T15:27:11` 🔄 lifecycle **promote** [[liqimb-port-v1]] — 
+- `2026-07-07T15:27:01` 🟢 open [[agents-rr2-v1]] ZEC long
+- `2026-07-07T15:27:00` 🟢 open [[agents-v1]] ZEC long
+- `2026-07-07T15:16:13` 🟢 open [[tsmom-aggressive-v1]] xyz_BRENTOIL short
+- `2026-07-07T15:16:13` 🟢 open [[tsmom-aggressive-v1]] xyz_CL short
+- `2026-07-07T15:16:02` 🟢 open [[commodities-trend-v1]] xyz_BRENTOIL short
+- `2026-07-07T15:16:02` 🟢 open [[commodities-trend-v1]] xyz_CL short
+- `2026-07-07T14:16:19` 🔴 close [[tsmom-aggressive-v1]] xyz_MU — stopped $-151.28
+- `2026-07-07T14:16:19` 🔴 close [[tsmom-aggressive-v1]] xyz_BRENTOIL — stopped $-157.74
+- `2026-07-07T14:16:10` 🔴 close [[commodities-trend-v1]] xyz_BRENTOIL — stopped $-104.81
+- `2026-07-07T14:16:09` 🔴 close [[commodities-trend-v1]] xyz_CL — stopped $-104.77
+- `2026-07-07T12:16:07` 🟢 open [[commodities-trend-v1]] xyz_BRENTOIL short
+- `2026-07-07T08:16:06` 🟢 open [[commodities-trend-v1]] xyz_CL short
+- `2026-07-07T07:16:18` 🟢 open [[tsmom-aggressive-v1]] xyz_MU long
+- `2026-07-07T07:16:17` 🔴 close [[tsmom-aggressive-v1]] xyz_CL — stopped $-155.56
+- `2026-07-07T07:16:07` 🔴 close [[commodities-trend-v1]] xyz_BRENTOIL — stopped $-103.92
+- `2026-07-07T07:16:06` 🔴 close [[commodities-trend-v1]] xyz_CL — stopped $-103.73
+- `2026-07-07T06:22:36` 🔴 close [[agents-rr2-v1]] SOL — retired $-0.46
+- `2026-07-07T06:22:25` 🟢 open [[agents-rr2-v1]] SOL long
+- `2026-07-07T06:22:24` 🟢 open [[agents-v1]] SOL long
+- `2026-07-07T05:42:55` 🔴 close [[geopolitics-v1]] xyz:SILVER — stopped $-71.04
+- `2026-07-06T22:22:40` 🟢 open [[geopolitics-v1]] xyz:SILVER long
+- `2026-07-06T19:25:00` 🟢 open [[geopolitics-v1]] xyz:GOLD long
+- `2026-07-06T16:16:57` 🟢 open [[tsmom-aggressive-v1]] xyz_BRENTOIL short
+- `2026-07-06T15:16:21` 🔴 close [[tsmom-aggressive-v1]] xyz_MU — time_stop $123.74
+- `2026-07-06T13:28:01` 🔄 lifecycle **promote** [[xsmom-multihorizon-v1]] — 
+- `2026-07-06T13:28:01` 🔄 lifecycle **promote** [[xsmom-highvol-voltarget-v1]] — 
+- `2026-07-06T13:28:01` 🔄 lifecycle **promote** [[xsmom-highvol-combo-v1]] — 
+- `2026-07-06T13:16:20` 🟢 open [[tsmom-aggressive-v1]] xyz_MU long
+- `2026-07-06T13:16:19` 🟢 open [[tsmom-aggressive-v1]] xyz_CL short
+- `2026-07-06T13:16:19` 🟢 open [[tsmom-aggressive-v1]] ETH long
+- `2026-07-06T13:16:19` 🟢 open [[tsmom-aggressive-v1]] BTC long
+- `2026-07-06T13:16:09` 🟢 open [[commodities-trend-v1]] xyz_BRENTOIL short
+- `2026-07-06T13:16:09` 🟢 open [[commodities-trend-v1]] xyz_CL short
+- `2026-07-06T09:40:00` 🔴 close [[agents-v1]] ZEC — stopped $-26.09
+- `2026-07-06T09:34:00` 🔴 close [[geopolitics-v1]] xyz:GOLD — stopped $-62.03
+- `2026-07-05T23:22:56` 🟢 open [[geopolitics-v1]] xyz:CL short
+- `2026-07-05T22:18:02` 🔄 lifecycle **promote** [[xsmom-reb48-v1]] — 
+- `2026-07-05T20:22:17` 🟢 open [[geopolitics-v1]] xyz:GOLD long
+- `2026-07-05T19:16:10` 🔴 close [[agents-v1]] SOL — time_stop $-3.38
+- `2026-07-05T16:24:12` 🔴 close [[agents-rr2-v1]] SOL — retired $-0.33
+- `2026-07-05T16:21:19` 🟢 open [[agents-rr2-v1]] SOL long
+- `2026-07-05T00:25:23` 🔴 close [[agents-rr2-v1]] SOL — retired $-1.14
+- `2026-07-05T00:22:54` 🟢 open [[agents-rr2-v1]] SOL long
+- `2026-07-04T23:57:59` 🔴 close [[agents-v1]] SUI — stopped $-44.77
+- `2026-07-04T22:21:30` 🔴 close [[agents-rr2-v1]] SUI — retired $-1.84
+- `2026-07-04T22:19:18` 🟢 open [[agents-rr2-v1]] SUI long
+- `2026-07-04T22:19:17` 🟢 open [[agents-v1]] SUI long
+- `2026-07-03T23:23:59` 🔴 close [[agents-rr2-v1]] ZEC — retired $-0.35
+- `2026-07-03T23:21:15` 🟢 open [[agents-rr2-v1]] ZEC long
+- `2026-07-03T23:21:14` 🟢 open [[agents-v1]] ZEC long
 - `2026-07-03T03:23:28` 🔴 close [[agents-rr2-v1]] SOL — retired $-0.93
 - `2026-07-03T03:21:01` 🟢 open [[agents-rr2-v1]] SOL long
 - `2026-07-02T19:24:39` 🔴 close [[agents-rr2-v1]] SOL — retired $-0.91
