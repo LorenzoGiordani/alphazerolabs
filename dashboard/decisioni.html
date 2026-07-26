@@ -138,6 +138,7 @@ section:first-of-type{ border-top:0; }
 /* ---------- portfolio summary strip ---------- */
 .portfolio{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-bottom:18px;
   background:var(--line); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; }
+.portfolio>.empty-box{ grid-column:1/-1; max-width:none; }
 .pf{ background:linear-gradient(180deg,var(--bg-2),var(--bg-3)); padding:15px 18px; }
 .pf .l{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); }
 .pf .v{ font-family:var(--mono); font-size:23px; font-weight:600; margin-top:5px; letter-spacing:-.01em;
@@ -332,6 +333,17 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .strat-archive .strat-card{ opacity:.62; padding-left:22px; border-style:dashed; }
 .strat-archive .strat-card::before{ content:""; }
 .strat-archive .strat-card:hover{ opacity:.85; }
+.strat-current-empty{ grid-column:1/-1; }
+@media(max-width:560px){
+  .strat-archive{ min-width:0; }
+  .strat-archive .strat-grid{ grid-template-columns:minmax(0,1fr); }
+  .strat-archive-head{ min-width:0; }
+  .strat-archive-head h3{ min-width:0; overflow-wrap:anywhere; }
+  .strat-archive-head .note{ flex-basis:100%; margin-left:0; }
+  .strat-card .s-head{ align-items:flex-start; flex-wrap:wrap; }
+  .strat-card .s-head h3{ flex:1 1 140px; min-width:0; }
+  .strat-card .s-stat{ margin-left:0; max-width:100%; white-space:normal; }
+}
 .strat-retire-reason{ display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; padding-top:10px;
   border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-4); }
 .strat-retire-reason b{ color:var(--text-3); font-weight:400; }
@@ -589,6 +601,7 @@ footer .foot-mark b{ color:var(--amber); }
 #change-banner .cb-x{ margin-left:auto; cursor:pointer; color:var(--text-3); }
 #health-banner{ display:flex; align-items:center; gap:10px; margin:16px 0 4px; padding:10px 14px;
   border:1px solid var(--line-2); border-radius:var(--r); font-family:var(--mono); font-size:11px; }
+#health-banner>span:last-child{ min-width:0; overflow-wrap:anywhere; }
 #health-banner[hidden]{ display:none; }
 #health-banner .hb-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
 #health-banner.healthy{ color:var(--green); border-color:var(--green-dim); background:rgba(66,190,130,.06); }
@@ -722,6 +735,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 .nof-agg-head .kicker{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
   color:var(--amber); }
 .nof-agg-sub{ font-family:var(--mono); font-size:11px; color:var(--text-4); margin-left:auto; }
+.nof-agg-note{ margin:8px 0 0; font-size:12px; color:var(--text-4); }
 .nof-agg-chart{ position:relative; }
 .nof-agg-chart svg{ width:100%; display:block; overflow:visible; }
 .nof-agg-legend{ display:flex; flex-wrap:wrap; gap:20px; margin-top:12px; padding-top:11px;
@@ -734,7 +748,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 .agg-name{ color:var(--text-2); }
 .agg-val{ font-variant-numeric:tabular-nums; font-weight:600; }
 .agg-val.pos{ color:var(--green); } .agg-val.neg{ color:var(--red); }
-@media(max-width:560px){ .nof-agg-sub{ display:none; } }
+@media(max-width:560px){ .nof-agg-sub{ width:100%; margin-left:0; } }
 
 /* ---------- leaderboard strategies ---------- */
 .strat-card{ position:relative; padding-left:22px; }
@@ -952,6 +966,10 @@ h1,h2,h3,h4,
   }
 
   let DATA = window.__DATA__ || {};
+  function currentAccounts(){
+    return (DATA.accounts||[]).filter(a=>
+      a.presentation && a.presentation.surface==='current');
+  }
   // nome amichevole per qualsiasi id strategia/conto (id tecnico solo in tooltip)
   function labelOf(id){ return (DATA.labels&&DATA.labels[id])||id; }
   // glossario inline (punto 8): termini tecnici spiegati in una frase, tap/hover
@@ -1163,8 +1181,14 @@ h1,h2,h3,h4,
   /* ---------- render: portfolio summary ---------- */
   function renderSummary(){
     const host=$('#portfolio'); if(!host) return;
-    const accs=DATA.accounts||[];
-    if(!accs.length){ host.innerHTML=''; return; }
+    const accs=currentAccounts();
+    if(!accs.length){
+      host.innerHTML=emptyBox(
+        'Nessun candidato con evidenza attuale',
+        'Il criterio pubblico non è soddisfatto da alcuna strategia. Nessun risultato storico viene promosso al suo posto; serie e falsificazioni restano nella pagina Strategie.',
+        false);
+      return;
+    }
     const base=accs.length*10000;
     const eq=accs.reduce((s,a)=>s+(a.equity||0),0);
     const wr=eq-base;
@@ -1191,7 +1215,7 @@ h1,h2,h3,h4,
   /* ---------- render: verdetto in linguaggio piano + benchmark S&P 500 ---------- */
   function renderVerdict(){
     const host=$('#verdict'); if(!host) return;
-    const accs=DATA.accounts||[]; if(!accs.length){ host.innerHTML=''; return; }
+    const accs=currentAccounts(); if(!accs.length){ host.innerHTML=''; return; }
     const base=accs.length*10000, eq=accs.reduce((s,a)=>s+(a.equity||0),0);
     const wr=eq-base, pct=wr/base*100;
     const txt='Su <b>'+usd(base)+'</b> iniziali, AlphaZero Labs vale <b>'+usd(eq)+'</b>: rendimento assoluto '+
@@ -1222,7 +1246,15 @@ h1,h2,h3,h4,
   }
   function renderAccounts(){
     const host=$('#accounts'); if(!host) return; host.innerHTML=''; ACCTS.length=0;
-    (DATA.accounts||[]).forEach(a=>{
+    const accs=currentAccounts();
+    if(!accs.length){
+      host.innerHTML=emptyBox(
+        'Nessun conto candidato',
+        'I conti non candidati sono conservati come evidenza storica e non compaiono nella superficie principale.',
+        false);
+      return;
+    }
+    accs.forEach(a=>{
       ACCT_SHORT[a.id]=a.label;
       const card=el('div','acct');
       const wr = a.equity - 10000;
@@ -1544,16 +1576,21 @@ h1,h2,h3,h4,
     const publicRows=Object.fromEntries((((DATA.public_status||{}).strategies)||[])
       .map(row=>[row.id,row]));
     const all=DATA.strategies||[];
-    const current=all.filter(s=>s.status!=='retired')
+    const current=all.filter(s=>(publicRows[s.id]||{}).surface==='current')
       .sort((a,b)=>(a.nome||a.id).localeCompare(b.nome||b.id,'it'));
-    const retired=all.filter(s=>s.status==='retired');
+    const archived=all.filter(s=>(publicRows[s.id]||{}).surface!=='current')
+      .sort((a,b)=>(a.nome||a.id).localeCompare(b.nome||b.id,'it'));
     const renderCard=(s,archived)=>{
       const card=el('div','strat-card');
       const pub=publicRows[s.id]||{state:archived?'archived':'stopped',kind:'strategy',evidence:'missing'};
       const tags=[s.asset_class,s.risk_profile,LIFE_IT[s.status]].filter(Boolean)
         .map(t=>'<span class="s-tag">'+escHtml(t)+'</span>').join('');
-      const stateLabel=(pub.kind==='experiment'&&pub.state!=='active')
-        ? 'esperimento fermo' : (PS_IT[pub.state]||pub.state);
+      const stateLabel=archived
+        ? (pub.classification==='falsified'
+          ? 'falsificata · risultato negativo'
+          : 'storica · non candidata')
+        : ((pub.kind==='experiment'&&pub.state!=='active')
+          ? 'esperimento fermo' : (PS_IT[pub.state]||pub.state));
       const stat='<span class="s-stat '+(pub.state==='active'?'live':'retired')+'">'+
         escHtml(stateLabel)+'</span>';
       const evidence='<span class="s-stat '+(pub.evidence==='verified'?'champion':'retired')+'">'+
@@ -1566,11 +1603,17 @@ h1,h2,h3,h4,
       const REASON_LC={drawdown_breach:'drawdown oltre soglia', losing:'perdente su basket'};
       const motivo=(lcRetire&&lcRetire.reason)?(REASON_LC[lcRetire.reason]||lcRetire.reason)
         :(s.stats?(s.stats.mean_r<0?'perdente su basket':(s.stats.sharpe_r<-1?'t-stat critica':'drawdown')):'');
-      const reason=(archived&&s.stats)?'<div class="strat-retire-reason">'+
-        (s.stats.sharpe_r!=null?'<span><b>t-stat (R)</b> '+NF2.format(s.stats.sharpe_r)+'</span>':'')+
-        (s.stats.mean_r!=null?'<span><b>R medio</b> '+NF2.format(s.stats.mean_r)+'</span>':'')+
-        (s.stats.n_closed?'<span><b>Trade</b> '+s.stats.n_closed+'</span>':'')+
-        '<span><b>Motivo</b> '+escHtml(motivo)+'</span></div>':'';
+      const REASON_IT={strategy_missing:'strategia non registrata',strategy_retired:'ritirata',
+        experiment:'esperimento',strategy_not_active:'runtime non attivo',
+        evidence_not_verified:'evidenza non verificata',negative_result:'risultato negativo',
+        series_missing:'serie assente',series_stale:'serie non corrente',
+        account_snapshot_missing:'snapshot conto assente'};
+      const publicReasons=(pub.reasons||[]).map(r=>REASON_IT[r]||r).join(' · ');
+      const reason=archived?'<div class="strat-retire-reason">'+
+        (s.stats&&s.stats.sharpe_r!=null?'<span><b>t-stat (R)</b> '+NF2.format(s.stats.sharpe_r)+'</span>':'')+
+        (s.stats&&s.stats.mean_r!=null?'<span><b>R medio</b> '+NF2.format(s.stats.mean_r)+'</span>':'')+
+        (s.stats&&s.stats.n_closed?'<span><b>Trade</b> '+s.stats.n_closed+'</span>':'')+
+        '<span><b>Criterio</b> '+escHtml(publicReasons||motivo||'non candidata')+'</span></div>':'';
       card.innerHTML =
         '<div class="s-head"><h3>'+escHtml(s.nome)+'</h3>'+stat+evidence+'</div>'+
         (tags?'<div class="s-tags">'+tags+'</div>':'')+
@@ -1584,16 +1627,24 @@ h1,h2,h3,h4,
         reason;
       return card;
     };
+    if(!current.length){
+      const empty=el('div','strat-current-empty');
+      empty.innerHTML=emptyBox(
+        'Nessun candidato attuale',
+        'Nessuna strategia soddisfa oggi tutti i requisiti pubblici. Lo storico completo è conservato qui sotto senza promuovere automaticamente i risultati positivi.',
+        false);
+      host.appendChild(empty);
+    }
     current.forEach(s=>host.appendChild(renderCard(s,false)));
-    if(retired.length){
+    if(archived.length){
       const arch=el('div','strat-archive');
       arch.innerHTML='<div class="strat-archive-head">'+
         '<span class="kicker">Archivio</span>'+
-        '<h3>Strategie ritirate</h3>'+
-        '<span class="note">'+retired.length+' strategie archiviate — restano per la storia e non sono operative.</span>'+
+        '<h3>Strategie storiche, falsificate o non candidate</h3>'+
+        '<span class="note">'+archived.length+' strategie conservate con il motivo di esclusione.</span>'+
       '</div>';
       const grid=el('div','strat-grid');
-      retired.forEach(s=>grid.appendChild(renderCard(s,true)));
+      archived.forEach(s=>grid.appendChild(renderCard(s,true)));
       arch.appendChild(grid);
       host.appendChild(arch);
     }
@@ -1664,8 +1715,12 @@ h1,h2,h3,h4,
     if(!s&&!a){ host.innerHTML=emptyBox('Strategia non trovata','Questo ID non corrisponde ad alcuna strategia o conto registrato. Torna all\'elenco con il link in alto per vedere tutti i conti monitorati.', false); return; }
     const pub=((((DATA.public_status||{}).strategies)||[]).find(row=>row.id===id))||{};
     const PS_IT={active:'attiva',stopped:'ferma',archived:'archiviata'};
-    const stateLabel=(pub.kind==='experiment'&&pub.state!=='active')
-      ? 'esperimento fermo' : (PS_IT[pub.state]||'stato non verificato');
+    const stateLabel=pub.surface==='archive'
+      ? (pub.classification==='falsified'
+        ? 'falsificata · risultato negativo'
+        : 'storica · non candidata')
+      : ((pub.kind==='experiment'&&pub.state!=='active')
+        ? 'esperimento fermo' : (PS_IT[pub.state]||'stato non verificato'));
     let html='';
     // scheda spiegazione
     if(s){
@@ -1716,7 +1771,7 @@ h1,h2,h3,h4,
         '<td class="'+(t.r_mult>0?'pos':t.r_mult<0?'neg':'')+'">'+(t.r_mult!=null?(t.r_mult>0?'+':'')+NF2.format(t.r_mult)+'R':'—')+'</td>'+
         '<td class="muted-cell">'+escHtml(REASON_IT[t.reason]||t.reason||'—')+'</td></tr>'; });
       html+='</tbody></table></div>';
-    } else { html+='<div style="margin-top:8px">'+emptyBox('Nessuna operazione ancora','Questa strategia è in attesa del primo trade. Negli orari di cron (ogni 4h) il sistema valuta i segnali ed entra solo se le condizioni della tesi si verificano.', true)+'</div>'; }
+    } else { html+='<div style="margin-top:8px">'+emptyBox('Nessuna operazione registrata','Lo storico non contiene operazioni per questa strategia. Questo non implica che sia in attesa o operativa.', false)+'</div>'; }
     host.innerHTML=html;
     // curva equity + mini-chart posizioni
     if(a&&a.equity_curve&&a.equity_curve.length>1){ const w=host.querySelector('[data-sd-curve]'); if(w) registerChart(w, a.equity_curve); }
@@ -2104,7 +2159,9 @@ h1,h2,h3,h4,
 
   function renderPortfolioKpi(){
     const host=$('#portfolio-kpi'); if(!host) return;
-    const cl=closedTrades(); if(!cl.length){ host.innerHTML=''; return; }
+    const candidateIds=new Set(currentAccounts().map(a=>a.id));
+    const cl=closedTrades().filter(t=>candidateIds.has(t.strategy));
+    if(!cl.length){ host.innerHTML=''; return; }
     const pnl=cl.reduce((s,t)=>s+t.pnl_usd,0);
     const wins=cl.filter(t=>t.pnl_usd>0), losses=cl.filter(t=>t.pnl_usd<0);
     const gw=wins.reduce((s,t)=>s+t.pnl_usd,0), gl=Math.abs(losses.reduce((s,t)=>s+t.pnl_usd,0));
@@ -2389,10 +2446,9 @@ h1,h2,h3,h4,
   function fillCounts(){
     var set=function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
     var summary=(D.public_status||{}).summary||{};
-    var monitored=(summary.active||0)+(summary.stopped||0);
     set('nof-system-n', (D.public_status||{}).state==='active'?'attivo':'in pausa');
-    set('nof-strats-n', monitored);
-    set('nof-retired-n', summary.archived||0);
+    set('nof-strats-n', summary.candidates||0);
+    set('nof-retired-n', summary.historical_strategies||0);
     set('nof-lessons-n', (D.lessons||[]).length);
   }
   fillCounts();
@@ -2400,19 +2456,22 @@ h1,h2,h3,h4,
   /* ---------- live ticker ---------- */
   var ticker=$('#nof-ticker');
   var publicActive=(D.public_status||{}).state==='active';
+  function currentAccounts(){
+    return (D.accounts||[]).filter(function(a){
+      return a.presentation && a.presentation.surface==='current';
+    });
+  }
   var BINANCE={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',ZEC:'ZECUSDT',NEAR:'NEARUSDT',WLD:'WLDUSDT',
     CRV:'CRVUSDT',BNB:'BNBUSDT',DOGE:'DOGEUSDT',AVAX:'AVAXUSDT',LINK:'LINKUSDT',ADA:'ADAUSDT',
     ARB:'ARBUSDT',OP:'OPUSDT',XRP:'XRPUSDT',SUI:'SUIUSDT'};
   function getHeld(){
     var held=[];
-    (D.accounts||[]).forEach(function(a){ (a.positions||[]).forEach(function(p){ if(held.indexOf(p.symbol)<0) held.push(p.symbol); }); });
-    // fallback SOLO simboli con fonte prezzo reale (Binance): XAU/WTI/SPX/NVDA/XAG
-    // erano voci demo permanentemente a "—"
-    ['BTC','ETH','SOL'].forEach(function(s){ if(held.indexOf(s)<0) held.push(s); });
+    currentAccounts().forEach(function(a){ (a.positions||[]).forEach(function(p){ if(held.indexOf(p.symbol)<0) held.push(p.symbol); }); });
     return held;
   }
   function lastPx(sym){
-    for(var i=0;i<(D.accounts||[]).length;i++){ var ps=(D.accounts[i].positions||[]);
+    var accounts=currentAccounts();
+    for(var i=0;i<accounts.length;i++){ var ps=(accounts[i].positions||[]);
       for(var j=0;j<ps.length;j++){ if(ps[j].symbol===sym){ var c=ps[j].chart;
         return (c&&c.length)?c[c.length-1][1]:ps[j].entry_px; } } }
     return null;
@@ -2446,7 +2505,8 @@ h1,h2,h3,h4,
   /* ---------- aggregate equity chart (live: estende le curve col mark-to-market) ---------- */
   var LIVEPX={};  // symbol -> px (da binance poll / ws)
   function snapPxOf(sym){
-    for(var i=0;i<(D.accounts||[]).length;i++){ var ps=(D.accounts[i].positions||[]);
+    var accounts=currentAccounts();
+    for(var i=0;i<accounts.length;i++){ var ps=(accounts[i].positions||[]);
       for(var j=0;j<ps.length;j++){ if(ps[j].symbol===sym){ var c=ps[j].chart;
         return (c&&c.length)?c[c.length-1][1]:ps[j].entry_px; } } }
     return null;
@@ -2476,17 +2536,23 @@ h1,h2,h3,h4,
   function renderAggregate(){
     var host=$('#nof-agg-chart'); if(!host) return;
     var leg=$('#nof-agg-legend');
-    var accs=(D.accounts||[]).filter(function(a){ return a.equity_curve && a.equity_curve.length>1; });
-    if(!accs.length){ host.innerHTML=''; if(leg) leg.innerHTML=''; return; }
-    // default anti-spaghetti: solo migliori 3 + peggiori 3 (per equity corrente);
-    // gli altri si accendono dalla legenda. Con pochi conti, tutti accesi.
-    if(!AGG_SEL){
-      var lastEq=function(a){ var c=a.equity_curve; return c[c.length-1][1]; };
-      var ranked=accs.slice().sort(function(a,b){ return lastEq(b)-lastEq(a); });
-      AGG_SEL={};
-      (accs.length<=7?ranked:ranked.slice(0,3).concat(ranked.slice(-3)))
-        .forEach(function(a){ AGG_SEL[a.id]=true; });
+    var accs=currentAccounts().filter(function(a){ return a.equity_curve && a.equity_curve.length>1; });
+    if(!accs.length){
+      host.innerHTML='<div class="empty-box"><div class="e-ico" aria-hidden="true">○</div>'+
+        '<p class="e-title">Nessuna serie candidata</p>'+
+        '<p class="e-body">Il grafico resta vuoto finché una strategia non soddisfa il criterio pubblico. Le serie interrotte e i risultati negativi restano nello storico, senza prolungamenti artificiali.</p></div>';
+      if(leg) leg.innerHTML='';
+      AGG_SEL=null;
+      return;
     }
+    // Nessun ranking implicito: al primo render tutte le serie candidate sono accese.
+    if(!AGG_SEL) AGG_SEL={};
+    var candidateIds={};
+    accs.forEach(function(a){
+      candidateIds[a.id]=true;
+      if(AGG_SEL[a.id]===undefined) AGG_SEL[a.id]=true;
+    });
+    Object.keys(AGG_SEL).forEach(function(id){ if(!candidateIds[id]) delete AGG_SEL[id]; });
     var W=920,H=230,L=14,R=128,T=18,B=28;
     var nowTs=Date.now();
     // curve estese col punto live (solo se c'è almeno un prezzo live per quel conto)
@@ -2538,23 +2604,36 @@ h1,h2,h3,h4,
       var on=!!AGG_SEL[a.id];
       var c=curves[idx];
       if(on){
-        var d=c.map(function(p,i){ var x=X(new Date(String(p[0]).replace(' ','T')).getTime()), y=Y(p[1]);
-          return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1); }).join(' ');
-        var path=document.createElementNS(svgNS,'path');
-        path.setAttribute('d',d); path.setAttribute('fill','none'); path.setAttribute('stroke',col);
-        path.setAttribute('stroke-width','2'); path.setAttribute('stroke-linejoin','round'); path.setAttribute('stroke-linecap','round');
-        if(DASH[idx%DASH.length]) path.setAttribute('stroke-dasharray',DASH[idx%DASH.length]);
-        svg.appendChild(path);
+        var maxGapMs=((((D.public_status||{}).candidate_policy||{}).max_series_lag_seconds)||7200)*1000;
+        var segments=[], segment=[], previousTs=null;
+        c.forEach(function(p){
+          var pointTs=new Date(String(p[0]).replace(' ','T')).getTime();
+          if(previousTs!==null && pointTs-previousTs>maxGapMs){
+            if(segment.length) segments.push(segment);
+            segment=[];
+          }
+          segment.push(p); previousTs=pointTs;
+        });
+        if(segment.length) segments.push(segment);
+        segments.forEach(function(points){
+          var d=points.map(function(p,i){ var x=X(new Date(String(p[0]).replace(' ','T')).getTime()), y=Y(p[1]);
+            return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1); }).join(' ');
+          var path=document.createElementNS(svgNS,'path');
+          path.setAttribute('d',d); path.setAttribute('fill','none'); path.setAttribute('stroke',col);
+          path.setAttribute('stroke-width','2'); path.setAttribute('stroke-linejoin','round'); path.setAttribute('stroke-linecap','round');
+          if(DASH[idx%DASH.length]) path.setAttribute('stroke-dasharray',DASH[idx%DASH.length]);
+          svg.appendChild(path);
+        });
         var last=c[c.length-1];
         var ex=X(new Date(String(last[0]).replace(' ','T')).getTime()), ey=Y(last[1]);
         var dot=document.createElementNS(svgNS,'circle');
         dot.setAttribute('cx',ex); dot.setAttribute('cy',ey); dot.setAttribute('r','3.2'); dot.setAttribute('fill',col);
         svg.appendChild(dot);
       }
-      var wr=c[c.length-1][1]-10000;
+      var first=String(c[0][0]), last=String(c[c.length-1][0]);
       legendHtml+='<span class="agg-leg-item'+(on?'':' off')+'" data-agg="'+escHtml(a.id)+'" title="'+(on?'clicca per nascondere':'clicca per mostrare')+'"><span class="agg-sw" style="background:'+col+'"></span>'+
         '<span class="agg-name">'+escHtml(a.label)+'</span>'+
-        '<span class="agg-val '+(wr>0?'pos':wr<0?'neg':'')+'">'+(wr>0?'+':wr<0?'−':'')+NF2.format(Math.abs(wr))+' $</span></span>';
+        '<span class="agg-val">dati '+escHtml(first.slice(0,10))+' → '+escHtml(last.slice(0,10))+'</span></span>';
     });
     host.innerHTML=''; host.appendChild(svg);
     if(leg){ leg.innerHTML=legendHtml;

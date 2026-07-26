@@ -63,11 +63,69 @@ def test_public_status_is_stopped_and_bound_to_runtime_evidence():
     assert status["source"]["last_evidence_at"] == newer.isoformat()
     assert status["summary"] == {
         "active": 0, "stopped": 2, "archived": 1, "experiments": 1,
+        "candidates": 0, "historical_accounts": 0, "falsified_accounts": 0,
+        "historical_strategies": 3, "falsified_strategies": 0,
     }
     assert {row["id"]: row["state"] for row in status["strategies"]} == {
         "alpha-v1": "stopped", "agents-v1": "stopped", "old-v1": "archived",
     }
     assert len(status["attestation_sha256"]) == 64
+
+
+def test_public_status_classifies_candidates_and_historical_series(monkeypatch):
+    import scripts.dashboard as dashboard
+
+    monkeypatch.setattr(dashboard, "PUBLIC_RUNTIME_ENABLED", True)
+    evidence_at = datetime(2026, 7, 24, 23, tzinfo=timezone.utc)
+    health = {
+        "status": "healthy",
+        "publish_allowed": True,
+        "run_id": "42-1",
+        "commit": "abc",
+        "generated_at": (evidence_at + timedelta(minutes=1)).isoformat(),
+        "max_age_seconds": 7200,
+        "attestation_sha256": "a" * 64,
+        "validation_reasons": [],
+        "coverage": [{"generated_at": evidence_at.isoformat()}],
+    }
+    strategies = [
+        {"id": "candidate-v1", "status": "champion",
+         "evidence": {"verified": True, "status": "verified"}},
+        {"id": "negative-v1", "status": "champion",
+         "evidence": {"verified": True, "status": "verified"}},
+        {"id": "stale-v1", "status": "champion",
+         "evidence": {"verified": True, "status": "verified"}},
+        {"id": "paper-loss-v1", "status": "champion",
+         "evidence": {"verified": True, "status": "verified"},
+         "stats": {"n_closed": 2, "total_pnl": -25}},
+    ]
+    accounts = [
+        {"id": "candidate-v1", "equity": 10100,
+         "equity_curve": [["2026-07-24 22:30", 10000], ["2026-07-24 23:00", 10100]]},
+        {"id": "negative-v1", "equity": 9900,
+         "equity_curve": [["2026-07-24 22:30", 10000], ["2026-07-24 23:00", 9900]]},
+        {"id": "stale-v1", "equity": 10150,
+         "equity_curve": [["2026-07-20 22:30", 10000], ["2026-07-20 23:00", 10150]]},
+    ]
+
+    status = dashboard.build_public_status(health, strategies, accounts)
+    by_id = {row["id"]: row for row in status["accounts"]}
+
+    assert by_id["candidate-v1"]["surface"] == "current"
+    assert by_id["candidate-v1"]["reasons"] == []
+    assert by_id["negative-v1"]["classification"] == "falsified"
+    assert "negative_result" in by_id["negative-v1"]["reasons"]
+    assert by_id["stale-v1"]["classification"] == "historical"
+    assert by_id["stale-v1"]["reasons"] == ["series_stale"]
+    assert status["summary"]["candidates"] == 1
+    assert status["summary"]["historical_accounts"] == 2
+    assert status["summary"]["falsified_accounts"] == 1
+    assert status["summary"]["falsified_strategies"] == 2
+    paper_loss = next(
+        row for row in status["strategies"] if row["id"] == "paper-loss-v1")
+    assert paper_loss["classification"] == "falsified"
+    assert paper_loss["reasons"] == ["negative_result", "account_snapshot_missing"]
+    assert status["candidate_policy"]["series_policy"].startswith("No forward-fill")
 
 
 def test_public_status_does_not_use_health_build_time_as_evidence():
@@ -120,6 +178,19 @@ def test_stopped_public_status_disables_live_market_requests():
     assert "Read `status.json` before interpreting any other file." in skill
     assert "live track record" not in skill
     assert "autonomous trading-research platform" not in skill
+
+
+def test_home_uses_only_attested_candidates_without_performance_ranking():
+    template = (Path(__file__).resolve().parent.parent / "dashboard/template.html").read_text()
+
+    assert "a.presentation && a.presentation.surface==='current'" in template
+    assert "migliori 3 + peggiori 3" not in template
+    assert "Nessun candidato con evidenza attuale" in template
+    assert "Nessuna serie candidata" in template
+    assert "nessuna serie viene riempita o prolungata artificialmente" in template
+    assert "ranked.slice(0,3)" not in template
+    assert "pointTs-previousTs>maxGapMs" in template
+    assert "historical_strategies" in template
 
 
 def test_dashboard_uses_sp500_benchmark(monkeypatch):

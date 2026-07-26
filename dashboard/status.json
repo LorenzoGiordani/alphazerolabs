@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "state": "stopped",
   "reason": "Runtime pubblico non abilitato; dati conservati come snapshot storico.",
   "source": {
@@ -42,175 +42,505 @@
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "negative_result",
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "agents-rr2-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "negative_result",
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "agents-v1",
       "state": "archived",
       "kind": "experiment",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "claude-strategy-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "commodities-trend-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "negative_result",
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "crypto-trend-flow-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "funding-squeeze-breakout-g2-g1-g2",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "geopolitics-v1",
       "state": "stopped",
       "kind": "experiment",
       "evidence": "blocked",
-      "paper_lifecycle": "champion"
+      "paper_lifecycle": "champion",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "experiment",
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result",
+        "series_stale"
+      ]
     },
     {
       "id": "glm-regime-confluence-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "highvol-port-v1",
       "state": "stopped",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "challenger"
+      "paper_lifecycle": "challenger",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result",
+        "series_stale"
+      ]
     },
     {
       "id": "liqimb-port-v1",
       "state": "stopped",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "champion"
+      "paper_lifecycle": "champion",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result"
+      ]
     },
     {
       "id": "lux-0.1-beta",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "negative_result",
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "lux-confluence-rr2-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "lux-flow-confluence-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "negative_result",
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "tsmom-aggressive-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "negative_result",
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "tsmom-atr-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "negative_result",
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "tsmom-conservative-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "negative_result",
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "tsmom-liq-v1",
       "state": "archived",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "retired"
+      "paper_lifecycle": "retired",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "negative_result",
+        "account_snapshot_missing"
+      ]
     },
     {
       "id": "tsmom-neutral-v1",
       "state": "stopped",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "champion"
+      "paper_lifecycle": "champion",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result",
+        "series_stale"
+      ]
     },
     {
       "id": "xsmom-highvol-combo-v1",
       "state": "stopped",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "champion"
+      "paper_lifecycle": "champion",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified"
+      ]
     },
     {
       "id": "xsmom-highvol-voltarget-v1",
       "state": "stopped",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "champion"
+      "paper_lifecycle": "champion",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified"
+      ]
     },
     {
       "id": "xsmom-multihorizon-v1",
       "state": "stopped",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "champion"
+      "paper_lifecycle": "champion",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified"
+      ]
     },
     {
       "id": "xsmom-port-v1",
       "state": "stopped",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "champion"
+      "paper_lifecycle": "champion",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "series_stale"
+      ]
     },
     {
       "id": "xsmom-reb48-v1",
       "state": "stopped",
       "kind": "strategy",
       "evidence": "blocked",
-      "paper_lifecycle": "champion"
+      "paper_lifecycle": "champion",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result",
+        "series_stale"
+      ]
     }
   ],
+  "accounts": [
+    {
+      "id": "geopolitics-v1",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "experiment",
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result",
+        "series_stale"
+      ],
+      "result_usd": -117.29,
+      "paper_result_usd": -101.62,
+      "series": {
+        "first_at": "2026-06-19T17:17:00+00:00",
+        "last_at": "2026-07-11T18:23:00+00:00",
+        "stale": true
+      }
+    },
+    {
+      "id": "xsmom-port-v1",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "series_stale"
+      ],
+      "result_usd": 721.23,
+      "paper_result_usd": 721.23,
+      "series": {
+        "first_at": "2026-06-22T13:17:00+00:00",
+        "last_at": "2026-07-20T15:14:00+00:00",
+        "stale": true
+      }
+    },
+    {
+      "id": "highvol-port-v1",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result",
+        "series_stale"
+      ],
+      "result_usd": -896.42,
+      "paper_result_usd": -896.42,
+      "series": {
+        "first_at": "2026-06-26T15:16:00+00:00",
+        "last_at": "2026-07-24T16:14:00+00:00",
+        "stale": true
+      }
+    },
+    {
+      "id": "xsmom-highvol-combo-v1",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified"
+      ],
+      "result_usd": 703.79,
+      "paper_result_usd": 703.79,
+      "series": {
+        "first_at": "2026-06-26T15:16:00+00:00",
+        "last_at": "2026-07-24T23:14:00+00:00",
+        "stale": false
+      }
+    },
+    {
+      "id": "xsmom-highvol-voltarget-v1",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified"
+      ],
+      "result_usd": 509.98,
+      "paper_result_usd": 509.98,
+      "series": {
+        "first_at": "2026-06-26T21:23:00+00:00",
+        "last_at": "2026-07-24T23:14:00+00:00",
+        "stale": false
+      }
+    },
+    {
+      "id": "xsmom-multihorizon-v1",
+      "surface": "archive",
+      "classification": "historical",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified"
+      ],
+      "result_usd": 597.18,
+      "paper_result_usd": 597.18,
+      "series": {
+        "first_at": "2026-06-28T09:35:00+00:00",
+        "last_at": "2026-07-24T23:14:00+00:00",
+        "stale": false
+      }
+    },
+    {
+      "id": "liqimb-port-v1",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result"
+      ],
+      "result_usd": -88.39,
+      "paper_result_usd": -88.39,
+      "series": {
+        "first_at": "2026-07-04T11:48:00+00:00",
+        "last_at": "2026-07-24T23:14:00+00:00",
+        "stale": false
+      }
+    },
+    {
+      "id": "tsmom-neutral-v1",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result",
+        "series_stale"
+      ],
+      "result_usd": -550.27,
+      "paper_result_usd": -550.27,
+      "series": {
+        "first_at": "2026-07-04T11:48:00+00:00",
+        "last_at": "2026-07-18T09:13:00+00:00",
+        "stale": true
+      }
+    },
+    {
+      "id": "xsmom-reb48-v1",
+      "surface": "archive",
+      "classification": "falsified",
+      "reasons": [
+        "strategy_not_active",
+        "evidence_not_verified",
+        "negative_result",
+        "series_stale"
+      ],
+      "result_usd": -312.98,
+      "paper_result_usd": -312.98,
+      "series": {
+        "first_at": "2026-07-04T11:48:00+00:00",
+        "last_at": "2026-07-19T00:13:00+00:00",
+        "stale": true
+      }
+    }
+  ],
+  "candidate_policy": {
+    "version": 1,
+    "base_equity_usd": 10000.0,
+    "max_series_lag_seconds": 7200,
+    "requires": [
+      "strategy_active",
+      "evidence_verified",
+      "non_negative_result",
+      "series_present",
+      "series_current",
+      "not_experiment",
+      "not_retired"
+    ],
+    "series_policy": "No forward-fill: each line ends at its last observation.",
+    "result_sources": [
+      "account_equity_vs_base",
+      "closed_paper_total_pnl_when_available"
+    ]
+  },
   "summary": {
     "active": 0,
     "stopped": 9,
     "archived": 15,
-    "experiments": 2
+    "experiments": 2,
+    "candidates": 0,
+    "historical_accounts": 9,
+    "falsified_accounts": 5,
+    "historical_strategies": 24,
+    "falsified_strategies": 14
   },
-  "attestation_sha256": "f868086de3f5d88f3fcf1f76d0c4084bec9d639f638a889b54c6dbb9a686007f"
+  "attestation_sha256": "67647b791028f7bfd290b2bb42ab351f0d370b8890b3e5f5078521a39373e81a"
 }

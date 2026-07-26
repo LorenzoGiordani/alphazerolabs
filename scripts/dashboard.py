@@ -9,7 +9,7 @@ import hashlib
 import json
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import yaml
@@ -19,6 +19,7 @@ TEMPLATE = ROOT / "dashboard/template.html"
 OUT = ROOT / "dashboard/index.html"
 PUBLIC_RUNTIME_ENABLED = False
 EXPERIMENTAL_STRATEGIES = {"agents-v1", "geopolitics-v1"}
+CANDIDATE_BASE_EQUITY_USD = 10_000.0
 
 ACCOUNT_META = {
     "agents-v1": {"label": "Agenti LLM", "tag": "pipeline decide"},
@@ -366,8 +367,25 @@ def load_runtime_health(root: Path = ROOT) -> dict:
     return load_health(root / "paper" / "health.json")
 
 
-def build_public_status(health: dict, strategies: list[dict]) -> dict:
-    """Stato pubblico fail-closed, legato alla provenance dell'ultimo run."""
+def _utc_datetime(value: object) -> datetime | None:
+    """Parse dashboard timestamps as UTC without inventing missing observations."""
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def build_public_status(health: dict, strategies: list[dict],
+                        accounts: list[dict] | None = None) -> dict:
+    """Stato pubblico fail-closed, legato alla provenance dell'ultimo run.
+
+    La superficie corrente non è un ranking di performance: una strategia compare
+    solo se runtime, evidenza e serie sono verificabili e il risultato paper non è
+    negativo. Tutto il resto rimane attestato nello storico.
+    """
     verified_health = (
         health.get("publish_allowed") is True
         and health.get("status") in {"healthy", "degraded"}
@@ -384,6 +402,10 @@ def build_public_status(health: dict, strategies: list[dict]) -> dict:
         max(coverage_times).astimezone(timezone.utc).isoformat()
         if coverage_times else None
     )
+    last_evidence_dt = _utc_datetime(last_evidence_at)
+    max_series_lag_seconds = health.get("max_age_seconds", 7200)
+    if type(max_series_lag_seconds) is not int or max_series_lag_seconds <= 0:
+        max_series_lag_seconds = 7200
 
     strategy_states = []
     for strategy in strategies:
@@ -404,8 +426,86 @@ def build_public_status(health: dict, strategies: list[dict]) -> dict:
             "paper_lifecycle": lifecycle,
         })
 
+    strategy_state_by_id = {row["id"]: row for row in strategy_states}
+    strategy_by_id = {row.get("id"): row for row in strategies}
+    account_states = []
+    for account in accounts or []:
+        sid = account.get("id")
+        public = strategy_state_by_id.get(sid)
+        strategy = strategy_by_id.get(sid) or {}
+        stats = strategy.get("stats") or {}
+        paper_result_usd = (
+            round(float(stats["total_pnl"]), 2)
+            if stats.get("n_closed") and stats.get("total_pnl") is not None
+            else None
+        )
+        curve = account.get("equity_curve") or []
+        first_series_at = _utc_datetime(curve[0][0]) if curve else None
+        last_series_at = _utc_datetime(curve[-1][0]) if curve else None
+        result_usd = round(float(account.get("equity", CANDIDATE_BASE_EQUITY_USD))
+                           - CANDIDATE_BASE_EQUITY_USD, 2)
+        reasons = []
+        if public is None:
+            reasons.append("strategy_missing")
+        else:
+            if public["paper_lifecycle"] == "retired":
+                reasons.append("strategy_retired")
+            if public["kind"] == "experiment":
+                reasons.append("experiment")
+            if public["state"] != "active":
+                reasons.append("strategy_not_active")
+            if public["evidence"] != "verified":
+                reasons.append("evidence_not_verified")
+        if result_usd < 0 or (paper_result_usd is not None and paper_result_usd < 0):
+            reasons.append("negative_result")
+        if last_series_at is None:
+            reasons.append("series_missing")
+        elif (last_evidence_dt is None
+              or last_series_at < last_evidence_dt - timedelta(seconds=max_series_lag_seconds)):
+            reasons.append("series_stale")
+
+        candidate = not reasons
+        account_states.append({
+            "id": sid,
+            "surface": "current" if candidate else "archive",
+            "classification": (
+                "candidate" if candidate
+                else ("falsified" if "negative_result" in reasons else "historical")
+            ),
+            "reasons": reasons,
+            "result_usd": result_usd,
+            "paper_result_usd": paper_result_usd,
+            "series": {
+                "first_at": first_series_at.isoformat() if first_series_at else None,
+                "last_at": last_series_at.isoformat() if last_series_at else None,
+                "stale": "series_stale" in reasons,
+            },
+        })
+
+    account_state_by_id = {row["id"]: row for row in account_states}
+    for row in strategy_states:
+        account = account_state_by_id.get(row["id"])
+        if account:
+            row["surface"] = account["surface"]
+            row["classification"] = account["classification"]
+            row["reasons"] = account["reasons"]
+        else:
+            strategy = strategy_by_id.get(row["id"]) or {}
+            stats = strategy.get("stats") or {}
+            negative_result = bool(
+                stats.get("n_closed")
+                and stats.get("total_pnl") is not None
+                and float(stats["total_pnl"]) < 0
+            )
+            row["surface"] = "archive"
+            row["classification"] = "falsified" if negative_result else "historical"
+            row["reasons"] = (
+                ["negative_result", "account_snapshot_missing"]
+                if negative_result else ["account_snapshot_missing"]
+            )
+
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "state": "active" if runtime_active else "stopped",
         "reason": (
             "Runtime verificato e abilitato."
@@ -436,12 +536,40 @@ def build_public_status(health: dict, strategies: list[dict]) -> dict:
             },
         },
         "strategies": strategy_states,
+        "accounts": account_states,
+        "candidate_policy": {
+            "version": 1,
+            "base_equity_usd": CANDIDATE_BASE_EQUITY_USD,
+            "max_series_lag_seconds": max_series_lag_seconds,
+            "requires": [
+                "strategy_active",
+                "evidence_verified",
+                "non_negative_result",
+                "series_present",
+                "series_current",
+                "not_experiment",
+                "not_retired",
+            ],
+            "series_policy": "No forward-fill: each line ends at its last observation.",
+            "result_sources": [
+                "account_equity_vs_base",
+                "closed_paper_total_pnl_when_available",
+            ],
+        },
     }
     payload["summary"] = {
         "active": sum(row["state"] == "active" for row in strategy_states),
         "stopped": sum(row["state"] == "stopped" for row in strategy_states),
         "archived": sum(row["state"] == "archived" for row in strategy_states),
         "experiments": sum(row["kind"] == "experiment" for row in strategy_states),
+        "candidates": sum(row["surface"] == "current" for row in account_states),
+        "historical_accounts": sum(row["surface"] == "archive" for row in account_states),
+        "falsified_accounts": sum(
+            row["classification"] == "falsified" for row in account_states),
+        "historical_strategies": sum(
+            row["surface"] == "archive" for row in strategy_states),
+        "falsified_strategies": sum(
+            row["classification"] == "falsified" for row in strategy_states),
     }
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True,
                            separators=(",", ":")).encode()
@@ -776,6 +904,16 @@ def build_digest(data: dict) -> dict | None:
     non oracolo — qui nemmeno giudice, solo cronista). cache=True: i run orari
     con fatti identici non ripagano la chiamata. Qualsiasi errore (API key
     assente, rete, quota) → None: la dashboard esce senza digest, mai bloccata."""
+    candidate_ids = {
+        account["id"] for account in data.get("accounts") or []
+        if (account.get("presentation") or {}).get("surface") == "current"
+    }
+    if not candidate_ids:
+        return None
+    candidate_accounts = [
+        account for account in data.get("accounts") or []
+        if account.get("id") in candidate_ids
+    ]
     from datetime import timedelta
     now = datetime.now(timezone.utc)
     today = data["updated_utc"][:10]
@@ -792,7 +930,7 @@ def build_digest(data: dict) -> dict | None:
     # migliore/peggiore degli ultimi 7 giorni sull'equity curve dei conti
     week_ago = f"{now - timedelta(days=7):%Y-%m-%d %H:%M}"
     perf = []
-    for a in data.get("accounts") or []:
+    for a in candidate_accounts:
         c = a.get("equity_curve") or []
         if len(c) < 2:
             continue
@@ -815,9 +953,9 @@ def build_digest(data: dict) -> dict | None:
     if not (opened or closed):
         facts.append("nessuna operazione aperta o chiusa oggi: i sistemi restano "
                      "in attesa dei loro segnali")
-    n = len(data.get("accounts") or [])
+    n = len(candidate_accounts)
     if n:
-        tot = sum(a.get("equity", 0) for a in data["accounts"])
+        tot = sum(a.get("equity", 0) for a in candidate_accounts)
         facts.append(f"stato complessivo: {tot - n * 10000:+.0f}$ "
                      f"({(tot / (n * 10000) - 1) * 100:+.1f}%) dall'avvio, su {n} conti paper")
     prompt = (
@@ -1195,7 +1333,20 @@ def build_data() -> dict:
             backtests = {}
 
     health = load_runtime_health()
-    public_status = build_public_status(health, strategies)
+    public_status = build_public_status(health, strategies, accounts)
+    account_status_by_id = {
+        row["id"]: row for row in public_status.get("accounts", [])
+    }
+    for account in accounts:
+        account["presentation"] = account_status_by_id.get(account["id"], {
+            "surface": "archive",
+            "classification": "historical",
+            "reasons": ["status_missing"],
+        })
+    current_accounts = [
+        account for account in accounts
+        if account["presentation"]["surface"] == "current"
+    ]
     updated_utc = (
         ts_short(public_status["source"]["last_evidence_at"])
         if public_status["source"]["last_evidence_at"] else "—"
@@ -1218,7 +1369,7 @@ def build_data() -> dict:
     ids = {n["id"] for n in lineage} | set(state) | {s["id"] for s in strategies}
     ids |= {s.get("id") for s in (backtests.get("strategies") or []) if isinstance(s, dict)}
     data["labels"] = {i: friendly_label(i) for i in ids if i}
-    data["benchmark"] = benchmark_sp500(accounts)
+    data["benchmark"] = benchmark_sp500(current_accounts)
     data["digest"] = build_digest(data)
     data["propr"] = build_propr()
     return data
