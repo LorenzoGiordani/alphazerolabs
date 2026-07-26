@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -16,6 +17,7 @@ DEFAULT_OUTPUT = ROOT / "paper" / "health.json"
 DEFAULT_COVERAGE_DIR = ROOT / "paper" / "coverage"
 SCHEMA_VERSION = 1
 _NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_.-]*$")
+PROVENANCE_MAX_LAG_SECONDS = 600
 
 
 def _utcnow() -> datetime:
@@ -27,6 +29,14 @@ def _aware_timestamp(value: object) -> bool:
         return datetime.fromisoformat(value).tzinfo is not None  # type: ignore[arg-type]
     except (TypeError, ValueError):
         return False
+
+
+def _manifest_attestation(payload: dict) -> str:
+    canonical = {key: value for key, value in payload.items()
+                 if key not in {"attestation_sha256", "validation_reasons"}}
+    encoded = json.dumps(canonical, ensure_ascii=False, sort_keys=True,
+                         separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _atomic_json(path: Path, payload: dict) -> None:
@@ -154,7 +164,7 @@ def build_manifest(critical: list[str], optional: list[str], *, run_id: str,
                        if c.get("critical") is False and c.get("status") != "pass"]
     status = ("critical" if failed_critical or failed_coverage
               else ("degraded" if failed_optional or warned_coverage else "healthy"))
-    return {
+    payload = {
         "schema_version": SCHEMA_VERSION,
         "generated_at": (now or _utcnow()).isoformat(),
         "max_age_seconds": 7200,
@@ -168,6 +178,8 @@ def build_manifest(critical: list[str], optional: list[str], *, run_id: str,
         "errors": failed_critical + failed_coverage,
         "warnings": failed_optional + warned_coverage,
     }
+    payload["attestation_sha256"] = _manifest_attestation(payload)
+    return payload
 
 
 def validate_manifest(payload: object, *, max_age_seconds: int = 7200,
@@ -183,6 +195,7 @@ def validate_manifest(payload: object, *, max_age_seconds: int = 7200,
         reasons.append("health_run_id_invalid")
     if not isinstance(payload.get("commit"), str) or not payload["commit"].strip():
         reasons.append("health_commit_invalid")
+    generated = None
     try:
         generated = datetime.fromisoformat(payload["generated_at"])
         if generated.tzinfo is None:
@@ -208,6 +221,15 @@ def validate_manifest(payload: object, *, max_age_seconds: int = 7200,
         reasons.append("health_coverage_invalid")
     elif any(c["critical"] and c["status"] != "pass" for c in coverage):
         reasons.append("health_critical_coverage_failed")
+    if generated is not None and isinstance(coverage, list) and coverage:
+        coverage_times = [
+            datetime.fromisoformat(c["generated_at"]).astimezone(timezone.utc)
+            for c in coverage if _coverage_valid(c, payload.get("run_id"))
+        ]
+        if coverage_times and abs(
+                (generated.astimezone(timezone.utc) - max(coverage_times)).total_seconds()
+        ) > PROVENANCE_MAX_LAG_SECONDS:
+            reasons.append("health_provenance_timestamp_mismatch")
     required = payload.get("required_coverage")
     if (not isinstance(required, list)
             or any(not isinstance(name, str) or not _NAME_RE.fullmatch(name) for name in required)
@@ -225,6 +247,11 @@ def validate_manifest(payload: object, *, max_age_seconds: int = 7200,
         reasons.append("health_errors_present")
     if not isinstance(payload.get("warnings"), list):
         reasons.append("health_warnings_invalid")
+    attestation = payload.get("attestation_sha256")
+    if not isinstance(attestation, str) or not re.fullmatch(r"[0-9a-f]{64}", attestation):
+        reasons.append("health_attestation_missing")
+    elif attestation != _manifest_attestation(payload):
+        reasons.append("health_attestation_mismatch")
     return not reasons, reasons
 
 

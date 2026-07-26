@@ -189,7 +189,8 @@ def test_due_rebalance_with_held_mark_only_asset_leaves_state_unchanged(tmp_path
         _ for _ in ()).throw(AssertionError("journal write during deferred rebalance")))
     monkeypatch.setattr(sys, "argv", ["portfolio_paper.py", "alpha.yaml"])
 
-    portfolio.main()
+    with pytest.raises(SystemExit, match="rebalance bloccato"):
+        portfolio.main()
 
     prices = json.loads((tmp_path / "coverage/alpha-port-v1-prices.json").read_text())
     signals = json.loads((tmp_path / "coverage/alpha-port-v1-signal-eligible.json").read_text())

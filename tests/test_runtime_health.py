@@ -17,6 +17,7 @@ def test_all_critical_success_is_publishable():
                             run_id="42-1", commit="abc", now=NOW)
     assert health["status"] == "healthy"
     assert health["publish_allowed"] is True
+    assert len(health["attestation_sha256"]) == 64
     assert validate_manifest(health, now=NOW) == (True, [])
 
 
@@ -80,3 +81,32 @@ def test_required_coverage_record_cannot_disappear_silently():
     ok, reasons = validate_manifest(health, now=NOW)
     assert ok is False
     assert "health_required_coverage_missing" in reasons
+
+
+def test_health_timestamp_cannot_be_refreshed_without_fresh_coverage():
+    coverage = [{
+        "schema_version": 1,
+        "run_id": "42-1",
+        "generated_at": (NOW - timedelta(hours=3)).isoformat(),
+        "component": "paper-all",
+        "critical": True,
+        "expected_count": 1,
+        "observed_count": 1,
+        "missing": [],
+        "status": "pass",
+    }]
+    health = build_manifest(
+        ["paper=success"], [], run_id="42-1", commit="abc", now=NOW,
+        coverage=coverage, required_coverage=["paper-all"],
+    )
+    ok, reasons = validate_manifest(health, now=NOW)
+    assert ok is False
+    assert "health_provenance_timestamp_mismatch" in reasons
+
+
+def test_health_attestation_detects_manual_timestamp_edit():
+    health = build_manifest(["paper=success"], [], run_id="42-1", commit="abc", now=NOW)
+    health["generated_at"] = (NOW + timedelta(minutes=1)).isoformat()
+    ok, reasons = validate_manifest(health, now=NOW + timedelta(minutes=1))
+    assert ok is False
+    assert "health_attestation_mismatch" in reasons

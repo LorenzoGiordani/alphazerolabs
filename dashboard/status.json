@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "state": "stopped",
+  "reason": "Runtime pubblico non abilitato; dati conservati come snapshot storico.",
+  "source": {
+    "run_id": "30133089478-1",
+    "commit": "426a50736f634f7fa72b823134439817d011b77a",
+    "health_generated_at": "2026-07-25T14:03:37.690116+00:00",
+    "last_evidence_at": "2026-07-24T23:14:21.743696+00:00",
+    "health_attestation_sha256": null,
+    "health_validation_reasons": [
+      "health_stale",
+      "health_provenance_timestamp_mismatch",
+      "health_attestation_missing"
+    ]
+  },
+  "features": {
+    "paper": {
+      "label": "Ricerca paper",
+      "state": "stopped",
+      "kind": "core"
+    },
+    "agents": {
+      "label": "Agenti AI",
+      "state": "stopped",
+      "kind": "experiment"
+    },
+    "propr": {
+      "label": "Propr",
+      "state": "stopped",
+      "kind": "experiment"
+    },
+    "evolution": {
+      "label": "Evolution",
+      "state": "stopped",
+      "kind": "experiment"
+    }
+  },
+  "strategies": [
+    {
+      "id": "tsmom-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "agents-rr2-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "agents-v1",
+      "state": "archived",
+      "kind": "experiment",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "claude-strategy-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "commodities-trend-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "crypto-trend-flow-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "funding-squeeze-breakout-g2-g1-g2",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "geopolitics-v1",
+      "state": "stopped",
+      "kind": "experiment",
+      "evidence": "blocked",
+      "paper_lifecycle": "champion"
+    },
+    {
+      "id": "glm-regime-confluence-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "highvol-port-v1",
+      "state": "stopped",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "challenger"
+    },
+    {
+      "id": "liqimb-port-v1",
+      "state": "stopped",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "champion"
+    },
+    {
+      "id": "lux-0.1-beta",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "lux-confluence-rr2-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "lux-flow-confluence-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "tsmom-aggressive-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "tsmom-atr-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "tsmom-conservative-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "tsmom-liq-v1",
+      "state": "archived",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "retired"
+    },
+    {
+      "id": "tsmom-neutral-v1",
+      "state": "stopped",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "champion"
+    },
+    {
+      "id": "xsmom-highvol-combo-v1",
+      "state": "stopped",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "champion"
+    },
+    {
+      "id": "xsmom-highvol-voltarget-v1",
+      "state": "stopped",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "champion"
+    },
+    {
+      "id": "xsmom-multihorizon-v1",
+      "state": "stopped",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "champion"
+    },
+    {
+      "id": "xsmom-port-v1",
+      "state": "stopped",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "champion"
+    },
+    {
+      "id": "xsmom-reb48-v1",
+      "state": "stopped",
+      "kind": "strategy",
+      "evidence": "blocked",
+      "paper_lifecycle": "champion"
+    }
+  ],
+  "summary": {
+    "active": 0,
+    "stopped": 9,
+    "archived": 15,
+    "experiments": 2
+  },
+  "attestation_sha256": "f868086de3f5d88f3fcf1f76d0c4084bec9d639f638a889b54c6dbb9a686007f"
+}

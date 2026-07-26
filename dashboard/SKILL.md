@@ -1,34 +1,36 @@
 # AlphaZero Labs — agent skill (read-only)
 
 You are reading the machine-facing entry point of **AlphaZero Labs**
-(https://lux-ai.pages.dev): an autonomous trading-research platform that
-**learns in public**. LLM agents propose trades with falsifiable theses,
-execute them on a paper account (fake balance, real prices), write
-post-mortems of their mistakes, and evolve systematic strategies
-generation by generation. The product is transparency: every thesis,
-error and lesson is tracked and published here.
+(https://lux-ai.pages.dev): a public archive of paper-trading research.
+The published records include theses, simulated trades, post-mortems and
+strategy experiments. They do not prove that a strategy, agent or job is
+currently running.
 
 > Paper trading only. No real funds. Nothing here is financial advice.
+> Read `status.json` before interpreting any other file. Unless its top-level
+> `state` is `active`, treat the site as a historical, read-only snapshot.
 
 ## How to read the data
 
-Published state lives in `https://lux-ai.pages.dev/data.js`; machine-readable
-pipeline freshness also lives at `https://lux-ai.pages.dev/health.json`.
-— JavaScript wrapper, strip the `window.__DATA__ = ` prefix and parse the
-rest as JSON. Top-level keys:
+The attested public state lives in `https://lux-ai.pages.dev/status.json`.
+Historical product data lives in `https://lux-ai.pages.dev/data.js`;
+machine-readable pipeline health lives at
+`https://lux-ai.pages.dev/health.json`. `data.js` is a JavaScript wrapper:
+strip the `window.__DATA__ = ` prefix and parse the rest as JSON. Top-level
+keys:
 
 | Key | What it contains |
 |---|---|
-| `updated_utc` | Last build timestamp (site rebuilds every ~1h from GitHub Actions) |
+| `updated_utc` | Timestamp of the latest recorded runtime evidence, not page generation time |
 | `accounts` | One paper account per strategy: `equity`, `pnl_realized`, `trades_closed`, `wins`, full `equity_curve` |
 | `strategies` | Strategies with paper lifecycle `status`, separate `evidence` verification and derived `evidence_ready` |
 | `tradebook` | Every closed trade: entry/exit, PnL, R-multiple, exit reason |
 | `decisions` | LLM desk decisions with **thesis and invalidation** (falsifiable, always) |
 | `lessons` | Post-mortem lessons journal — including honestly falsified research |
 | `lineage` / `lifecycle` | Evolutionary tree: which strategy mutated from which, promotions/retirements |
-| `backtests` | Honest walk-forward backtests (fees+slippage included) of active strategies |
+| `backtests` | Recorded walk-forward backtests (fees+slippage included); verify evidence separately |
 | `benchmark` | S&P 500 price-index comparison over the same period |
-| `portfolio_live` | Current open positions of the portfolio engines |
+| `portfolio_live` | Last recorded open-position snapshot; current operation is determined by `status.json` |
 | `digest` | Plain-language summary of what happened today |
 | `health` | Runtime manifest: critical/optional outcomes, freshness and `publish_allowed` |
 
@@ -50,13 +52,21 @@ rest as JSON. Top-level keys:
    price. Newly listed assets without enough lookback are shown as signal-ineligible,
    not silently discarded or treated as feed failures.
 
+## Current public interpretation
+
+At the time this file was generated, paper engines, agents, Propr and
+Evolution are represented as stopped experiments. `status.json` is the
+canonical, content-attested source for their current classification and
+for the evidence timestamp behind the public snapshot.
+
 ## Example questions you can answer from data.js
 
-- "What is the current paper champion and its thesis?" → `strategies` where
-  `status == "champion"`; inspect `evidence.verified` separately
+- "Which strategy was recorded as paper champion and what was its thesis?"
+  → `strategies` where `status == "champion"`; inspect `evidence.verified`
+  and `status.json` separately
 - "What was the last lesson learned?" → `lessons` (most recent entry)
-- "What is the live track record?" → `accounts` (equity vs 10k start,
-  win rate = wins/trades_closed) + `benchmark` for context
+- "What is the recorded paper track record?" → `accounts` (equity vs 10k
+  start, win rate = wins/trades_closed) + `benchmark` for context
 - "Has any research been honestly falsified?" → `lessons` with tag
   `falsificazione` (e.g. the 456-factor alpha-zoo sweep, killed by DSR)
 

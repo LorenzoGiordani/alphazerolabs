@@ -379,9 +379,10 @@ def main() -> None:
            now - datetime.fromisoformat(st["last_rebalance_ts"]) >= pd.Timedelta(hours=rebalance_h).to_pytimedelta())
     held_mark_only = sorted(mark_only_symbols & set(st["positions"]))
     if due and held_mark_only:
-        print(f"  rebalance differito: posizioni senza candela fresca "
-              f"({','.join(held_mark_only[:20])})")
-        return
+        raise SystemExit(
+            "rebalance bloccato: posizioni senza candela fresca "
+            f"({','.join(held_mark_only[:20])})"
+        )
 
     # 1. mark-to-market del book esistente
     for s, pos in list(st["positions"].items()):

@@ -5,6 +5,7 @@ toccarlo per cambiare i dati): qui si costruisce SOLO il blocco JSON
 (<script id="data">) dallo stato reale e si scrive dashboard/index.html.
 """
 
+import hashlib
 import json
 import re
 import sys
@@ -16,6 +17,8 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE = ROOT / "dashboard/template.html"
 OUT = ROOT / "dashboard/index.html"
+PUBLIC_RUNTIME_ENABLED = False
+EXPERIMENTAL_STRATEGIES = {"agents-v1", "geopolitics-v1"}
 
 ACCOUNT_META = {
     "agents-v1": {"label": "Agenti LLM", "tag": "pipeline decide"},
@@ -361,6 +364,89 @@ def load_runtime_health(root: Path = ROOT) -> dict:
     """Manifest pubblico, fail-closed se assente, invalido o più vecchio di 2h."""
     from scripts.runtime_health import load_health
     return load_health(root / "paper" / "health.json")
+
+
+def build_public_status(health: dict, strategies: list[dict]) -> dict:
+    """Stato pubblico fail-closed, legato alla provenance dell'ultimo run."""
+    verified_health = (
+        health.get("publish_allowed") is True
+        and health.get("status") in {"healthy", "degraded"}
+        and not health.get("validation_reasons")
+    )
+    runtime_active = PUBLIC_RUNTIME_ENABLED and verified_health
+    coverage_times = []
+    for record in health.get("coverage", []):
+        try:
+            coverage_times.append(datetime.fromisoformat(record["generated_at"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+    last_evidence_at = (
+        max(coverage_times).astimezone(timezone.utc).isoformat()
+        if coverage_times else None
+    )
+
+    strategy_states = []
+    for strategy in strategies:
+        lifecycle = strategy.get("status")
+        evidence = strategy.get("evidence") or {}
+        kind = "experiment" if strategy.get("id") in EXPERIMENTAL_STRATEGIES else "strategy"
+        if lifecycle == "retired":
+            state = "archived"
+        elif runtime_active and evidence.get("verified") is True and kind == "strategy":
+            state = "active"
+        else:
+            state = "stopped"
+        strategy_states.append({
+            "id": strategy.get("id"),
+            "state": state,
+            "kind": kind,
+            "evidence": evidence.get("status", "missing"),
+            "paper_lifecycle": lifecycle,
+        })
+
+    payload = {
+        "schema_version": 1,
+        "state": "active" if runtime_active else "stopped",
+        "reason": (
+            "Runtime verificato e abilitato."
+            if runtime_active
+            else "Runtime pubblico non abilitato; dati conservati come snapshot storico."
+        ),
+        "source": {
+            "run_id": health.get("run_id"),
+            "commit": health.get("commit"),
+            "health_generated_at": health.get("generated_at"),
+            "last_evidence_at": last_evidence_at,
+            "health_attestation_sha256": health.get("attestation_sha256"),
+            "health_validation_reasons": health.get("validation_reasons", []),
+        },
+        "features": {
+            "paper": {
+                "label": "Ricerca paper", "state": "active" if runtime_active else "stopped",
+                "kind": "core",
+            },
+            "agents": {
+                "label": "Agenti AI", "state": "stopped", "kind": "experiment",
+            },
+            "propr": {
+                "label": "Propr", "state": "stopped", "kind": "experiment",
+            },
+            "evolution": {
+                "label": "Evolution", "state": "stopped", "kind": "experiment",
+            },
+        },
+        "strategies": strategy_states,
+    }
+    payload["summary"] = {
+        "active": sum(row["state"] == "active" for row in strategy_states),
+        "stopped": sum(row["state"] == "stopped" for row in strategy_states),
+        "archived": sum(row["state"] == "archived" for row in strategy_states),
+        "experiments": sum(row["kind"] == "experiment" for row in strategy_states),
+    }
+    canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True,
+                           separators=(",", ":")).encode()
+    payload["attestation_sha256"] = hashlib.sha256(canonical).hexdigest()
+    return payload
 
 
 LUX_MATRIX_SIGNALS = ["tsmom", "liq_imbalance", "kronos_forecast", "smart_money_ratio", "oi_trend"]
@@ -1108,8 +1194,14 @@ def build_data() -> dict:
             print(f"[dashboard] backtests.json illeggibile: {e}", file=sys.stderr)
             backtests = {}
 
+    health = load_runtime_health()
+    public_status = build_public_status(health, strategies)
+    updated_utc = (
+        ts_short(public_status["source"]["last_evidence_at"])
+        if public_status["source"]["last_evidence_at"] else "—"
+    )
     data = {
-        "updated_utc": f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M}",
+        "updated_utc": updated_utc,
         "accounts": accounts, "decisions": dec_out, "lessons": les_out, "lineage": lineage,
         "lifecycle": lifecycle,
         "signals_matrix": signals_matrix("BTC,ETH,SOL,XRP,SUI,NEAR,WLD,ZEC,CRV".split(",")),
@@ -1118,7 +1210,8 @@ def build_data() -> dict:
         "backtests": backtests,
         "llm_stats": llm_stats(),
         "portfolio_live": portfolio_live_view(state),
-        "health": load_runtime_health(),
+        "health": health,
+        "public_status": public_status,
     }
     # mappa unica id -> nome amichevole (punto 3): il JS la usa ovunque un id
     # tecnico comparirebbe nudo (albero evolutivo, backtest, lifecycle).
@@ -1158,25 +1251,23 @@ PAGES = [
 # Nav a 2 livelli (punto 2 IMPROVEMENTS): 4 gruppi parlanti al posto di 13 voci
 # tecniche. Riga primaria = gruppi; riga secondaria = pagine del gruppo attivo.
 NAV_GROUPS = [
-    ("Oggi",      [("index.html", "Stato"), ("posizioni.html", "Posizioni"), ("propr.html", "Propr")]),
-    ("Strategie", [("strategie.html", "Le strategie"), ("portafogli.html", "Portafogli"),
-                   ("backtest.html", "Backtest"), ("evoluzione.html", "Evoluzione")]),
-    ("Diario",    [("decisioni.html", "Decisioni"), ("lezioni.html", "Lezioni"),
-                   ("trading-book.html", "Storico operazioni")]),
-    ("Contesto",  [("eventi.html", "Eventi"), ("news.html", "News"),
-                   ("rischio.html", "Rischio"), ("llm.html", "LLM")]),
+    ("Stato", [("index.html", "Panoramica"), ("posizioni.html", "Posizioni"),
+               ("portafogli.html", "Portafogli")]),
+    ("Strategie", [("strategie.html", "Strategie"), ("backtest.html", "Prove")]),
+    ("Metodo", [("decisioni.html", "Decisioni"), ("lezioni.html", "Lezioni"),
+                ("trading-book.html", "Storico")]),
 ]
 
 
 def _nav_inner(active_file: str) -> str:
     group = next((g for g, pages in NAV_GROUPS
-                  if any(f == active_file for f, _ in pages)), NAV_GROUPS[0][0])
+                  if any(f == active_file for f, _ in pages)), None)
     prim = "".join(
         f'<a href="{pages[0][0]}"{" class=\"active\"" if g == group else ""}>{g}</a>'
         for g, pages in NAV_GROUPS)
     sub = "".join(
         f'<a href="{f}"{" class=\"active\"" if f == active_file else ""}>{label}</a>'
-        for f, label in dict(NAV_GROUPS)[group])
+        for f, label in (dict(NAV_GROUPS).get(group, [])))
     return (f'<div class="wrap secnav-inner">\n    {prim}\n  </div>\n'
             f'  <div class="wrap secnav-sub">{sub}</div>')
 
@@ -1193,6 +1284,8 @@ def main() -> None:
                       + ";\n")
     atomic_write_text(out_dir / "health.json",
                       json.dumps(data["health"], ensure_ascii=False, indent=2) + "\n")
+    atomic_write_text(out_dir / "status.json",
+                      json.dumps(data["public_status"], ensure_ascii=False, indent=2) + "\n")
 
     html = TEMPLATE.read_text()
     # il blob #data del template (placeholder) → riferimento esterno a data.js
@@ -1222,9 +1315,12 @@ def main() -> None:
                                f"<title>{label} · AlphaZero Labs</title>",
                                page_head, count=1, flags=re.DOTALL)
         page = page_head + "".join(sections[i] for i in ids) + tail
+        if fn != "index.html":
+            page = re.sub(r"<h2([^>]*)>", r"<h1\1>", page, count=1)
+            page = re.sub(r"</h2>", "</h1>", page, count=1)
         atomic_write_text(out_dir / fn, page)
 
-    print(f"dashboard AlphaZero Labs → {len(PAGES)} pagine + data.js + health.json in {out_dir}")
+    print(f"dashboard AlphaZero Labs → {len(PAGES)} pagine + data.js + manifest in {out_dir}")
 
 
 if __name__ == "__main__":

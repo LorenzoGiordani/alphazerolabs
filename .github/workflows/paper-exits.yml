@@ -53,7 +53,7 @@ jobs:
       - name: deploy dashboard pubblica (lux-ai.pages.dev)
         if: env.CLOUDFLARE_API_TOKEN != '' && steps.exits.outcome == 'success' && steps.health.outcome == 'success' && steps.dashboard.outcome == 'success'
         run: |
-          mkdir -p /tmp/lux-deploy && cp dashboard/*.html dashboard/data.js dashboard/health.json dashboard/SKILL.md /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
+          mkdir -p /tmp/lux-deploy && cp dashboard/*.html dashboard/data.js dashboard/health.json dashboard/status.json dashboard/SKILL.md /tmp/lux-deploy/ && cp -R dashboard/assets /tmp/lux-deploy/assets
           rm -f /tmp/lux-deploy/template.html   # sorgente, non si pubblica
           npx -y wrangler@4.107.0 pages deploy /tmp/lux-deploy --project-name lux-ai --branch main --commit-dirty=true
 
@@ -64,7 +64,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add paper/
           if [ "${{ steps.dashboard.outcome }}" = "success" ]; then
-            git add dashboard/*.html dashboard/data.js dashboard/health.json
+            git add dashboard/*.html dashboard/data.js dashboard/health.json dashboard/status.json
           fi
           if ! git diff --cached --quiet; then
             git commit -m "chore: exit-check $(date -u '+%Y-%m-%d %H:%M') UTC [actions]"

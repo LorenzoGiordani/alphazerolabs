@@ -68,7 +68,7 @@ stage "dashboard"
 "$UV" run scripts/dashboard.py
 
 # auto-pubblica journal, brain e dashboard su GitHub (repo privata)
-git add paper/ brain/ dashboard/*.html dashboard/data.js dashboard/health.json 2>/dev/null
+git add paper/ brain/ dashboard/*.html dashboard/data.js dashboard/health.json dashboard/status.json 2>/dev/null
 if ! git diff --cached --quiet; then
     git commit -q -m "chore: paper run $(date -u '+%Y-%m-%d %H:%M') UTC [auto]"
     git push -q origin main

@@ -125,7 +125,7 @@ header.top{
 section{ padding:38px 0; border-top:1px solid var(--line); }
 section:first-of-type{ border-top:0; }
 .sec-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
-.sec-head h2{
+.sec-head h1,.sec-head h2{
   font-family:var(--serif); font-weight:700; font-size:21px; margin:0; letter-spacing:.01em;
   color:var(--text);
 }
@@ -181,6 +181,8 @@ section:first-of-type{ border-top:0; }
 .pfl-countdown{ display:inline-flex; align-items:center; gap:6px; }
 .pfl-countdown .d{ width:7px; height:7px; border-radius:50%; background:var(--amber); }
 .pfl-countdown.soon .d{ background:var(--green); animation:pulse 1.5s infinite; }
+.pfl-countdown.stale{ color:var(--red); }
+.pfl-countdown.stale .d{ background:var(--red); }
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.3} }
 
 /* ---------- hero accounts ---------- */
@@ -541,11 +543,11 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 /* ---------- nav sezioni (2 livelli: gruppi + pagine del gruppo) ---------- */
 .secnav{ position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
 .secnav-inner{ display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
-.secnav a{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); text-decoration:none; padding:10px 12px; white-space:nowrap; border-bottom:2px solid transparent; }
+.secnav a{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); text-decoration:none; padding:14px 16px; min-height:44px; white-space:nowrap; border-bottom:2px solid transparent; }
 .secnav a:hover{ color:var(--text-1); }
 .secnav a.active{ color:var(--amber); border-bottom-color:var(--amber); }
 .secnav-sub{ display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; border-top:1px solid var(--line); }
-.secnav-sub a{ font-size:9.5px; padding:8px 12px; color:var(--text-4); }
+.secnav-sub a{ font-size:10px; padding:12px 14px; color:var(--text-4); }
 .secnav-sub a:hover{ color:var(--text-2); }
 .secnav-sub a.active{ color:var(--text-1); border-bottom-color:var(--text-3); }
 
@@ -566,12 +568,13 @@ footer .foot-mark b{ color:var(--amber); }
   .brand{ width:100%; }
   .wrap{ padding:0 16px; }
   .thesis{ font-size:15.5px; }
-  /* tab nav overflows on narrow screens: fade the right edge to signal more tabs */
-  .secnav-inner, .secnav-sub{ -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 30px),transparent);
+  /* solo la sottosezione può scorrere: Stato / Strategie / Metodo restano visibili */
+  .secnav-sub{ -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 30px),transparent);
     mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 30px),transparent); }
 }
 @media (max-width:440px){
   .badge-paper{ font-size:9.5px; padding:4px 9px; }
+  .feed-status{ display:none; }
   .updated{ font-size:10px; }
 }
 
@@ -594,6 +597,31 @@ footer .foot-mark b{ color:var(--amber); }
 #health-banner.degraded .hb-dot{ background:var(--amber); }
 #health-banner.critical,#health-banner.unknown{ color:var(--red); border-color:rgba(220,90,90,.45); background:rgba(220,90,90,.07); }
 #health-banner.critical .hb-dot,#health-banner.unknown .hb-dot{ background:var(--red); }
+
+.skip-link{ position:fixed; left:16px; top:10px; z-index:100; transform:translateY(-160%);
+  background:var(--text-1); color:var(--bg); padding:10px 14px; border-radius:var(--r);
+  font-family:var(--mono); font-size:12px; }
+.skip-link:focus{ transform:none; }
+.public-status{ margin:0 0 28px; padding:18px; border:1px solid rgba(220,90,90,.45);
+  border-radius:var(--r); background:rgba(220,90,90,.07); }
+.public-status.active{ border-color:var(--green-dim); background:rgba(66,190,130,.06); }
+.public-status-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:18px;
+  flex-wrap:wrap; margin-bottom:14px; }
+.public-status-head>*{ min-width:0; }
+.public-status-title{ font-family:var(--serif); font-size:22px; color:var(--text-1); margin:0 0 5px; }
+.public-status-copy{ color:var(--text-2); margin:0; max-width:68ch; line-height:1.55; }
+.public-status-proof{ font-family:var(--mono); font-size:10px; color:var(--text-4);
+  overflow-wrap:anywhere; max-width:48ch; }
+.public-status-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  border:1px solid var(--line); background:var(--line); border-radius:var(--r); overflow:hidden; }
+.public-feature{ background:var(--bg-2); padding:13px 14px; }
+.public-feature b{ display:block; color:var(--text-1); font-weight:500; margin-bottom:4px; }
+.public-feature span{ font-family:var(--mono); font-size:10px; color:var(--text-3);
+  text-transform:uppercase; letter-spacing:.08em; overflow-wrap:anywhere; }
+@media(max-width:760px){
+  .public-status-grid{ grid-template-columns:1fr 1fr; }
+  .nof-manifesto{ padding-top:30px; }
+}
 @media (prefers-reduced-motion: reduce){
   /* drop movement (pulses, draw, chevron rotate); keep gentle opacity/color/border feedback */
   *{ animation:none !important; }
@@ -709,14 +737,11 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 @media(max-width:560px){ .nof-agg-sub{ display:none; } }
 
 /* ---------- leaderboard strategies ---------- */
-.strat-grid{ counter-reset:rank; }
-.strat-card{ position:relative; padding-left:78px; }
-.strat-card::before{ counter-increment:rank; content:"#"counter(rank);
-  position:absolute; left:16px; top:20px; font-family:var(--serif); font-weight:700;
-  font-size:23px; color:var(--text-3); letter-spacing:-.02em; line-height:1; }
-.strat-card:nth-child(1)::before{ color:var(--amber); }
-.strat-card:nth-child(2)::before{ color:var(--text-2); }
-.strat-card:nth-child(3)::before{ color:var(--text-3); }
+.strat-card{ position:relative; padding-left:22px; }
+.strat-card::before{ display:none; }
+.strat-link{ color:var(--amber); text-decoration:none; min-height:44px; display:inline-flex;
+  align-items:center; font-family:var(--mono); font-size:11px; }
+.strat-link:hover,.strat-link:focus{ text-decoration:underline; }
 
 /* ---------- restyled decision cards (journal) ---------- */
 .dcard{ padding:18px 22px 17px; }
@@ -774,6 +799,7 @@ h1,h2,h3,h4,
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Salta al contenuto</a>
 
 <header class="top">
   <div class="top-inner">
@@ -781,19 +807,19 @@ h1,h2,h3,h4,
       <img class="brand-lockup" src="assets/az-lockup.png" alt="AlphaZero Labs — desk di ricerca autonomo">
     </div>
     <span class="badge-paper"><span class="dot"></span>Paper trading — nessun fondo reale</span>
-    <span class="feed-status off" id="feed-status" title="Stato del collegamento ai prezzi in tempo reale: quando è LIVE, P&L e grafici si aggiornano da soli."><span class="fs-dot"></span><span class="fs-txt">feed in attesa</span></span>
-    <span class="updated">Aggiornato <b id="updated-ts">—</b> UTC · prossimo run <b id="next-run">—</b></span>
+    <span class="feed-status warn" id="feed-status" title="Stato operativo pubblico"><span class="fs-dot"></span><span class="fs-txt">sistema in pausa</span></span>
+    <span class="updated">Ultima prova <b id="updated-ts">—</b> UTC</span>
   </div>
 </header>
 
 <nav class="secnav" id="secnav">
   <div class="wrap secnav-inner">
-    <a href="index.html">Oggi</a><a href="strategie.html">Strategie</a><a href="decisioni.html">Diario</a><a href="eventi.html" class="active">Contesto</a>
+    <a href="index.html">Stato</a><a href="strategie.html">Strategie</a><a href="decisioni.html">Metodo</a>
   </div>
-  <div class="wrap secnav-sub"><a href="eventi.html">Eventi</a><a href="news.html">News</a><a href="rischio.html" class="active">Rischio</a><a href="llm.html">LLM</a></div>
+  <div class="wrap secnav-sub"></div>
 </nav>
 
-<main class="wrap">
+<main class="wrap" id="main-content">
 
   <div id="health-banner" class="unknown"><span class="hb-dot"></span><span>Health non verificata</span></div>
   <div id="change-banner"></div>
@@ -803,8 +829,8 @@ h1,h2,h3,h4,
   <section id="rischio">
     <div class="sec-head">
       <span class="kicker">04 · Rischio &amp; esposizione</span>
-      <h2>Esposizione aggregata e tensioni dei conti</h2>
-      <p class="note">Esposizione aggregata di tutti i conti e la matrice di 5 segnali ortogonali per asset. <b>Confluenza</b> = i 3 core (TSMOM·LIQ·KRONOS) attivi e concordi → setup ad alta convinzione.</p>
+      <h1>Esposizione aggregata e tensioni dei conti</h1>
+      <p class="note">Esposizione salvata di tutti i conti e matrice dei segnali nell’ultimo snapshot. <b>Confluenza</b> = i 3 core (TSMOM·LIQ·KRONOS) presenti e concordi.</p>
     </div>
     <h3 style="font-family:var(--serif);margin:8px 0 10px">Esposizione aggregata</h3>
     <div id="risk-panel" style="margin-bottom:24px"></div>
@@ -1155,7 +1181,7 @@ h1,h2,h3,h4,
         '<div class="s" style="color:var(--text-4)">su capitale '+NF0.format(base)+' $</div></div>'+
       '<div class="pf"><div class="l">Posizioni aperte</div>'+
         '<div class="v">'+open+'</div>'+
-        '<div class="s" style="color:var(--text-4)">esposizione attiva</div></div>'+
+        '<div class="s" style="color:var(--text-4)">esposizione nello snapshot</div></div>'+
       '<div class="pf"><div class="l">Operazioni chiuse</div>'+
         '<div class="v">'+closed+(wrate!=null?' <span class="u">· '+wrate+'% win</span>':'')+'</div>'+
         '<div class="s" style="color:var(--text-4)">'+wins+' vinte</div></div>';
@@ -1443,7 +1469,7 @@ h1,h2,h3,h4,
     const host=$('#feed'); if(!host) return; host.innerHTML='';
     const rows=(DATA.decisions||[]).filter(feedRow);
     if(!rows.length){
-      host.innerHTML=emptyBox('Nessuna decisione corrisponde ai filtri',(DATA.decisions||[]).length?'Nessuna decisione corrisponde ai filtri attivi. Modifica conto, verdetto o stato, oppure torna a \"Tutte\".':'Il desk LLM e le strategie sistematiche emettono decisioni ogni 4h con tesi falsificabili e veto del Risk Manager. Saranno pubblicate qui man mano.', false);
+      host.innerHTML=emptyBox('Nessuna decisione corrisponde ai filtri',(DATA.decisions||[]).length?'Nessuna decisione corrisponde ai filtri selezionati. Modifica conto, verdetto o stato, oppure torna a \"Tutte\".':'Le decisioni vengono pubblicate solo da run attestati; nessun nuovo run è dichiarato attivo.', false);
       return;
     }
     rows.slice(0, decShown).forEach(d=>{
@@ -1511,20 +1537,27 @@ h1,h2,h3,h4,
   /* ---------- render: strategie spiegate ---------- */
   function renderStrats(){
     const host=$('#strats'); if(!host) return; host.innerHTML='';
-    const ST_IT={champion:'campione paper',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata'};
+    const PS_IT={active:'attiva',stopped:'ferma',archived:'archiviata'};
+    const LIFE_IT={champion:'campione paper storico',challenger:'sfidante paper storico',
+      live:'storico paper',candidate:'candidata storica',retired:'ritirata'};
+    const publicRows=Object.fromEntries((((DATA.public_status||{}).strategies)||[])
+      .map(row=>[row.id,row]));
     const all=DATA.strategies||[];
-    // il badge #1/#2/#3 è un counter CSS: senza sort mostrava l'ordine dei FILE.
-    // Ordina per PnL paper realizzato (il numero visibile sulla card).
-    const active=all.filter(s=>s.status!=='retired')
-      .sort((a,b)=>(((b.stats||{}).total_pnl)||0)-(((a.stats||{}).total_pnl)||0));
+    const current=all.filter(s=>s.status!=='retired')
+      .sort((a,b)=>(a.nome||a.id).localeCompare(b.nome||b.id,'it'));
     const retired=all.filter(s=>s.status==='retired');
     const renderCard=(s,archived)=>{
       const card=el('div','strat-card');
-      const tags=[s.asset_class,s.risk_profile].filter(Boolean)
+      const pub=publicRows[s.id]||{state:archived?'archived':'stopped',kind:'strategy',evidence:'missing'};
+      const tags=[s.asset_class,s.risk_profile,LIFE_IT[s.status]].filter(Boolean)
         .map(t=>'<span class="s-tag">'+escHtml(t)+'</span>').join('');
-      const stat=s.status?'<span class="s-stat '+escHtml(s.status)+'">'+escHtml(ST_IT[s.status]||s.status)+'</span>':'';
-      const evidence=s.evidence?'<span class="s-stat '+(s.evidence.verified?'champion':'retired')+'">'+
-        (s.evidence.verified?'evidenza verificata':'evidenza bloccata')+'</span>':'';
+      const stateLabel=(pub.kind==='experiment'&&pub.state!=='active')
+        ? 'esperimento fermo' : (PS_IT[pub.state]||pub.state);
+      const stat='<span class="s-stat '+(pub.state==='active'?'live':'retired')+'">'+
+        escHtml(stateLabel)+'</span>';
+      const evidence='<span class="s-stat '+(pub.evidence==='verified'?'champion':'retired')+'">'+
+        escHtml(pub.evidence==='verified'?'evidenza verificata':
+          (pub.evidence==='missing'?'evidenza assente':'evidenza bloccata'))+'</span>';
       const paper=((s.stats&&s.stats.n_closed)?'<div class="s-row" style="margin-top:6px"><span class="s-k">Paper</span><span class="num">'+
         s.stats.n_closed+'t · WR '+Math.round((s.stats.win_rate||0)*100)+'% · <span class="'+clsOf(s.stats.total_pnl||0)+'">'+signedUsd(s.stats.total_pnl||0)+'</span></span></div>':'');
       // motivo dal lifecycle.jsonl (evento retire reale); euristica solo come fallback
@@ -1545,19 +1578,18 @@ h1,h2,h3,h4,
         '<div class="s-row"><span class="s-k">Esce</span><span>'+glossify(escHtml(s.esce))+'</span></div>'+
         '<div class="s-row"><span class="s-k">Rischio</span><span>'+glossify(escHtml(s.rischio))+'</span></div>'+
         paper+
-        '<div class="s-row" style="margin-top:8px"><span class="s-k">'+escHtml(s.id||'')+'</span><span style="color:var(--amber)">Dettaglio →</span></div>'+
+        '<div class="s-row" style="margin-top:8px"><span class="s-k">'+escHtml(s.id||'')+
+        '</span><a class="strat-link" href="#strategia?id='+encodeURIComponent(s.id)+'">Dettaglio →</a></div>'+
         reason;
-      card.style.cursor='pointer';
-      card.onclick=()=>{ location.hash='#strategia?id='+encodeURIComponent(s.id); };
       return card;
     };
-    active.forEach(s=>host.appendChild(renderCard(s,false)));
+    current.forEach(s=>host.appendChild(renderCard(s,false)));
     if(retired.length){
       const arch=el('div','strat-archive');
       arch.innerHTML='<div class="strat-archive-head">'+
         '<span class="kicker">Archivio</span>'+
         '<h3>Strategie ritirate</h3>'+
-        '<span class="note">'+retired.length+' ritirate dal loop evolutivo — restano per la storia, non tradano più.</span>'+
+        '<span class="note">'+retired.length+' strategie archiviate — restano per la storia e non sono operative.</span>'+
       '</div>';
       const grid=el('div','strat-grid');
       retired.forEach(s=>grid.appendChild(renderCard(s,true)));
@@ -1620,7 +1652,7 @@ h1,h2,h3,h4,
     });
     if(foot) foot.innerHTML='Backtest onesto: media per-simbolo (mai pooled), fee+funding storico+slippage size-aware inclusi. Le barre mostrano la dispersione — l\'edge reale è nel numero di asset positivi, non nel picco su uno solo.';
   }
-  const ST_IT_B={champion:'campione paper',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata',paper:'paper'};
+  const ST_IT_B={champion:'campione paper storico',challenger:'sfidante paper storico',live:'storico paper',candidate:'candidata storica',retired:'ritirata',paper:'paper'};
 
   function renderStrategyDetail(id){
     const host=$('#strat-detail'); if(!host) return;
@@ -1628,13 +1660,17 @@ h1,h2,h3,h4,
     const a=(DATA.accounts||[]).find(x=>x.id===id);
     const trades=(DATA.tradebook||[]).filter(t=>t.strategy===id);
     const title=$('#sd-title'); if(title) title.textContent=s?s.nome:(a?a.label:id);
-    if(!s&&!a){ host.innerHTML=emptyBox('Strategia non trovata','Questo ID non corrisponde ad alcuna strategia o conto registrato. Torna all\'elenco con il link in alto per vedere tutti i conti attivi.', false); return; }
-    const ST_IT={champion:'campione paper',challenger:'sfidante',live:'attiva',candidate:'candidata',retired:'ritirata'};
+    if(!s&&!a){ host.innerHTML=emptyBox('Strategia non trovata','Questo ID non corrisponde ad alcuna strategia o conto registrato. Torna all\'elenco con il link in alto per vedere tutti i conti monitorati.', false); return; }
+    const pub=((((DATA.public_status||{}).strategies)||[]).find(row=>row.id===id))||{};
+    const PS_IT={active:'attiva',stopped:'ferma',archived:'archiviata'};
+    const stateLabel=(pub.kind==='experiment'&&pub.state!=='active')
+      ? 'esperimento fermo' : (PS_IT[pub.state]||'stato non verificato');
     let html='';
     // scheda spiegazione
     if(s){
       html+='<div class="strat-card" style="cursor:default;margin-bottom:18px">'+
-        '<div class="s-head"><h3>'+escHtml(s.nome)+'</h3>'+(s.status?'<span class="s-stat '+escHtml(s.status)+'">'+escHtml(ST_IT[s.status]||s.status)+'</span>':'')+'</div>'+
+        '<div class="s-head"><h3>'+escHtml(s.nome)+'</h3><span class="s-stat '+
+        (pub.state==='active'?'live':'retired')+'">'+escHtml(stateLabel)+'</span></div>'+
         (s.cosa?'<p class="s-cosa">'+glossify(escHtml(s.cosa))+'</p>':'')+
         (s.entra?'<div class="s-row"><span class="s-k">Entra</span><span>'+glossify(escHtml(s.entra))+'</span></div>':'')+
         (s.esce?'<div class="s-row"><span class="s-k">Esce</span><span>'+glossify(escHtml(s.esce))+'</span></div>':'')+
@@ -1737,6 +1773,11 @@ h1,h2,h3,h4,
   function setFeedStatus(){
     const fs=$('#feed-status'); if(!fs) return;
     const txt=fs.querySelector('.fs-txt');
+    if((DATA.public_status||{}).state!=='active'){
+      fs.className='feed-status warn'; txt.textContent='sistema in pausa';
+      fs.title=(DATA.public_status||{}).reason||'Runtime pubblico non attivo.';
+      return;
+    }
     const held=heldSymbols().length;
     const live=Object.values(LIVE).filter(v=>v.ok).length;
     if(!held){ fs.className='feed-status off'; txt.textContent='nessuna posizione';
@@ -2020,7 +2061,7 @@ h1,h2,h3,h4,
       det.innerHTML='<summary>'+
         '<span class="hfam-name">'+escHtml(famName)+'</span>'+
         '<span class="hfam-count">'+members.length+(members.length>1?' generazioni':' generazione')+
-          ' · <b class="'+(alive?'pos':'')+'">'+alive+' attive</b> · '+ret+' ritirate</span>'+
+          ' · <b>'+alive+' non ritirate nello storico</b> · '+ret+' ritirate</span>'+
         '<span class="chev">▾</span></summary>'+
         '<div class="htree"><ul class="hbranch root"><li>'+hnode(r,famName)+branch(r.id,famName)+'</li></ul></div>';
       host.appendChild(det);
@@ -2047,11 +2088,13 @@ h1,h2,h3,h4,
 
   function setHeaderTs(){
     $('#updated-ts').textContent = (DATA.updated_utc||'—');
-    if(DATA.updated_utc){  // prossimo run: cron cloud ogni ora al minuto :10 UTC
-      const now=new Date();
-      const h=now.getUTCMinutes()<10?now.getUTCHours():now.getUTCHours()+1;
-      const next=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),h,10));
-      $('#next-run').textContent='~'+String(next.getUTCHours()).padStart(2,'0')+':10 UTC';
+    const ps=DATA.public_status||{};
+    const fs=$('#feed-status'), txt=fs&&fs.querySelector('.fs-txt');
+    if(fs&&txt){
+      const active=ps.state==='active';
+      fs.className='feed-status '+(active?'live':'warn');
+      txt.textContent=active?'sistema attivo':'sistema in pausa';
+      fs.title=ps.reason||'Stato operativo pubblico';
     }
   }
   /* ---------- analytics: portafoglio, rischio, segnali, book ---------- */
@@ -2118,26 +2161,52 @@ h1,h2,h3,h4,
     host.innerHTML=h+'</tbody></table></div>';
   }
 
+  function renderPublicStatus(){
+    const host=$('#public-status'); if(!host) return;
+    const ps=DATA.public_status||{};
+    const active=ps.state==='active';
+    const features=Object.values(ps.features||{});
+    const stateLabel=state=>state==='active'?'attivo':'fermo';
+    const featureHtml=features.map(feature=>
+      '<div class="public-feature"><b>'+escHtml(feature.label||'Feature')+'</b><span>'+
+      escHtml((feature.kind==='experiment'?'esperimento · ':'')+stateLabel(feature.state))+
+      '</span></div>').join('');
+    const source=ps.source||{};
+    const evidenceUtc=source.last_evidence_at
+      ? source.last_evidence_at.slice(0,16).replace('T',' ')+' UTC' : null;
+    const proof=[evidenceUtc?'prova '+evidenceUtc:null,
+      source.run_id?'run '+source.run_id:null,
+      ps.attestation_sha256?'manifest '+ps.attestation_sha256.slice(0,12):null]
+      .filter(Boolean).join(' · ');
+    host.className='public-status'+(active?' active':'');
+    host.innerHTML='<div class="public-status-head"><div><h2 class="public-status-title">'+
+      (active?'Sistema verificato e attivo':'Sistema in pausa')+'</h2><p class="public-status-copy">'+
+      escHtml(ps.reason||'Stato operativo non disponibile.')+
+      '</p></div><div class="public-status-proof">'+escHtml(proof)+'</div></div>'+
+      '<div class="public-status-grid">'+featureHtml+'</div>';
+  }
+
   function renderHealth(){
     const host=$('#health-banner'); if(!host) return;
+    if($('#public-status')){ host.hidden=true; return; }
     const h=DATA.health||{};
+    const publicState=(DATA.public_status||{}).state||'stopped';
     let status=h.status||'unknown';
     const generated=Date.parse(h.generated_at||'');
     const stale=!isFinite(generated)||(Date.now()-generated)>2*60*60*1000||(generated-Date.now())>5*60*1000;
     if(stale) status='unknown';
     if(h.publish_allowed===false && status!=='unknown') status='critical';
-    host.hidden=status==='healthy'||status==='degraded';
+    if(publicState!=='active') status='unknown';
+    host.hidden=publicState==='active'&&(status==='healthy'||status==='degraded');
     if(host.hidden) return;
-    const problems=(h.validation_reasons||[]).concat(h.errors||[],h.warnings||[]);
     const labels={
       healthy:'Pipeline verificata: tutti i controlli critici sono verdi.',
       degraded:'Pipeline verificata con avvisi non critici.',
-      critical:'Pubblicazione bloccata: almeno un controllo critico è fallito.',
-      unknown:'Health assente o scaduta: i dati visibili sono l’ultimo snapshot verificato.'
+      critical:'Sistema fermo: almeno un controllo critico non consente di dichiararlo operativo.',
+      unknown:'Sistema non operativo. I dati visibili sono uno snapshot storico, non una vista live.'
     };
     host.className=status;
-    host.innerHTML='<span class="hb-dot"></span><span>'+escHtml(labels[status]||labels.unknown)+
-      (problems.length?' <b>'+escHtml(problems.join(', '))+'</b>':'')+'</span>';
+    host.innerHTML='<span class="hb-dot"></span><span>'+escHtml(labels[status]||labels.unknown)+'</span>';
   }
 
   // banner "cosa è cambiato dall'ultimo accesso" (localStorage)
@@ -2162,11 +2231,11 @@ h1,h2,h3,h4,
   function renderPortfoliosLive(){
     const host=$('#pf-live'); if(!host) return; host.innerHTML=''; host_pfl=host;
     const list=DATA.portfolio_live||[];
-    if(!list.length){ host.innerHTML=emptyBox('Nessun portafoglio attivo','Le strategie engine:portfolio (xsmom, highvol, combo) appaiono qui quando il cron le ribilancia. Sono book dollar-neutral ribilanciati ogni 7 giorni.', true); return; }
+    if(!list.length){ host.innerHTML=emptyBox('Nessun portafoglio nello snapshot','I book paper appaiono qui solo quando esiste uno snapshot attestato.', false); return; }
     list.forEach(p=>{
       const wr=p.equity-10000;
       const card=el('div','pfl-card');
-      // gambe attuali (P&L live)
+      // gambe dell'ultimo snapshot attestato
       const legsMax=Math.max(...p.legs.map(l=>Math.abs(l.notional_usd)),1);
       const legsHtml=p.legs.map(l=>{
         const wPct=Math.abs(l.notional_usd)/legsMax*100;
@@ -2178,7 +2247,7 @@ h1,h2,h3,h4,
           '<div class="pfl-bar"><div class="fill '+l.side+'" style="width:'+wPct+'%"></div></div>'+
           '<span class="pfl-pnl '+pnlCls+'">'+pnlTxt+'</span></div>';
       }).join('');
-      // ranking corrente (cosa guarderebbe al prossimo rebalance)
+      // ultimo ranking salvato
       const rankHtml=p.signal.map(r=>{
         const cls=r.side==='long'?'long':r.side==='short'?'short':'flat';
         const muted=r.side==='flat'?' muted':'';
@@ -2190,13 +2259,17 @@ h1,h2,h3,h4,
       }).join('');
       // countdown al prossimo rebalance
       const now=new Date();
-      let cdTxt='—', cdSoon=false;
+      let cdTxt='—', cdSoon=false, cdStale=false, cdLabel='prossimo tra';
       if(p.next_rebalance){
         const diff=(new Date(p.next_rebalance.replace(' ','T')+'Z')-now)/3600000;
         if(diff>0){
           cdSoon=diff<12;
           cdTxt=NF0.format(Math.floor(diff/24))+'g '+NF0.format(Math.round(diff%24))+'h';
-        } else cdTxt='in corso';
+        } else {
+          const overdue=Math.abs(diff);
+          cdStale=true; cdLabel='scaduto da';
+          cdTxt=NF0.format(Math.floor(overdue/24))+'g '+NF0.format(Math.round(overdue%24))+'h';
+        }
       }
       const netCls=p.net_usd>0?'pos':p.net_usd<0?'neg':'';
       card.innerHTML=
@@ -2205,15 +2278,16 @@ h1,h2,h3,h4,
         '<div style="text-align:right"><div class="pfl-meta" style="font-size:13px;color:var(--text-1)">'+NF2.format(p.equity)+' $</div>'+
         '<div class="pfl-meta '+clsOf(wr)+'">'+signedUsd(wr)+' ('+pctSigned(wr/10000*100)+')</div></div></div>'+
         '<div class="pfl-grid">'+
-          '<div class="pfl-side"><h4>Gambe aperte · P&L in tempo reale</h4>'+legsHtml+'</div>'+
-          '<div class="pfl-side"><h4>Ranking corrente · cosa guarderebbe al prossimo ribilanciamento</h4>'+rankHtml+'</div>'+
+          '<div class="pfl-side"><h4>Gambe nell’ultimo snapshot · P&L salvato</h4>'+legsHtml+'</div>'+
+          '<div class="pfl-side"><h4>Ultimo ranking salvato</h4>'+rankHtml+'</div>'+
         '</div>'+
         '<div class="pfl-foot">'+
           '<span><b>Gross</b> '+NF0.format(p.gross_usd)+' $</span>'+
           '<span><b>Net</b> <span class="'+netCls+'">'+signedUsd(p.net_usd)+' $</span></span>'+
           '<span><b>Ribilanciamento</b> ogni '+p.rebalance_h+'h</span>'+
           '<span><b>Ultimo</b> '+fmtTs(p.last_rebalance)+'</span>'+
-          '<span class="pfl-countdown'+(cdSoon?' soon':'')+'"><span class="d"></span>prossimo tra <b>'+cdTxt+'</b></span>'+
+          '<span class="pfl-countdown'+(cdSoon?' soon':'')+(cdStale?' stale':'')+'"><span class="d"></span>'+
+          cdLabel+' <b>'+cdTxt+'</b></span>'+
         '</div>';
       host.appendChild(card);
     });
@@ -2223,7 +2297,7 @@ h1,h2,h3,h4,
     // multipagina: ogni pagina ha 1 sola sezione → le render delle sezioni assenti
     // devono no-op. Le poche non auto-protette (Accounts/Positions/Lessons/Tree)
     // throwerebbero su DOM mancante: try/catch per-funzione le isola.
-    [renderDigest,renderSummary,renderVerdict,renderAccounts,renderPositions,renderFeed,renderLessons,
+    [renderPublicStatus,renderDigest,renderSummary,renderVerdict,renderAccounts,renderPositions,renderFeed,renderLessons,
      renderTree,renderLifecycle,renderEvents,renderNews,renderStrats,renderBook,
      renderPortfolioKpi,renderRiskPanel,renderSignalsMatrix,
      renderBacktests,renderPortfoliosLive,renderHealth,renderChangeBanner
@@ -2273,7 +2347,8 @@ h1,h2,h3,h4,
     renderAll();
     showRoute();
     window.addEventListener('hashchange', showRoute);
-    startLive();
+    if((DATA.public_status||{}).state==='active') startLive();
+    else setFeedStatus();
     setInterval(refreshData, 240000);  // dati pipeline ogni 4 min (no-op se nulla è cambiato)
     setInterval(renderHealth, 60000);  // una tab aperta passa a stale anche senza nuovi dati
   }
@@ -2312,17 +2387,18 @@ h1,h2,h3,h4,
   /* ---------- manifesto counts ---------- */
   function fillCounts(){
     var set=function(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; };
-    var active=(D.strategies||[]).filter(function(s){return s.status!=='retired';}).length;
-    var retired=(D.strategies||[]).filter(function(s){return s.status==='retired';}).length;
-    set('nof-accounts-n', (D.accounts||[]).length);
-    set('nof-strats-n', active+' attive'+(retired?' · '+retired+' ritirate':''));
+    var summary=(D.public_status||{}).summary||{};
+    var monitored=(summary.active||0)+(summary.stopped||0);
+    set('nof-system-n', (D.public_status||{}).state==='active'?'attivo':'in pausa');
+    set('nof-strats-n', monitored);
+    set('nof-retired-n', summary.archived||0);
     set('nof-lessons-n', (D.lessons||[]).length);
-    set('nof-trades-n', (D.tradebook||[]).filter(function(t){return t.status==='closed';}).length);
   }
   fillCounts();
 
   /* ---------- live ticker ---------- */
   var ticker=$('#nof-ticker');
+  var publicActive=(D.public_status||{}).state==='active';
   var BINANCE={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',ZEC:'ZECUSDT',NEAR:'NEARUSDT',WLD:'WLDUSDT',
     CRV:'CRVUSDT',BNB:'BNBUSDT',DOGE:'DOGEUSDT',AVAX:'AVAXUSDT',LINK:'LINKUSDT',ADA:'ADAUSDT',
     ARB:'ARBUSDT',OP:'OPUSDT',XRP:'XRPUSDT',SUI:'SUIUSDT'};
@@ -2349,7 +2425,8 @@ h1,h2,h3,h4,
     }).join('');
     if(ticker) ticker.innerHTML='<div class="tk-track">'+items+items+'</div>'; /* duplicate for seamless scroll */
   }
-  if(ticker){
+  if(ticker&&!publicActive) ticker.hidden=true;
+  if(ticker&&publicActive){
     renderTicker();
     function poll(){
       var syms=getHeld().filter(function(s){ return BINANCE[s]; });
@@ -2502,7 +2579,12 @@ h1,h2,h3,h4,
 
   /* ---------- sync col poller unico (refreshData): niente secondo fetch ---------- */
   window.addEventListener('az:data', function(ev){
-    D=ev.detail; fillCounts(); renderAggregate(); if(ticker) renderTicker();
+    D=ev.detail; fillCounts(); renderAggregate();
+    publicActive=(D.public_status||{}).state==='active';
+    if(ticker){
+      ticker.hidden=!publicActive;
+      if(publicActive) renderTicker();
+    }
   });
 })();
 </script>

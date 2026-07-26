@@ -4,8 +4,8 @@
   "max_age_seconds": 7200,
   "run_id": "30133089478-1",
   "commit": "426a50736f634f7fa72b823134439817d011b77a",
-  "status": "degraded",
-  "publish_allowed": true,
+  "status": "unknown",
+  "publish_allowed": false,
   "checks": [
     {
       "name": "paper_all",
@@ -353,5 +353,9 @@
     "coverage:xsmom-port-v1-signal-eligible",
     "coverage:xsmom-reb48-v1-signal-eligible"
   ],
-  "validation_reasons": []
+  "validation_reasons": [
+    "health_stale",
+    "health_provenance_timestamp_mismatch",
+    "health_attestation_missing"
+  ]
 }
