@@ -35,14 +35,8 @@ def test_scheduled_runtime_has_no_llm_calls_or_credentials():
 
     assert workflow.count("agents_paper.py --manage-only") == 2
     assert cron.count("agents_paper.py --manage-only") == 2
-    assert "scripts/propr_paper.py --manage-paper" in workflow
-    assert "scripts/propr_guard.py --execute" in workflow
-    assert "scripts/propr_paper.py --snapshot-only" in workflow
-    for variable in (
-        "PROPR_AUTOMANAGE_ENABLED", "PROPR_GUARD_ENABLED",
-        "PROPR_EXPECTED_ACCOUNT_ID", "PROPR_GUARD_CANARY_ASSET",
-    ):
-        assert f"{variable}: ${{{{ vars.{variable} }}}}" in workflow
+    assert "propr" not in workflow.lower()
+    assert "PROPR_" not in workflow
 
 
 def test_cloud_publish_is_gated_by_runtime_health():
@@ -60,8 +54,25 @@ def test_cloud_publish_is_gated_by_runtime_health():
     assert "dashboard/health.json" in deploy
     assert "runtime_health.py validate paper/health.json" in exits
     assert "runtime_health.py validate paper/health.json" in deploy
+    assert "continue-on-error: true" in deploy
+    assert "verifica release pubblica in pausa" in deploy
+    assert "--commit-hash \"$GITHUB_SHA\"" in deploy
     assert "run: uv run scripts/promote.py || true" not in workflow
     assert "run: uv run scripts/paper_exits.py || true" not in workflow
+
+
+def test_control_plane_has_one_scheduler_and_dormant_zombie_worker():
+    worker = (ROOT / "infra/cron-trigger/src/index.js").read_text()
+    config = (ROOT / "infra/cron-trigger/wrangler.jsonc").read_text()
+    deploy = (ROOT / ".github/workflows/deploy-dashboard.yml").read_text()
+
+    assert '"crons": []' in config
+    assert "fetch(" not in worker
+    assert "dispatch(" not in worker
+    assert "api.github.com" not in worker
+    assert "api.hyperliquid.xyz" not in worker
+    assert "permissions:\n  contents: read" in deploy
+    assert "git push" not in deploy
 
 
 def test_coinalyze_hourly_collector_cannot_skip_or_fake_push_success():

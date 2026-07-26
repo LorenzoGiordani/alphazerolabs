@@ -193,6 +193,28 @@ def test_home_uses_only_attested_candidates_without_performance_ranking():
     assert "historical_strategies" in template
 
 
+def test_primary_custom_controls_are_keyboard_accessible():
+    template = (Path(__file__).resolve().parent.parent / "dashboard/template.html").read_text()
+
+    assert ":focus-visible" in template
+    assert '<button type="button" class="acct-row" aria-expanded="false">' in template
+    assert 'event.currentTarget.setAttribute(\'aria-expanded\'' in template
+    assert '<button type="button" class="pcard-toggle"' in template
+    assert '<button type="button" class="cb-x" aria-label="Chiudi avviso">' in template
+    assert '<button type="button" class="agg-leg-item' in template
+    assert 'aria-pressed="' in template
+    assert 'class="gloss" tabindex="0" aria-label="' in template
+    assert ".bchip{ min-height:44px" in template
+    assert "min-height:44px; font-family:var(--mono)" in template
+
+
+def test_status_panel_does_not_precede_page_h1_in_heading_order():
+    template = (Path(__file__).resolve().parent.parent / "dashboard/template.html").read_text()
+
+    assert '<h1 class="nof-mh">' in template
+    assert '<h2 class="public-status-title">' not in template
+
+
 def test_dashboard_uses_sp500_benchmark(monkeypatch):
     import pandas as pd
     import pipeline.live as live

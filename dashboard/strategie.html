@@ -70,6 +70,7 @@ body{
     radial-gradient(120% 60% at 50% -10%, rgba(78,158,255,.05), transparent 60%);
   background-attachment:fixed;
 }
+:focus-visible{ outline:2px solid var(--blue); outline-offset:3px; }
 
 /* numbers everywhere are tabular */
 .num{ font-family:var(--mono); font-feature-settings:"tnum" 1,"lnum" 1; font-variant-numeric:tabular-nums; }
@@ -200,7 +201,7 @@ section:first-of-type{ border-top:0; }
 .acct:hover::before{ opacity:.55; }
 .acct .acct-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .acct .acct-name{ font-family:var(--serif); font-weight:700; font-size:18px; }
-.acct .acct-id{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); margin-top:3px; }
+.acct .acct-id{ font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); margin-top:3px; }
 .acct .tag{
   font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
   color:var(--text-2); border:1px solid var(--line-2); border-radius:100px; padding:4px 9px; white-space:nowrap;
@@ -212,7 +213,7 @@ section:first-of-type{ border-top:0; }
 
 .metrics{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin-top:16px; background:var(--line); border:1px solid var(--line); border-radius:3px; overflow:hidden; }
 .metric{ background:var(--bg-2); padding:9px 11px; }
-.metric .l{ font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-4); }
+.metric .l{ font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-3); }
 .metric .v{ font-family:var(--mono); font-size:15px; margin-top:3px; font-variant-numeric:tabular-nums; }
 
 .chart-wrap{ margin-top:16px; position:relative; }
@@ -227,8 +228,9 @@ section:first-of-type{ border-top:0; }
 .chart-tip .t-val{ font-variant-numeric:tabular-nums; }
 
 /* ---------- card conto compatta (default) / espansa ---------- */
-.acct{ cursor:pointer; }
-.acct .acct-row{ display:flex; align-items:center; gap:14px; }
+.acct .acct-row{ display:flex; align-items:center; gap:14px; width:100%; min-height:44px;
+  margin:0; padding:0; border:0; background:transparent; color:inherit; text-align:left;
+  font:inherit; cursor:pointer; }
 .acct .acct-row .spark{ margin-left:auto; flex:none; opacity:.9; }
 .acct .acct-row .eqcol{ text-align:right; flex:none; }
 .acct .acct-row .eqcol .equity{ font-size:19px; }
@@ -315,7 +317,7 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .strat-card{ border:1px solid var(--line); border-radius:var(--r); padding:20px 22px; }
 .strat-card .s-head{ display:flex; align-items:center; gap:10px; margin:0 0 6px; }
 .strat-card h3{ font-size:17px; margin:0; }
-.strat-card .s-stat{ margin-left:auto; font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase; padding:3px 9px; border-radius:100px; border:1px solid var(--line-2); color:var(--text-3); }
+.strat-card .s-stat{ margin-left:auto; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; padding:5px 9px; border-radius:100px; border:1px solid var(--line-2); color:var(--text-3); }
 .strat-card .s-stat.champion{ color:var(--amber); border-color:var(--amber); }
 .strat-card .s-stat.challenger{ color:var(--blue); border-color:var(--blue); }
 .strat-card .s-stat.live{ color:var(--green); border-color:var(--green-dim); }
@@ -330,9 +332,9 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .strat-archive-head h3{ font-family:var(--serif); font-weight:700; font-size:17px; margin:0; color:var(--text-2); }
 .strat-archive-head .kicker{ font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-4); }
 .strat-archive-head .note{ font-family:var(--sans); font-size:12px; color:var(--text-4); margin-left:auto; }
-.strat-archive .strat-card{ opacity:.62; padding-left:22px; border-style:dashed; }
+.strat-archive .strat-card{ opacity:.82; padding-left:22px; border-style:dashed; }
 .strat-archive .strat-card::before{ content:""; }
-.strat-archive .strat-card:hover{ opacity:.85; }
+.strat-archive .strat-card:hover{ opacity:1; }
 .strat-current-empty{ grid-column:1/-1; }
 @media(max-width:560px){
   .strat-archive{ min-width:0; }
@@ -348,14 +350,14 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
   border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--text-4); }
 .strat-retire-reason b{ color:var(--text-3); font-weight:400; }
 .strat-card .s-tags{ display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
-.strat-card .s-tag{ font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; padding:3px 9px; border-radius:6px; background:var(--line); color:var(--text-3); }
+.strat-card .s-tag{ font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; padding:4px 9px; border-radius:6px; background:var(--line); color:var(--text-3); }
 .strat-card .s-cosa{ font-size:13.5px; line-height:1.55; color:var(--text-2); margin:0 0 14px; }
 .strat-card .s-row{ display:flex; gap:10px; font-size:12.5px; line-height:1.45; color:var(--text-2); margin-top:7px; }
-.strat-card .s-k{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-4); min-width:62px; padding-top:2px; }
+.strat-card .s-k{ font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-3); min-width:62px; padding-top:2px; }
 
 /* ---------- trading book ---------- */
 .book-filters{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
-.bchip{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:6px 14px; border-radius:100px; border:1px solid var(--line-2); color:var(--text-3); background:transparent; cursor:pointer; }
+.bchip{ min-height:44px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:6px 14px; border-radius:100px; border:1px solid var(--line-2); color:var(--text-3); background:transparent; cursor:pointer; }
 .bchip:hover{ color:var(--text-2); border-color:var(--text-4); }
 .bchip.active{ color:var(--amber); border-color:var(--amber); }
 .book-stats{ display:flex; flex-wrap:wrap; gap:22px; margin-bottom:14px; font-family:var(--mono); font-size:11px; color:var(--text-3); }
@@ -428,7 +430,7 @@ table.pos-tbl{ width:100%; border-collapse:collapse; min-width:760px; }
 .pcard-since{ font-family:var(--mono); font-size:10.5px; color:var(--text-3); }
 .pcard-toggle{ margin-left:auto; display:inline-flex; align-items:center; gap:6px; background:transparent;
   border:1px solid var(--line-2); border-radius:100px; color:var(--text-3); cursor:pointer;
-  font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; padding:5px 12px; }
+  min-height:44px; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:5px 12px; }
 .pcard-toggle:hover{ color:var(--text-1); border-color:var(--text-4); }
 .pcard-toggle .chev{ transition:transform .2s ease; }
 .pcard.open .pcard-toggle .chev{ transform:rotate(180deg); }
@@ -598,7 +600,9 @@ footer .foot-mark b{ color:var(--amber); }
 #change-banner.show{ display:flex; gap:14px; align-items:center; flex-wrap:wrap;
   border:1px solid var(--amber-dim); background:var(--amber-wash); border-radius:var(--r);
   padding:10px 14px; margin:16px 0 0; font-family:var(--mono); font-size:12px; }
-#change-banner .cb-x{ margin-left:auto; cursor:pointer; color:var(--text-3); }
+#change-banner .cb-x{ display:inline-flex; align-items:center; justify-content:center; min-width:44px;
+  min-height:44px; margin:-8px -8px -8px auto; border:0; background:transparent;
+  cursor:pointer; color:var(--text-3); font:inherit; }
 #health-banner{ display:flex; align-items:center; gap:10px; margin:16px 0 4px; padding:10px 14px;
   border:1px solid var(--line-2); border-radius:var(--r); font-family:var(--mono); font-size:11px; }
 #health-banner>span:last-child{ min-width:0; overflow-wrap:anywhere; }
@@ -704,7 +708,7 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 
 /* ---------- glossario inline (tooltip su termini tecnici) ---------- */
 .gloss{ border-bottom:1px dotted var(--text-4); cursor:help; position:relative; }
-.gloss:hover::after, .gloss:active::after{
+.gloss:hover::after, .gloss:active::after, .gloss:focus::after{
   content:attr(data-g); position:absolute; left:0; bottom:calc(100% + 6px); z-index:40;
   width:max-content; max-width:260px; padding:8px 10px; border-radius:4px;
   background:var(--bg-raise); border:1px solid var(--line-2); color:var(--text-2);
@@ -740,7 +744,9 @@ header.top::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; 
 .nof-agg-chart svg{ width:100%; display:block; overflow:visible; }
 .nof-agg-legend{ display:flex; flex-wrap:wrap; gap:20px; margin-top:12px; padding-top:11px;
   border-top:1px solid var(--line); }
-.agg-leg-item{ display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; cursor:pointer; user-select:none; }
+.agg-leg-item{ display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:4px 0;
+  border:0; background:transparent; color:inherit; font-family:var(--mono); font-size:12px;
+  cursor:pointer; user-select:none; }
 .agg-leg-item:hover .agg-name{ color:var(--text-1); }
 .agg-leg-item.off{ opacity:.38; }
 .agg-leg-item.off .agg-sw{ background:var(--text-4)!important; }
@@ -995,7 +1001,8 @@ h1,h2,h3,h4,
     let out=String(txt||'');
     for(const term of Object.keys(GLOSS)){
       const re=new RegExp('(^|[^\\wàèéìòù-])('+term+')(?![\\wàèéìòù-])','i');
-      if(re.test(out)) out=out.replace(re,(m,p1,p2)=>p1+'<span class="gloss" data-g="'+escHtml(GLOSS[term])+'">'+p2+'</span>');
+      if(re.test(out)) out=out.replace(re,(m,p1,p2)=>p1+'<span class="gloss" tabindex="0" aria-label="'+
+        escHtml(term+': '+GLOSS[term])+'" data-g="'+escHtml(GLOSS[term])+'">'+p2+'</span>');
     }
     return out;
   }
@@ -1268,7 +1275,7 @@ h1,h2,h3,h4,
       const closedCell = a.trades_closed ? (a.trades_closed+' · '+(a.wins||0))
         : '<span class="muted-cell">nessuna</span>';
       card.innerHTML =
-        '<div class="acct-row">'+
+        '<button type="button" class="acct-row" aria-expanded="false">'+
           '<div><div class="acct-name">'+escHtml(a.label)+'</div>'+
           '<div class="acct-id num">'+escHtml(a.id)+'</div></div>'+
           sparkSVG(a.equity_curve)+
@@ -1277,7 +1284,7 @@ h1,h2,h3,h4,
             '<div class="delta-chip '+chipOf(wr)+'" data-delta>'+signedUsd(wr)+' · '+pctSigned(wrPct)+'</div>'+
           '</div>'+
           '<span class="chev">▾</span>'+
-        '</div>'+
+        '</button>'+
         '<div class="acct-body">'+
           (a.tag?'<div style="margin-top:10px"><span class="tag">'+escHtml(a.tag)+'</span></div>':'')+
           '<div class="metrics">'+
@@ -1292,8 +1299,9 @@ h1,h2,h3,h4,
       const rec={a, card, equityEl:card.querySelector('[data-eq]'), deltaEl:card.querySelector('[data-delta]'),
         wrap, hasCurve:!!(a.equity_curve&&a.equity_curve.length>1), drawn:false};
       // compatta di default: il chart (costoso, 13 conti) si disegna alla prima apertura
-      card.querySelector('.acct-row').addEventListener('click',()=>{
+      card.querySelector('.acct-row').addEventListener('click',event=>{
         card.classList.toggle('open');
+        event.currentTarget.setAttribute('aria-expanded', card.classList.contains('open')?'true':'false');
         if(card.classList.contains('open') && rec.hasCurve && !rec.drawn){
           registerChart(wrap, a.equity_curve); rec.drawn=true;
         }
@@ -1396,7 +1404,7 @@ h1,h2,h3,h4,
         '</div>'+
         '<div class="pcard-foot">'+
           '<span class="pcard-since">aperta '+sinceFrom(p.opened_at)+'</span>'+
-          '<button class="pcard-toggle" data-toggle>Dettaglio <span class="chev">▾</span></button>'+
+          '<button type="button" class="pcard-toggle" data-toggle aria-expanded="false">Dettaglio <span class="chev">▾</span></button>'+
         '</div>'+
         '<div class="pcard-detail">'+
           '<div class="pcard-legend">'+
@@ -1413,7 +1421,10 @@ h1,h2,h3,h4,
             '<div class="row"><span class="dk">Conto</span><span class="dv">'+escHtml(acct.label)+'</span></div>'+
           '</div>'+
         '</div>';
-      card.querySelector('[data-toggle]').addEventListener('click',()=>card.classList.toggle('open'));
+      card.querySelector('[data-toggle]').addEventListener('click',event=>{
+        card.classList.toggle('open');
+        event.currentTarget.setAttribute('aria-expanded', card.classList.contains('open')?'true':'false');
+      });
       body.appendChild(card);
       const rec={p, acct, card,
         chartHost:card.querySelector('[data-chart]'),
@@ -2242,8 +2253,8 @@ h1,h2,h3,h4,
       ps.attestation_sha256?'manifest '+ps.attestation_sha256.slice(0,12):null]
       .filter(Boolean).join(' · ');
     host.className='public-status'+(active?' active':'');
-    host.innerHTML='<div class="public-status-head"><div><h2 class="public-status-title">'+
-      (active?'Sistema verificato e attivo':'Sistema in pausa')+'</h2><p class="public-status-copy">'+
+    host.innerHTML='<div class="public-status-head"><div><p class="public-status-title">'+
+      (active?'Sistema verificato e attivo':'Sistema in pausa')+'</p><p class="public-status-copy">'+
       escHtml(ps.reason||'Stato operativo non disponibile.')+
       '</p></div><div class="public-status-proof">'+escHtml(proof)+'</div></div>'+
       '<div class="public-status-grid">'+featureHtml+'</div>';
@@ -2282,7 +2293,8 @@ h1,h2,h3,h4,
       if(dC>0) parts.push(dC+' trade chiusi');
       if(dL>0) parts.push(dL+' mosse evolutive');
       if(parts.length){
-        host.innerHTML='<span>● Dal tuo ultimo accesso: <b>'+parts.join(' · ')+'</b></span><span class="cb-x">✕</span>';
+        host.innerHTML='<span>● Dal tuo ultimo accesso: <b>'+parts.join(' · ')+
+          '</b></span><button type="button" class="cb-x" aria-label="Chiudi avviso">✕</button>';
         host.classList.add('show');
         host.querySelector('.cb-x').onclick=()=>host.classList.remove('show');
       }
@@ -2636,9 +2648,9 @@ h1,h2,h3,h4,
         svg.appendChild(dot);
       }
       var first=String(c[0][0]), last=String(c[c.length-1][0]);
-      legendHtml+='<span class="agg-leg-item'+(on?'':' off')+'" data-agg="'+escHtml(a.id)+'" title="'+(on?'clicca per nascondere':'clicca per mostrare')+'"><span class="agg-sw" style="background:'+col+'"></span>'+
+      legendHtml+='<button type="button" class="agg-leg-item'+(on?'':' off')+'" data-agg="'+escHtml(a.id)+'" aria-pressed="'+(on?'true':'false')+'" title="'+(on?'clicca per nascondere':'clicca per mostrare')+'"><span class="agg-sw" style="background:'+col+'"></span>'+
         '<span class="agg-name">'+escHtml(a.label)+'</span>'+
-        '<span class="agg-val">dati '+escHtml(first.slice(0,10))+' → '+escHtml(last.slice(0,10))+'</span></span>';
+        '<span class="agg-val">dati '+escHtml(first.slice(0,10))+' → '+escHtml(last.slice(0,10))+'</span></button>';
     });
     host.innerHTML=''; host.appendChild(svg);
     if(leg){ leg.innerHTML=legendHtml;

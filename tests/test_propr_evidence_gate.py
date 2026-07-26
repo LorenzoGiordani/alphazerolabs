@@ -1,8 +1,5 @@
 import json
-import os
-import subprocess
 import sys
-import textwrap
 from pathlib import Path
 
 import pytest
@@ -775,87 +772,12 @@ def test_first_manage_run_replaces_legacy_state_before_rebalance(tmp_path, monke
     assert captured["target"] == pytest.approx({"BTC": 750.0, "ETH": -750.0})
 
 
-def test_paper_run_requires_both_propr_kill_switches_for_management():
+def test_alpha_paper_run_is_separate_from_propr():
     workflow = (Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml").read_text()
-    assert "DEDUPE_FREE_TRIAL_3" in workflow
-    assert "scripts/propr_guard.py --dedupe --expected-duplicates 3" in workflow
-    assert workflow.index("id: propr_config") < workflow.index("id: propr_dedupe")
-    assert ("if: always() && steps.propr_config.outcome == 'success' && "
-            "inputs.propr_maintenance == 'DEDUPE_FREE_TRIAL_3' && "
-            "env.PROPR_API_KEY != '' && "
-            "env.PROPR_GUARD_ENABLED != 'true' && "
-            "env.PROPR_AUTOMANAGE_ENABLED != 'true'") in workflow
-    assert ("if: always() && steps.propr_config.outcome == 'success' && "
-            "env.PROPR_API_KEY != '' && "
-            "env.PROPR_AUTOMANAGE_ENABLED == 'true' && "
-            "env.PROPR_GUARD_ENABLED == 'true' && "
-            "env.PROPR_GUARD_CANARY_ASSET == '*' && "
-            "steps.propr_guard_pre.outcome == 'success'") in workflow
-    assert workflow.count(
-        "if: always() && steps.propr_config.outcome == 'success'"
-    ) == 5
-    assert '[ "${{ steps.propr_config.outcome }}" = "success" ]' in workflow
-    assert workflow.index("id: propr_guard_pre") < workflow.index("id: propr_manage")
-    assert workflow.index("id: propr_manage") < workflow.index("id: propr_guard\n")
-    assert workflow.index("id: propr_guard\n") < workflow.index("id: propr_gate")
-    assert '--critical "propr_gate=${{ steps.propr_gate.outcome }}"' in workflow
-    assert ("if: always() && steps.health.outcome == 'success' && "
-            "steps.propr_gate.outcome == 'success'") in workflow
+    assert "propr" not in workflow.lower()
+    assert "PROPR_" not in workflow
+    assert "steps.health.outcome == 'success'" in workflow
     assert "fetch-depth: 0" in workflow
-
-
-@pytest.mark.parametrize("variable", [
-    "PROPR_GUARD_ENABLED",
-    "PROPR_AUTOMANAGE_ENABLED",
-])
-@pytest.mark.parametrize("value", ["TRUE", "true ", "yes", "false "])
-def test_paper_run_rejects_noncanonical_boolean_env(variable, value):
-    workflow = (
-        Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml"
-    ).read_text()
-    start = workflow.index('          case "$PROPR_GUARD_ENABLED"')
-    end = workflow.index("\n\n      - name: propr — rimuovi", start)
-    validator = textwrap.dedent(workflow[start:end])
-    env = {
-        **os.environ,
-        "PROPR_GUARD_ENABLED": "false",
-        "PROPR_AUTOMANAGE_ENABLED": "false",
-        variable: value,
-    }
-
-    result = subprocess.run(
-        ["bash", "-c", validator],
-        env=env,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    assert result.returncode != 0
-
-
-@pytest.mark.parametrize("value", ["", "true", "false"])
-def test_paper_run_accepts_canonical_boolean_env(value):
-    workflow = (
-        Path(__file__).resolve().parent.parent / ".github/workflows/paper-run.yml"
-    ).read_text()
-    start = workflow.index('          case "$PROPR_GUARD_ENABLED"')
-    end = workflow.index("\n\n      - name: propr — rimuovi", start)
-    validator = textwrap.dedent(workflow[start:end])
-
-    result = subprocess.run(
-        ["bash", "-c", validator],
-        env={
-            **os.environ,
-            "PROPR_GUARD_ENABLED": value,
-            "PROPR_AUTOMANAGE_ENABLED": value,
-        },
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    assert result.returncode == 0
 
 
 @pytest.mark.parametrize("method", ["POST", "PUT", "DELETE", "PATCH"])
