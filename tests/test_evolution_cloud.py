@@ -491,7 +491,7 @@ def test_eval_excludes_only_warmup_and_preserves_economic_zero_returns():
     _, returns = evolve_portfolio.eval_portfolio(spec, prices, months=1)
 
     assert returns.index.equals(index[24:])
-    assert (returns == 0.0).sum() == len(returns) - 1
+    assert (returns == 0.0).all()
 
 
 def test_checker_rejects_candidate_tampering(tmp_path, monkeypatch):

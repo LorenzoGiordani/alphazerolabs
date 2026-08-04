@@ -25,6 +25,12 @@ def test_xs_weights_too_few():
     assert (w == 0).all()                           # <3 asset → nessun peso
 
 
+def test_xs_weights_tied_cross_section_fails_closed():
+    w = xs_momentum_weights(pd.Series({"A": 0.1, "B": 0.1, "C": 0.1, "D": 0.1}))
+    assert (w == 0).all()
+    assert w.abs().sum() == 0.0
+
+
 def _panel(n=500, syms=("A", "B", "C", "D", "E")):
     ts = pd.date_range("2026-01-01", periods=n, freq="h", tz="UTC")
     cols = {}

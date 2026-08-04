@@ -27,6 +27,8 @@ def xs_momentum_weights(trailing_ret: pd.Series, long_q: float = 0.66,
     if len(s) < 3:
         return w
     hi, lo = s.quantile(long_q), s.quantile(short_q)
+    if not np.isfinite(hi) or not np.isfinite(lo) or hi <= lo:
+        return w
     longs, shorts = s[s >= hi].index, s[s <= lo].index
     if len(longs):
         w[longs] = 0.5 / len(longs)
