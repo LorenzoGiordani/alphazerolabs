@@ -1,0 +1,84 @@
+name: az-openrouter-canary
+
+# Probe only. Never prints the key. Optional put onto az-lane workers.
+on:
+  workflow_dispatch:
+    inputs:
+      put_live:
+        description: If chat works, put OPENROUTER_API_KEY on az-lane-live and az-lane-paper
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: probe OpenRouter
+        id: probe
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${OPENROUTER_API_KEY:-}" ]; then
+            echo "key_http=missing" >> "$GITHUB_OUTPUT"
+            echo "chat_http=missing" >> "$GITHUB_OUTPUT"
+            echo "OPENROUTER_API_KEY secret absent"
+            exit 0
+          fi
+          code=$(curl -sS -o /tmp/or.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${OPENROUTER_API_KEY}" \
+            https://openrouter.ai/api/v1/key || echo curlfail)
+          echo "GET /key http=${code}"
+          python3 - <<'PY'
+          import json
+          try:
+              d=json.load(open("/tmp/or.json"))
+          except Exception as e:
+              print("body_unreadable", e); raise SystemExit
+          err=d.get("error")
+          data=d.get("data") or {}
+          print("error", err)
+          if isinstance(data, dict):
+              print("label", data.get("label"))
+              print("limit", data.get("limit"))
+              print("limit_remaining", data.get("limit_remaining"))
+              print("usage", data.get("usage"))
+          PY
+          echo "key_http=${code}" >> "$GITHUB_OUTPUT"
+          if [ "$code" != "200" ]; then
+            echo "chat_http=skipped" >> "$GITHUB_OUTPUT"
+            echo "KEY_DEAD"
+            exit 0
+          fi
+          chat=$(curl -sS -o /tmp/chat.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${OPENROUTER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "HTTP-Referer: https://alphazerolabs.xyz" \
+            -H "X-Title: AlphaZero Labs" \
+            -d '{"model":"deepseek/deepseek-chat","messages":[{"role":"user","content":"ping"}],"max_tokens":8}' \
+            https://openrouter.ai/api/v1/chat/completions || echo curlfail)
+          echo "POST chat http=${chat}"
+          python3 - <<'PY'
+          import json
+          d=json.load(open("/tmp/chat.json"))
+          print("chat_error", d.get("error"))
+          print("has_choices", bool(d.get("choices")))
+          PY
+          echo "chat_http=${chat}" >> "$GITHUB_OUTPUT"
+
+      - name: put live secrets
+        if: ${{ steps.probe.outputs.chat_http == '200' && inputs.put_live }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          set -euo pipefail
+          npm i -g wrangler@4
+          printf '%s' "$OPENROUTER_API_KEY" | wrangler secret put OPENROUTER_API_KEY --name az-lane-live
+          printf '%s' "$OPENROUTER_API_KEY" | wrangler secret put OPENROUTER_API_KEY --name az-lane-paper
+          echo "PUT_OK"
